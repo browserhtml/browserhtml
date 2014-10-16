@@ -1,0 +1,29 @@
+{
+  "name": "firebox",
+  "description": "SDK on top of Firefox for building desktop apps using HTML/CSS/JS",
+  "version": "0.0.0",
+  "keywords": [
+    "firebox",
+    "gecko",
+    "firefox",
+    "application",
+    "jetpack",
+    "mozilla"
+  ],
+  "homepage": "https://github.com/Gozala/firebox",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gozala/firebox.git",
+    "web": "https://github.com/Gozala/firebox"
+  },
+  "bugs": {
+    "url": "http://github.com/Gozala/firebox/issues/"
+  },
+  "licenses": [
+    {
+      "type": "MPL",
+      "version": "2.0",
+      "url": "http://mozilla.org/MPL/2.0/"
+    }
+  ]
+}
