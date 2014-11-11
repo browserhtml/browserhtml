@@ -1,0 +1,220 @@
+:root {
+  --toolbarbutton-hover-background-image: linear-gradient(hsla(0,0%,100%,.7), hsla(0,0%,100%,.2)),
+                                          linear-gradient(hsla(0,0%,100%,.3), hsla(0,0%,100%,.3));
+  --toolbarbutton-hover-boxshadow: 0 1px 0 hsla(0,0%,100%,.3) inset, 0 0 0 1px hsla(0,0%,100%,.2) inset, 0 1px 0 hsla(0,0%,0%,.03);
+  --toolbarbutton-hover-bordercolor: rgb(154,154,154);
+
+  --toolbarbutton-active-boxshadow: 0 1px 1px hsla(0,0%,0%,.1) inset, 0 0 1px hsla(0,0%,0%,.3) inset;
+  --toolbarbutton-active-bordercolor: rgb(154,154,154);
+  --toolbarbutton-active-background-image: linear-gradient(hsla(0,0%,100%,.7), hsla(0,0%,100%,.4)),
+                                           linear-gradient(rgba(154,154,154,.5),rgba(154,154,154,.5));
+  --hwd-pixel: 1px;
+  --radius: 3px;
+}
+
+@media (min-resolution: 2dppx) {
+  :root {
+    --hwd-pixel: 0.5px;
+  }
+}
+
+/* tabs */
+
+.tabstrip {
+  padding: 0 28px 0 10px;
+  margin-bottom: calc(-1 * var(--hwd-pixel));
+  z-index: 999;
+}
+
+[os="osx"] .tabstrip {
+  padding-left: 70px;
+}
+
+.tab {
+  -moz-user-select: none;
+  cursor: default;
+  color: #444;
+  height: 28px;
+  border-style: solid;
+  border-width: 0 28px;
+  border-image-slice: 0 28 0 28 fill;
+  border-color: transparent;
+  margin-right: -25px;
+  padding-top: 1px;
+  flex-basis: 120px;
+  background-clip: border-box;
+}
+
+@media (min-resolution: 2dppx) {
+  .tab {
+    border-image-slice: 0 56 0 56 fill;
+  }
+}
+
+
+.tab.selected {
+  z-index: 1001;
+  border-image-source: -moz-element(#canvas-tab-selected);
+}
+
+.tab:not(.selected):not(:hover) + .tab:not(.selected):not(:hover):not(:first-of-type) {
+  background-image: linear-gradient(to top, #AAA, transparent 80%);
+  background-size: 1px 100%;
+  background-repeat: no-repeat;
+  background-position: -14px 0;
+}
+
+.tab:not(.selected):hover {
+  border-image-source: -moz-element(#canvas-tab-hover);
+}
+
+.favicon, .throbber {
+  width: 16px;
+  height: 16px;
+  margin: 0 3px 0 -6px;
+}
+
+.favicon:not([src]) {
+  display: none;
+}
+
+.throbber {
+  background-image: url(../images/shared/loading.png);
+  background-size: 16px 16px;
+}
+
+@media (min-resolution: 2dppx) {
+  .throbber {
+    background-image: url(../images/shared/loading@2x.png);
+  }
+}
+
+
+.tab[data-loading="true"] > .favicon,
+.tab:not([data-loading="true"]) > .throbber {
+  display: none;
+}
+
+.tab > .title {
+  flex-grow: 1;
+  width: 0;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  z-index: 1000;
+}
+
+.tab > .close-button {
+  width: 16px;
+  height: 16px;
+  background-color: transparent;
+  background-image: url(../images/shared/close.png);
+  background-size: 64px 16px;;
+  background-position: 0 0;
+  margin: 0 -6px 0 3px;
+}
+
+@media (min-resolution: 2dppx) {
+  .tab > .close-button {
+    background-image: url(../images/shared/close@2x.png);
+  }
+}
+
+.tab > .close-button:hover {
+  background-position: -16px 0;
+}
+
+.tab > .close-button:hover:active {
+  background-position: -32px 0;
+}
+
+/* navbar */
+
+.navbar {
+  padding: 4px 6px;
+  background-image: linear-gradient(#EDEDED, #D3D3D3);
+  border-style: solid;
+  border-width: var(--hwd-pixel) 0;
+  border-color: #AAA;
+}
+
+.navbar > button {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  padding: 2px 4px;
+  border: var(--hwd-pixel) solid transparent;
+  background-origin: content-box, border-box, border-box;
+  background-clip: content-box, border-box, border-box;
+  background-image: url(../images/shared/Toolbar.png);
+  background-size: 756px 72px;
+  border-radius: var(--radius);
+}
+
+.navbar > button[disabled] {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.navbar > button:hover {
+  background-image: url(../images/shared/Toolbar.png), var(--toolbarbutton-hover-background-image);
+  border-color: var(--toolbarbutton-hover-bordercolor);
+  box-shadow: var(--toolbarbutton-hover-boxshadow);
+}
+
+.navbar > button:hover:active {
+  background-image: url(../images/shared/Toolbar.png), var(--toolbarbutton-active-background-image);
+  border-color: var(--toolbarbutton-active-bordercolor);
+  box-shadow: var(--toolbarbutton-active-boxshadow);
+}
+
+@media (min-resolution: 2dppx) {
+  .navbar > button {
+    background-image: url(../images/shared/Toolbar@2x.png);
+  }
+  .navbar > button:hover {
+    background-image: url(../images/shared/Toolbar@2x.png), var(--toolbarbutton-hover-background-image);
+  }
+  .navbar > button:hover:active {
+    background-image: url(../images/shared/Toolbar@2x.png), var(--toolbarbutton-active-background-image);
+  }
+}
+
+
+body[data-loading="true"] .reload-button,
+body:not([data-loading="true"]) .stop-button {
+  display: none;
+}
+
+.back-button {    background-position: -36px   0px; }
+.forward-button { background-position: -54px   0px; }
+.reload-button {  background-position: -73px   0px; }
+.stop-button {    background-position: -90px   0px; }
+.menu-button {    background-position: -468px  0px; }
+
+.urlbar, .searchbar {
+  background-color: white;
+  border-radius: var(--radius);
+  margin: 4px 6px 3px;
+  padding: 0 6px 0 24px;
+  border-style: solid;
+  border-color: #B0AEB0;
+  border-bottom-width: 1px;
+}
+
+.urlbar.focus, .searchbar.focus {
+  border-color: white;
+  box-shadow: 0 0 0 3px #91B8E3;
+}
+
+.urlinput, .searchinput {
+  font: -moz-field;
+  font-size: 12px;
+  line-height: 22px;
+  vertical-align: bottom;
+}
+
+/* iframes */
+
+body:not([os="osx"]) .iframes {
+  background-color: white;
+}

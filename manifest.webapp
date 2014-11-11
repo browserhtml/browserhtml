@@ -1,0 +1,25 @@
+{
+  "name": "Browser2",
+  "description": "Firefox2",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "system",
+  "developer": {
+    "name": "Paul Rouget",
+    "url": "https://paulrouget.com"
+  },
+  "permissions": {
+    "browser":{},
+    "embed-apps":{},
+    "systemXHR":{},
+    "settings":{ "access": "readwrite" },
+    "geolocation" : {},
+    "storage": {},
+    "desktop-notification" : {},
+    "audio-capture": {},
+    "video-capture": {}
+  },
+  "icons": {
+    "284": "/branding/browser_284.png"
+  }
+}
