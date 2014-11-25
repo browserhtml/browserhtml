@@ -25,6 +25,8 @@ function Tab(iframeParent) {
   this.clearTabData();
 
   this._dom = hbox;
+
+  this.updateDom();
 }
 
 Tab.prototype = {
@@ -113,7 +115,19 @@ Tab.prototype = {
     } else {
       this.dom.classList.remove("loading");
     }
-    this.dom.querySelector(".title").textContent = this.title;
+
+    console.log("title", this.title);
+    console.log("location", this.location);
+    if (this.title) {
+      this.dom.querySelector(".title").textContent = this.title;
+    } else {
+      if (this.location) {
+        this.dom.querySelector(".title").textContent = this.location;
+      } else {
+        this.dom.querySelector(".title").textContent = "New Tab";
+      }
+    }
+
     let faviconImg = this.dom.querySelector(".favicon");
     if (this.favicon) {
       faviconImg.src = this.favicon;
@@ -123,8 +137,8 @@ Tab.prototype = {
   },
 
   clearTabData: function() {
-    this._loading = true;
-    this._title = "Connecting…";
+    this._loading = false;
+    this._title = "";
     this._location = "";
     this._favicon = "";
   },
@@ -135,8 +149,8 @@ Tab.prototype = {
     let somethingChanged = true;
     switch(e.type) {
       case "mozbrowserloadstart":
-        this._loading = true;
         this.clearTabData();
+        this._loading = true;
         break;
       case "mozbrowserloadend":
         this._loading = false;

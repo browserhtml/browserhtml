@@ -1,19 +1,21 @@
-(function drawCurves() {
-  let navbar = document.querySelector(".navbar");
-  let navbarBorderColor;
+window.addEventListener("load", function drawCurves() {
+  window.removeEventListener("load", drawCurve);
+  let curveDummyElt = document.querySelector(".dummy-tab-curve");
+  let style = window.getComputedStyle(curveDummyElt);
 
-  if (window.OS == "osx") {
-    navbarBorderColor = window.getComputedStyle(navbar).borderTopColor
-  } else {
-    navbarBorderColor = "transparent";
-  }
+  let curveBorder = style.getPropertyValue("--curve-border");
+  let curveGradientStart = style.getPropertyValue("--curve-gradient-start");
+  let curveGradientEnd = style.getPropertyValue("--curve-gradient-end");
+  let curveHoverBorder = style.getPropertyValue("--curve-hover-border");
+  let curveHoverGradientStart = style.getPropertyValue("--curve-hover-gradient-start");
+  let curveHoverGradientEnd = style.getPropertyValue("--curve-hover-gradient-end");
 
   let c1 = document.createElement("canvas");
       c1.id = "canvas-tab-selected";
       c1.hidden = true;
       c1.width = 3 * 28;
       c1.height = 28;
-  drawBackgroundTab(c1, "#FBFBFB", "#EDEDED", navbarBorderColor);
+  drawBackgroundTab(c1, curveGradientStart, curveGradientEnd, curveBorder);
   document.body.appendChild(c1);
 
   let c2 = document.createElement("canvas");
@@ -21,18 +23,12 @@
       c2.hidden = true;
       c2.width = 3 * 28;
       c2.height = 28;
-
-  let hoverColor;
-  if (window.OS == "osx") {
-    hoverColor = "transparent";
-  } else {
-    hoverColor = "rgba(255,255,255,0.4)";
-  }
-  drawBackgroundTab(c2, hoverColor, hoverColor, navbarBorderColor);
+  drawBackgroundTab(c2, curveHoverGradientStart, curveHoverGradientEnd, curveHoverBorder);
   document.body.appendChild(c2);
-})();
 
-function drawBackgroundTab(canvas,bg1,bg2,borderColor,shadowColor) {
+});
+
+function drawBackgroundTab(canvas, bg1, bg2, borderColor) {
   canvas.width = window.devicePixelRatio * canvas.width;
   canvas.height = window.devicePixelRatio * canvas.height;
   let ctx = canvas.getContext("2d");
@@ -44,27 +40,20 @@ function drawBackgroundTab(canvas,bg1,bg2,borderColor,shadowColor) {
   ctx.lineTo(0, r);
   ctx.closePath();
   ctx.clip();
+
   // draw background
   let lingrad = ctx.createLinearGradient(0,0,0,r);
   lingrad.addColorStop(0, bg1);
   lingrad.addColorStop(1, bg2);
   ctx.fillStyle = lingrad;
   ctx.fillRect(0,0,3*r,r);
-  if (borderColor) {
-    ctx.restore();
-    ctx.beginPath();
-    drawCurve(ctx,r);
-    ctx.strokeStyle = borderColor;
-  }
-  if (shadowColor) {
-    ctx.shadowColor = shadowColor;
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 1;
-  }
-  if (borderColor || shadowColor) {
-    ctx.stroke();
-  }
+
+  // draw border
+  ctx.restore();
+  ctx.beginPath();
+  drawCurve(ctx,r);
+  ctx.strokeStyle = borderColor;
+  ctx.stroke();
 }
 
 function drawCurve(ctx,r) {
@@ -74,8 +63,8 @@ function drawCurve(ctx,r) {
                     r * 0.43499998, r * 0.5625);
   ctx.bezierCurveTo(r * 0.46819998, r * 0.3905,
                     r * 0.485, r * 0.0659,
-                    r * 0.95, r * 0.0);
-  ctx.lineTo(r + r * 1.05, r * 0.0);
+                    r * 0.95,  0.5);
+  ctx.lineTo(r + r * 1.05, 0.5);
   ctx.bezierCurveTo(3 * r - r * 0.485, r * 0.0659,
                     3 * r - r * 0.46819998, r * 0.3905,
                     3 * r - r * 0.43499998, r * 0.5625);

@@ -22,7 +22,7 @@
 
 .tabstrip {
   padding: 0 28px 0 10px;
-  margin-bottom: calc(-1 * var(--hwd-pixel));
+  margin-bottom: calc(-2 * var(--hwd-pixel));
   z-index: 999;
 }
 
@@ -43,6 +43,26 @@
   padding-top: 1px;
   flex-basis: 120px;
   background-clip: border-box;
+}
+
+[os="linux"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-border: transparent;
+  --curve-gradient-start: #FBFBFB;
+  --curve-gradient-end: #EDEDED;
+  --curve-hover-border: transparent;
+  --curve-hover-gradient-start: rgba(255,255,255,0.4);
+  --curve-hover-gradient-end: rgba(255,255,255,0.4);
+}
+
+[os="osx"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-border: #AAA;
+  --curve-gradient-start: #FBFBFB;
+  --curve-gradient-end: #EDEDED;
+  --curve-hover-border: #AAA;
+  --curve-hover-gradient-start: transparent;
+  --curve-hover-gradient-end: transparent;
 }
 
 [os="linux"] .tab {
@@ -106,6 +126,13 @@
   text-overflow: ellipsis;
   overflow-x: hidden;
   z-index: 1000;
+  opacity: 0.7;
+  font: -moz-field;
+  font-size: 12px;
+}
+
+.tab.selected > .title {
+  opacity: 1;
 }
 
 .tab > .close-button {
@@ -114,8 +141,15 @@
   background-color: transparent;
   background-image: url(../images/shared/close.png);
   background-size: 64px 16px;;
-  background-position: -48px 0;
   margin: 0 -6px 0 3px;
+}
+
+[os="osx"] .tab > .close-button {
+  background-position: 0 0;
+}
+
+[os="linux"] .tab > .close-button {
+  background-position: -48px 0;
 }
 
 .tab.selected > .close-button {
