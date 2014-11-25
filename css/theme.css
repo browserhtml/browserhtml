@@ -43,6 +43,9 @@
   padding-top: 1px;
   flex-basis: 120px;
   background-clip: border-box;
+}
+
+[os="linux"] .tab {
   color: white;
 }
 
@@ -92,8 +95,8 @@
 }
 
 
-.tab[data-loading="true"] > .favicon,
-.tab:not([data-loading="true"]) > .throbber {
+.tab.loading > .favicon,
+.tab:not(.loading) > .throbber {
   display: none;
 }
 
@@ -157,7 +160,7 @@
   border-radius: var(--radius);
 }
 
-.navbar > button[disabled] {
+.navbar > button.disabled {
   pointer-events: none;
   opacity: 0.4;
 }
@@ -187,8 +190,8 @@
 }
 
 
-body[data-loading="true"] .reload-button,
-body:not([data-loading="true"]) .stop-button {
+body.loading .reload-button,
+body:not(.loading) .stop-button {
   display: none;
 }
 
