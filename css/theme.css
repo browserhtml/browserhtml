@@ -43,6 +43,7 @@
   padding-top: 1px;
   flex-basis: 120px;
   background-clip: border-box;
+  color: white;
 }
 
 @media (min-resolution: 2dppx) {
@@ -55,6 +56,7 @@
 .tab.selected {
   z-index: 1001;
   border-image-source: -moz-element(#canvas-tab-selected);
+  color: black;
 }
 
 .tab:not(.selected):not(:hover) + .tab:not(.selected):not(:hover):not(:first-of-type) {

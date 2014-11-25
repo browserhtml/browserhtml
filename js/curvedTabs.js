@@ -1,13 +1,19 @@
 (function drawCurves() {
   let navbar = document.querySelector(".navbar");
-  let navbarBorderColor = window.getComputedStyle(navbar).borderTopColor
+  let navbarBorderColor;
+
+  if (window.OS == "osx") {
+    navbarBorderColor = window.getComputedStyle(navbar).borderTopColor
+  } else {
+    navbarBorderColor = "transparent";
+  }
 
   let c1 = document.createElement("canvas");
       c1.id = "canvas-tab-selected";
       c1.hidden = true;
       c1.width = 3 * 28;
       c1.height = 28;
-  drawBackgroundTab(c1,"#FBFBFB","#EDEDED",navbarBorderColor);
+  drawBackgroundTab(c1, "#FBFBFB", "#EDEDED", navbarBorderColor);
   document.body.appendChild(c1);
 
   let c2 = document.createElement("canvas");
@@ -15,7 +21,14 @@
       c2.hidden = true;
       c2.width = 3 * 28;
       c2.height = 28;
-  drawBackgroundTab(c2,"transparent","transparent",navbarBorderColor);
+
+  let hoverColor;
+  if (window.OS == "osx") {
+    hoverColor = "transparent";
+  } else {
+    hoverColor = "rgba(255,255,255,0.4)";
+  }
+  drawBackgroundTab(c2, hoverColor, hoverColor, navbarBorderColor);
   document.body.appendChild(c2);
 })();
 
