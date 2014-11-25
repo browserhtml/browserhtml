@@ -168,6 +168,9 @@ Tab.prototype = {
       case "mozbrowsererror":
         this._loading = false;
         break;
+      case "mozbrowseropenwindow":
+        gBrowser.addTab(e.detail.url, true);
+        break;
       default:
         somethingChanged = false;
     }
