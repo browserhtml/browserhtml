@@ -1,4 +1,6 @@
-function Tab() {
+function Tab(iframeParent) {
+  this._iframeParent = iframeParent;
+
   let hbox = document.createElement("hbox");
   hbox.className = "tab";
   hbox.setAttribute("align", "center");
@@ -20,20 +22,17 @@ function Tab() {
   hbox.appendChild(title);
   hbox.appendChild(button);
 
+  this.clearTabData();
+
   this._dom = hbox;
-
-  let iframe = document.createElement("iframe");
-  iframe.setAttribute("mozbrowser", "true");
-  iframe.setAttribute("flex", "1");
-  iframe.setAttribute("remote", "true");
-  this._iframe = iframe;
-
-  this._trackIframe();
 }
 
 Tab.prototype = {
 
   get iframe() {
+    if (!this.hasIframe()) {
+      this._createIframe();
+    }
     return this._iframe;
   },
 
@@ -41,9 +40,34 @@ Tab.prototype = {
     return this._dom;
   },
 
+  hasIframe: function() {
+    return !!this._iframe;
+  },
+
+  _createIframe: function() {
+    let iframe = document.createElement("iframe");
+    iframe.setAttribute("mozbrowser", "true");
+    iframe.setAttribute("flex", "1");
+    iframe.setAttribute("remote", "true");
+
+    this._iframe = iframe;
+
+    this._iframeParent.appendChild(iframe);
+
+    if (this.isSelected) {
+      iframe.show();
+    } else {
+      iframe.hide();
+    }
+
+    this._trackIframe();
+  },
+
   destroy: function() {
     this.dom.remove();
-    this.iframe.remove();
+    if (this.iframe) {
+      this.iframe.remove();
+    }
     this._selected = false;
   },
 
@@ -52,14 +76,17 @@ Tab.prototype = {
   },
 
   select: function() {
-    this.iframe.show();
-    this.iframe.focus();
+    if (this.hasIframe()) {
+      this.iframe.show();
+    }
     this.dom.classList.add("selected");
     this._selected = true;
   },
 
   unselect: function() {
-    this.iframe.hide();
+    if (this.hasIframe()) {
+      this.iframe.hide();
+    }
     this.dom.classList.remove("selected");
     this._selected = false;
   },
@@ -95,15 +122,19 @@ Tab.prototype = {
     }
   },
 
-  _loading: true,
-  _title: "",
-  _location: "",
-  _favicon: "",
+  clearTabData: function() {
+    this._loading = true;
+    this._title = "Connecting…";
+    this._location = "";
+    this._favicon = "";
+  },
+
   handleEvent: function(e) {
     let somethingChanged = true;
     switch(e.type) {
       case "mozbrowserloadstart":
         this._loading = true;
+        this.clearTabData();
         break;
       case "mozbrowserloadend":
         this._loading = false;
@@ -112,7 +143,6 @@ Tab.prototype = {
         this._title = e.detail;
         break;
       case "mozbrowserlocationchange":
-        this._favicon = "";
         this._location = e.detail;
         break;
       case "mozbrowsericonchange":

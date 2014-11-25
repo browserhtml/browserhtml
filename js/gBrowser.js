@@ -21,6 +21,8 @@ let gBrowser = {
 
   _selectedTab: null,
 
+  _urlTemplate: "https://search.yahoo.com/search?p={searchTerms}",
+
   get selectedTab() {
     return this._selectedTab;
   },
@@ -28,7 +30,15 @@ let gBrowser = {
   urlInputChanged: function() {
     let urlinput = document.querySelector(".urlinput");
     let text = urlinput.value;
-    this.selectedTab.iframe.src = text;
+    let url = this.preprocessUrlInput(text);
+    this.selectedTab.iframe.src = url;
+  },
+
+  searchInputChanged: function() {
+    let searchinput = document.querySelector(".searchinput");
+    let text = searchinput.value;
+    let url = this._urlTemplate.replace('{searchTerms}', encodeURIComponent(text));
+    this.selectedTab.iframe.src = url;
   },
 
   selectedTabHasChanged: function() {
@@ -49,42 +59,46 @@ let gBrowser = {
       return;
     }
 
-    let iframe = tab.iframe;
+    if (tab.hasIframe()) {
+      let iframe = tab.iframe;
 
-    iframe.getCanGoBack().onsuccess = r => {
-      // Make sure iframe is still selected
-      if (tab != this.selectedTab) {
-        return;
+      iframe.getCanGoBack().onsuccess = r => {
+        // Make sure iframe is still selected
+        if (tab != this.selectedTab) {
+          return;
+        }
+        if (r.target.result) {
+          document.querySelector(".back-button").classList.remove("disabled");
+        } else {
+          document.querySelector(".back-button").classList.add("disabled");
+        }
       }
-      if (r.target.result) {
-        document.querySelector(".back-button").classList.remove("disabled");
-      } else {
-        document.querySelector(".back-button").classList.add("disabled");
+      iframe.getCanGoForward().onsuccess = r => {
+        // Make sure iframe is still selected
+        if (tab != this.selectedTab) {
+          return;
+        }
+        if (r.target.result) {
+          document.querySelector(".forward-button").classList.remove("disabled");
+        } else {
+          document.querySelector(".forward-button").classList.add("disabled");
+        }
       }
-    }
-    iframe.getCanGoForward().onsuccess = r => {
-      // Make sure iframe is still selected
-      if (tab != this.selectedTab) {
-        return;
-      }
-      if (r.target.result) {
-        document.querySelector(".forward-button").classList.remove("disabled");
-      } else {
-        document.querySelector(".forward-button").classList.add("disabled");
-      }
+    } else {
+      document.querySelector(".back-button").classList.add("disabled");
+      document.querySelector(".forward-button").classList.add("disabled");
     }
 
   },
 
   addTab: function(url, select) {
-    let tab = new Tab(url);
+    let tab = new Tab(document.querySelector(".iframes"));
     this._tabs.add(tab);
 
     if (url && IS_PRIVILEGED) {
       tab.iframe.src = url;
     }
 
-    document.querySelector(".iframes").appendChild(tab.iframe);
     document.querySelector(".tabstrip").appendChild(tab.dom);
 
     tab.dom.onclick = () => this.selectTab(tab);
@@ -104,6 +118,7 @@ let gBrowser = {
     }
     this._selectedTab = tab;
     tab.select();
+    this.selectedTabHasChanged();
   },
 
   getTabPosition: function(tab) {
@@ -156,6 +171,18 @@ let gBrowser = {
 
     tab.destroy();
     this._tabs.delete(tab);
+  },
+
+  preprocessUrlInput: function(input) {
+    if (UrlHelper.isNotURL(input)) {
+      return this._urlTemplate.replace('{searchTerms}', encodeURIComponent(input));
+    }
+
+    if (!UrlHelper.hasScheme(input)) {
+      input = 'http://' + input;
+    }
+
+    return input;
   },
 }
 

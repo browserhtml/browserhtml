@@ -11,7 +11,7 @@ const Cmds = {
     gBrowser.selectedTab.iframe.reload();
   },
   stop: function() {
-    gBrowser.selectTab.iframe.stop();
+    gBrowser.selectedTab.iframe.stop();
   },
   createNewTab: function(url) {
     gBrowser.addTab(url, true);

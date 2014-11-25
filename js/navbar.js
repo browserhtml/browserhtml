@@ -1,7 +1,7 @@
-document.querySelector(".back-button").onclick = () => Cmds.navigation.goBack();
-document.querySelector(".forward-button").onclick = () => Cmds.navigation.goForward();
-document.querySelector(".reload-button").onclick = () => Cmds.navigation.reload();
-document.querySelector(".stop-button").onclick = () => Cmds.navigation.stop();
+document.querySelector(".back-button").onclick = () => Cmds.goBack();
+document.querySelector(".forward-button").onclick = () => Cmds.goForward();
+document.querySelector(".reload-button").onclick = () => Cmds.reload();
+document.querySelector(".stop-button").onclick = () => Cmds.stop();
 
 let urlbar = document.querySelector(".urlbar");
 let urlinput = document.querySelector(".urlinput");
@@ -22,3 +22,8 @@ searchinput.addEventListener("focus", () => {
   searchbar.classList.add("focus");
 })
 searchinput.addEventListener("blur", () => searchbar.classList.remove("focus"))
+searchinput.addEventListener("keypress", (e) => {
+  if (e.keyCode == 13) {
+    gBrowser.searchInputChanged()
+  }
+});
