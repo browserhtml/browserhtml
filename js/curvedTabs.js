@@ -57,14 +57,15 @@ function drawBackgroundTab(canvas, bg1, bg2, borderColor) {
 }
 
 function drawCurve(ctx,r) {
+  let firstLine = 1 / window.devicePixelRatio;
   ctx.moveTo(r * 0, r * 0.984);
   ctx.bezierCurveTo(r * 0.27082458, r * 0.95840561,
                     r * 0.3853096, r * 0.81970962,
                     r * 0.43499998, r * 0.5625);
   ctx.bezierCurveTo(r * 0.46819998, r * 0.3905,
                     r * 0.485, r * 0.0659,
-                    r * 0.95,  0.5);
-  ctx.lineTo(r + r * 1.05, 0.5);
+                    r * 0.95,  firstLine);
+  ctx.lineTo(r + r * 1.05, firstLine);
   ctx.bezierCurveTo(3 * r - r * 0.485, r * 0.0659,
                     3 * r - r * 0.46819998, r * 0.3905,
                     3 * r - r * 0.43499998, r * 0.5625);
