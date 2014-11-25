@@ -22,7 +22,7 @@
 
 .tabstrip {
   padding: 0 28px 0 10px;
-  margin-bottom: calc(-2 * var(--hwd-pixel));
+  margin-bottom: calc(-1 * var(--hwd-pixel));
   z-index: 999;
 }
 

@@ -57,7 +57,7 @@ function drawBackgroundTab(canvas, bg1, bg2, borderColor) {
 }
 
 function drawCurve(ctx,r) {
-  ctx.moveTo(r * 0, r * 0.975);
+  ctx.moveTo(r * 0, r * 0.984);
   ctx.bezierCurveTo(r * 0.27082458, r * 0.95840561,
                     r * 0.3853096, r * 0.81970962,
                     r * 0.43499998, r * 0.5625);
@@ -70,6 +70,6 @@ function drawCurve(ctx,r) {
                     3 * r - r * 0.43499998, r * 0.5625);
   ctx.bezierCurveTo(3 * r - r * 0.3853096, r * 0.81970962,
                     3 * r - r * 0.27082458, r * 0.95840561,
-                    3 * r - r * 0, r * 0.975);
+                    3 * r - r * 0, r * 0.984);
 }
 
