@@ -111,9 +111,14 @@
   background-color: transparent;
   background-image: url(../images/shared/close.png);
   background-size: 64px 16px;;
-  background-position: 0 0;
+  background-position: -48px 0;
   margin: 0 -6px 0 3px;
 }
+
+.tab.selected > .close-button {
+  background-position: 0 0;
+}
+
 
 @media (min-resolution: 2dppx) {
   .tab > .close-button {
