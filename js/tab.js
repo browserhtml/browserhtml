@@ -129,6 +129,8 @@ Tab.prototype = {
     this._favicon = "";
   },
 
+  userInput: "",
+
   handleEvent: function(e) {
     let somethingChanged = true;
     switch(e.type) {
@@ -143,6 +145,7 @@ Tab.prototype = {
         this._title = e.detail;
         break;
       case "mozbrowserlocationchange":
+        this.userInput = "";
         this._location = e.detail;
         break;
       case "mozbrowsericonchange":

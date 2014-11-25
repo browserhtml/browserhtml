@@ -24,9 +24,11 @@ const Cmds = {
   },
   focusURLBar: function() {
     document.querySelector(".urlinput").focus();
+    document.querySelector(".urlinput").select();
   },
   focusSearchBar: function() {
     document.querySelector(".searchinput").focus();
+    document.querySelector(".searchinput").select();
   },
   closeTab: function() {
     gBrowser.closeTab(gBrowser.selectedTab);

@@ -53,7 +53,12 @@ let gBrowser = {
     }
 
     let urlinput = document.querySelector(".urlinput");
-    urlinput.value = tab.location;
+
+    if (tab.userInput) {
+      urlinput.value = tab.userInput;
+    } else {
+      urlinput.value = tab.location;
+    }
 
     if (!IS_PRIVILEGED) {
       return;
@@ -119,6 +124,8 @@ let gBrowser = {
     this._selectedTab = tab;
     tab.select();
     this.selectedTabHasChanged();
+
+    document.querySelector(".urlinput").focus();
   },
 
   getTabPosition: function(tab) {
