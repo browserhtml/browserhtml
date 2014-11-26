@@ -32,6 +32,7 @@ let gBrowser = {
     let text = urlinput.value;
     let url = this.preprocessUrlInput(text);
     this.selectedTab.iframe.src = url;
+    this.selectedTab.iframe.focus();
   },
 
   searchInputChanged: function() {
@@ -39,6 +40,7 @@ let gBrowser = {
     let text = searchinput.value;
     let url = this._urlTemplate.replace('{searchTerms}', encodeURIComponent(text));
     this.selectedTab.iframe.src = url;
+    this.selectedTab.iframe.focus();
   },
 
   selectedTabHasChanged: function() {
