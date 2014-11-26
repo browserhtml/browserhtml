@@ -1,114 +1,86 @@
 // Keybindings
 
-window.addEventListener("keydown", e => {
-  let end = () => {e.preventDefault(); e.stopPropagation()};
+(function() {
 
-  if (e.keyCode == 27) {
-    Cmds.stop();
-    end();
-  }
+  let allKeyBindings = [];
 
-  if (e.keyCode == 9 && e.ctrlKey && !e.shiftKey) {
-    Cmds.selectNextTab();
-    end();
-  }
-  if (e.keyCode == 9 && e.ctrlKey && e.shiftKey) {
-    Cmds.selectPreviousTab();
-    end();
+  RegisterKeyBindings(
+    ["",              "Esc",        "stop"],
+    ["Ctrl",          "Tab",        "selectNextTab"],
+    ["Ctrl Shift",    "code:9",     "selectPreviousTab"]
+  );
+
+  if (window.OS == "linux" || window.OS == "windows") {
+    RegisterKeyBindings(
+      ["Ctrl",          "t",          "createNewTab"],
+      ["Ctrl",          "r",          "reload"],
+      ["Alt",           "Left",       "goBack"],
+      ["Alt",           "Right",      "goForward"],
+      ["Ctrl",          "l",          "focusURLBar"],
+      ["Ctrl",          "k",          "focusSearchBar"],
+      ["Ctrl",          "w",          "closeTab"],
+      ["Ctrl Shift",    "+",          "zoomIn"],
+      ["Ctrl",          "=",          "zoomIn"],
+      ["Ctrl",          "-",          "zoomOut"],
+      ["Ctrl",          "0",          "resetZoom"]
+    );
   }
 
   if (window.OS == "osx") {
-    if (e.keyCode == 84 && e.metaKey) {
-      Cmds.createNewTab();
-      end();
-    }
-    if (e.keyCode == 82 && e.metaKey && !e.shiftKey) {
-      Cmds.reload();
-      end();
-    }
-    if (e.keyCode == 37 && e.metaKey) {
-      Cmds.goBack();
-      end();
-    }
-    if (e.keyCode == 39 && e.metaKey) {
-      Cmds.goForward();
-      end();
-    }
-    if (e.keyCode == 76 && e.metaKey) {
-      Cmds.focusURLBar();
-      end();
-    }
-    if (e.keyCode == 75 && e.metaKey) {
-      Cmds.focusSearchBar();
-      end();
-    }
-    if (e.keyCode == 87 && e.metaKey) {
-      Cmds.closeTab();
-      end();
-    }
-    if (e.key == "+" && e.metaKey) {
-      Cmds.zoomIn();
-      end();
-    }
-    if (e.key == "=" && e.metaKey) {
-      Cmds.zoomIn();
-      end();
-    }
-    if (e.key == "-" && e.metaKey) {
-      Cmds.zoomOut();
-      end();
-    }
-    if (e.key == "0" && e.metaKey) {
-      Cmds.resetZoom();
-      end();
+    RegisterKeyBindings(
+      ["Cmd",       "t",          "createNewTab"],
+      ["Cmd",       "r",          "reload"],
+      ["Cmd",       "Left",       "goBack"],
+      ["Cmd",       "Right",      "goForward"],
+      ["Cmd",       "l",          "focusURLBar"],
+      ["Cmd",       "k",          "focusSearchBar"],
+      ["Cmd",       "w",          "closeTab"],
+      ["Cmd Shift", "+",          "zoomIn"],
+      ["Cmd",       "=",          "zoomIn"],
+      ["Cmd",       "-",          "zoomOut"],
+      ["Cmd",       "0",          "resetZoom"]
+    );
+  }
+
+  function RegisterKeyBindings(...bindings) {
+    for (let b of bindings) {
+      let mods = b[0];
+      let key = b[1];
+      let func = b[2];
+
+      let e = {
+        ctrlKey: false,
+        shiftKey: false,
+        metaKey: false,
+        altKey: false
+      }
+
+      if (mods.indexOf("Ctrl") > -1) e.ctrlKey = true;
+      if (mods.indexOf("Shift") > -1) e.shiftKey = true;
+      if (mods.indexOf("Alt") > -1) e.altKey = true;
+      if (mods.indexOf("Cmd") > -1) e.metaKey = true;
+
+      if (key.indexOf("code:") > -1) {
+        e.keyCode = key.split(":")[1];
+      } else {
+        e.key = key;
+      }
+      allKeyBindings.push({event:e,func:func});
     }
   }
 
-  if (window.OS == "linux" || window.OS == "windows") {
-    if (e.keyCode == 84 && e.ctrlKey) {
-      Cmds.createNewTab();
-      end();
+  window.addEventListener("keypress", e => {
+    for (let oneKeyBinding of allKeyBindings) {
+      let matches = true;
+      for (let prop in oneKeyBinding.event) {
+        if (e[prop] != oneKeyBinding.event[prop]) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches) {
+        Cmds[oneKeyBinding.func]();
+      }
     }
-    if (e.keyCode == 82 && e.ctrlKey && !e.shiftKey) {
-      Cmds.reload();
-      end();
-    }
-    if (e.keyCode == 37 && e.altKey) {
-      Cmds.goBack();
-      end();
-    }
-    if (e.keyCode == 39 && e.altKey) {
-      Cmds.goForward();
-      end();
-    }
-    if (e.keyCode == 76 && e.ctrlKey) {
-      Cmds.focusURLBar();
-      end();
-    }
-    if (e.keyCode == 75 && e.ctrlKey) {
-      Cmds.focusSearchBar();
-      end();
-    }
-    if (e.keyCode == 87 && e.ctrlKey) {
-      Cmds.closeTab();
-      end();
-    }
-    if (e.key == "+" && e.ctrlKey) {
-      Cmds.zoomIn();
-      end();
-    }
-    if (e.key == "=" && e.ctrlKey) {
-      Cmds.zoomIn();
-      end();
-    }
-    if (e.key == "-" && e.ctrlKey) {
-      Cmds.zoomOut();
-      end();
-    }
-    if (e.key == "0" && e.ctrlKey) {
-      Cmds.resetZoom();
-      end();
-    }
-  }
-});
-
+  });
+})();
