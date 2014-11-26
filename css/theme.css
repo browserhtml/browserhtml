@@ -256,19 +256,31 @@ body:not(.loading) .stop-button {
   vertical-align: bottom;
 }
 
+.searchselector {
+  width: 16px;
+  height: 16px;
+  margin: 0 6px;
+  background-image: url(../images/shared/Search.png);
+  background-repeat: no-repeat;
+  background-position: 1px 1px;
+}
+
+@media (min-resolution: 2dppx) {
+  .searchselector {
+    background-image: url(../images/shared/Search@2x.png);
+  }
+}
+
 .identity {
   width: 16px;
   height: 16px;
   margin: 0 6px;
   background-position: -16px 0;
+  background-image: url(../images/shared/identity-icons-generic.png);
 }
 
 .identity:hover {
   background-position: 0 0;
-}
-
-.identity {
-  background-image: url(../images/shared/identity-icons-generic.png);
 }
 
 body.ssl .identity {
