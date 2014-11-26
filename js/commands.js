@@ -1,23 +1,31 @@
-// Public API
+// Commands. Used by keybindings and buttons.
 
 const Cmds = {
   goBack: function() {
-    gBrowser.selectedTab.iframe.goBack();
+    if (gBrowser.selectedTab.hasIframe()) {
+      gBrowser.selectedTab.iframe.goBack();
+    }
   },
   goForward: function() {
-    gBrowser.selectedTab.iframe.goForward();
+    if (gBrowser.selectedTab.hasIframe()) {
+      gBrowser.selectedTab.iframe.goForward();
+    }
   },
   reload: function() {
-    gBrowser.selectedTab.iframe.reload();
+    if (gBrowser.selectedTab.hasIframe()) {
+      gBrowser.selectedTab.iframe.reload();
+    }
   },
   stop: function() {
-    gBrowser.selectedTab.iframe.stop();
+    if (gBrowser.selectedTab.hasIframe()) {
+      gBrowser.selectedTab.iframe.stop();
+    }
   },
   createNewTab: function(url) {
-    gBrowser.addTab(url, true);
+      gBrowser.addTab(url, true);
   },
   selectNextTab: function() {
-    gBrowser.selectNextTab();
+      gBrowser.selectNextTab();
   },
   selectPreviousTab: function() {
     gBrowser.selectPreviousTab();
@@ -32,5 +40,14 @@ const Cmds = {
   },
   closeTab: function() {
     gBrowser.closeTab(gBrowser.selectedTab);
+  },
+  zoomIn: function() {
+    gBrowser.selectedTab.zoomIn();
+  },
+  zoomOut: function() {
+    gBrowser.selectedTab.zoomOut();
+  },
+  resetZoom: function() {
+    gBrowser.selectedTab.resetZoom();
   },
 }

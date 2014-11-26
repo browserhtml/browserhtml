@@ -46,6 +46,22 @@ window.addEventListener("keydown", e => {
       Cmds.closeTab();
       end();
     }
+    if (e.key == "+" && e.metaKey) {
+      Cmds.zoomIn();
+      end();
+    }
+    if (e.key == "=" && e.metaKey) {
+      Cmds.zoomIn();
+      end();
+    }
+    if (e.key == "-" && e.metaKey) {
+      Cmds.zoomOut();
+      end();
+    }
+    if (e.key == "0" && e.metaKey) {
+      Cmds.resetZoom();
+      end();
+    }
   }
 
   if (window.OS == "linux" || window.OS == "windows") {
@@ -75,6 +91,22 @@ window.addEventListener("keydown", e => {
     }
     if (e.keyCode == 87 && e.ctrlKey) {
       Cmds.closeTab();
+      end();
+    }
+    if (e.key == "+" && e.ctrlKey) {
+      Cmds.zoomIn();
+      end();
+    }
+    if (e.key == "=" && e.ctrlKey) {
+      Cmds.zoomIn();
+      end();
+    }
+    if (e.key == "-" && e.ctrlKey) {
+      Cmds.zoomOut();
+      end();
+    }
+    if (e.key == "0" && e.ctrlKey) {
+      Cmds.resetZoom();
       end();
     }
   }

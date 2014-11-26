@@ -1,3 +1,6 @@
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2;
+
 function Tab(iframeParent) {
   this._iframeParent = iframeParent;
 
@@ -62,6 +65,7 @@ Tab.prototype = {
       iframe.hide();
     }
 
+    this._applyZoom();
     this._trackIframe();
   },
 
@@ -133,6 +137,27 @@ Tab.prototype = {
       faviconImg.src = this.favicon;
     } else {
       faviconImg.removeAttribute("src");
+    }
+  },
+
+  zoom: 1,
+  zoomIn: function() {
+    this.zoom += 0.1;
+    this.zoom = Math.min(MAX_ZOOM, this.zoom);
+    this._applyZoom();
+  },
+  zoomOut: function() {
+    this.zoom -= 0.1;
+    this.zoom = Math.max(MIN_ZOOM, this.zoom);
+    this._applyZoom();
+  },
+  resetZoom: function() {
+    this.zoom = 1;
+    this._applyZoom();
+  },
+  _applyZoom: function() {
+    if (this.hasIframe()) {
+      this.iframe.zoom(this.zoom);
     }
   },
 
