@@ -205,4 +205,4 @@ let gBrowser = {
   },
 }
 
-Cmds.createNewTab("http://paulrouget.com");
+Cmds.createNewTab("http://medium.com");
