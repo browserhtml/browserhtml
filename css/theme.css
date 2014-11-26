@@ -239,7 +239,6 @@ body:not(.loading) .stop-button {
   background-color: white;
   border-radius: var(--radius);
   margin: 4px 6px 3px;
-  padding: 0 6px 0 24px;
   border-style: solid;
   border-color: #B0AEB0;
   border-bottom-width: 1px;
@@ -255,6 +254,45 @@ body:not(.loading) .stop-button {
   font-size: 12px;
   line-height: 22px;
   vertical-align: bottom;
+}
+
+.identity {
+  width: 16px;
+  height: 16px;
+  margin: 0 6px;
+  background-position: -16px 0;
+}
+
+.identity:hover {
+  background-position: 0 0;
+}
+
+.identity {
+  background-image: url(../images/shared/identity-icons-generic.png);
+}
+
+body.ssl .identity {
+  background-image: url(../images/shared/identity-icons-https.png);
+}
+
+body.sslev .identity {
+  /* Extended Validation doesn't work yet: bug 764496 */
+  background-image: url(../images/shared/identity-icons-https-ev.png);
+}
+
+@media (min-resolution: 2dppx) {
+  .identity {
+    background-image: url(../images/shared/identity-icons-generic@2x.png);
+  }
+
+  body.ssl .identity {
+    background-image: url(../images/shared/identity-icons-https@2x.png);
+  }
+
+  body.sslev .identity {
+    /* Extended Validation doesn't work yet: bug 764496 */
+    background-image: url(../images/shared/identity-icons-https-ev@2x.png);
+  }
 }
 
 /* iframes */

@@ -112,6 +112,8 @@ Tab.prototype = {
   get title() { return this._title},
   get location() { return this._location},
   get favicon() { return this._favicon},
+  get securityState() { return this._securityState},
+  get securityExtendedValidation() { return this._securityExtendedValidation},
 
   updateDom: function() {
     if (this.loading) {
@@ -120,8 +122,6 @@ Tab.prototype = {
       this.dom.classList.remove("loading");
     }
 
-    console.log("title", this.title);
-    console.log("location", this.location);
     if (this.title) {
       this.dom.querySelector(".title").textContent = this.title;
     } else {
@@ -166,6 +166,8 @@ Tab.prototype = {
     this._title = "";
     this._location = "";
     this._favicon = "";
+    this._securityState = "unsecure";
+    this._securityExtendedValidation = false;
   },
 
   userInput: "",
@@ -195,6 +197,10 @@ Tab.prototype = {
         break;
       case "mozbrowseropenwindow":
         gBrowser.addTab(e.detail.url, true);
+        break;
+      case "mozbrowsersecuritychange":
+        this._securityState = e.detail.state;
+        this._securityExtendedValidation = e.detail.extendedValidation;
         break;
       default:
         somethingChanged = false;

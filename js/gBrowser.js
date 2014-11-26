@@ -66,6 +66,16 @@ let gBrowser = {
       return;
     }
 
+    if (tab.securityState == "secure") {
+      document.body.classList.add("ssl");
+      if (tab.securityExtendedValidation) {
+        document.body.classList.add("sslev");
+      }
+    } else {
+      document.body.classList.remove("ssl");
+      document.body.classList.remove("sslev");
+    }
+
     if (tab.hasIframe()) {
       let iframe = tab.iframe;
 
