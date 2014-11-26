@@ -242,6 +242,11 @@ body:not(.loading) .stop-button {
   border-style: solid;
   border-color: #B0AEB0;
   border-bottom-width: 1px;
+  min-width: 0;
+}
+
+.searchbar {
+  max-width: 30vw;
 }
 
 .urlbar.focus, .searchbar.focus {
@@ -254,6 +259,7 @@ body:not(.loading) .stop-button {
   font-size: 12px;
   line-height: 22px;
   vertical-align: bottom;
+  min-width: 0;
 }
 
 .searchselector {
