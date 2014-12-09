@@ -22,11 +22,18 @@ The project is split in two modules: **the app** and **the runtime (HTMLRunner)*
 
 **Setup**
 
-1. Clone this repository somewhere on your computer;
+1. Clone this repository somewhere on your computer using `git clone --recursive https://github.com/paulrouget/firefox.html` or the github application;
 2. Download HTMLRunner runtime: http://people.mozilla.org/~prouget/htmlrunner/ (package is named `firefox-XX.XX`);
 3. Run HTMLRunner runtime (binary name is `firefox`);
 4. HTMLRunner will ask (only once) the location of the `firefox.html` directory you cloned in step 1;
 5. You should now see the browser running.
+
+Note: If you have cloned without `--recursive`, you may find out that `lib/require.js` is empty. To fix this:
+
+````
+git submodule update --init
+````
+
 
 **How to change code**
 

@@ -1,32 +1,32 @@
-window.addEventListener("load", function drawCurves() {
-  window.removeEventListener("load", drawCurve);
-  let curveDummyElt = document.querySelector(".dummy-tab-curve");
-  let style = window.getComputedStyle(curveDummyElt);
+define(function() {
+"use strict";
 
-  let curveBorder = style.getPropertyValue("--curve-border");
-  let curveGradientStart = style.getPropertyValue("--curve-gradient-start");
-  let curveGradientEnd = style.getPropertyValue("--curve-gradient-end");
-  let curveHoverBorder = style.getPropertyValue("--curve-hover-border");
-  let curveHoverGradientStart = style.getPropertyValue("--curve-hover-gradient-start");
-  let curveHoverGradientEnd = style.getPropertyValue("--curve-hover-gradient-end");
+let curveDummyElt = document.querySelector(".dummy-tab-curve");
+let style = window.getComputedStyle(curveDummyElt);
 
-  let c1 = document.createElement("canvas");
-      c1.id = "canvas-tab-selected";
-      c1.hidden = true;
-      c1.width = 3 * 28;
-      c1.height = 28;
-  drawBackgroundTab(c1, curveGradientStart, curveGradientEnd, curveBorder);
-  document.body.appendChild(c1);
+let curveBorder = style.getPropertyValue("--curve-border");
+let curveGradientStart = style.getPropertyValue("--curve-gradient-start");
+let curveGradientEnd = style.getPropertyValue("--curve-gradient-end");
+let curveHoverBorder = style.getPropertyValue("--curve-hover-border");
+let curveHoverGradientStart = style.getPropertyValue("--curve-hover-gradient-start");
+let curveHoverGradientEnd = style.getPropertyValue("--curve-hover-gradient-end");
 
-  let c2 = document.createElement("canvas");
-      c2.id = "canvas-tab-hover";
-      c2.hidden = true;
-      c2.width = 3 * 28;
-      c2.height = 28;
-  drawBackgroundTab(c2, curveHoverGradientStart, curveHoverGradientEnd, curveHoverBorder);
-  document.body.appendChild(c2);
+let c1 = document.createElement("canvas");
+    c1.id = "canvas-tab-selected";
+    c1.hidden = true;
+    c1.width = 3 * 28;
+    c1.height = 28;
+drawBackgroundTab(c1, curveGradientStart, curveGradientEnd, curveBorder);
+document.body.appendChild(c1);
 
-});
+let c2 = document.createElement("canvas");
+    c2.id = "canvas-tab-hover";
+    c2.hidden = true;
+    c2.width = 3 * 28;
+    c2.height = 28;
+drawBackgroundTab(c2, curveHoverGradientStart, curveHoverGradientEnd, curveHoverBorder);
+document.body.appendChild(c2);
+
 
 function drawBackgroundTab(canvas, bg1, bg2, borderColor) {
   canvas.width = window.devicePixelRatio * canvas.width;
@@ -74,3 +74,4 @@ function drawCurve(ctx,r) {
                     3 * r - r * 0, r * 0.984);
 }
 
+});
