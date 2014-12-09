@@ -6,14 +6,15 @@ Firefox.html is an experiment, a proof of concept: trying to re-implement the Fi
 **Rational:** We are working hard on making HTML fast and rich enough to build
 a whole operating system (Firefox OS) and a browser (Firefox OS' browser
 is built in HTML). Firefox Desktop is built in a different way (XUL). With a UI
-in HTML, we could drop XUL and close the gap between B2G and Firefox Desktop.
+in HTML leveraging the [Browser API](https://developer.mozilla.org/en-US/docs/DOM/Using_the_Browser_API),
+we could drop XUL and close the gap between B2G and Firefox Desktop.
 And eventually be able to render Firefox Desktop with [Servo](https://github.com/servo/servo)
 (which will never support XUL). And maybe, one day, host the Firefox UI online (trusted app?).
 
 **Current code** is ugly (really). It works on Linux, Windows and Mac.
 The browser supports basic features (tabs, navigation, history, ssl, devtools, search, zoom, …).
 
-The project is split in two modules: the app and the runtime (see below for details).
+The project is split in two modules: **the app** and **the runtime (HTMLRunner)** (see below for details).
 
 **No building process**
 
@@ -33,7 +34,7 @@ The project is split in two modules: the app and the runtime (see below for deta
 2. Press `Ctrl/Cmd-Shift-R` to run the new code (doesn't work on Windows. See [issue 12](https://github.com/paulrouget/firefox.html/issues/12))
 3. Submit PR :)
 
-# The App
+**The App**
 
 Firefox.html is a HTML app (like any B2G app). It is based on the
 [Browser API](https://developer.mozilla.org/en-US/docs/DOM/Using_the_Browser_API)
@@ -42,9 +43,10 @@ Even though it includes tags like *vbox*, *hbox*, *spacer*, …, it's all HTML
 (see `layout.css` to see how they mimic xul layout).
 
 Current priority is to re-implement the basics features of Firefox Desktop
-to make Firefox.html a usable browser.
+to make Firefox.html a usable browser, and understand what's missing at the
+platform level for a perfect integration to the OS.
 
-# The Runtime
+**The Runtime**
 
 Firefox.html requires a runtime: a special build of Gecko we call "htmlrunner".
 The runtime code is based on Firefox.
