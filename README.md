@@ -1,7 +1,7 @@
 ![screenshot](https://cloud.githubusercontent.com/assets/373579/5355479/d4d650d8-7f93-11e4-9645-88c93c8c495a.png)
 
 
-Firefox.html is an experiment, a proof of concept: trying to re-implement the Firefox UI in HTML.
+Firefox.html is an experiment, a proof of concept: trying to re-implement the Firefox UI in HTML, as an app (à la B2G).
 
 [Screencast](http://people.mozilla.org/~prouget/firefoxhtml.mp4) & [screenshots](https://github.com/paulrouget/firefox.html/issues/11)
 
