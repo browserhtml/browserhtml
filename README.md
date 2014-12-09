@@ -1,7 +1,9 @@
-![Firefox.html screenshot](https://cloud.githubusercontent.com/assets/373579/5206795/f2153b1c-75a4-11e4-8bb7-da6c94c0a050.png)
+![screenshot](https://cloud.githubusercontent.com/assets/373579/5355479/d4d650d8-7f93-11e4-9645-88c93c8c495a.png)
 
 
-Firefox.html is an experiment, a proof of concept: trying to re-implement the Firefox UI in HTML. Screencast: http://people.mozilla.org/~prouget/firefoxhtml.mp4
+Firefox.html is an experiment, a proof of concept: trying to re-implement the Firefox UI in HTML.
+
+[Screencast](http://people.mozilla.org/~prouget/firefoxhtml.mp4) & [screenshots](https://github.com/paulrouget/firefox.html/issues/11)
 
 **Rational:** We are working hard on making HTML fast and rich enough to build
 a whole operating system (Firefox OS) and a browser (Firefox OS' browser
@@ -16,9 +18,7 @@ The browser supports basic features (tabs, navigation, history, ssl, devtools, s
 
 The project is split in two modules: **the app** and **the runtime (HTMLRunner)** (see below for details).
 
-**No building process**
-
-![No build process](https://cloud.githubusercontent.com/assets/373579/5208414/3d48ec64-75b4-11e4-942d-64e194c57b9f.gif)
+![Firefox.html screenshot](https://cloud.githubusercontent.com/assets/373579/5206795/f2153b1c-75a4-11e4-8bb7-da6c94c0a050.png)
 
 **Setup**
 
@@ -33,6 +33,8 @@ The project is split in two modules: **the app** and **the runtime (HTMLRunner)*
 1. Change code in the `firefox.html` directory
 2. Press `Ctrl/Cmd-Shift-R` to run the new code (doesn't work on Windows. See [issue 12](https://github.com/paulrouget/firefox.html/issues/12))
 3. Submit PR :)
+
+![No build process](https://cloud.githubusercontent.com/assets/373579/5208414/3d48ec64-75b4-11e4-942d-64e194c57b9f.gif)
 
 **The App**
 
