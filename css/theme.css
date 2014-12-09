@@ -55,6 +55,16 @@
   --curve-hover-gradient-end: rgba(255,255,255,0.4);
 }
 
+[os="windows"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-border: transparent;
+  --curve-gradient-start: #FBFBFB;
+  --curve-gradient-end: #EDEDED;
+  --curve-hover-border: #AAA;
+  --curve-hover-gradient-start: transparent;
+  --curve-hover-gradient-end: transparent;
+}
+
 [os="osx"] .dummy-tab-curve {
   /* These values are used in curvedTabs.js */
   --curve-border: #AAA;
@@ -176,6 +186,9 @@
 .navbar {
   padding: 4px 6px;
   background-image: linear-gradient(#EDEDED, #D3D3D3);
+}
+
+[os="osx"] .navbar {
   border-style: solid;
   border-width: var(--hwd-pixel) 0;
   border-color: #AAA;
