@@ -1,3 +1,5 @@
+define(function() {
+"use strict";
 // Detect Operating System
 
 if (navigator.appVersion.indexOf("Win") >= 0) {
@@ -14,3 +16,5 @@ if (navigator.appVersion.indexOf("X11") >= 0) {
 }
 
 window.IS_PRIVILEGED = !!HTMLIFrameElement.prototype.setVisible;
+
+});

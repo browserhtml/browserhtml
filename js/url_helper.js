@@ -1,3 +1,4 @@
+define(function() {
 'use strict';
 
 var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
@@ -56,3 +57,6 @@ var UrlHelper = {
     return !this.urlValidate.validity.valid;
   }
 };
+
+return UrlHelper;
+});

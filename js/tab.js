@@ -1,3 +1,10 @@
+define([
+  'js/browser'
+], function(
+  gBrowser
+) {
+"use strict";
+
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2;
 
@@ -218,4 +225,6 @@ Tab.prototype = {
   },
 }
 
-console.log("start");
+return Tab;
+
+});

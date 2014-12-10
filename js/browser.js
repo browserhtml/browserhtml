@@ -1,20 +1,34 @@
+define([
+  'js/url_helper'
+], function(
+  UrlHelper
+) {
+
+"use strict";
+
+// Break circular dependencies
+let Dependencies = {
+  get Tab() {
+    return require("js/tab");
+  },
+}
+
+// gBrowser
 // Extend Iframe prototype
 
 HTMLIFrameElement.prototype.show = function() {
   this.removeAttribute("hidden");
-  if (IS_PRIVILEGED) {
+  if (window.IS_PRIVILEGED) {
     this.setVisible(true);
   }
 }
 
 HTMLIFrameElement.prototype.hide = function() {
   this.setAttribute("hidden", "true");
-  if (IS_PRIVILEGED) {
+  if (window.IS_PRIVILEGED) {
     this.setVisible(false);
   }
 }
-
-// gBrowser
 
 let gBrowser = {
   _tabs: new Set(),
@@ -62,7 +76,7 @@ let gBrowser = {
       urlinput.value = tab.location;
     }
 
-    if (!IS_PRIVILEGED) {
+    if (!window.IS_PRIVILEGED) {
       return;
     }
 
@@ -109,10 +123,10 @@ let gBrowser = {
   },
 
   addTab: function(url, select) {
-    let tab = new Tab(document.querySelector(".iframes"));
+    let tab = new Dependencies.Tab(document.querySelector(".iframes"));
     this._tabs.add(tab);
 
-    if (url && IS_PRIVILEGED) {
+    if (url && window.IS_PRIVILEGED) {
       tab.iframe.src = url;
     }
 
@@ -203,6 +217,7 @@ let gBrowser = {
 
     return input;
   },
-}
+};
 
-Cmds.createNewTab("http://medium.com");
+return gBrowser;
+});

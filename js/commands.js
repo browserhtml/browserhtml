@@ -1,4 +1,7 @@
-// Commands. Used by keybindings and buttons.
+define([
+  'js/browser'
+], function(gBrowser) {
+"use strict";
 
 const Cmds = {
   goBack: function() {
@@ -51,3 +54,6 @@ const Cmds = {
     gBrowser.selectedTab.resetZoom();
   },
 }
+
+return Cmds;
+});
