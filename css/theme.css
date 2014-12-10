@@ -61,8 +61,8 @@
   --curve-gradient-start: #FBFBFB;
   --curve-gradient-end: #EDEDED;
   --curve-hover-border: #AAA;
-  --curve-hover-gradient-start: transparent;
-  --curve-hover-gradient-end: transparent;
+  --curve-hover-gradient-start: rgba(255, 255, 255, 0.4);
+  --curve-hover-gradient-end: rgba(255, 255, 255, 0.4);
 }
 
 [os="osx"] .dummy-tab-curve {
@@ -71,8 +71,8 @@
   --curve-gradient-start: #FBFBFB;
   --curve-gradient-end: #EDEDED;
   --curve-hover-border: #AAA;
-  --curve-hover-gradient-start: transparent;
-  --curve-hover-gradient-end: transparent;
+  --curve-hover-gradient-start: rgba(255, 255, 255, 0.4);
+  --curve-hover-gradient-end: rgba(255, 255, 255, 0.4);
 }
 
 [os="linux"] .tab {
