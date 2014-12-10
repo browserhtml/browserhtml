@@ -12,6 +12,11 @@
   --radius: 3px;
 }
 
+body[os="osx"] {
+  padding-top: 9px;
+  box-sizing: border-box;
+}
+
 @media (min-resolution: 2dppx) {
   :root {
     --hwd-pixel: 0.5px;
