@@ -19,6 +19,10 @@ function Tab(iframeParent) {
 
   let button = document.createElement("button");
   button.className = "close-button";
+  button.onclick = (event) => {
+    event.stopPropagation();
+    gBrowser.closeTab(this);
+  };
 
   hbox.appendChild(throbber);
   hbox.appendChild(favicon);
