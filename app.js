@@ -15,7 +15,7 @@ define([
 ], function(
   Browser,
   Commands,
-  CurvedTabs,
+  BuildCurvedTabs,
   Keybindings,
   Navbar,
   OS,
@@ -24,5 +24,18 @@ define([
 "use strict";
 
 Commands.createNewTab("http://medium.com");
+
+function onDocumentLoaded() {
+  if (document.readyState == "complete") {
+    document.removeEventListener("readystatechange", onDocumentLoaded);
+    BuildCurvedTabs();
+  }
+}
+
+if (document.readyState == "complete") {
+  BuildCurvedTabs();
+} else {
+  document.addEventListener("readystatechange", onDocumentLoaded);
+}
 
 })
