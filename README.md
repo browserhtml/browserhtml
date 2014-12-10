@@ -5,7 +5,7 @@ Firefox.html is an experiment, a proof of concept: trying to re-implement the Fi
 
 [Screencast](http://people.mozilla.org/~prouget/firefoxhtml.mp4) & [screenshots](https://github.com/paulrouget/firefox.html/issues/11)
 
-**Rational:** We are working hard on making HTML fast and rich enough to build
+**Rationale:** We are working hard on making HTML fast and rich enough to build
 a whole operating system (Firefox OS) and a browser (Firefox OS' browser
 is built in HTML). Firefox Desktop is built in a different way (XUL). With a UI
 in HTML leveraging the [Browser API](https://developer.mozilla.org/en-US/docs/DOM/Using_the_Browser_API),
@@ -44,8 +44,8 @@ and works the same way Gaia's browser and system apps work.
 Even though it includes tags like *vbox*, *hbox*, *spacer*, …, it's all HTML
 (see `layout.css` to see how they mimic xul layout).
 
-Current priority is to re-implement the basics features of Firefox Desktop
-to make Firefox.html a usable browser, and understand what's missing at the
+Current priority is to re-implement the basic features of Firefox Desktop to
+make Firefox.html a usable browser, and understand what's missing at the
 platform level for a perfect integration to the OS.
 
 **The Runtime**
@@ -57,6 +57,6 @@ branch on my `gecko-dev` repository.
 
 It uses a `xul:window` that loads the Firefox.html app into an iframe. The
 `xul:window` is still required to build a native window (draw in title bar,
-support opening animations, native colors, ...). Eventually, I want to kill
+support opening animations, native colors, …). Eventually, I want to kill
 this window and bring these native features to HTML. This window is nothing
-but a window with window controls (close,minimize,maximize).
+but a window with window controls (close, minimize, maximize).
