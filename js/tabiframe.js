@@ -108,7 +108,7 @@ define(["js/eventemitter"], function(EventEmitter) {
   };
 
   tabIframeProto._applyZoom = function() {
-    if (this._innerIframe) {
+    if (this._innerIframe && window.IS_PRIVILEGED) {
       this._innerIframe.zoom(this._zoom);
     }
   };
