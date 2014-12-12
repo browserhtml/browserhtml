@@ -37,7 +37,7 @@ body {
   height: 100%;
 }
 
-box, hbox, vbox, spacer {
+tab-iframe, box, hbox, vbox, spacer {
   display: flex;
   flex-basis: 0;
   white-space: pre;
