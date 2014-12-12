@@ -126,13 +126,13 @@
 }
 
 .throbber {
-  background-image: url(../images/shared/loading.png);
+  background-image: url(images/shared/loading.png);
   background-size: 16px 16px;
 }
 
 @media (min-resolution: 2dppx) {
   .throbber {
-    background-image: url(../images/shared/loading@2x.png);
+    background-image: url(images/shared/loading@2x.png);
   }
 }
 
@@ -161,7 +161,7 @@
   width: 16px;
   height: 16px;
   background-color: transparent;
-  background-image: url(../images/shared/close.png);
+  background-image: url(images/shared/close.png);
   background-size: 64px 16px;;
   margin: 0 -6px 0 3px;
 }
@@ -181,7 +181,7 @@
 
 @media (min-resolution: 2dppx) {
   .tab > .close-button {
-    background-image: url(../images/shared/close@2x.png);
+    background-image: url(images/shared/close@2x.png);
   }
 }
 
@@ -214,7 +214,7 @@
   border: var(--hwd-pixel) solid transparent;
   background-origin: content-box, border-box, border-box;
   background-clip: content-box, border-box, border-box;
-  background-image: url(../images/shared/Toolbar.png);
+  background-image: url(images/shared/Toolbar.png);
   background-size: 756px 72px;
   border-radius: var(--radius);
 }
@@ -225,26 +225,26 @@
 }
 
 .navbar > button:hover {
-  background-image: url(../images/shared/Toolbar.png), var(--toolbarbutton-hover-background-image);
+  background-image: url(images/shared/Toolbar.png), var(--toolbarbutton-hover-background-image);
   border-color: var(--toolbarbutton-hover-bordercolor);
   box-shadow: var(--toolbarbutton-hover-boxshadow);
 }
 
 .navbar > button:hover:active {
-  background-image: url(../images/shared/Toolbar.png), var(--toolbarbutton-active-background-image);
+  background-image: url(images/shared/Toolbar.png), var(--toolbarbutton-active-background-image);
   border-color: var(--toolbarbutton-active-bordercolor);
   box-shadow: var(--toolbarbutton-active-boxshadow);
 }
 
 @media (min-resolution: 2dppx) {
   .navbar > button {
-    background-image: url(../images/shared/Toolbar@2x.png);
+    background-image: url(images/shared/Toolbar@2x.png);
   }
   .navbar > button:hover {
-    background-image: url(../images/shared/Toolbar@2x.png), var(--toolbarbutton-hover-background-image);
+    background-image: url(images/shared/Toolbar@2x.png), var(--toolbarbutton-hover-background-image);
   }
   .navbar > button:hover:active {
-    background-image: url(../images/shared/Toolbar@2x.png), var(--toolbarbutton-active-background-image);
+    background-image: url(images/shared/Toolbar@2x.png), var(--toolbarbutton-active-background-image);
   }
 }
 
@@ -291,7 +291,7 @@ body:not(.loading) .stop-button {
   width: 16px;
   height: 16px;
   margin: 0 6px;
-  background-image: url(../images/shared/Search.png);
+  background-image: url(images/shared/Search.png);
   background-repeat: no-repeat;
   background-position: 1px 1px;
   background-size: 14px 14px;
@@ -299,7 +299,7 @@ body:not(.loading) .stop-button {
 
 @media (min-resolution: 2dppx) {
   .searchselector {
-    background-image: url(../images/shared/Search@2x.png);
+    background-image: url(images/shared/Search@2x.png);
   }
 }
 
@@ -309,7 +309,7 @@ body:not(.loading) .stop-button {
   margin: 0 6px;
   background-size: 32px 16px;
   background-position: -16px 0;
-  background-image: url(../images/shared/identity-icons-generic.png);
+  background-image: url(images/shared/identity-icons-generic.png);
 }
 
 .identity:hover {
@@ -317,26 +317,26 @@ body:not(.loading) .stop-button {
 }
 
 body.ssl .identity {
-  background-image: url(../images/shared/identity-icons-https.png);
+  background-image: url(images/shared/identity-icons-https.png);
 }
 
 body.sslev .identity {
   /* Extended Validation doesn't work yet: bug 764496 */
-  background-image: url(../images/shared/identity-icons-https-ev.png);
+  background-image: url(images/shared/identity-icons-https-ev.png);
 }
 
 @media (min-resolution: 2dppx) {
   .identity {
-    background-image: url(../images/shared/identity-icons-generic@2x.png);
+    background-image: url(images/shared/identity-icons-generic@2x.png);
   }
 
   body.ssl .identity {
-    background-image: url(../images/shared/identity-icons-https@2x.png);
+    background-image: url(images/shared/identity-icons-https@2x.png);
   }
 
   body.sslev .identity {
     /* Extended Validation doesn't work yet: bug 764496 */
-    background-image: url(../images/shared/identity-icons-https-ev@2x.png);
+    background-image: url(images/shared/identity-icons-https-ev@2x.png);
   }
 }
 
