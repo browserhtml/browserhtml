@@ -1,3 +1,14 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/**
+ * theme.css
+ *
+ * Design related rules. Colors, size, fonts, …
+ *
+ */
+
 :root {
   --toolbarbutton-hover-background-image: linear-gradient(hsla(0,0%,100%,.7), hsla(0,0%,100%,.2)),
                                           linear-gradient(hsla(0,0%,100%,.3), hsla(0,0%,100%,.3));
