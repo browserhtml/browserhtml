@@ -89,19 +89,29 @@ define(["js/tabiframe", "js/eventemitter"], function(TabIframe, EventEmitter) {
         throw new Error("Unknown tabiframe");
       }
 
-      if (_selectIndex > -1) {
-        let selectedTabIframe = _tabIframeArray[_selectIndex];
-        selectedTabIframe.hide();
-        this.emit("unselect", {
-          tabIframe: selectedTabIframe,
-          index: _selectIndex
-        });
+      if (index == _selectIndex) {
+        // already selected
+        return;
+      }
+
+      tabIframe.willBeVisibleSoon();
+
+      let previouslySelectTabIframe = _tabIframeArray[_selectIndex];
+      if (previouslySelectTabIframe) {
+        this.emit("unselect", {tabIframe: previouslySelectTabIframe});
       }
 
       _selectIndex = index;
-      tabIframe.show();
 
       this.emit("select", {tabIframe});
+
+      // Do the actual switch
+      window.mozRequestAnimationFrame(() => {
+        if (previouslySelectTabIframe) {
+          previouslySelectTabIframe.hide();
+        }
+        tabIframe.show();
+      });
     },
 
     selectNext: function() {

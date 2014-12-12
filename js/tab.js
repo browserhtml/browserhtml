@@ -156,8 +156,10 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
   }
 
   let tabIframe = TabIframeDeck.getSelected();
-  let tab = allTabs.get(tabIframe);
-  tab.select();
+  if (tabIframe) {
+    let tab = allTabs.get(tabIframe);
+    tab.select();
+  }
 
   /* Build curved tabs */
 

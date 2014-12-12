@@ -37,8 +37,6 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
 
   "use strict";
 
-  TabIframeDeck.add({url: "http://medium.com"});
-
   TabIframeDeck.on("selectedTabIframeUpdate", (tabIframe) => {
     document.title = "Firefox - " + tabIframe.title;
   });

@@ -38,6 +38,12 @@ define(["js/eventemitter"], function(EventEmitter) {
     }
   };
 
+  tabIframeProto.willBeVisibleSoon = function() {
+    if (window.IS_PRIVILEGED && this._innerIframe) {
+      this._innerIframe.setVisible(true);
+    }
+  };
+
   tabIframeProto.show = function() {
     this.removeAttribute("hidden");
     if (window.IS_PRIVILEGED && this._innerIframe) {
