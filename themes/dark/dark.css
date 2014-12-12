@@ -57,6 +57,10 @@
   background-image: linear-gradient(#424242, #2F2F2F);
 }
 
+[os="osx"] .navbar {
+  border-color: #040404;
+}
+
 .urlbar, .searchbar {
   background-color: #202020;
   border-color: #191919;
