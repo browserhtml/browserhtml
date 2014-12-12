@@ -29,7 +29,7 @@ define(['js/tabiframedeck'], function(TabIframeDeck) {
       TabIframeDeck.getSelected().stop();
     },
     createNewTab: function(url) {
-      TabIframeDeck.add({url:url,select:true});
+      TabIframeDeck.add({url:url,select:true,newTab:true});
     },
     selectNextTab: function() {
       TabIframeDeck.selectNext();
