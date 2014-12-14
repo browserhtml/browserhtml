@@ -49,11 +49,6 @@ define(["js/tabiframe", "js/eventemitter"], function(TabIframe, EventEmitter) {
         tabIframe.hide();
       }
 
-      if (options.newTab) {
-        document.querySelector(".urlinput").focus();
-        document.querySelector(".urlinput").select();
-      }
-
       return tabIframe;
     },
 
