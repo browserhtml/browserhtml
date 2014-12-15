@@ -36,14 +36,25 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
     let button = document.createElement("button");
     button.className = "close-button";
 
-    button.onclick = (event) => {
-      event.stopPropagation();
-      TabIframeDeck.remove(tabIframe);
+    button.onmouseup = (event) => {
+      if(event.button == 0) {
+        event.stopPropagation();
+        TabIframeDeck.remove(tabIframe);
+      }
     };
 
-    hbox.onclick = (event) => {
-      TabIframeDeck.select(tabIframe);
+    hbox.onmousedown = (event) => {
+      if(event.button == 0) {
+        TabIframeDeck.select(tabIframe);
+      }
     };
+
+    hbox.onmouseup = (event) => {
+      if(event.button == 1) {
+        event.stopPropagation();
+        TabIframeDeck.remove(tabIframe);
+      }
+    }
 
     hbox.appendChild(throbber);
     hbox.appendChild(favicon);
