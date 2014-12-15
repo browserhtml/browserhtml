@@ -86,6 +86,11 @@ function(Cmds, UrlHelper, TabIframeDeck) {
     }
     lastSelectedTab = selectedTabIframe;
     if (selectedTabIframe) {
+      if (!selectedTabIframe.location) {
+        urlinput.focus();
+        urlinput.select();
+      }
+
       selectedTabIframe.on("dataUpdate", UpdateTab);
       UpdateTab();
     }
