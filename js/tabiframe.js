@@ -71,6 +71,7 @@ define(["js/eventemitter"], function(EventEmitter) {
     iframe.setAttribute("mozbrowser", "true");
     iframe.setAttribute("flex", "1");
     iframe.setAttribute("remote", "true");
+    iframe.setAttribute("mozallowfullscreen", "true");
     this.appendChild(iframe);
     for (let eventName of IFRAME_EVENTS) {
       iframe.addEventListener(eventName, this);
