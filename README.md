@@ -16,9 +16,6 @@ we could drop XUL and close the gap between B2G and Firefox Desktop.
 And eventually be able to render Firefox Desktop with [Servo](https://github.com/servo/servo)
 (which will never support XUL). And maybe, one day, host the Firefox UI online (trusted app?).
 
-**Current code** is ugly (really). It works on Linux, Windows and Mac.
-The browser supports basic features (tabs, navigation, history, ssl, devtools, search, zoom, …).
-
 The project is split in two modules: **the app** and **the runtime (HTMLRunner)** (see below for details).
 
 ![Firefox.html screenshot](https://cloud.githubusercontent.com/assets/373579/5206795/f2153b1c-75a4-11e4-8bb7-da6c94c0a050.png)
@@ -37,12 +34,9 @@ Note: If you have cloned without `--recursive`, you may find out that `lib/requi
 git submodule update --init
 ````
 
+**Contribute**
 
-**How to change code**
-
-1. Change code in the `firefox.html` directory
-2. Press `Ctrl/Cmd-Shift-R` to run the new code (doesn't work on Windows. See [issue 12](https://github.com/paulrouget/firefox.html/issues/12))
-3. Submit PR :)
+See `HACKING.md`.
 
 ![No build process](https://cloud.githubusercontent.com/assets/373579/5208414/3d48ec64-75b4-11e4-942d-64e194c57b9f.gif)
 
