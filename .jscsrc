@@ -1,0 +1,11 @@
+{
+  "esnext": true,
+  "excludeFiles": [
+    "node_modules/**",
+    "lib/**"
+  ],
+  "validateQuoteMarks": {
+    "escape": true,
+    "mark": "\""
+  }
+}

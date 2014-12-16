@@ -116,7 +116,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   function SearchInputChanged() {
     let text = searchinput.value;
-    let url = urlTemplate.replace('{searchTerms}', encodeURIComponent(text));
+    let url = urlTemplate.replace("{searchTerms}", encodeURIComponent(text));
     let tabIframe = TabIframeDeck.getSelected();
     tabIframe.setLocation(url);
     tabIframe.focus();
@@ -201,11 +201,11 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   function PreprocessUrlInput(input) {
     if (UrlHelper.isNotURL(input)) {
-      return urlTemplate.replace('{searchTerms}', encodeURIComponent(input));
+      return urlTemplate.replace("{searchTerms}", encodeURIComponent(input));
     }
 
     if (!UrlHelper.hasScheme(input)) {
-      input = 'http://' + input;
+      input = "http://" + input;
     }
 
     return input;
