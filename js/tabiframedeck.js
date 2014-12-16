@@ -24,6 +24,28 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
 
   const TabIframeDeck = {
 
+    // This is a poor man session storage. Just a temporary
+    // thing (localStorage is bad).
+    saveSession: function() {
+      let session = _tabIframeArray.map(t => t.location);
+      window.localStorage.session = JSON.stringify(session);
+    },
+
+    restoreSession: function() {
+      let session = [];
+      try {
+        session = JSON.parse(window.localStorage.session);
+      } catch(e) {}
+
+      if (Array.isArray(session) && session.length > 0) {
+        for (let url of session) {
+          TabIframeDeck.add({url});
+        }
+      } else {
+        TabIframeDeck.add();
+      }
+    },
+
     onMozBrowserOpenWindow: function(type, event) {
       TabIframeDeck.add({url:event.detail.url});
     },
@@ -37,6 +59,7 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
       _tabIframeArray.push(tabIframe);
 
       tabIframe.on("mozbrowseropenwindow", this.onMozBrowserOpenWindow);
+      tabIframe.on("mozbrowserlocationchange", this.saveSession);
 
       this.emit("add", {tabIframe: tabIframe});
 
@@ -49,6 +72,8 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
       } else {
         tabIframe.hide();
       }
+
+      this.saveSession();
 
       return tabIframe;
     },
@@ -80,6 +105,8 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
       _tabIframeArray.splice(index, 1);
       tabIframe.off("mozbrowseropenwindow", this.onMozBrowserOpenWindow);
       tabIframe.remove();
+
+      this.saveSession();
 
       this.emit("remove", {tabIframe});
     },
@@ -147,7 +174,8 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
   }
 
   EventEmitter.decorate(TabIframeDeck);
-  TabIframeDeck.add();
+
+  TabIframeDeck.restoreSession();
 
   RegisterKeyBindings(
     ["",              "Esc",        () => TabIframeDeck.getSelected().stop()],
