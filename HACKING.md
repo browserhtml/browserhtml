@@ -7,6 +7,8 @@
 2. No need to restart, use the Super Reload shortcut: `Ctrl/Cmd-shift-R`
 3. To run the devtools, press `F12`
 
+![No build process](https://cloud.githubusercontent.com/assets/373579/5208414/3d48ec64-75b4-11e4-942d-64e194c57b9f.gif)
+
 ## Code architecture
 
 Entry point is `app.js`.

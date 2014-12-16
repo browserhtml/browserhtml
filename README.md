@@ -4,9 +4,9 @@ Screenshots first because we all love screenshots:
 
 ![black theme](https://cloud.githubusercontent.com/assets/373579/5382222/a9bc89d8-80a8-11e4-86ad-46a128a67fc5.png)
 
-Firefox.html is an experiment, a proof of concept: trying to re-implement the Firefox UI in HTML, as an app (à la B2G).
+![Screencast](https://www.youtube.com/watch?v=IBzrCmGVDkA)
 
-[Screencast](http://people.mozilla.org/~prouget/firefoxhtml.mp4) & [screenshots](https://github.com/paulrouget/firefox.html/issues/11)
+Firefox.html is an experiment, a proof of concept: trying to re-implement the Firefox UI in HTML, as an app (à la B2G).
 
 **Rationale:** We are working hard on making HTML fast and rich enough to build
 a whole operating system (Firefox OS) and a browser (Firefox OS' browser
@@ -16,13 +16,12 @@ we could drop XUL and close the gap between B2G and Firefox Desktop.
 And eventually be able to render Firefox Desktop with [Servo](https://github.com/servo/servo)
 (which will never support XUL). And maybe, one day, host the Firefox UI online (trusted app?).
 
-The project is split in two modules: **the app** and **the runtime (HTMLRunner)** (see below for details).
-
-![Firefox.html screenshot](https://cloud.githubusercontent.com/assets/373579/5206795/f2153b1c-75a4-11e4-8bb7-da6c94c0a050.png)
-
 **Setup**
 
-1. Clone this repository somewhere on your computer using `git clone --recursive https://github.com/paulrouget/firefox.html` or the github application;
+1. Clone this repository somewhere on your computer using
+```
+git clone --recursive https://github.com/paulrouget/firefox.html
+```
 2. Download HTMLRunner runtime: http://people.mozilla.org/~prouget/htmlrunner/ (package is named `firefox-XX.XX`);
 3. Run HTMLRunner runtime (binary name is `firefox`);
 4. HTMLRunner will ask (only once) the location of the `firefox.html` directory you cloned in step 1;
@@ -38,9 +37,9 @@ git submodule update --init
 
 See `HACKING.md`.
 
-![No build process](https://cloud.githubusercontent.com/assets/373579/5208414/3d48ec64-75b4-11e4-942d-64e194c57b9f.gif)
-
 **The App**
+
+![Firefox.html screenshot](https://cloud.githubusercontent.com/assets/373579/5206795/f2153b1c-75a4-11e4-8bb7-da6c94c0a050.png)
 
 Firefox.html is a HTML app (like any B2G app). It is based on the
 [Browser API](https://developer.mozilla.org/en-US/docs/DOM/Using_the_Browser_API)
