@@ -2,7 +2,7 @@
 
 ![black theme](https://cloud.githubusercontent.com/assets/373579/5382222/a9bc89d8-80a8-11e4-86ad-46a128a67fc5.png)
 
-![Screencast](https://www.youtube.com/watch?v=IBzrCmGVDkA)
+Screencast: https://www.youtube.com/watch?v=IBzrCmGVDkA
 
 Firefox.html is an experiment, a proof of concept: trying to re-implement the Firefox UI in HTML, as an app (à la B2G).
 
@@ -16,10 +16,7 @@ And eventually be able to render Firefox Desktop with [Servo](https://github.com
 
 **Setup**
 
-1. Clone this repository somewhere on your computer using
-```
-git clone --recursive https://github.com/paulrouget/firefox.html
-```
+1. Clone this repository somewhere on your computer using `git clone --recursive https://github.com/paulrouget/firefox.html`
 2. Download HTMLRunner runtime: http://people.mozilla.org/~prouget/htmlrunner/ (package is named `firefox-XX.XX`);
 3. Run HTMLRunner runtime (binary name is `firefox`);
 4. HTMLRunner will ask (only once) the location of the `firefox.html` directory you cloned in step 1;
