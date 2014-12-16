@@ -32,9 +32,9 @@ git submodule update --init
 
 See `HACKING.md`.
 
-**The App**
-
 ![Firefox.html screenshot](https://cloud.githubusercontent.com/assets/373579/5206795/f2153b1c-75a4-11e4-8bb7-da6c94c0a050.png)
+
+**The App**
 
 Firefox.html is a HTML app (like any B2G app). It is based on the
 [Browser API](https://developer.mozilla.org/en-US/docs/DOM/Using_the_Browser_API)
