@@ -20,7 +20,8 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
   let link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = "css/tabstrip.css";
-  document.head.appendChild(link);
+  let defaultStyleSheet = document.querySelector("link[title=default]");
+  document.head.insertBefore(link, defaultStyleSheet.nextSibling);
 
   // Build the container. A hbox on top of the deck.
   // <hbox class="tabstrip"></hbox>

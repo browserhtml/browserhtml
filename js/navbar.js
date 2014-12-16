@@ -19,7 +19,8 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
   let link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = "css/navbar.css";
-  document.head.appendChild(link);
+  let defaultStyleSheet = document.querySelector("link[title=default]");
+  document.head.insertBefore(link, defaultStyleSheet.nextSibling);
 
   let html = `
     <hbox class="navbar" align="center">
