@@ -43,6 +43,7 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
 
   require([
     "js/tabstrip",
-    "js/navbar"
+    "js/navbar",
+    "js/sidetabs",
   ]);
 })

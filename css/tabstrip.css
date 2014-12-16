@@ -8,9 +8,8 @@
   z-index: 999;
 }
 
-[os="osx"] .tabstrip {
+[os="osx"] .tabstrip:first-of-type {
   padding-top: 9px;
-  padding-left: 70px;
 }
 
 .tab {
@@ -68,7 +67,6 @@
   }
 }
 
-
 .tab.selected {
   z-index: 1001;
   border-image-source: -moz-element(#canvas-tab-selected);
@@ -86,27 +84,26 @@
   border-image-source: -moz-element(#canvas-tab-hover);
 }
 
-.favicon, .throbber {
+.tab > .favicon, .tab > .throbber {
   width: 16px;
   height: 16px;
   margin: 0 3px 0 -6px;
 }
 
-.favicon:not([src]) {
+.tab > .favicon:not([src]) {
   display: none;
 }
 
-.throbber {
+.tab > .throbber {
   background-image: url(images/shared/loading.png);
   background-size: 16px 16px;
 }
 
 @media (min-resolution: 2dppx) {
-  .throbber {
+  .tab > .throbber {
     background-image: url(images/shared/loading@2x.png);
   }
 }
-
 
 .tab.loading > .favicon,
 .tab:not(.loading) > .throbber {

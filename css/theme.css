@@ -17,6 +17,11 @@
   }
 }
 
+[os="osx"] .toolbar:first-of-type {
+  /* Some room for the window controls */
+  padding-left: 70px;
+}
+
 body:not([os="osx"]) .iframes {
   background-color: white;
 }

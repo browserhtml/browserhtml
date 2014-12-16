@@ -23,7 +23,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
   document.head.insertBefore(link, defaultStyleSheet.nextSibling);
 
   let html = `
-    <hbox class="navbar" align="center">
+    <hbox class="navbar toolbar" align="center">
       <button class="back-button"></button>
       <button class="forward-button"></button>
       <button class="reload-button"></button>
