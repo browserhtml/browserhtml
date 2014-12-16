@@ -1,0 +1,160 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+:root {
+  --toolbarbutton-hover-background-image: linear-gradient(hsla(0,0%,100%,.7), hsla(0,0%,100%,.2)),
+                                          linear-gradient(hsla(0,0%,100%,.3), hsla(0,0%,100%,.3));
+  --toolbarbutton-hover-boxshadow: 0 1px 0 hsla(0,0%,100%,.3) inset, 0 0 0 1px hsla(0,0%,100%,.2) inset, 0 1px 0 hsla(0,0%,0%,.03);
+  --toolbarbutton-hover-bordercolor: rgb(154,154,154);
+
+  --toolbarbutton-active-boxshadow: 0 1px 1px hsla(0,0%,0%,.1) inset, 0 0 1px hsla(0,0%,0%,.3) inset;
+  --toolbarbutton-active-bordercolor: rgb(154,154,154);
+  --toolbarbutton-active-background-image: linear-gradient(hsla(0,0%,100%,.7), hsla(0,0%,100%,.4)),
+                                           linear-gradient(rgba(154,154,154,.5),rgba(154,154,154,.5));
+}
+
+.navbar {
+  padding: 4px 6px;
+  background-image: linear-gradient(#EDEDED, #D3D3D3);
+}
+
+[os="osx"] .navbar {
+  border-style: solid;
+  border-width: var(--hwd-pixel) 0;
+  border-color: #AAA;
+}
+
+.navbar > button {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  padding: 2px 4px;
+  border: var(--hwd-pixel) solid transparent;
+  background-origin: content-box, border-box, border-box;
+  background-clip: content-box, border-box, border-box;
+  background-image: url(images/shared/Toolbar.png);
+  background-size: 756px 72px;
+  border-radius: 3px;
+}
+
+.navbar > button.disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.navbar > button:hover {
+  background-image: url(images/shared/Toolbar.png), var(--toolbarbutton-hover-background-image);
+  border-color: var(--toolbarbutton-hover-bordercolor);
+  box-shadow: var(--toolbarbutton-hover-boxshadow);
+}
+
+.navbar > button:hover:active {
+  background-image: url(images/shared/Toolbar.png), var(--toolbarbutton-active-background-image);
+  border-color: var(--toolbarbutton-active-bordercolor);
+  box-shadow: var(--toolbarbutton-active-boxshadow);
+}
+
+@media (min-resolution: 2dppx) {
+  .navbar > button {
+    background-image: url(images/shared/Toolbar@2x.png);
+  }
+  .navbar > button:hover {
+    background-image: url(images/shared/Toolbar@2x.png), var(--toolbarbutton-hover-background-image);
+  }
+  .navbar > button:hover:active {
+    background-image: url(images/shared/Toolbar@2x.png), var(--toolbarbutton-active-background-image);
+  }
+}
+
+
+.navbar.loading .reload-button,
+.navbar:not(.loading) .stop-button {
+  display: none;
+}
+
+.back-button {    background-position: -36px   0px; }
+.forward-button { background-position: -54px   0px; }
+.reload-button {  background-position: -73px   0px; }
+.stop-button {    background-position: -90px   0px; }
+.menu-button {    background-position: -468px  0px; }
+
+.urlbar, .searchbar {
+  background-color: white;
+  border-radius: 3px;
+  margin: 4px 6px 3px;
+  border-style: solid;
+  border-color: #B0AEB0;
+  border-bottom-width: 1px;
+  min-width: 0;
+}
+
+.searchbar {
+  max-width: 30vw;
+}
+
+.urlbar.focus, .searchbar.focus {
+  border-color: white;
+  box-shadow: 0 0 0 3px #91B8E3;
+}
+
+.urlinput, .searchinput {
+  font: -moz-field;
+  font-size: 12px;
+  line-height: 22px;
+  vertical-align: bottom;
+  min-width: 0;
+}
+
+.searchselector {
+  width: 16px;
+  height: 16px;
+  margin: 0 6px;
+  background-image: url(images/shared/Search.png);
+  background-repeat: no-repeat;
+  background-position: 1px 1px;
+  background-size: 14px 14px;
+}
+
+@media (min-resolution: 2dppx) {
+  .searchselector {
+    background-image: url(images/shared/Search@2x.png);
+  }
+}
+
+.identity {
+  width: 16px;
+  height: 16px;
+  margin: 0 6px;
+  background-size: 32px 16px;
+  background-position: -16px 0;
+  background-image: url(images/shared/identity-icons-generic.png);
+}
+
+.identity:hover {
+  background-position: 0 0;
+}
+
+.navbar.ssl .identity {
+  background-image: url(images/shared/identity-icons-https.png);
+}
+
+.navbar.sslev .identity {
+  /* Extended Validation doesn't work yet: bug 764496 */
+  background-image: url(images/shared/identity-icons-https-ev.png);
+}
+
+@media (min-resolution: 2dppx) {
+  .identity {
+    background-image: url(images/shared/identity-icons-generic@2x.png);
+  }
+
+  .navbar.ssl .identity {
+    background-image: url(images/shared/identity-icons-https@2x.png);
+  }
+
+  .navbar.sslev .identity {
+    /* Extended Validation doesn't work yet: bug 764496 */
+    background-image: url(images/shared/identity-icons-https-ev@2x.png);
+  }
+}

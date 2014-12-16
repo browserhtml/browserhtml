@@ -1,0 +1,165 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+.tabstrip {
+  padding: 0 28px 0 10px;
+  margin-bottom: calc(-1 * var(--hwd-pixel));
+  z-index: 999;
+}
+
+[os="osx"] .tabstrip {
+  padding-top: 9px;
+  padding-left: 70px;
+}
+
+.tab {
+  -moz-user-select: none;
+  cursor: default;
+  color: #444;
+  height: 28px;
+  border-style: solid;
+  border-width: 0 28px;
+  border-image-slice: 0 28 0 28 fill;
+  border-color: transparent;
+  margin-right: -25px;
+  padding-top: 1px;
+  flex-basis: 120px;
+  background-clip: border-box;
+}
+
+[os="linux"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-border: transparent;
+  --curve-gradient-start: #FBFBFB;
+  --curve-gradient-end: #EDEDED;
+  --curve-hover-border: transparent;
+  --curve-hover-gradient-start: rgba(255,255,255,0.4);
+  --curve-hover-gradient-end: rgba(255,255,255,0.4);
+}
+
+[os="windows"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-border: transparent;
+  --curve-gradient-start: #FBFBFB;
+  --curve-gradient-end: #EDEDED;
+  --curve-hover-border: #AAA;
+  --curve-hover-gradient-start: rgba(255, 255, 255, 0.4);
+  --curve-hover-gradient-end: rgba(255, 255, 255, 0.4);
+}
+
+[os="osx"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-border: #AAA;
+  --curve-gradient-start: #FBFBFB;
+  --curve-gradient-end: #EDEDED;
+  --curve-hover-border: #AAA;
+  --curve-hover-gradient-start: transparent;
+  --curve-hover-gradient-end: transparent;
+}
+
+[os="linux"] .tab {
+  color: white;
+}
+
+@media (min-resolution: 2dppx) {
+  .tab {
+    border-image-slice: 0 56 0 56 fill;
+  }
+}
+
+
+.tab.selected {
+  z-index: 1001;
+  border-image-source: -moz-element(#canvas-tab-selected);
+  color: black;
+}
+
+.tab:not(.selected):not(:hover) + .tab:not(.selected):not(:hover):not(:first-of-type) {
+  background-image: linear-gradient(to top, #AAA, transparent 80%);
+  background-size: 1px 100%;
+  background-repeat: no-repeat;
+  background-position: -14px 0;
+}
+
+.tab:not(.selected):hover {
+  border-image-source: -moz-element(#canvas-tab-hover);
+}
+
+.favicon, .throbber {
+  width: 16px;
+  height: 16px;
+  margin: 0 3px 0 -6px;
+}
+
+.favicon:not([src]) {
+  display: none;
+}
+
+.throbber {
+  background-image: url(images/shared/loading.png);
+  background-size: 16px 16px;
+}
+
+@media (min-resolution: 2dppx) {
+  .throbber {
+    background-image: url(images/shared/loading@2x.png);
+  }
+}
+
+
+.tab.loading > .favicon,
+.tab:not(.loading) > .throbber {
+  display: none;
+}
+
+.tab > .title {
+  flex-grow: 1;
+  width: 0;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  z-index: 1000;
+  opacity: 0.7;
+  font: -moz-field;
+  font-size: 12px;
+}
+
+.tab.selected > .title {
+  opacity: 1;
+}
+
+.tab > .close-button {
+  width: 16px;
+  height: 16px;
+  background-color: transparent;
+  background-image: url(images/shared/close.png);
+  background-size: 64px 16px;;
+  margin: 0 -6px 0 3px;
+}
+
+[os="osx"] .tab > .close-button {
+  background-position: 0 0;
+}
+
+[os="linux"] .tab > .close-button {
+  background-position: -48px 0;
+}
+
+.tab.selected > .close-button {
+  background-position: 0 0;
+}
+
+
+@media (min-resolution: 2dppx) {
+  .tab > .close-button {
+    background-image: url(images/shared/close@2x.png);
+  }
+}
+
+.tab > .close-button:hover {
+  background-position: -16px 0;
+}
+
+.tab > .close-button:hover:active {
+  background-position: -32px 0;
+}

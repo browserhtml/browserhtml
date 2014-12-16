@@ -27,32 +27,10 @@
 
   <body>
 
-    <!-- See this code? box, vbox, hbox, … these look like XUL
-         tags, but they're not. These are HTML tags using the
-         standard CSS flexbox model, described in css/layout.css -->
-
-    <vbox flex="1">
-
-      <hbox class="tabstrip"></hbox>
-
-      <hbox class="navbar" align="center">
-        <button class="back-button"></button>
-        <button class="forward-button"></button>
-        <button class="reload-button"></button>
-        <button class="stop-button"></button>
-        <hbox class="urlbar" flex="1" align="center">
-          <div class="identity"></div>
-          <input placeholder="Search or enter address" class="urlinput" flex="1">
-        </hbox>
-        <hbox class="searchbar" flex="1" align="center">
-          <div class="searchselector"></div>
-          <input placeholder="Yahoo" class="searchinput">
-        </hbox>
-        <button class="menu-button"></button>
+    <vbox id="outervbox" flex="1"> <!-- This is not XUL. It's html. -->
+      <hbox id="outerhbox" flex="1">
+        <box class="iframes" flex="1" align="stretch"></box>
       </hbox>
-
-      <box class="iframes" flex="1" align="stretch"></box>
-
     </vbox>
     <div hidden="true" class="dummy-tab-curve"></div>
   </body>

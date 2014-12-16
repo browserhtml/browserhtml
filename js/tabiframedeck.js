@@ -14,7 +14,8 @@
  *
  */
 
-define(["js/tabiframe", "js/eventemitter"], function(TabIframe, EventEmitter) {
+define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
+       function(TabIframe, EventEmitter, RegisterKeyBindings) {
 
   "use strict";
 
@@ -147,6 +148,40 @@ define(["js/tabiframe", "js/eventemitter"], function(TabIframe, EventEmitter) {
 
   EventEmitter.decorate(TabIframeDeck);
   TabIframeDeck.add();
+
+  RegisterKeyBindings(
+    ["",              "Esc",        () => TabIframeDeck.getSelected().stop()],
+    ["Ctrl",          "Tab",        () => TabIframeDeck.selectNext()],
+    ["Ctrl Shift",    "code:9",     () => TabIframeDeck.selectPrevious()]
+  );
+
+  if (window.OS == "linux" || window.OS == "windows") {
+    RegisterKeyBindings(
+      ["Ctrl",          "t",          () => TabIframeDeck.add({select:true})],
+      ["Ctrl",          "r",          () => TabIframeDeck.getSelected().reload()],
+      ["Alt",           "Left",       () => TabIframeDeck.getSelected().goBack()],
+      ["Alt",           "Right",      () => TabIframeDeck.getSelected().goForward()],
+      ["Ctrl",          "w",          () => TabIframeDeck.remove(TabIframeDeck.getSelected())],
+      ["Ctrl Shift",    "+",          () => TabIframeDeck.getSelected().zoomIn()],
+      ["Ctrl",          "=",          () => TabIframeDeck.getSelected().zoomIn()],
+      ["Ctrl",          "-",          () => TabIframeDeck.getSelected().zoomOut()],
+      ["Ctrl",          "0",          () => TabIframeDeck.getSelected().resetZoom()]
+    );
+  }
+
+  if (window.OS == "osx") {
+    RegisterKeyBindings(
+      ["Cmd",       "t",          () => TabIframeDeck.add({select:true})],
+      ["Cmd",       "r",          () => TabIframeDeck.getSelected().reload()],
+      ["Cmd",       "Left",       () => TabIframeDeck.getSelected().goBack()],
+      ["Cmd",       "Right",      () => TabIframeDeck.getSelected().goForward()],
+      ["Cmd",       "w",          () => TabIframeDeck.remove(TabIframeDeck.getSelected())],
+      ["Cmd Shift", "+",          () => TabIframeDeck.getSelected().zoomIn()],
+      ["Cmd",       "=",          () => TabIframeDeck.getSelected().zoomIn()],
+      ["Cmd",       "-",          () => TabIframeDeck.getSelected().zoomOut()],
+      ["Cmd",       "0",          () => TabIframeDeck.getSelected().resetZoom()]
+    );
+  }
 
   return TabIframeDeck;
 });

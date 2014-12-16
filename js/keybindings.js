@@ -10,49 +10,11 @@
  *
  */
 
-require(['js/commands'], function(Commands) {
+define(function() {
 
   "use strict";
 
   let allKeyBindings = [];
-
-  RegisterKeyBindings(
-    ["",              "Esc",        "stop"],
-    ["Ctrl",          "Tab",        "selectNextTab"],
-    ["Ctrl Shift",    "code:9",     "selectPreviousTab"]
-  );
-
-  if (window.OS == "linux" || window.OS == "windows") {
-    RegisterKeyBindings(
-      ["Ctrl",          "t",          "createNewTab"],
-      ["Ctrl",          "r",          "reload"],
-      ["Alt",           "Left",       "goBack"],
-      ["Alt",           "Right",      "goForward"],
-      ["Ctrl",          "l",          "focusURLBar"],
-      ["Ctrl",          "k",          "focusSearchBar"],
-      ["Ctrl",          "w",          "closeTab"],
-      ["Ctrl Shift",    "+",          "zoomIn"],
-      ["Ctrl",          "=",          "zoomIn"],
-      ["Ctrl",          "-",          "zoomOut"],
-      ["Ctrl",          "0",          "resetZoom"]
-    );
-  }
-
-  if (window.OS == "osx") {
-    RegisterKeyBindings(
-      ["Cmd",       "t",          "createNewTab"],
-      ["Cmd",       "r",          "reload"],
-      ["Cmd",       "Left",       "goBack"],
-      ["Cmd",       "Right",      "goForward"],
-      ["Cmd",       "l",          "focusURLBar"],
-      ["Cmd",       "k",          "focusSearchBar"],
-      ["Cmd",       "w",          "closeTab"],
-      ["Cmd Shift", "+",          "zoomIn"],
-      ["Cmd",       "=",          "zoomIn"],
-      ["Cmd",       "-",          "zoomOut"],
-      ["Cmd",       "0",          "resetZoom"]
-    );
-  }
 
   function RegisterKeyBindings(...bindings) {
     for (let b of bindings) {
@@ -91,9 +53,11 @@ require(['js/commands'], function(Commands) {
         }
       }
       if (matches) {
-        Commands[oneKeyBinding.func]();
+        oneKeyBinding.func.apply(null);
       }
     }
   });
+
+  return RegisterKeyBindings;
 
 });

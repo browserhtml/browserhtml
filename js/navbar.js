@@ -11,21 +11,56 @@
  *
  */
 
-require(["js/commands", "js/urlhelper", "js/tabiframedeck"],
-function(Cmds, UrlHelper, TabIframeDeck) {
+require(["js/urlhelper", "js/tabiframedeck", "js/keybindings"],
+function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   "use strict";
 
-  document.querySelector(".back-button").onclick = () => Cmds.goBack();
-  document.querySelector(".forward-button").onclick = () => Cmds.goForward();
-  document.querySelector(".reload-button").onclick = () => Cmds.reload();
-  document.querySelector(".stop-button").onclick = () => Cmds.stop();
+  let link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "css/navbar.css";
+  document.head.appendChild(link);
+
+  let html = `
+    <hbox class="navbar" align="center">
+      <button class="back-button"></button>
+      <button class="forward-button"></button>
+      <button class="reload-button"></button>
+      <button class="stop-button"></button>
+      <hbox class="urlbar" flex="1" align="center">
+        <div class="identity"></div>
+        <input placeholder="Search or enter address" class="urlinput" flex="1">
+      </hbox>
+      <hbox class="searchbar" flex="1" align="center">
+        <div class="searchselector"></div>
+        <input placeholder="Yahoo" class="searchinput">
+      </hbox>
+      <button class="menu-button"></button>
+    </hbox>
+  `;
+  let outervbox = document.querySelector("#outervbox");
+  let outerhbox = document.querySelector("#outerhbox");
+  let placeholder = document.createElement("hbox");
+  outervbox.insertBefore(placeholder, outerhbox);
+  placeholder.outerHTML = html;
+
+  let navbar = document.querySelector(".navbar");
 
   let urlTemplate = "https://search.yahoo.com/search?p={searchTerms}";
 
-  let urlbar = document.querySelector(".urlbar");
-  let urlinput = document.querySelector(".urlinput");
-  let navbar = document.querySelector(".navbar");
+  let urlbar = navbar.querySelector(".urlbar");
+  let urlinput = navbar.querySelector(".urlinput");
+  let searchbar = navbar.querySelector(".searchbar");
+  let searchinput = navbar.querySelector(".searchinput");
+  let backButton = navbar.querySelector(".back-button")
+  let forwardButton = navbar.querySelector(".forward-button")
+  let reloadButton = navbar.querySelector(".reload-button");
+  let stopButton = navbar.querySelector(".stop-button");
+
+  backButton.onclick = () => TabIframeDeck.getSelected().goBack();
+  forwardButton.onclick = () => TabIframeDeck.getSelected().goForward();
+  reloadButton.onclick = () => TabIframeDeck.getSelected().reload();
+  stopButton.onclick = () => TabIframeDeck.getSelected().stop();
 
   urlinput.addEventListener("focus", () => {
     urlinput.select();
@@ -46,8 +81,6 @@ function(Cmds, UrlHelper, TabIframeDeck) {
     TabIframeDeck.getSelected().userInput = urlinput.value;
   });
 
-  let searchbar = document.querySelector(".searchbar");
-  let searchinput = document.querySelector(".searchinput");
   searchinput.addEventListener("focus", () => {
     searchinput.select();
     searchbar.classList.add("focus");
@@ -58,6 +91,19 @@ function(Cmds, UrlHelper, TabIframeDeck) {
       SearchInputChanged()
     }
   });
+
+  let mod = window.OS == "osx" ? "Cmd" : "Ctrl";
+
+  RegisterKeyBindings(
+    [mod,    "l",   () => {
+      urlinput.focus();
+      urlinput.select();
+    }],
+    [mod,    "k",   () => {
+      searchinput.focus();
+      searchinput.select();
+    }]
+  );
 
   function UrlInputChanged() {
     let text = urlinput.value;
@@ -133,9 +179,9 @@ function(Cmds, UrlHelper, TabIframeDeck) {
         return;
       }
       if (canGoBack) {
-        navbar.querySelector(".back-button").classList.remove("disabled");
+        backButton.classList.remove("disabled");
       } else {
-        navbar.querySelector(".back-button").classList.add("disabled");
+        backButton.classList.add("disabled");
       }
     });
 
@@ -145,9 +191,9 @@ function(Cmds, UrlHelper, TabIframeDeck) {
         return;
       }
       if (canGoForward) {
-        navbar.querySelector(".forward-button").classList.remove("disabled");
+        forwardButton.classList.remove("disabled");
       } else {
-        navbar.querySelector(".forward-button").classList.add("disabled");
+        forwardButton.classList.add("disabled");
       }
     });
   };

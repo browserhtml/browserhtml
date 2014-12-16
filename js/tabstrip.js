@@ -17,8 +17,25 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
 
   "use strict";
 
+  let link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "css/tabstrip.css";
+  document.head.appendChild(link);
+
+  // Build the container. A hbox on top of the deck.
+  // <hbox class="tabstrip"></hbox>
+  // Tabs will be appended in there.
+  let tabstrip = document.createElement("hbox");
+  tabstrip.className = "tabstrip";
+  let outervbox = document.querySelector("#outervbox");
+  outervbox.insertBefore(tabstrip, outervbox.firstChild);
+
+  // Where will store the tab objects, with their linked
+  // <tab-iframe>
   const allTabs = new Map();
 
+  // Tab JS object. This should use web components.
+  // issue #64
   function Tab(tabIframe) {
     let hbox = document.createElement("hbox");
     hbox.className = "tab";
@@ -66,7 +83,7 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
     this._tabIframe = tabIframe;
     this._trackTabIframe();
 
-    document.querySelector(".tabstrip").appendChild(this._dom);
+    tabstrip.appendChild(this._dom);
 
     this.updateDom();
   }
@@ -174,17 +191,11 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
 
   /* Build curved tabs */
 
-  if (document.readyState == "complete") {
-    BuildCurvedTabs();
-  } else {
-    document.addEventListener("readystatechange", onDocumentLoaded);
-  }
+  link.addEventListener("load", onDocumentLoaded);
 
   function onDocumentLoaded() {
-    if (document.readyState == "complete") {
-      document.removeEventListener("readystatechange", onDocumentLoaded);
-      BuildCurvedTabs();
-    }
+    link.removeEventListener("load", onDocumentLoaded);
+    BuildCurvedTabs();
   }
 
   function BuildCurvedTabs() {
