@@ -8,7 +8,7 @@
  */
 
 
-require(['js/tabiframedeck'], function(TabIframeDeck) {
+require(["js/tabiframedeck"], function(TabIframeDeck) {
 
   "use strict";
 

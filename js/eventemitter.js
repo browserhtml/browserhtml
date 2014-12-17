@@ -122,7 +122,7 @@ define(function() {
         // If listeners were removed during emission, make sure the
         // event handler we're going to fire wasn't removed.
         if (originalListeners === this._eventEmitterListeners.get(aEvent) ||
-            this._eventEmitterListeners.get(aEvent).some(function(l) l === listener)) {
+            this._eventEmitterListeners.get(aEvent).some(l => l === listener)) {
           try {
             listener.apply(null, arguments);
           }

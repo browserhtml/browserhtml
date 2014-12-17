@@ -1,0 +1,28 @@
+{
+  "name": "firefox.html",
+  "private": true,
+  "homepage": "https://github.com/paulrouget/firefox.html",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paulrouget/firefox.html.git"
+  },
+  "bugs": {
+    "url": "https://github.com/paulrouget/firefox.html/issues"
+  },
+  "licenses": [
+    {
+      "type": "Mozilla Public License Version 2.0",
+      "url": "https://github.com/paulrouget/firefox.html/blob/master/LICENSE"
+    }
+  ],
+  "author": {
+    "name": "Paul Rouget",
+    "url": "http://paulrouget.com/"
+  },
+  "scripts": {
+    "test": "jscs ./"
+  },
+  "devDependencies": {
+    "jscs": "^1.8.1"
+  }
+}
