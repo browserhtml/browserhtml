@@ -113,13 +113,26 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
       this.dom.classList.remove('selected');
     },
 
+    _eventsToTrack: [
+      'mozbrowserloadstart',
+      'mozbrowserloadend',
+      'mozbrowsertitlechange',
+      'mozbrowserlocationchange',
+      'mozbrowsericonchange',
+      'mozbrowsererror'
+    ],
+
     _trackTabIframe: function() {
       this.updateDom = this.updateDom.bind(this);
-      this.tabIframe.on('dataUpdate', this.updateDom);
+      for (let e of this._eventsToTrack) {
+        this.tabIframe.on(e, this.updateDom);
+      }
     },
 
     _untrackTabIframe: function() {
-      this.tabIframe.off('dataUpdate', this.updateDom);
+      for (let e of this._eventsToTrack) {
+        this.tabIframe.off(e, this.updateDom);
+      }
     },
 
     updateDom: function() {

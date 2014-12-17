@@ -237,12 +237,8 @@ define(['js/eventemitter'], function(EventEmitter) {
         somethingChanged = false;
     }
 
-    if (somethingChanged) {
-      this.emit('dataUpdate');
-    }
-
     // Forward event
-    this.emit(e.type, e);
+    this.emit(e.type, e, this);
   };
 
   let TabIframe =document.registerElement('tab-iframe', {prototype: tabIframeProto});
