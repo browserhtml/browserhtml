@@ -58,3 +58,6 @@ It uses a `xul:window` that loads the Firefox.html app into an iframe. The
 support opening animations, native colors, …). Eventually, I want to kill
 this window and bring these native features to HTML. This window is nothing
 but a window with window controls (close, minimize, maximize).
+
+
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/paulrouget/firefox.html?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
