@@ -122,13 +122,13 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
 
     _trackTabIframe: function() {
       this.updateDom = this.updateDom.bind(this);
-      for (let e in this._eventsToTrack) {
+      for (let e of this._eventsToTrack) {
         this.tabIframe.on(e, this.updateDom);
       }
     },
 
     _untrackTabIframe: function() {
-      for (let e in this._eventsToTrack) {
+      for (let e of this._eventsToTrack) {
         this.tabIframe.off(e, this.updateDom);
       }
     },
