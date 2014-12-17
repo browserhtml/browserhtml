@@ -126,10 +126,20 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   let lastSelectedTab = null;
 
+  let events = [
+    'mozbrowserloadstart',
+    'mozbrowserloadend',
+    'mozbrowserlocationchange',
+    'mozbrowsererror',
+    'mozbrowsersecuritychange',
+  ];
+
   function OnTabSelected() {
     let selectedTabIframe = TabIframeDeck.getSelected();
     if (lastSelectedTab) {
-      lastSelectedTab.off('dataUpdate', UpdateTab);
+      for (let e of events) {
+        lastSelectedTab.off(e, UpdateTab);
+      }
     }
     lastSelectedTab = selectedTabIframe;
     if (selectedTabIframe) {
@@ -137,16 +147,19 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
         urlinput.focus();
         urlinput.select();
       }
-
-      selectedTabIframe.on('dataUpdate', UpdateTab);
-      UpdateTab();
+      for (let e of events) {
+        lastSelectedTab.on(e, UpdateTab);
+      }
+      UpdateTab(null, null, selectedTabIframe);
     }
   }
 
   OnTabSelected();
 
-  function UpdateTab() {
-    let tabIframe = TabIframeDeck.getSelected();
+  function UpdateTab(eventName, event, tabIframe) {
+    if (tabIframe != TabIframeDeck.getSelected()) {
+      return;
+    }
 
     if (tabIframe.loading) {
       navbar.classList.add('loading');
