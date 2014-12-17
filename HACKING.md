@@ -32,6 +32,20 @@ is `tabiframedeck.js`, Firefox.html should still work with no JS exception.
 For example, the `navbar.js` modules knows nothing about the `tabstrip.js`
 module, and `tabiframedeck` knows nothing about `tabstrip.js` and `navbar.js`.
 
+## Tests
+
+To run tests manually you need to install our dependencies _once_ after cloning the repository:
+
+```bash
+npm install
+```
+
+After installing the dependencies you can trigger the tests with the following command:
+
+```bash
+npm test
+```
+
 ## Use
 
 - [CSS variable](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables)
