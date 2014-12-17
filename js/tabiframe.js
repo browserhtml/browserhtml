@@ -10,19 +10,19 @@
  *
  */
 
-define(["js/eventemitter"], function(EventEmitter) {
+define(['js/eventemitter'], function(EventEmitter) {
 
-  "use strict";
+  'use strict';
 
   const MIN_ZOOM = 0.5;
   const MAX_ZOOM = 2;
 
   const IFRAME_EVENTS = [
-    "mozbrowserasyncscroll", "mozbrowserclose", "mozbrowsercontextmenu",
-    "mozbrowsererror", "mozbrowsericonchange", "mozbrowserloadend",
-    "mozbrowserloadstart", "mozbrowserlocationchange", "mozbrowseropenwindow",
-    "mozbrowsersecuritychange", "mozbrowsershowmodalprompt", "mozbrowsertitlechange",
-    "mozbrowserusernameandpasswordrequired"
+    'mozbrowserasyncscroll', 'mozbrowserclose', 'mozbrowsercontextmenu',
+    'mozbrowsererror', 'mozbrowsericonchange', 'mozbrowserloadend',
+    'mozbrowserloadstart', 'mozbrowserlocationchange', 'mozbrowseropenwindow',
+    'mozbrowsersecuritychange', 'mozbrowsershowmodalprompt', 'mozbrowsertitlechange',
+    'mozbrowserusernameandpasswordrequired'
   ];
 
   let tabIframeProto = Object.create(HTMLElement.prototype);
@@ -34,7 +34,7 @@ define(["js/eventemitter"], function(EventEmitter) {
     if (window.IS_PRIVILEGED) {
       this._innerIframe.src = url;
     } else {
-      this._innerIframe.src = "data:," + url;
+      this._innerIframe.src = 'data:,' + url;
     }
   };
 
@@ -45,19 +45,19 @@ define(["js/eventemitter"], function(EventEmitter) {
   };
 
   tabIframeProto.show = function() {
-    this.removeAttribute("hidden");
+    this.removeAttribute('hidden');
     if (window.IS_PRIVILEGED && this._innerIframe) {
       this._innerIframe.setVisible(true);
     }
-    this.emit("visible");
+    this.emit('visible');
   };
 
   tabIframeProto.hide = function() {
-    this.setAttribute("hidden", "true");
+    this.setAttribute('hidden', 'true');
     if (window.IS_PRIVILEGED && this._innerIframe) {
       this._innerIframe.setVisible(false);
     }
-    this.emit("hidden");
+    this.emit('hidden');
   };
 
   tabIframeProto.createdCallback = function() {
@@ -67,11 +67,11 @@ define(["js/eventemitter"], function(EventEmitter) {
   };
 
   tabIframeProto._createInnerIframe = function() {
-    let iframe = document.createElement("iframe");
-    iframe.setAttribute("mozbrowser", "true");
-    iframe.setAttribute("flex", "1");
-    iframe.setAttribute("remote", "true");
-    iframe.setAttribute("mozallowfullscreen", "true");
+    let iframe = document.createElement('iframe');
+    iframe.setAttribute('mozbrowser', 'true');
+    iframe.setAttribute('flex', '1');
+    iframe.setAttribute('remote', 'true');
+    iframe.setAttribute('mozallowfullscreen', 'true');
     this.appendChild(iframe);
     for (let eventName of IFRAME_EVENTS) {
       iframe.addEventListener(eventName, this);
@@ -132,44 +132,44 @@ define(["js/eventemitter"], function(EventEmitter) {
 
   tabIframeProto._clearTabData = function() {
     this._loading = false;
-    this._title = "";
-    this._location = "";
-    this._favicon = "";
-    this._securityState = "unsecure";
+    this._title = '';
+    this._location = '';
+    this._favicon = '';
+    this._securityState = 'unsecure';
     this._securityExtendedValidation = false;
   };
 
-  Object.defineProperty(tabIframeProto, "loading", {
+  Object.defineProperty(tabIframeProto, 'loading', {
     get: function () {
       return this._loading;
     }
   });
 
-  Object.defineProperty(tabIframeProto, "title", {
+  Object.defineProperty(tabIframeProto, 'title', {
     get: function () {
       return this._title;
     }
   });
 
-  Object.defineProperty(tabIframeProto, "location", {
+  Object.defineProperty(tabIframeProto, 'location', {
     get: function () {
       return this._location;
     }
   });
 
-  Object.defineProperty(tabIframeProto, "favicon", {
+  Object.defineProperty(tabIframeProto, 'favicon', {
     get: function () {
       return this._favicon;
     }
   });
 
-  Object.defineProperty(tabIframeProto, "securityState", {
+  Object.defineProperty(tabIframeProto, 'securityState', {
     get: function () {
       return this._securityState;
     }
   });
 
-  Object.defineProperty(tabIframeProto, "securityExtendedValidation", {
+  Object.defineProperty(tabIframeProto, 'securityExtendedValidation', {
     get: function () {
       return this._securityExtendedValidation;
     }
@@ -203,33 +203,33 @@ define(["js/eventemitter"], function(EventEmitter) {
     }
   };
 
-  tabIframeProto.userInput = "";
+  tabIframeProto.userInput = '';
 
   tabIframeProto.handleEvent = function(e) {
     let somethingChanged = true;
 
     switch(e.type) {
-      case "mozbrowserloadstart":
+      case 'mozbrowserloadstart':
         this._clearTabData();
         this._loading = true;
         break;
-      case "mozbrowserloadend":
+      case 'mozbrowserloadend':
         this._loading = false;
         break;
-      case "mozbrowsertitlechange":
+      case 'mozbrowsertitlechange':
         this._title = e.detail;
         break;
-      case "mozbrowserlocationchange":
-        this.userInput = "";
+      case 'mozbrowserlocationchange':
+        this.userInput = '';
         this._location = e.detail;
         break;
-      case "mozbrowsericonchange":
+      case 'mozbrowsericonchange':
         this._favicon = e.detail.href;
         break;
-      case "mozbrowsererror":
+      case 'mozbrowsererror':
         this._loading = false;
         break;
-      case "mozbrowsersecuritychange":
+      case 'mozbrowsersecuritychange':
         this._securityState = e.detail.state;
         this._securityExtendedValidation = e.detail.extendedValidation;
         break;
@@ -238,13 +238,13 @@ define(["js/eventemitter"], function(EventEmitter) {
     }
 
     if (somethingChanged) {
-      this.emit("dataUpdate");
+      this.emit('dataUpdate');
     }
 
     // Forward event
     this.emit(e.type, e);
   };
 
-  let TabIframe =document.registerElement("tab-iframe", {prototype: tabIframeProto});
+  let TabIframe =document.registerElement('tab-iframe', {prototype: tabIframeProto});
   return TabIframe;
 });

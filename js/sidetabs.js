@@ -8,20 +8,20 @@
  */
 
 
-require(["js/tabiframedeck"], function(TabIframeDeck) {
+require(['js/tabiframedeck'], function(TabIframeDeck) {
 
-  "use strict";
+  'use strict';
 
-  let link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = "css/sidetabs.css";
-  let defaultStyleSheet = document.querySelector("link[title=default]");
+  let link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'css/sidetabs.css';
+  let defaultStyleSheet = document.querySelector('link[title=default]');
   document.head.insertBefore(link, defaultStyleSheet.nextSibling);
 
-  let tabstrip = document.createElement("vbox");
-  tabstrip.className = "verticaltabstrip";
-  tabstrip.setAttribute("pack", "start");
-  let outerhbox = document.querySelector("#outerhbox");
+  let tabstrip = document.createElement('vbox');
+  tabstrip.className = 'verticaltabstrip';
+  tabstrip.setAttribute('pack', 'start');
+  let outerhbox = document.querySelector('#outerhbox');
   outerhbox.appendChild(tabstrip);
 
   // Where will store the tab objects, with their linked
@@ -31,26 +31,26 @@ require(["js/tabiframedeck"], function(TabIframeDeck) {
   // Tab JS object. This should use web components.
   // issue #64
   function Tab(tabIframe) {
-    let hbox = document.createElement("hbox");
-    hbox.className = "vtab";
-    hbox.setAttribute("align", "center");
+    let hbox = document.createElement('hbox');
+    hbox.className = 'vtab';
+    hbox.setAttribute('align', 'center');
 
-    let throbber = document.createElement("div");
-    throbber.className = "throbber";
+    let throbber = document.createElement('div');
+    throbber.className = 'throbber';
 
-    let favicon = document.createElement("img");
-    favicon.className = "favicon";
+    let favicon = document.createElement('img');
+    favicon.className = 'favicon';
 
-    let titleWrapper = document.createElement("hbox");
-    titleWrapper.className = "title-wrapper";
+    let titleWrapper = document.createElement('hbox');
+    titleWrapper.className = 'title-wrapper';
 
-    let title = document.createElement("span");
-    title.className = "title";
+    let title = document.createElement('span');
+    title.className = 'title';
 
     titleWrapper.appendChild(title);
 
-    let button = document.createElement("button");
-    button.className = "close-button";
+    let button = document.createElement('button');
+    button.className = 'close-button';
 
     button.onmouseup = (event) => {
       if(event.button == 0) {
@@ -104,49 +104,49 @@ require(["js/tabiframedeck"], function(TabIframeDeck) {
     },
 
     select: function() {
-      this.dom.classList.add("selected");
+      this.dom.classList.add('selected');
     },
 
     unselect: function() {
-      this.dom.classList.remove("selected");
+      this.dom.classList.remove('selected');
     },
 
     _trackTabIframe: function() {
       this.updateDom = this.updateDom.bind(this);
-      this.tabIframe.on("dataUpdate", this.updateDom);
+      this.tabIframe.on('dataUpdate', this.updateDom);
     },
 
     _untrackTabIframe: function() {
-      this.tabIframe.off("dataUpdate", this.updateDom);
+      this.tabIframe.off('dataUpdate', this.updateDom);
     },
 
     updateDom: function() {
       if (this.tabIframe.loading) {
-        this.dom.classList.add("loading");
+        this.dom.classList.add('loading');
       } else {
-        this.dom.classList.remove("loading");
+        this.dom.classList.remove('loading');
       }
 
       if (this.tabIframe.title) {
-        this.dom.querySelector(".title").textContent = this.tabIframe.title;
+        this.dom.querySelector('.title').textContent = this.tabIframe.title;
       } else {
         if (this.tabIframe.location) {
-          this.dom.querySelector(".title").textContent = this.tabIframe.location;
+          this.dom.querySelector('.title').textContent = this.tabIframe.location;
         } else {
-          this.dom.querySelector(".title").textContent = "New Tab";
+          this.dom.querySelector('.title').textContent = 'New Tab';
         }
       }
 
-      let faviconImg = this.dom.querySelector(".favicon");
+      let faviconImg = this.dom.querySelector('.favicon');
       if (this.tabIframe.favicon) {
         faviconImg.src = this.tabIframe.favicon;
       } else {
-        faviconImg.removeAttribute("src");
+        faviconImg.removeAttribute('src');
       }
     },
   };
 
-  TabIframeDeck.on("add", (event, detail) => {
+  TabIframeDeck.on('add', (event, detail) => {
     let tabIframe = detail.tabIframe;
     let tab = new Tab(tabIframe);
     allTabs.set(tabIframe, tab);
@@ -155,7 +155,7 @@ require(["js/tabiframedeck"], function(TabIframeDeck) {
     }
   });
 
-  TabIframeDeck.on("remove", (event, detail) => {
+  TabIframeDeck.on('remove', (event, detail) => {
     let tab = allTabs.get(detail.tabIframe);
     if (tab) {
       tab.destroy();
@@ -163,14 +163,14 @@ require(["js/tabiframedeck"], function(TabIframeDeck) {
     }
   });
 
-  TabIframeDeck.on("select", (event, detail) => {
+  TabIframeDeck.on('select', (event, detail) => {
     let tab = allTabs.get(detail.tabIframe);
     if (tab) {
       tab.select();
     }
   });
 
-  TabIframeDeck.on("unselect", (event, detail) => {
+  TabIframeDeck.on('unselect', (event, detail) => {
     let tab = allTabs.get(detail.tabIframe);
     if (tab) {
       tab.unselect();

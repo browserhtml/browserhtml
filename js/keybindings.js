@@ -12,7 +12,7 @@
 
 define(function() {
 
-  "use strict";
+  'use strict';
 
   let allKeyBindings = [];
 
@@ -29,13 +29,13 @@ define(function() {
         altKey: false
       }
 
-      if (mods.indexOf("Ctrl") > -1) e.ctrlKey = true;
-      if (mods.indexOf("Shift") > -1) e.shiftKey = true;
-      if (mods.indexOf("Alt") > -1) e.altKey = true;
-      if (mods.indexOf("Cmd") > -1) e.metaKey = true;
+      if (mods.indexOf('Ctrl') > -1) e.ctrlKey = true;
+      if (mods.indexOf('Shift') > -1) e.shiftKey = true;
+      if (mods.indexOf('Alt') > -1) e.altKey = true;
+      if (mods.indexOf('Cmd') > -1) e.metaKey = true;
 
-      if (key.indexOf("code:") > -1) {
-        e.keyCode = key.split(":")[1];
+      if (key.indexOf('code:') > -1) {
+        e.keyCode = key.split(':')[1];
       } else {
         e.key = key;
       }
@@ -43,7 +43,7 @@ define(function() {
     }
   }
 
-  window.addEventListener("keypress", e => {
+  window.addEventListener('keypress', e => {
     for (let oneKeyBinding of allKeyBindings) {
       let matches = true;
       for (let prop in oneKeyBinding.event) {

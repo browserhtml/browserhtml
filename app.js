@@ -11,17 +11,17 @@
 
 // Detect Operating System
 
-if (navigator.appVersion.indexOf("Win") >= 0) {
-  window.OS = "windows";
-  document.body.setAttribute("os", "windows");
+if (navigator.appVersion.indexOf('Win') >= 0) {
+  window.OS = 'windows';
+  document.body.setAttribute('os', 'windows');
 }
-if (navigator.appVersion.indexOf("Mac") >= 0) {
-  window.OS = "osx";
-  document.body.setAttribute("os", "osx");
+if (navigator.appVersion.indexOf('Mac') >= 0) {
+  window.OS = 'osx';
+  document.body.setAttribute('os', 'osx');
 }
-if (navigator.appVersion.indexOf("X11") >= 0) {
-  window.OS = "linux";
-  document.body.setAttribute("os", "linux");
+if (navigator.appVersion.indexOf('X11') >= 0) {
+  window.OS = 'linux';
+  document.body.setAttribute('os', 'linux');
 }
 
 // IS_PRIVILEGED is false if Firefox.html runs in a regular browser,
@@ -30,19 +30,19 @@ if (navigator.appVersion.indexOf("X11") >= 0) {
 window.IS_PRIVILEGED = !!HTMLIFrameElement.prototype.setVisible;
 
 require.config({
-  scriptType: "text/javascript;version=1.8"
+  scriptType: 'text/javascript;version=1.8'
 });
 
-require(["js/tabiframedeck"], function(TabIframeDeck) {
+require(['js/tabiframedeck'], function(TabIframeDeck) {
 
-  "use strict";
+  'use strict';
 
-  TabIframeDeck.on("selectedTabIframeUpdate", (tabIframe) => {
-    document.title = "Firefox - " + tabIframe.title;
+  TabIframeDeck.on('selectedTabIframeUpdate', (tabIframe) => {
+    document.title = 'Firefox - ' + tabIframe.title;
   });
 
   require([
-    "js/tabstrip",
-    "js/navbar",
+    'js/tabstrip',
+    'js/navbar',
   ]);
 })

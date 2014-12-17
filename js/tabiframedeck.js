@@ -10,14 +10,14 @@
  *
  * TabIframeDeck object is used to manipulate the list
  * of tabs (add, remove, select, …) and be notified
- * on tab changes (events like "select", "add", …).
+ * on tab changes (events like 'select', 'add', …).
  *
  */
 
-define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
+define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
        function(TabIframe, EventEmitter, RegisterKeyBindings) {
 
-  "use strict";
+  'use strict';
 
   let _tabIframeArray = [];
   let _selectIndex = -1;
@@ -51,17 +51,17 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
     },
 
     add: function(options={}) {
-      let tabIframe = document.createElement("tab-iframe");
-      tabIframe.setAttribute("flex", "1");
+      let tabIframe = document.createElement('tab-iframe');
+      tabIframe.setAttribute('flex', '1');
 
-      let parent = document.querySelector(".iframes");
+      let parent = document.querySelector('.iframes');
       parent.appendChild(tabIframe);
       _tabIframeArray.push(tabIframe);
 
-      tabIframe.on("mozbrowseropenwindow", this.onMozBrowserOpenWindow);
-      tabIframe.on("mozbrowserlocationchange", this.saveSession);
+      tabIframe.on('mozbrowseropenwindow', this.onMozBrowserOpenWindow);
+      tabIframe.on('mozbrowserlocationchange', this.saveSession);
 
-      this.emit("add", {tabIframe: tabIframe});
+      this.emit('add', {tabIframe: tabIframe});
 
       if (options.url) {
         tabIframe.setLocation(options.url);
@@ -81,11 +81,11 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
     remove: function(tabIframe) {
       let index = _tabIframeArray.indexOf(tabIframe);
       if (index < 0) {
-        throw new Error("Unknown tabIframe");
+        throw new Error('Unknown tabIframe');
       }
 
       if (_tabIframeArray.length == 1) {
-        throw new Error("Deck has only one tabiframe");
+        throw new Error('Deck has only one tabiframe');
       }
 
       if (index == _selectIndex) {
@@ -103,18 +103,18 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
       }
 
       _tabIframeArray.splice(index, 1);
-      tabIframe.off("mozbrowseropenwindow", this.onMozBrowserOpenWindow);
+      tabIframe.off('mozbrowseropenwindow', this.onMozBrowserOpenWindow);
       tabIframe.remove();
 
       this.saveSession();
 
-      this.emit("remove", {tabIframe});
+      this.emit('remove', {tabIframe});
     },
 
     select: function(tabIframe) {
       let index = _tabIframeArray.indexOf(tabIframe);
       if (index < 0) {
-        throw new Error("Unknown tabiframe");
+        throw new Error('Unknown tabiframe');
       }
 
       if (index == _selectIndex) {
@@ -126,12 +126,12 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
 
       let previouslySelectTabIframe = _tabIframeArray[_selectIndex];
       if (previouslySelectTabIframe) {
-        this.emit("unselect", {tabIframe: previouslySelectTabIframe});
+        this.emit('unselect', {tabIframe: previouslySelectTabIframe});
       }
 
       _selectIndex = index;
 
-      this.emit("select", {tabIframe});
+      this.emit('select', {tabIframe});
 
       // Do the actual switch
       window.mozRequestAnimationFrame(() => {
@@ -178,36 +178,36 @@ define(["js/tabiframe", "js/eventemitter", "js/keybindings"],
   TabIframeDeck.restoreSession();
 
   RegisterKeyBindings(
-    ["",              "Esc",        () => TabIframeDeck.getSelected().stop()],
-    ["Ctrl",          "Tab",        () => TabIframeDeck.selectNext()],
-    ["Ctrl Shift",    "code:9",     () => TabIframeDeck.selectPrevious()]
+    ['',              'Esc',        () => TabIframeDeck.getSelected().stop()],
+    ['Ctrl',          'Tab',        () => TabIframeDeck.selectNext()],
+    ['Ctrl Shift',    'code:9',     () => TabIframeDeck.selectPrevious()]
   );
 
-  if (window.OS == "linux" || window.OS == "windows") {
+  if (window.OS == 'linux' || window.OS == 'windows') {
     RegisterKeyBindings(
-      ["Ctrl",          "t",          () => TabIframeDeck.add({select:true})],
-      ["Ctrl",          "r",          () => TabIframeDeck.getSelected().reload()],
-      ["Alt",           "Left",       () => TabIframeDeck.getSelected().goBack()],
-      ["Alt",           "Right",      () => TabIframeDeck.getSelected().goForward()],
-      ["Ctrl",          "w",          () => TabIframeDeck.remove(TabIframeDeck.getSelected())],
-      ["Ctrl Shift",    "+",          () => TabIframeDeck.getSelected().zoomIn()],
-      ["Ctrl",          "=",          () => TabIframeDeck.getSelected().zoomIn()],
-      ["Ctrl",          "-",          () => TabIframeDeck.getSelected().zoomOut()],
-      ["Ctrl",          "0",          () => TabIframeDeck.getSelected().resetZoom()]
+      ['Ctrl',          't',          () => TabIframeDeck.add({select:true})],
+      ['Ctrl',          'r',          () => TabIframeDeck.getSelected().reload()],
+      ['Alt',           'Left',       () => TabIframeDeck.getSelected().goBack()],
+      ['Alt',           'Right',      () => TabIframeDeck.getSelected().goForward()],
+      ['Ctrl',          'w',          () => TabIframeDeck.remove(TabIframeDeck.getSelected())],
+      ['Ctrl Shift',    '+',          () => TabIframeDeck.getSelected().zoomIn()],
+      ['Ctrl',          '=',          () => TabIframeDeck.getSelected().zoomIn()],
+      ['Ctrl',          '-',          () => TabIframeDeck.getSelected().zoomOut()],
+      ['Ctrl',          '0',          () => TabIframeDeck.getSelected().resetZoom()]
     );
   }
 
-  if (window.OS == "osx") {
+  if (window.OS == 'osx') {
     RegisterKeyBindings(
-      ["Cmd",       "t",          () => TabIframeDeck.add({select:true})],
-      ["Cmd",       "r",          () => TabIframeDeck.getSelected().reload()],
-      ["Cmd",       "Left",       () => TabIframeDeck.getSelected().goBack()],
-      ["Cmd",       "Right",      () => TabIframeDeck.getSelected().goForward()],
-      ["Cmd",       "w",          () => TabIframeDeck.remove(TabIframeDeck.getSelected())],
-      ["Cmd Shift", "+",          () => TabIframeDeck.getSelected().zoomIn()],
-      ["Cmd",       "=",          () => TabIframeDeck.getSelected().zoomIn()],
-      ["Cmd",       "-",          () => TabIframeDeck.getSelected().zoomOut()],
-      ["Cmd",       "0",          () => TabIframeDeck.getSelected().resetZoom()]
+      ['Cmd',       't',          () => TabIframeDeck.add({select:true})],
+      ['Cmd',       'r',          () => TabIframeDeck.getSelected().reload()],
+      ['Cmd',       'Left',       () => TabIframeDeck.getSelected().goBack()],
+      ['Cmd',       'Right',      () => TabIframeDeck.getSelected().goForward()],
+      ['Cmd',       'w',          () => TabIframeDeck.remove(TabIframeDeck.getSelected())],
+      ['Cmd Shift', '+',          () => TabIframeDeck.getSelected().zoomIn()],
+      ['Cmd',       '=',          () => TabIframeDeck.getSelected().zoomIn()],
+      ['Cmd',       '-',          () => TabIframeDeck.getSelected().zoomOut()],
+      ['Cmd',       '0',          () => TabIframeDeck.getSelected().resetZoom()]
     );
   }
 

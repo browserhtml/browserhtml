@@ -12,7 +12,7 @@
 
 define(function() {
 
-  "use strict";
+  'use strict';
 
   let isWorker = false;
 
@@ -128,7 +128,7 @@ define(function() {
           }
           catch (ex) {
             // Prevent a bad listener from interfering with the others.
-            let msg = ex + ": " + ex.stack;
+            let msg = ex + ': ' + ex.stack;
             console.error(msg);
           }
         }
@@ -136,7 +136,7 @@ define(function() {
     },
 
     logEvent: function(aEvent, args) {
-      // console.log("Event:" + args[0], args);
+      // console.log('Event:' + args[0], args);
     },
   };
 

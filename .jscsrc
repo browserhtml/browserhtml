@@ -6,6 +6,6 @@
   ],
   "validateQuoteMarks": {
     "escape": true,
-    "mark": "\""
+    "mark": "'"
   }
 }

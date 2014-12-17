@@ -9,7 +9,7 @@
 
 define(function() {
 
-  "use strict";
+  'use strict';
 
-  document.querySelector("link[title=dark]").disabled = false;
+  document.querySelector('link[title=dark]').disabled = false;
 });
