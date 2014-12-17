@@ -30,7 +30,7 @@ git submodule update --init
 
 **Contribute**
 
-See ![`HACKING.md`](HACKING.md).
+See [`HACKING.md`](HACKING.md).
 
 ![Firefox.html screenshot](https://cloud.githubusercontent.com/assets/373579/5206795/f2153b1c-75a4-11e4-8bb7-da6c94c0a050.png)
 
