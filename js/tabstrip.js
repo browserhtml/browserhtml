@@ -55,20 +55,20 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
     button.className = 'close-button';
 
     button.onmouseup = (event) => {
-      if(event.button == 0) {
+      if (event.button == 0) {
         event.stopPropagation();
         TabIframeDeck.remove(tabIframe);
       }
     };
 
     hbox.onmousedown = (event) => {
-      if(event.button == 0) {
+      if (event.button == 0) {
         TabIframeDeck.select(tabIframe);
       }
     };
 
     hbox.onmouseup = (event) => {
-      if(event.button == 1) {
+      if (event.button == 1) {
         event.stopPropagation();
         TabIframeDeck.remove(tabIframe);
       }
@@ -224,18 +224,18 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
     let curveHoverGradientEnd = style.getPropertyValue('--curve-hover-gradient-end');
 
     let c1 = document.createElement('canvas');
-        c1.id = 'canvas-tab-selected';
-        c1.hidden = true;
-        c1.width = 3 * 28;
-        c1.height = 28;
+    c1.id = 'canvas-tab-selected';
+    c1.hidden = true;
+    c1.width = 3 * 28;
+    c1.height = 28;
     drawBackgroundTab(c1, curveGradientStart, curveGradientEnd, curveBorder);
     document.body.appendChild(c1);
 
     let c2 = document.createElement('canvas');
-        c2.id = 'canvas-tab-hover';
-        c2.hidden = true;
-        c2.width = 3 * 28;
-        c2.height = 28;
+    c2.id = 'canvas-tab-hover';
+    c2.hidden = true;
+    c2.width = 3 * 28;
+    c2.height = 28;
     drawBackgroundTab(c2, curveHoverGradientStart, curveHoverGradientEnd, curveHoverBorder);
     document.body.appendChild(c2);
 
@@ -247,28 +247,28 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
       let r = canvas.height;
       ctx.save();
       ctx.beginPath();
-      drawCurve(ctx,r);
+      drawCurve(ctx, r);
       ctx.lineTo(3 * r, r);
       ctx.lineTo(0, r);
       ctx.closePath();
       ctx.clip();
 
       // draw background
-      let lingrad = ctx.createLinearGradient(0,0,0,r);
+      let lingrad = ctx.createLinearGradient(0, 0, 0, r);
       lingrad.addColorStop(0, bg1);
       lingrad.addColorStop(1, bg2);
       ctx.fillStyle = lingrad;
-      ctx.fillRect(0,0,3*r,r);
+      ctx.fillRect(0, 0, 3 * r, r);
 
       // draw border
       ctx.restore();
       ctx.beginPath();
-      drawCurve(ctx,r);
+      drawCurve(ctx, r);
       ctx.strokeStyle = borderColor;
       ctx.stroke();
     }
 
-    function drawCurve(ctx,r) {
+    function drawCurve(ctx, r) {
       let firstLine = 1 / window.devicePixelRatio;
       ctx.moveTo(r * 0, r * 0.984);
       ctx.bezierCurveTo(r * 0.27082458, r * 0.95840561,

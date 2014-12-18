@@ -35,7 +35,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
       let session = [];
       try {
         session = JSON.parse(window.localStorage.session);
-      } catch(e) {}
+      } catch (e) {}
 
       if (Array.isArray(session) && session.length > 0) {
         for (let url of session) {
@@ -47,7 +47,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
     },
 
     onMozBrowserOpenWindow: function(type, event) {
-      TabIframeDeck.add({url:event.detail.url});
+      TabIframeDeck.add({url: event.detail.url});
     },
 
     add: function(options={}) {
@@ -185,7 +185,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
 
   if (window.OS == 'linux' || window.OS == 'windows') {
     RegisterKeyBindings(
-      ['Ctrl',          't',          () => TabIframeDeck.add({select:true})],
+      ['Ctrl',          't',          () => TabIframeDeck.add({select: true})],
       ['Ctrl',          'r',          () => TabIframeDeck.getSelected().reload()],
       ['Alt',           'Left',       () => TabIframeDeck.getSelected().goBack()],
       ['Alt',           'Right',      () => TabIframeDeck.getSelected().goForward()],
@@ -199,7 +199,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
 
   if (window.OS == 'osx') {
     RegisterKeyBindings(
-      ['Cmd',       't',          () => TabIframeDeck.add({select:true})],
+      ['Cmd',       't',          () => TabIframeDeck.add({select: true})],
       ['Cmd',       'r',          () => TabIframeDeck.getSelected().reload()],
       ['Cmd',       'Left',       () => TabIframeDeck.getSelected().goBack()],
       ['Cmd',       'Right',      () => TabIframeDeck.getSelected().goForward()],
