@@ -140,37 +140,37 @@ define(['js/eventemitter'], function(EventEmitter) {
   };
 
   Object.defineProperty(tabIframeProto, 'loading', {
-    get: function () {
+    get: function() {
       return this._loading;
     }
   });
 
   Object.defineProperty(tabIframeProto, 'title', {
-    get: function () {
+    get: function() {
       return this._title;
     }
   });
 
   Object.defineProperty(tabIframeProto, 'location', {
-    get: function () {
+    get: function() {
       return this._location;
     }
   });
 
   Object.defineProperty(tabIframeProto, 'favicon', {
-    get: function () {
+    get: function() {
       return this._favicon;
     }
   });
 
   Object.defineProperty(tabIframeProto, 'securityState', {
-    get: function () {
+    get: function() {
       return this._securityState;
     }
   });
 
   Object.defineProperty(tabIframeProto, 'securityExtendedValidation', {
-    get: function () {
+    get: function() {
       return this._securityExtendedValidation;
     }
   });
@@ -208,7 +208,7 @@ define(['js/eventemitter'], function(EventEmitter) {
   tabIframeProto.handleEvent = function(e) {
     let somethingChanged = true;
 
-    switch(e.type) {
+    switch (e.type) {
       case 'mozbrowserloadstart':
         this._clearTabData();
         this._loading = true;
@@ -241,6 +241,6 @@ define(['js/eventemitter'], function(EventEmitter) {
     this.emit(e.type, e, this);
   };
 
-  let TabIframe =document.registerElement('tab-iframe', {prototype: tabIframeProto});
+  let TabIframe = document.registerElement('tab-iframe', {prototype: tabIframeProto});
   return TabIframe;
 });

@@ -53,20 +53,20 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
     button.className = 'close-button';
 
     button.onmouseup = (event) => {
-      if(event.button == 0) {
+      if (event.button == 0) {
         event.stopPropagation();
         TabIframeDeck.remove(tabIframe);
       }
     };
 
     hbox.onmousedown = (event) => {
-      if(event.button == 0) {
+      if (event.button == 0) {
         TabIframeDeck.select(tabIframe);
       }
     };
 
     hbox.onmouseup = (event) => {
-      if(event.button == 1) {
+      if (event.button == 1) {
         event.stopPropagation();
         TabIframeDeck.remove(tabIframe);
       }

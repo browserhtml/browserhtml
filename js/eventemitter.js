@@ -25,7 +25,7 @@ define(function() {
    *        Bind all public methods of EventEmitter to
    *        the aObjectToDecorate object.
    */
-  EventEmitter.decorate = function EventEmitter_decorate (aObjectToDecorate) {
+  EventEmitter.decorate = function EventEmitter_decorate(aObjectToDecorate) {
     let emitter = new EventEmitter();
     aObjectToDecorate.on = emitter.on.bind(emitter);
     aObjectToDecorate.off = emitter.off.bind(emitter);

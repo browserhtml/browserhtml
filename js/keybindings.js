@@ -39,7 +39,7 @@ define(function() {
       } else {
         e.key = key;
       }
-      allKeyBindings.push({event:e,func:func});
+      allKeyBindings.push({event: e, func: func});
     }
   }
 

@@ -67,5 +67,5 @@ define(function() {
     }
   };
 
-return UrlHelper;
+  return UrlHelper;
 });
