@@ -112,6 +112,7 @@
 
 .tab > .title {
   flex-grow: 1;
+  display: inline-block;
   width: 0;
   text-overflow: ellipsis;
   overflow-x: hidden;
