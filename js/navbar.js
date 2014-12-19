@@ -169,8 +169,8 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
     if (tabIframe.userInput) {
       urlinput.value = tabIframe.userInput;
-    } else {
-      urlinput.value = tabIframe.location
+    } else if (tabIframe.location) {
+      urlinput.value = tabIframe.location;
     }
 
     if (!window.IS_PRIVILEGED) {
