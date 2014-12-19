@@ -53,6 +53,7 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
 
     let button = document.createElement('button');
     button.className = 'close-button';
+    button.title = 'Close Tab';
 
     button.onmouseup = (event) => {
       if (event.button == 0) {
@@ -142,15 +143,16 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
         this.dom.classList.remove('loading');
       }
 
-      if (this.tabIframe.title) {
-        this.dom.querySelector('.title').textContent = this.tabIframe.title;
-      } else {
+      let title = this.tabIframe.title;
+      if (!title) {
         if (this.tabIframe.location) {
-          this.dom.querySelector('.title').textContent = this.tabIframe.location;
+          title = this.tabIframe.location;
         } else {
-          this.dom.querySelector('.title').textContent = 'New Tab';
+          title = 'New Tab';
         }
       }
+      this.dom.querySelector('.title').textContent = title;
+      this.dom.title = title;
 
       let faviconImg = this.dom.querySelector('.favicon');
       if (this.tabIframe.favicon) {
