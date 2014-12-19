@@ -120,6 +120,7 @@
   opacity: 0.7;
   font: -moz-field;
   font-size: 12px;
+  outline: none;
 }
 
 .tab.selected > .title {
