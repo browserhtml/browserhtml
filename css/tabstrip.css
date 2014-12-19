@@ -58,7 +58,7 @@
 }
 
 [os="linux"] .tab {
-  color: white;
+  color: -moz-menubartext;
 }
 
 @media (min-resolution: 2dppx) {
