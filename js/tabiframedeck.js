@@ -19,6 +19,8 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
 
   'use strict';
 
+  const HOMEPAGE = 'https://github.com/paulrouget/firefox.html/commits/master';
+
   let _tabIframeArray = [];
   let _selectIndex = -1;
 
@@ -42,7 +44,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
           TabIframeDeck.add({url});
         }
       } else {
-        TabIframeDeck.add();
+        TabIframeDeck.add({url: HOMEPAGE});
       }
     },
 
