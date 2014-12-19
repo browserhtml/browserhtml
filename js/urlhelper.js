@@ -64,6 +64,18 @@ define(function() {
       }
       this.urlValidate.setAttribute('value', str);
       return !this.urlValidate.validity.valid;
+    },
+
+    trim: function(input) {
+      // remove single trailing slash for http/https/ftp URLs
+      let url = input.replace(/^((?:http|https|ftp):\/\/[^/]+)\/$/, '$1');
+
+      // remove http://
+      if (!url.startsWith('http://')) {
+        return url;
+      }
+
+      return url.substring(7);
     }
   };
 
