@@ -172,7 +172,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     } else if (tabIframe.location) {
       urlinput.value = tabIframe.location;
     } else if (eventName === null) {
-      urlinput.value = "";
+      urlinput.value = '';
     }
 
     if (!window.IS_PRIVILEGED) {
