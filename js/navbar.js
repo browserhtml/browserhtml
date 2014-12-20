@@ -181,9 +181,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
     if (tabIframe.securityState == 'secure') {
       navbar.classList.add('ssl');
-      if (tabIframe.securityExtendedValidation) {
-        navbar.classList.add('sslev');
-      }
+      navbar.classList.toggle('sslev', tabIframe.securityExtendedValidation);
     } else {
       navbar.classList.remove('ssl');
       navbar.classList.remove('sslev');
