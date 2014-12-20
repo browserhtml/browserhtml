@@ -88,6 +88,7 @@
   width: 16px;
   height: 16px;
   margin: 0 3px 0 -6px;
+  image-rendering: optimizequality;
 }
 
 .tab > .favicon:not([src]) {
