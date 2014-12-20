@@ -135,7 +135,7 @@ define(['js/eventemitter'], function(EventEmitter) {
     this._title = '';
     this._location = '';
     this._favicon = '';
-    this._securityState = 'unsecure';
+    this._securityState = 'insecure';
     this._securityExtendedValidation = false;
   };
 
