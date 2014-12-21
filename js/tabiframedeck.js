@@ -182,7 +182,8 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
   RegisterKeyBindings(
     ['',              'Esc',        () => TabIframeDeck.getSelected().stop()],
     ['Ctrl',          'Tab',        () => TabIframeDeck.selectNext()],
-    ['Ctrl Shift',    'code:9',     () => TabIframeDeck.selectPrevious()]
+    ['Ctrl Shift',    'code:9',     () => TabIframeDeck.selectPrevious()],
+    ['',              'F5',         () => TabIframeDeck.getSelected().reload()]
   );
 
   if (window.OS == 'linux' || window.OS == 'windows') {
