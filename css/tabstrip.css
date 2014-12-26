@@ -52,7 +52,7 @@
   /* These values are used in curvedTabs.js */
   --curve-border: #AAA;
   --curve-gradient-start: #FBFBFB;
-  --curve-gradient-end: #EDEDED;
+  --curve-gradient-end: #F1F1F1;
   --curve-hover-border: #AAA;
   --curve-hover-gradient-start: transparent;
   --curve-hover-gradient-end: transparent;
