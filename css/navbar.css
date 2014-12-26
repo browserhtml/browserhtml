@@ -140,7 +140,6 @@
 }
 
 .navbar.sslev .identity {
-  /* Extended Validation doesn't work yet: bug 764496 */
   background-image: url(images/shared/identity-icons-https-ev.png);
 }
 
@@ -154,7 +153,6 @@
   }
 
   .navbar.sslev .identity {
-    /* Extended Validation doesn't work yet: bug 764496 */
     background-image: url(images/shared/identity-icons-https-ev@2x.png);
   }
 }
