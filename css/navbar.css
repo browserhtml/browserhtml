@@ -109,6 +109,7 @@
 .searchselector {
   width: 16px;
   height: 16px;
+  min-width: 16px;
   margin: 0 6px;
   background-image: url(images/shared/Search.png);
   background-repeat: no-repeat;
