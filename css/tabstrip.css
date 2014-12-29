@@ -10,7 +10,6 @@
 
 [os="osx"] .tabstrip:first-of-type {
   padding-top: 9px;
-  background-image: linear-gradient(#FAFAFA, #D5D5D5);
 }
 
 .tab {
