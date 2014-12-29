@@ -34,7 +34,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
       </hbox>
       <hbox class='searchbar' flex='1' align='center'>
         <div class='searchselector'></div>
-        <input placeholder='Yahoo' class='searchinput'>
+        <input placeholder='Yahoo' class='searchinput' flex='1'>
       </hbox>
       <button class='menu-button'></button>
     </hbox>
