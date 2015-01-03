@@ -22,6 +22,7 @@
   "preferences": {
     "browser.tabs.remote.autostart": true,
     "browser.chromeURL": "chrome://firebox/content/shell.xul",
+    "full-screen-api.enabled": true,
     "dom.webcomponents.enabled": true,
     "browser.dom.window.dump.enabled": true,
     "dom.mozBrowserFramesEnabled": true,

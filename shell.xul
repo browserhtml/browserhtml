@@ -1,31 +1,160 @@
 <?xml version="1.0"?>
 
-<?xml-stylesheet href="chrome://firebox/content/shell.css" type="text/css"?>
+<!DOCTYPE window [
+<!ENTITY % webappDTD SYSTEM "chrome://firebox/content/webapp.dtd">
+%webappDTD;
+]>
+
+<?xml-stylesheet href="resource://firebox/shell.css" type="text/css"?>
 <?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
+<?xul-overlay href="chrome://browser/content/baseMenuOverlay.xul"?>
+
 
 <window id="main-window"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-  title="firebox"
+  title="Firebox"
   windowtype="navigator:browser"
   screenX="4" screenY="4"
   sizemode="normal"
   width="500" height="500"
+  fullscreenbutton="true"
   persist="screenX screenY width height sizemode">
 
   <script type="application/javascript" src="resource://firebox/shell.js"/>
+  <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
 
-  <commandset>
-    <command id="cmd_appReload" oncommand="appReload()"/>
+  <commandset id="mainCommandSet">
+    <command id="cmd_appReload" oncommand="reload()"/>
     <command id="cmd_startDevtools" oncommand="startDevtools()"/>
-    <command id="cmd_setAppCodePath" oncommand="setAppCodePath()"/>
+    <command id="cmd_quitApplication" oncommand="goQuitApplication()"/>
+    <commandset id="editMenuCommands"/>
   </commandset>
 
-  <keyset>
-    <key phase="capturing" modifiers="accel,shift" command="cmd_appReload" key="R"/>
-    <key keycode="VK_F12" command="cmd_startDevtools"/>
+  <keyset id="mainKeyset">
+    <key phase="capturing"
+         modifiers="accel,shift"
+         command="cmd_appReload"
+         key="R"/>
+    <key keycode="VK_F12"
+         command="cmd_startDevtools"/>
+    <key id="key_undo"
+         key="&undoCmd.key;"
+         modifiers="accel"/>
+    <key id="key_redo"
+         key="&undoCmd.key;"
+         modifiers="accel,shift"/>
+    <key id="key_cut"
+         key="&cutCmd.key;"
+         modifiers="accel"/>
+    <key id="key_copy"
+         key="&copyCmd.key;"
+         modifiers="accel"/>
+    <key id="key_paste"
+         key="&pasteCmd.key;"
+         modifiers="accel"/>
+    <key id="key_delete"
+         keycode="VK_DELETE"
+         command="cmd_delete"/>
+    <key id="key_selectAll"
+         key="&selectAllCmd.key;"
+         modifiers="accel"/>
+    <key id="key_quitApplication"
+         key="&quitApplicationCmdUnix.key;"
+         command="cmd_quitApplication"
+         modifiers="accel"/>
+    <key id="key_hideThisAppCmdMac"
+         key="&hideThisAppCmdMac.key;"
+         modifiers="accel"/>
+    <key id="key_hideOtherAppsCmdMac"
+         key="&hideOtherAppsCmdMac.key;"
+        modifiers="accel,alt"/>
   </keyset>
 
-  <tooltip id="aHTMLTooltip" page="true"/>
+  <menubar id="main-menubar">
+    <!-- On Mac, the Quit item gets moved to the Application menu by nsMenuBarX.
+    - And right now it's the only item in the File menu. So if we put it
+    - into that menu on Mac, the File menu shows up empty on that OS.
+    - To work around that problem, we put the item into the Edit menu on Mac
+    - (from which nsMenuBarX still moves it properly), and we don't create
+    - the File menu in the first place on that OS.
+    -
+    - But if you are adding a persistent item to the File menu on Mac,
+    - then that workaround is no longer necessary, and you can move the Quit
+    - item up here. -->
+    <menu id="file-menu"
+          label="&fileMenu.label;"
+          accesskey="&fileMenu.accesskey;">
+      <menupopup id="menu_FilePopup">
+        <menuitem
+                  id="menu_FileQuitItem"
+                  label="&quitApplicationCmd.label;"
+                  accesskey="&quitApplicationCmd.accesskey;"
+                  command="cmd_quitApplication"/>
+      </menupopup>
+    </menu>
+    <menu id="edit-menu"
+          label="&editMenu.label;"
+          accesskey="&editMenu.accesskey;">
+      <menupopup id="menu_EditPopup"
+                 onpopupshowing="updateEditUIVisibility()"
+                 onpopuphidden="updateEditUIVisibility()">
+        <menuitem id="menu_mac_hide_app"
+                  label="&hideThisAppCmdMac.label;"
+                  key="key_hideThisAppCmdMac"/>
+        <menuitem id="menu_mac_hide_others"
+                  label="&hideOtherAppsCmdMac.label;"
+                  key="key_hideOtherAppsCmdMac"/>
+        <menuitem id="menu_mac_show_all"
+                  label="&showAllAppsCmdMac.label;"/>
+
+        <menuitem id="menu_undo"
+                  label="&undoCmd.label;"
+                  key="key_undo"
+                  accesskey="&undoCmd.accesskey;"
+                  command="cmd_undo"/>
+
+        <menuitem id="menu_redo"
+                  label="&redoCmd.label;"
+                  key="key_redo"
+                  accesskey="&redoCmd.accesskey;"
+                  command="cmd_redo"/>
+
+        <menuseparator/>
+
+        <menuitem id="menu_cut"
+                  label="&cutCmd.label;"
+                  key="key_cut"
+                  accesskey="&cutCmd.accesskey;"
+                  command="cmd_cut"/>
+
+        <menuitem id="menu_copy"
+                  label="&copyCmd.label;"
+                  key="key_copy"
+                  accesskey="&copyCmd.accesskey;"
+                  command="cmd_copy"/>
+
+        <menuitem id="menu_paste"
+                  label="&pasteCmd.label;"
+                  key="key_paste"
+                  accesskey="&pasteCmd.accesskey;"
+                  command="cmd_paste"/>
+
+        <menuitem id="menu_delete"
+                  label="&deleteCmd.label;"
+                  key="key_delete"
+                  accesskey="&deleteCmd.accesskey;"
+                  command="cmd_delete"/>
+
+        <menuseparator/>
+
+        <menuitem id="menu_selectAll"
+                  label="&selectAllCmd.label;"
+                  key="key_selectAll"
+                  accesskey="&selectAllCmd.accesskey;"
+                  command="cmd_selectAll"/>
+      </menupopup>
+    </menu>
+  </menubar>
 
 
   <vbox id="titlebar">
@@ -41,31 +170,19 @@
     </hbox>
   </vbox>
 
-  <!--
-  <browser type="content-primary" id="content" flex="1" context="contentAreaContextMenu" tooltip="contentAreaTooltip" transparent="true"/>
-  -->
-  <iframe id="content" flex="1" content="true" transparent="true" tooltip="aHTMLTooltip"/>
-  <vbox id="core" flex="1" hidden="true">
-    <iframe flex="1" content="true" transparent="true" tooltip="aHTMLTooltip"/>
-  </vbox>
-  <vbox>
-    <div id="init" hidden="true" xmlns="http://www.w3.org/1999/xhtml">
-      <p>Select the location of the source code
-        of the app to run.</p>
-      <p>
-        <button onclick="setAppCodePath()">Select Location</button>
-      </p>
-      <p> If you want to run Firefox.html, source code can be downloaded here:
-        <input value="http://github.com/paulrouget/firefox.html"></input>
-      </p>
-      <p>
-        Note:
-        <ul>
-          <li>This configuration step is only required once. Next startup will directly load the app.</li>
-          <li><strong>F12</strong> will start the devtools connected to the very top level window (this one). Better devtools to come soon.</li>
-          <li><strong>Ctrl/Cmd+Shit+R</strong> will reload the *whole* app (then you don't have to restart on every code change).</li>
-        </ul>
-      </p>
-    </div>
-  </vbox>
+  <popupset>
+    <menupopup id="contentAreaContextMenu"
+               pagemenu="start"
+               onpopupshowing="return showContextMenu(event, this)"
+               onpopuphiding="hideContextMenu(event, this)">
+    </menupopup>
+    <tooltip id="contentAreaTooltip" page="true" />
+  </popupset>
+
+  <browser id="content"
+           type="content-primary"
+           flex="1"
+           context="contentAreaContextMenu"
+           tooltip="contentAreaTooltip"
+           transparent="true"/>
 </window>

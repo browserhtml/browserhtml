@@ -104,13 +104,13 @@ const onDocumentInserted = (window, resolve) => {
 }
 
 const baseURI = Symbol("baseURI");
+const manifestURI = Symbol("manifestURI");
 
 const makeID = () => uuid.generateUUID().toString().replace(/{|}/g, "");
 
-const makeApp = (manifestURI, manifest) => {
-  const fileName = manifestURI.substr(manifestURI.lastIndexOf("/") + 1);
-  const rootURI = manifestURI.substr(0, manifestURI.lastIndexOf("/"));
-
+const makeApp = (uri, manifest) => {
+  const fileName = uri.substr(uri.lastIndexOf("/") + 1);
+  const rootURI = uri.substr(0, uri.lastIndexOf("/") + 1);
 
   const origin = manifest.origin || `app://${makeID()}`;
   const id = origin.replace(/^\S+\:\/\//, "");
@@ -127,13 +127,27 @@ const makeApp = (manifestURI, manifest) => {
           receipts: null,
           kind: DOMApplicationRegistry.kPackaged,
 
+          [manifestURI]: uri,
           [baseURI]: rootURI}
 }
 
-const installZip = (id) => {
+const installZip = (app) => {
+  let sourceDir = Cc["@mozilla.org/network/protocol;1?name=file"].
+                  createInstance(Ci.nsIFileProtocolHandler).
+                  getFileFromURLSpec(app[baseURI]);
+  let installDir = DOMApplicationRegistry._getAppDir(app.id);
+
+
+  let manifest = Cc["@mozilla.org/network/protocol;1?name=file"].
+                  createInstance(Ci.nsIFileProtocolHandler).
+                  getFileFromURLSpec(app[manifestURI]);
+  manifest.copyTo(installDir, "");
+
+  return;
+
   let zipWriter = Cc["@mozilla.org/zipwriter;1"].
                     createInstance(Ci.nsIZipWriter);
-  let installDir = DOMApplicationRegistry._getAppDir(id);
+
   let zipFile = installDir.clone();
   zipFile.append("application.zip");
   const PR_USEC_PER_MSEC = 1000;
@@ -144,6 +158,32 @@ const installZip = (id) => {
   dump("installDir: " + zipFile.path + "\n");
   zipWriter.open(zipFile, PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE);
 
+
+  const addDirToZip = (dir, basePath) => {
+    let files = dir.directoryEntries;
+    while (files.hasMoreElements()) {
+      let file = files.getNext().QueryInterface(Ci.nsIFile);
+      if (file.isHidden() || file.isSpecial() || file.equals(zipWriter.file)) {
+        continue;
+      }
+
+      dump("Adding: " + basePath + file.leafName + "\n");
+      if (file.isDirectory()) {
+        zipWriter.addEntryDirectory(basePath + file.leafName + "/",
+                                    file.lastModifiedTime * PR_USEC_PER_MSEC,
+                                    true);
+        addDirToZip(file, basePath + file.leafName + "/");
+      } else {
+        zipWriter.addEntryFile(basePath + file.leafName,
+                               Ci.nsIZipWriter.COMPRESSION_DEFAULT,
+                               file,
+                               true);
+      }
+    }
+  }
+
+
+  addDirToZip(sourceDir, "");
 
   return new Promise((resolve, reject) => {
     zipWriter.processQueue({
@@ -180,8 +220,7 @@ const installApp = app => {
   DOMApplicationRegistry.updatePermissionsForApp(install.id);
 
   // Fake first run, which will trigger re-installation of the app.
-  //branch.clearUserPref("gecko.mstone");
-  //DOMApplicationRegistry.loadAndUpdateApps();
+  branch.clearUserPref("gecko.mstone");
 }
 
 const launch = (manifestURI, args) => Task.spawn(function*() {
@@ -191,17 +230,11 @@ const launch = (manifestURI, args) => Task.spawn(function*() {
   const manifest = JSON.parse(readURI(manifestURI));
   const app = makeApp(manifestURI, manifest);
   const launchURI = `${app.origin}${manifest.launch_path}`;
-
-  yield DOMApplicationRegistry.registryReady;
-  yield installZip(app.id);
-  installApp(app);
-
   const window = Services.ww.openWindow(null,
                                         "chrome://firebox/content/shell.xul",
                                         "_blank",
                                         "chrome,dialog=no,resizable,scrollbars,centerscreen",
                                         null);
-
 
   if (args.indexOf("-debugger") >= 0) {
     setPrefs({
@@ -214,6 +247,7 @@ const launch = (manifestURI, args) => Task.spawn(function*() {
     const port = parseInt(args[args.indexOf("-debugger") + 1])
     startDebugger(port)
   }
+
 
   onDocumentInserted(window, document => {
     dump("document ready")
@@ -242,6 +276,10 @@ const launch = (manifestURI, args) => Task.spawn(function*() {
     docShell.setIsApp(app.localId);
     content.setAttribute("src", launchURI);
   });
+
+  yield DOMApplicationRegistry.registryReady;
+  yield installZip(app);
+  installApp(app);
 });
 
 const startDebugger = port => {
@@ -280,10 +318,7 @@ CommandLineHandler.prototype = {
 
     const args = readCMDArgs(cmdLine)
     const rootURI = cmdLine.resolveURI(args[0]).spec
-    dump(`root: ${rootURI}\n`)
-
-    const root = rootURI.charAt(rootURI.length - 1) !== "/" ? `${rootURI}/` : rootURI
-    launch(root, args)
+    launch(rootURI, args)
   }
 }
 
