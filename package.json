@@ -19,6 +19,19 @@
   "bugs": {
     "url": "http://github.com/Gozala/firebox/issues/"
   },
+  "preferences": {
+    "browser.tabs.remote.autostart": true,
+    "browser.chromeURL": "chrome://firebox/content/shell.xul",
+    "dom.webcomponents.enabled": true,
+    "browser.dom.window.dump.enabled": true,
+    "dom.mozBrowserFramesEnabled": true,
+    "dom.ipc.processCount": 100000,
+    "dom.webapps.useCurrentProfile": true,
+    "dom.sysmsg.enabled": true,
+    "devtools.chrome.enabled": true,
+    "devtools.apps.forbidden-permissions": "",
+    "devtools.debugger.forbid-certified-apps": false
+  },
   "licenses": [
     {
       "type": "MPL",
