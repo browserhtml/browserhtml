@@ -16,14 +16,15 @@ const branch = Cc["@mozilla.org/preferences-service;1"].
                   getDefaultBranch("");
 const uuid = Cc["@mozilla.org/uuid-generator;1"].
               getService(Ci.nsIUUIDGenerator);
+const AppsService = Cc["@mozilla.org/AppsService;1"].
+                      getService(Ci.nsIAppsService);
 
 
 const { XPCOMUtils } = require("resource://gre/modules/XPCOMUtils.jsm");
 const { Services } = require("resource://gre/modules/Services.jsm");
 const { DOMApplicationRegistry } = require("resource://gre/modules/Webapps.jsm");
 const { SubstitutionProtocol } = require("resource://firebox/substitution-protocol.jsm");
-const { PermissionsInstaller } = require("resource://gre/modules/PermissionsInstaller.jsm");
-
+const { Task } = require("resource://gre/modules/Task.jsm");
 const appProtocol = new SubstitutionProtocol("app");
 appProtocol.register();
 
@@ -126,8 +127,39 @@ const makeApp = (manifestURI, manifest) => {
           receipts: null,
           kind: DOMApplicationRegistry.kPackaged,
 
-
           [baseURI]: rootURI}
+}
+
+const installZip = (id) => {
+  let zipWriter = Cc["@mozilla.org/zipwriter;1"].
+                    createInstance(Ci.nsIZipWriter);
+  let installDir = DOMApplicationRegistry._getAppDir(id);
+  let zipFile = installDir.clone();
+  zipFile.append("application.zip");
+  const PR_USEC_PER_MSEC = 1000;
+  const PR_RDWR = 0x04;
+  const PR_CREATE_FILE = 0x08;
+  const PR_TRUNCATE = 0x20;
+
+  dump("installDir: " + zipFile.path + "\n");
+  zipWriter.open(zipFile, PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE);
+
+
+  return new Promise((resolve, reject) => {
+    zipWriter.processQueue({
+      onStartRequest(request, context) {},
+      onStopRequest(request, context, status) {
+        if (status == Cr.NS_OK) {
+          zipWriter.close();
+          resolve();
+        }
+        else {
+          let { name, message } = getResultText(status);
+          reject(name + ": " + message);
+        }
+      }
+    }, null);
+  });
 }
 
 const installApp = app => {
@@ -137,22 +169,22 @@ const installApp = app => {
                                 {installTime: Date.now(),
                                 installState: "installed"});
 
+
+
   setPrefs({
     "security.apps.certified.CSP.default": `default-src *; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline' ${app.origin}`,
     "network.dns.localDomains": app.origin
   }, null, branch)
 
   DOMApplicationRegistry.webapps[install.id] = install;
-
-  //PermissionsInstaller.installPermissions(app, true);
-  DOMApplicationRegistry.updatePermissionsForApp(install.localId);
+  DOMApplicationRegistry.updatePermissionsForApp(install.id);
 
   // Fake first run, which will trigger re-installation of the app.
-  branch.clearUserPref("gecko.mstone");
-  DOMApplicationRegistry.loadAndUpdateApps();
+  //branch.clearUserPref("gecko.mstone");
+  //DOMApplicationRegistry.loadAndUpdateApps();
 }
 
-const launch = (manifestURI, args) => {
+const launch = (manifestURI, args) => Task.spawn(function*() {
   const {preferences} = JSON.parse(readURI("resource://firebox/package.json"));
   setPrefs(preferences, null, branch);
 
@@ -160,7 +192,8 @@ const launch = (manifestURI, args) => {
   const app = makeApp(manifestURI, manifest);
   const launchURI = `${app.origin}${manifest.launch_path}`;
 
-
+  yield DOMApplicationRegistry.registryReady;
+  yield installZip(app.id);
   installApp(app);
 
   const window = Services.ww.openWindow(null,
@@ -205,13 +238,11 @@ const launch = (manifestURI, args) => {
                       getInterface(Ci.nsIWebNavigation).
                       QueryInterface(Ci.nsIDocShell);
 
+    dump(`set frame to be an app: ${app.localId}\n`);
     docShell.setIsApp(app.localId);
     content.setAttribute("src", launchURI);
   });
-
-
-
-}
+});
 
 const startDebugger = port => {
   const { DebuggerServer } =  Cu.import("resource://gre/modules/devtools/dbg-server.jsm", {})
