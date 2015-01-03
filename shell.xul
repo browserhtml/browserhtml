@@ -25,7 +25,8 @@
 
   <commandset id="mainCommandSet">
     <command id="cmd_appReload" oncommand="reload()"/>
-    <command id="cmd_startDevtools" oncommand="startDevtools()"/>
+    <command id="cmd_toggleTools" oncommand="toggleTools()"/>
+    <command id="cmd_toggleFullScreen" oncommand="toggleFullScreen()"/>
     <command id="cmd_quitApplication" oncommand="goQuitApplication()"/>
     <commandset id="editMenuCommands"/>
   </commandset>
@@ -35,8 +36,10 @@
          modifiers="accel,shift"
          command="cmd_appReload"
          key="R"/>
-    <key keycode="VK_F12"
-         command="cmd_startDevtools"/>
+    <key id="key_toggleTools"
+         key="&toggleTools.key;"
+         modifiers="accel,shift"
+         command="cmd_toggleTools"/>
     <key id="key_undo"
          key="&undoCmd.key;"
          modifiers="accel"/>
@@ -67,14 +70,20 @@
          modifiers="accel"/>
     <key id="key_hideOtherAppsCmdMac"
          key="&hideOtherAppsCmdMac.key;"
-        modifiers="accel,alt"/>
+         modifiers="accel,alt"/>
+
+    <key id="key_toggleFullScreen"
+         key="&toggleFullScreen.key;"
+         modifiers="meta,control"
+         command="cmd_toggleFullScreen"/>
+
   </keyset>
 
   <menubar id="main-menubar">
     <!-- On Mac, the Quit item gets moved to the Application menu by nsMenuBarX.
     - And right now it's the only item in the File menu. So if we put it
     - into that menu on Mac, the File menu shows up empty on that OS.
-    - To work around that problem, we put the item into the Edit menu on Mac
+    - To work around that problem, we put the item into the Edit menu on Matrlc
     - (from which nsMenuBarX still moves it properly), and we don't create
     - the File menu in the first place on that OS.
     -
@@ -154,6 +163,22 @@
                   command="cmd_selectAll"/>
       </menupopup>
     </menu>
+
+    <menu id="view-menu"
+          label="&viewMenu.label;"
+          accesskey="&viewMenu.accesskey;">
+      <menupopup id="menu_ViewPopup">
+        <menuitem id="menu_toggleFullScreen"
+                  label="&toggleFullScreen.label;"
+                  key="key_toggleFullScreen"
+                  command="cmd_toggleFullScreen"/>
+        <menuitem id="menu_toggleTools"
+                  label="&toggleTools.label;"
+                  key="key_toggleTools"
+                  command="cmd_toggleDevtools"/>
+      </menupopup>
+    </menu>
+
   </menubar>
 
 

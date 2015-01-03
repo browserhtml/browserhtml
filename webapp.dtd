@@ -50,3 +50,10 @@
 <!ENTITY selectAllCmd.label                 "Select All">
 <!ENTITY selectAllCmd.key                   "A">
 <!ENTITY selectAllCmd.accesskey             "A">
+
+<!ENTITY viewMenu.label                     "View">
+<!ENTITY viewMenu.accesskey                 "V">
+<!ENTITY toggleFullScreen.label             "Toggle Full Screen">
+<!ENTITY toggleFullScreen.key               "F">
+<!ENTITY toggleTools.label                  "Toggle Tools">
+<!ENTITY toggleTools.key                    "I">
