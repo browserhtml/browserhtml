@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://firebox/content/shell.css" type="text/css"?>
+<?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
+
+<window id="main-window"
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  title="firebox"
+  windowtype="navigator:browser"
+  screenX="4" screenY="4"
+  sizemode="normal"
+  width="500" height="500"
+  persist="screenX screenY width height sizemode">
+
+  <script type="application/javascript" src="resource://firebox/shell.js"/>
+
+  <commandset>
+    <command id="cmd_appReload" oncommand="appReload()"/>
+    <command id="cmd_startDevtools" oncommand="startDevtools()"/>
+    <command id="cmd_setAppCodePath" oncommand="setAppCodePath()"/>
+  </commandset>
+
+  <keyset>
+    <key phase="capturing" modifiers="accel,shift" command="cmd_appReload" key="R"/>
+    <key keycode="VK_F12" command="cmd_startDevtools"/>
+  </keyset>
+
+  <tooltip id="aHTMLTooltip" page="true"/>
+
+
+  <vbox id="titlebar">
+    <hbox id="titlebar-content">
+      <hbox flex="1" id="titlebar-buttonbox-container">
+        <hbox id="titlebar-buttonbox">
+          <toolbarbutton class="titlebar-button" id="titlebar-min"/>
+          <toolbarbutton class="titlebar-button" id="titlebar-max"/>
+          <toolbarbutton class="titlebar-button" id="titlebar-close"/>
+        </hbox>
+        <spacer id="titlebar-spacer" flex="1"/>
+      </hbox>
+    </hbox>
+  </vbox>
+
+  <!--
+  <browser type="content-primary" id="content" flex="1" context="contentAreaContextMenu" tooltip="contentAreaTooltip" transparent="true"/>
+  -->
+  <iframe id="content" flex="1" content="true" transparent="true" tooltip="aHTMLTooltip"/>
+  <vbox id="core" flex="1" hidden="true">
+    <iframe flex="1" content="true" transparent="true" tooltip="aHTMLTooltip"/>
+  </vbox>
+  <vbox>
+    <div id="init" hidden="true" xmlns="http://www.w3.org/1999/xhtml">
+      <p>Select the location of the source code
+        of the app to run.</p>
+      <p>
+        <button onclick="setAppCodePath()">Select Location</button>
+      </p>
+      <p> If you want to run Firefox.html, source code can be downloaded here:
+        <input value="http://github.com/paulrouget/firefox.html"></input>
+      </p>
+      <p>
+        Note:
+        <ul>
+          <li>This configuration step is only required once. Next startup will directly load the app.</li>
+          <li><strong>F12</strong> will start the devtools connected to the very top level window (this one). Better devtools to come soon.</li>
+          <li><strong>Ctrl/Cmd+Shit+R</strong> will reload the *whole* app (then you don't have to restart on every code change).</li>
+        </ul>
+      </p>
+    </div>
+  </vbox>
+</window>

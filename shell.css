@@ -1,0 +1,80 @@
+window {
+  min-width: 300px;
+  min-height: 300px;
+}
+
+window[os=unix] {
+  -moz-appearance: menubar;
+}
+
+window[os=osx] {
+  -moz-appearance: dialog;
+  -moz-window-dragging: drag;
+}
+
+window[os=windows] {
+  -moz-appearance: -moz-win-borderless-glass;
+}
+
+
+@media (-moz-mac-yosemite-theme) {
+  window[os=osx] {
+    -moz-appearance: -moz-mac-vibrancy-light;
+  }
+}
+
+window:not([draw-in-titlebar]) #titlebar {
+  display: none;
+}
+
+window[draw-in-titlebar=true] #titlebar {
+  -moz-binding: url("chrome://global/content/bindings/general.xml#windowdragbox");
+  -moz-window-dragging: drag;
+}
+
+window[draw-in-titlebar=true][os=osx] #titlebar {
+  margin-bottom: -39px;
+  min-height:  39px;
+}
+
+window[draw-in-titlebar=true][os=windows] #titlebar {
+  margin-bottom: -16px;
+}
+
+#titlebar-buttonbox {
+  -moz-appearance: -moz-window-button-box;
+}
+
+window[os=osx] #titlebar-buttonbox {
+  margin-top: 11px;
+}
+
+
+window[os=windows] #titlebar-buttonbox-container {
+  -moz-box-direction: reverse;
+}
+
+window[os=windows] #titlebar-spacer {
+  pointer-events: none;
+}
+
+
+iframe,
+browser {
+  display: -moz-box;
+  -moz-box-flex: 1;
+  border-width: 0;
+  background: transparent;
+}
+
+#init {
+  margin: 40px;;
+  padding: 40px;
+  font: -moz-field;
+  color: black;
+  background-color: white;
+}
+
+#init input {
+  width: 100%;
+}
