@@ -25,6 +25,8 @@ const { Services } = require("resource://gre/modules/Services.jsm");
 const { DOMApplicationRegistry } = require("resource://gre/modules/Webapps.jsm");
 const { SubstitutionProtocol } = require("resource://firebox/substitution-protocol.jsm");
 const { Task } = require("resource://gre/modules/Task.jsm");
+const { OS: {File, Path}} = require("resource://gre/modules/osfile.jsm");
+
 const appProtocol = new SubstitutionProtocol("app");
 appProtocol.register();
 
@@ -105,6 +107,8 @@ const onDocumentInserted = (window, resolve) => {
 
 const baseURI = Symbol("baseURI");
 const manifestURI = Symbol("manifestURI");
+const baseName = Symbol("baseName");
+const manifestJSON = Symbol("manifestJSON");
 
 const makeID = () => uuid.generateUUID().toString().replace(/{|}/g, "");
 
@@ -127,79 +131,27 @@ const makeApp = (uri, manifest) => {
           receipts: null,
           kind: DOMApplicationRegistry.kPackaged,
 
+          [manifestJSON]: manifest,
+          [baseName]: fileName,
           [manifestURI]: uri,
           [baseURI]: rootURI}
 }
 
 const installZip = (app) => {
-  let sourceDir = Cc["@mozilla.org/network/protocol;1?name=file"].
-                  createInstance(Ci.nsIFileProtocolHandler).
-                  getFileFromURLSpec(app[baseURI]);
   let installDir = DOMApplicationRegistry._getAppDir(app.id);
 
+  let manifestFile = installDir.clone();
+  manifestFile.append("manifest.webapp");
+  //File.writeAtomic(manifestFile.path, readURI(app[manifestURI]));
 
-  let manifest = Cc["@mozilla.org/network/protocol;1?name=file"].
-                  createInstance(Ci.nsIFileProtocolHandler).
-                  getFileFromURLSpec(app[manifestURI]);
-  manifest.copyTo(installDir, "");
-
-  return;
-
-  let zipWriter = Cc["@mozilla.org/zipwriter;1"].
-                    createInstance(Ci.nsIZipWriter);
-
-  let zipFile = installDir.clone();
-  zipFile.append("application.zip");
-  const PR_USEC_PER_MSEC = 1000;
-  const PR_RDWR = 0x04;
-  const PR_CREATE_FILE = 0x08;
-  const PR_TRUNCATE = 0x20;
-
-  dump("installDir: " + zipFile.path + "\n");
-  zipWriter.open(zipFile, PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE);
-
-
-  const addDirToZip = (dir, basePath) => {
-    let files = dir.directoryEntries;
-    while (files.hasMoreElements()) {
-      let file = files.getNext().QueryInterface(Ci.nsIFile);
-      if (file.isHidden() || file.isSpecial() || file.equals(zipWriter.file)) {
-        continue;
-      }
-
-      dump("Adding: " + basePath + file.leafName + "\n");
-      if (file.isDirectory()) {
-        zipWriter.addEntryDirectory(basePath + file.leafName + "/",
-                                    file.lastModifiedTime * PR_USEC_PER_MSEC,
-                                    true);
-        addDirToZip(file, basePath + file.leafName + "/");
-      } else {
-        zipWriter.addEntryFile(basePath + file.leafName,
-                               Ci.nsIZipWriter.COMPRESSION_DEFAULT,
-                               file,
-                               true);
-      }
-    }
-  }
-
-
-  addDirToZip(sourceDir, "");
-
-  return new Promise((resolve, reject) => {
-    zipWriter.processQueue({
-      onStartRequest(request, context) {},
-      onStopRequest(request, context, status) {
-        if (status == Cr.NS_OK) {
-          zipWriter.close();
-          resolve();
-        }
-        else {
-          let { name, message } = getResultText(status);
-          reject(name + ": " + message);
-        }
-      }
-    }, null);
-  });
+  const fileStream = Cc["@mozilla.org/network/file-output-stream;1"].
+                   createInstance(Ci.nsIFileOutputStream);
+  fileStream.init(manifestFile, 0x04 | 0x08 | 0x20, null, 0);
+  const converter = Cc["@mozilla.org/intl/converter-output-stream;1"].
+                    createInstance(Ci.nsIConverterOutputStream);
+  converter.init(fileStream, "UTF-8", 0, 0);
+  converter.writeString(JSON.stringify(app[manifestJSON], 2, 2));
+  converter.close();
 }
 
 const installApp = app => {
