@@ -2,14 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-"use strict";
+'use strict';
 
-const { Promise } = Cu.import("resource://gre/modules/Promise.jsm", {});
-const { devtools } = Cu.import("resource://gre/modules/devtools/Loader.jsm", {});
-const { BrowserTabActor, BrowserTabList, allAppShellDOMWindows,
-        sendShutdownEvent } = devtools.require("devtools/server/actors/webbrowser");
-const { RootActor } = devtools.require("devtools/server/actors/root");
-
+let { BrowserTabActor, BrowserTabList, allAppShellDOMWindows,
+        sendShutdownEvent } = require("devtools/server/actors/webbrowser");
+let { RootActor } = require("devtools/server/actors/root");
+let { DebuggerServer } = require("devtools/server/main");
 /**
  * WebappRT-specific actors.
  */
@@ -56,7 +54,6 @@ WebappTabList.prototype = Object.create(BrowserTabList.prototype);
 WebappTabList.prototype.constructor = WebappTabList;
 
 WebappTabList.prototype.getList = function() {
-  /*
   let topXULWindow = Services.wm.getMostRecentWindow(this._windowType);
 
   // As a sanity check, make sure all the actors presently in our map get
@@ -94,9 +91,8 @@ WebappTabList.prototype.getList = function() {
 
   this._mustNotify = true;
   this._checkListening();
-  */
 
-  return Promise.resolve([]);
+  return Promise.resolve([actor for ([_, actor] of this._actorByBrowser)]);
 };
 
 /**
@@ -125,7 +121,7 @@ WebappTabActor.prototype = Object.create(BrowserTabActor.prototype);
 
 Object.defineProperty(WebappTabActor.prototype, "title", {
   get: function() {
-    return this.browser.ownerDocument.defaultView.document.title;
+    return this.browser.contentDocument.title;
   },
   enumerable: true,
   configurable: false
