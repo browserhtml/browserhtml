@@ -25,7 +25,7 @@
   border-color: #AAA;
 }
 
-.navbar > button {
+.navbar > button, .urlbar > button {
   width: 18px;
   min-width: 18px;
   height: 18px;
@@ -38,7 +38,14 @@
   border-radius: 3px;
 }
 
-.navbar > button.disabled {
+.urlbar > button {
+ background-image: url(images/shared/reload-stop-go.png);
+ background-size: 42px 28px;
+ width:12px;
+ height: 12px;
+}
+
+.navbar > button.disabled, .urlbar > button.disabled {
   pointer-events: none;
   opacity: 0.4;
 }
@@ -59,6 +66,9 @@
   .navbar > button {
     background-image: url(images/shared/Toolbar@2x.png);
   }
+  .urlbar > button {
+    background-image: url(images/shared/reload-stop-go@2x.png);
+  }
   .navbar > button:hover {
     background-image: url(images/shared/Toolbar@2x.png), var(--toolbarbutton-hover-background-image);
   }
@@ -78,6 +88,14 @@
 .reload-button {  background-position: -73px   0px; }
 .stop-button {    background-position: -90px   0px; }
 .menu-button {    background-position: -468px  0px; }
+  
+   /* styles for the urlbar buttons */
+
+.urlbar > .reload-button { background-position: 2px -1px; }
+.urlbar > .reload-button:active { background-position: 2px -15px; }
+.urlbar > .stop-button { background-position: -12px 0px; }
+.urlbar > .stop-button:active { background-position: -12px -14px; }
+ 
 
 .urlbar, .searchbar {
   background-color: white;
