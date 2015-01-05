@@ -1,4 +1,4 @@
-[![build](https://travis-ci.org/mozilla/browserhtml.svg?branch=master)](https://travis-ci.org/mozilla/browserhtml)
+[![build](https://travis-ci.org/mozilla/browserhtml.svg?branch=master)](https://travis-ci.org/mozilla/browser.html)
 
 ![light theme](https://cloud.githubusercontent.com/assets/373579/5355479/d4d650d8-7f93-11e4-9645-88c93c8c495a.png)
 
