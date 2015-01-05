@@ -10,8 +10,17 @@ Browser.html: an experimental Desktop browser, based on Firefox Desktop and Fire
 
 **Setup**
 
-0. Install [Firefox Nightly](http://nightly.mozilla.org/)
-1. `npm start` to start the browser
+Install [Firefox Nightly](http://nightly.mozilla.org/), then:
+```
+# Linux:
+firefox -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp
+
+# Mac:
+open -n -a FirefoxNightly --args -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp
+
+# Windows:
+FIXME
+```
 
 **Hacking**
 

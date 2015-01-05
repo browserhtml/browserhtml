@@ -2,7 +2,8 @@
   "esnext": true,
   "excludeFiles": [
     "node_modules/**",
-    "lib/**"
+    "runtime/**",
+    "apps/browser/lib/**"
   ],
   "requireSpaceBeforeKeywords": [
     "else",
