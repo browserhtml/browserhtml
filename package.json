@@ -13,7 +13,7 @@
   },
   "scripts": {
     "test": "jscs ./",
-    "start": "open -n -a FirefoxNightly --args -app $(pwd)/runtime/application.ini $(pwd)/apps/browser/manifest.webapp"
+    "start": "./run.sh"
   },
   "devDependencies": {
     "jscs": "^1.8.1"
