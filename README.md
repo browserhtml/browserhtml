@@ -1,6 +1,6 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/paulrouget/firefox.html?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-![build](https://travis-ci.org/paulrouget/firefox.html.svg?branch=master)
+[![build](https://travis-ci.org/paulrouget/firefox.html.svg?branch=master)](https://travis-ci.org/paulrouget/firefox.html)
 
 ![light theme](https://cloud.githubusercontent.com/assets/373579/5355479/d4d650d8-7f93-11e4-9645-88c93c8c495a.png)
 
