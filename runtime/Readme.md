@@ -1,6 +1,6 @@
 # Firebox
 
-Application runtime shared with [Firefox][] that can be used to write cross platform desktop applications such as [Firefox][] using web technologies & [nodejs](http://nodejs.org/) style JS modules system. Firebox applications are [npm][] packages with a bundled HTML document gets to require modules from the package and it's dependencies.
+Application runtime shared with [Firefox][] that can be used to write cross platform desktop applications such as [Firefox][] using web technologies & [nodejs][] style JS modules system. Firebox applications are [npm][] packages with a bundled HTML document gets to require modules from the package and it's dependencies.
 
 ## Features
 
@@ -60,3 +60,5 @@ Your application will need some UI which is defined in HTML/CSS/JS there for you
 [JSCTypes]:https://developer.mozilla.org/en-US/docs/Mozilla/js-ctypes
 [Nightly]:https://nightly.mozilla.org/
 [WebIDE]:https://developer.mozilla.org/en-US/docs/Tools/WebIDE
+[npm]:http://nodejs.org/
+[nodejs]:http://nodejs.org/
