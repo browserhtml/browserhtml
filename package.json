@@ -20,9 +20,11 @@
     "url": "http://paulrouget.com/"
   },
   "scripts": {
-    "test": "jscs ./"
+    "test": "jscs ./",
+    "start": "open -n -a FirefoxNightly --args -app $(pwd)/node_modules/firebox/application.ini $(pwd)/manifest.webapp"
   },
   "devDependencies": {
-    "jscs": "^1.8.1"
+    "jscs": "^1.8.1",
+    "firebox": "git://github.com/Gozala/firebox.git#html-runner"
   }
 }
