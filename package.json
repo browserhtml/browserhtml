@@ -1,30 +1,28 @@
 {
-  "name": "firefox.html",
-  "private": true,
-  "homepage": "https://github.com/paulrouget/firefox.html",
+  "name": "browserhtml",
+  "description": "browserhtml",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mozilla/browserhtml",
   "repository": {
     "type": "git",
-    "url": "https://github.com/paulrouget/firefox.html.git"
+    "url": "https://github.com/mozilla/browserhtml.git",
+    "web": "https://github.com/mozilla/browserhtml"
   },
   "bugs": {
-    "url": "https://github.com/paulrouget/firefox.html/issues"
-  },
-  "licenses": [
-    {
-      "type": "Mozilla Public License Version 2.0",
-      "url": "https://github.com/paulrouget/firefox.html/blob/master/LICENSE"
-    }
-  ],
-  "author": {
-    "name": "Paul Rouget",
-    "url": "http://paulrouget.com/"
+    "url": "http://github.com/mozilla/browserhtml/issues/"
   },
   "scripts": {
     "test": "jscs ./",
-    "start": "open -n -a FirefoxNightly --args -app $(pwd)/node_modules/firebox/application.ini $(pwd)/manifest.webapp"
+    "start": "open -n -a FirefoxNightly --args -app $(pwd)/runtime/application.ini $(pwd)/apps/browser/manifest.webapp"
   },
   "devDependencies": {
-    "jscs": "^1.8.1",
-    "firebox": "git://github.com/Gozala/firebox.git#html-runner"
-  }
+    "jscs": "^1.8.1"
+  },
+  "licenses": [
+    {
+      "type": "MPL",
+      "version": "2.0",
+      "url": "http://mozilla.org/MPL/2.0/"
+    }
+  ]
 }
