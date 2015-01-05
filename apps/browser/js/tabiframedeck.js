@@ -19,7 +19,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
 
   'use strict';
 
-  const HOMEPAGE = 'https://github.com/paulrouget/firefox.html/commits/master';
+  const HOMEPAGE = 'https://github.com/mozilla/browser.html/commits/master';
 
   let _tabIframeArray = [];
   let _selectIndex = -1;
