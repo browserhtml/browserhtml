@@ -1,15 +1,15 @@
 {
-  "name": "browserhtml",
-  "description": "browserhtml",
+  "name": "browser.html",
+  "description": "browser.html",
   "version": "0.0.0",
-  "homepage": "https://github.com/mozilla/browserhtml",
+  "homepage": "https://github.com/mozilla/browser.html",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mozilla/browserhtml.git",
-    "web": "https://github.com/mozilla/browserhtml"
+    "url": "https://github.com/mozilla/browser.html.git",
+    "web": "https://github.com/mozilla/browser.html"
   },
   "bugs": {
-    "url": "http://github.com/mozilla/browserhtml/issues/"
+    "url": "http://github.com/mozilla/browser.html/issues/"
   },
   "scripts": {
     "test": "jscs ./",
