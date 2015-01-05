@@ -1,0 +1,137 @@
+:root {
+  --toolbarbutton-hover-background-image: linear-gradient(hsla(0,0%,30%,.7), hsla(0,0%,30%,.2)),
+                                          linear-gradient(hsla(0,0%,0%,.3), hsla(0,0%,0%,.3));
+  --toolbarbutton-hover-boxshadow: transparent;
+  --toolbarbutton-hover-bordercolor: rgb(47,47,47);
+
+  --toolbarbutton-active-boxshadow: transparent;
+  --toolbarbutton-active-bordercolor: rgb(25,25,25);
+  --toolbarbutton-active-background-image: linear-gradient(hsla(0,0%,0%,.7), hsla(0,0%,0%,.4)),
+                                           linear-gradient(rgba(154,154,154,.5),rgba(154,154,154,.5));
+}
+
+/* tabs */
+.tabstrip {
+  background-image: linear-gradient(to top, #1B1B1B, #3D3D3D);
+}
+
+[os="linux"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-border: transparent;
+  --curve-gradient-start: #4F4F4F;
+  --curve-gradient-end: #424242;
+  --curve-hover-border: transparent;
+  --curve-hover-gradient-start: rgba(255,255,255,0.4);
+  --curve-hover-gradient-end: rgba(255,255,255,0.4);
+}
+
+[os="windows"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-border: transparent;
+  --curve-gradient-start: #4F4F4F;
+  --curve-gradient-end: #424242;
+  --curve-hover-border: #212121;
+  --curve-hover-gradient-start: transparent;
+  --curve-hover-gradient-end: transparent;
+}
+
+[os="osx"] .dummy-tab-curve {
+  /* These values are used in curvedTabs.js */
+  --curve-gradient-start: #4F4F4F;
+  --curve-gradient-end: #424242;
+  --curve-border: #212121;
+  --curve-hover-border: #212121;
+}
+
+.tab,
+.tab.selected {
+  color: #ffffff;
+}
+
+.tab:not(.selected):not(:hover) + .tab:not(.selected):not(:hover):not(:first-of-type) {
+  background-image: linear-gradient(to top, #040404, transparent 80%);
+}
+
+/* navbar */
+.navbar {
+  background-image: linear-gradient(#424242, #2F2F2F);
+}
+
+[os="osx"] .navbar {
+  border-color: #040404;
+}
+
+.urlbar, .searchbar {
+  background-color: #202020;
+  border-color: #191919;
+}
+
+.urlbar.focus, .searchbar.focus {
+  border-color: #191919;
+  box-shadow: 0 0 0 3px #AE29D9;
+}
+
+.urlinput, .searchinput {
+  color: #ffffff;
+}
+
+/* icons */
+.navbar > button {
+  color: #ffffff;
+  background-image: url(images/Toolbar.png);
+}
+
+.navbar > button:hover {
+  background-image: url(images/Toolbar.png), var(--toolbarbutton-hover-background-image);
+}
+
+.navbar > button:hover:active {
+  background-image: url(images/Toolbar.png), var(--toolbarbutton-active-background-image);
+}
+
+.tab > .close-button {
+  background-image: url(images/close.png);
+}
+
+.searchselector {
+  background-image: url(images/Search.png);
+}
+
+.identity {
+  background-image: url(images/identity-icons-generic.png);
+}
+
+body.ssl .identity {
+  background-image: url(images/identity-icons-https.png);
+}
+
+body.sslev .identity {
+  background-image: url(images/identity-icons-https-ev.png);
+}
+
+@media (min-resolution: 2dppx) {
+  .navbar > button {
+    background-image: url(images/Toolbar@2x.png);
+  }
+  .navbar > button:hover {
+    background-image: url(images/Toolbar@2x.png), var(--toolbarbutton-hover-background-image);
+  }
+  .navbar > button:hover:active {
+    background-image: url(images/Toolbar@2x.png), var(--toolbarbutton-active-background-image);
+  }
+  .tab > .close-button {
+    background-image: url(images/close@2x.png);
+  }
+  .searchselector {
+    background-image: url(images/Search@2x.png);
+  }
+  .identity {
+    background-image: url(images/identity-icons-generic@2x.png);
+  }
+  body.ssl .identity {
+    background-image: url(images/identity-icons-https@2x.png);
+  }
+  body.sslev .identity {
+    background-image: url(images/identity-icons-https-ev@2x.png);
+  }
+}
