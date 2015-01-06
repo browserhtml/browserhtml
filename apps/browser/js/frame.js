@@ -15,12 +15,9 @@ define((require, exports, module) => {
     allowFullScreen: Option("mozallowfullscreen"),
     flex: Attribute("flex"),
     location: Field((node, current, past) => {
-      if (current != past) {
-        // React batches updates on animation frame which
-        // seems to trigger a bug in mozbrowser causing it
-        // to load previous location instead of current one.
-        // To workaround that we delay `src` update.
-        setTimeout(() => node.src = current);
+      if (current != past && current != node.dataset.currentURI) {
+        console.log(current, past, node.dataset.currentURI, node.readyState)
+        node.src = current;
       }
     }),
     hidden: Field((node, current, past) => {
@@ -99,9 +96,11 @@ define((require, exports, module) => {
     },
     onError(event) {
       console.error(event);
-      this.patch({loading: false});
+      //this.patch({loading: false});
     },
-    onSecurityChange() {
+    onSecurityChange({detail}) {
+      this.patch({securityState: detail.state,
+                  securityExtendedValidation: detail.extendedValidation});
     },
     onPrompt() {
     },
@@ -120,7 +119,12 @@ define((require, exports, module) => {
     onTitleChange({detail}) {
       this.patch({title: detail});
     },
-    onLocationChange({detail}) {
+    onLocationChange({detail, target}) {
+      // Unfortunately changing iframe src to the value that matches
+      // currently loaded document url causes a reload. To workaround
+      // this we store currentURI into dataset of the iframe so we
+      // can avoid reload if url update is caused by location change.
+      target.dataset.currentURI = detail;
       this.patch({url: detail, input: null});
     },
     onIconChange({detail}) {
