@@ -22,6 +22,24 @@ open -n -a FirefoxNightly --args -app $PWD/runtime/application.ini $PWD/apps/bro
 FIXME
 ```
 
+**Debugging**
+
+You can dubug application via WebIDE if you run an app with additional `--debuger` argument:
+
+```
+# Linux:
+firefox -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp --debugger 6060
+
+# Mac:
+open -n -a FirefoxNightly --args -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp --debugger 6060
+
+# Windows:
+FIXME
+
+```
+
+Now you can connect with WebIDE to remote runtime on the port `6060`.
+
 **Hacking**
 
 Frontend code is located in `apps/browser`. `Cmd/Ctrl-Shift-R` to reload
