@@ -3,7 +3,7 @@ window {
   min-height: 300px;
 }
 
-window[os=unix] {
+window[os=linux] {
   -moz-appearance: menubar;
 }
 
