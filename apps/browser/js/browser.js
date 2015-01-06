@@ -49,7 +49,7 @@ define((require, exports, module) => {
         frames: [{id: 0,
                   selected: true,
                   focused: true,
-                  url: "https://github.com/paulrouget/firefox.html/commits/master"}],
+                  url: "https://github.com/mozilla/browser.html"}],
         input: {focused: false},
         search: {focused: false, query: ""},
       }, Keyboard.keyboardDefaults());
