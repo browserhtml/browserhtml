@@ -15,7 +15,6 @@
 .tab {
   -moz-user-select: none;
   cursor: default;
-  color: #444;
   height: 28px;
   border-style: solid;
   border-width: 0 28px;
@@ -27,39 +26,6 @@
   background-clip: border-box;
 }
 
-[os="linux"] .dummy-tab-curve {
-  /* These values are used in curvedTabs.js */
-  --curve-border: transparent;
-  --curve-gradient-start: #FBFBFB;
-  --curve-gradient-end: #EDEDED;
-  --curve-hover-border: transparent;
-  --curve-hover-gradient-start: rgba(255,255,255,0.4);
-  --curve-hover-gradient-end: rgba(255,255,255,0.4);
-}
-
-[os="windows"] .dummy-tab-curve {
-  /* These values are used in curvedTabs.js */
-  --curve-border: transparent;
-  --curve-gradient-start: #FBFBFB;
-  --curve-gradient-end: #EDEDED;
-  --curve-hover-border: #AAA;
-  --curve-hover-gradient-start: rgba(255, 255, 255, 0.4);
-  --curve-hover-gradient-end: rgba(255, 255, 255, 0.4);
-}
-
-[os="osx"] .dummy-tab-curve {
-  /* These values are used in curvedTabs.js */
-  --curve-border: #AAA;
-  --curve-gradient-start: #FBFBFB;
-  --curve-gradient-end: #F1F1F1;
-  --curve-hover-border: #AAA;
-  --curve-hover-gradient-start: transparent;
-  --curve-hover-gradient-end: transparent;
-}
-
-[os="linux"] .tab {
-  color: -moz-menubartext;
-}
 
 @media (min-resolution: 2dppx) {
   .tab {
@@ -70,11 +36,9 @@
 .tab.selected {
   z-index: 1001;
   border-image-source: -moz-element(#canvas-tab-selected);
-  color: black;
 }
 
 .tab:not(.selected):not(:hover) + .tab:not(.selected):not(:hover):not(:first-of-type) {
-  background-image: linear-gradient(to top, #AAA, transparent 80%);
   background-size: 1px 100%;
   background-repeat: no-repeat;
   background-position: -14px 0;
@@ -91,7 +55,8 @@
   image-rendering: optimizequality;
 }
 
-.tab > .favicon:not([src]) {
+.tab > .favicon:not([src]),
+.tab > .favicon[src=""] {
   display: none;
 }
 
