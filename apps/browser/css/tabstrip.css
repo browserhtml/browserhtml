@@ -4,18 +4,13 @@
 
 .tabstrip {
   padding: 0 28px 0 10px;
-  margin-bottom: calc(-1 * var(--hwd-pixel));
   z-index: 999;
-}
-
-[os="osx"] .tabstrip:first-of-type {
-  padding-top: 9px;
 }
 
 .tab {
   -moz-user-select: none;
   cursor: default;
-  color: #444;
+  color: #ffffff;
   height: 28px;
   border-style: solid;
   border-width: 0 28px;
@@ -30,8 +25,8 @@
 [os="linux"] .dummy-tab-curve {
   /* These values are used in curvedTabs.js */
   --curve-border: transparent;
-  --curve-gradient-start: #FBFBFB;
-  --curve-gradient-end: #EDEDED;
+  --curve-gradient-start: #4F4F4F;
+  --curve-gradient-end: #424242;
   --curve-hover-border: transparent;
   --curve-hover-gradient-start: rgba(255,255,255,0.4);
   --curve-hover-gradient-end: rgba(255,255,255,0.4);
@@ -40,19 +35,19 @@
 [os="windows"] .dummy-tab-curve {
   /* These values are used in curvedTabs.js */
   --curve-border: transparent;
-  --curve-gradient-start: #FBFBFB;
-  --curve-gradient-end: #EDEDED;
-  --curve-hover-border: #AAA;
-  --curve-hover-gradient-start: rgba(255, 255, 255, 0.4);
-  --curve-hover-gradient-end: rgba(255, 255, 255, 0.4);
+  --curve-gradient-start: #4F4F4F;
+  --curve-gradient-end: #424242;
+  --curve-hover-border: #212121;
+  --curve-hover-gradient-start: transparent;
+  --curve-hover-gradient-end: transparent;
 }
 
 [os="osx"] .dummy-tab-curve {
   /* These values are used in curvedTabs.js */
-  --curve-border: #AAA;
-  --curve-gradient-start: #FBFBFB;
-  --curve-gradient-end: #F1F1F1;
-  --curve-hover-border: #AAA;
+  --curve-gradient-start: #4F4F4F;
+  --curve-gradient-end: #424242;
+  --curve-border: #212121;
+  --curve-hover-border: #212121;
   --curve-hover-gradient-start: transparent;
   --curve-hover-gradient-end: transparent;
 }
@@ -70,11 +65,10 @@
 .tab.selected {
   z-index: 1001;
   border-image-source: -moz-element(#canvas-tab-selected);
-  color: black;
 }
 
 .tab:not(.selected):not(:hover) + .tab:not(.selected):not(:hover):not(:first-of-type) {
-  background-image: linear-gradient(to top, #AAA, transparent 80%);
+  background-image: linear-gradient(to top, #040404, transparent 80%);
   background-size: 1px 100%;
   background-repeat: no-repeat;
   background-position: -14px 0;
@@ -132,7 +126,7 @@
   width: 16px;
   height: 16px;
   background-color: transparent;
-  background-image: url(images/shared/close.png);
+  background-image: url(dark/images/close.png);
   background-size: 64px 16px;;
   margin: 0 -6px 0 3px;
 }

@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
- * tabstip.js
+ * tabstrip.js
  *
  * This code controls the UI of the tabs.
  * A tab is: a favicon, a title and the close button.
@@ -28,8 +28,8 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
   // Tabs will be appended in there.
   let tabstrip = document.createElement('hbox');
   tabstrip.className = 'tabstrip toolbar';
-  let outervbox = document.querySelector('#outervbox');
-  outervbox.insertBefore(tabstrip, outervbox.firstChild);
+  let toolbars = document.querySelector('#toolbars');
+  toolbars.appendChild(tabstrip);
 
   // Where will store the tab objects, with their linked
   // <tab-iframe>

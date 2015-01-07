@@ -17,11 +17,66 @@
   }
 }
 
-[os="osx"] .toolbar:first-of-type {
-  /* Some room for the window controls */
-  padding-left: 70px;
+body {
+  overflow: hidden;
+  background-image: linear-gradient(to top, #1B1B1B, #3D3D3D);
+  background-size: 100% 76px;
+  background-repeat: no-repeat;
 }
 
 body:not([os="osx"]) .iframes {
   background-color: white;
+}
+
+.tabstrip, .navbar, .iframes {
+  transition-function: linear;
+  transition-duration: 600ms;
+  transition-properties: transform;
+  will-change: transform;
+}
+
+.iframes {
+  transition-properties: top;
+  will-change: top;
+}
+
+.tabstrip {
+  z-index: 2;
+  position: absolute;
+  top: 0;
+  left: 70px;
+  right: 0;
+  transform: translateY(9px);
+  transition: 
+}
+
+.navbar {
+  z-index: 2;
+  position: absolute;
+  top: calc(-1 * var(--hwd-pixel));
+  left: -70px;
+  right: 0;
+  transform: translateY(38px);
+}
+
+.iframes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 38px;
+  z-index: 1;
+  transform: translateY(76px);
+}
+
+body.scrollingdown #toolbars:not(:hover) .tabstrip {
+  transform: translateY(calc(9px - 38px));
+}
+
+body.scrollingdown #toolbars:not(:hover) .navbar {
+  transform: translateY(calc(38px - 38px)) translateX(70px);
+}
+
+body.scrollingdown .iframes {
+  transform: translateY(calc(76px - 38px));
 }

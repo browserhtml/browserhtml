@@ -45,5 +45,6 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
     'js/tabstrip',
     'js/navbar',
     'js/darktheme',
+    'js/mergetoolbars',
   ]);
 })

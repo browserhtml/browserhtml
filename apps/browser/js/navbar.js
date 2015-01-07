@@ -11,7 +11,7 @@
  *
  */
 
-require(['js/urlhelper', 'js/tabiframedeck', 'js/keybindings'],
+require(['js/urlhelper', 'js/tabiframedeck', 'js/keybindings', 'js/tabstrip'],
 function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   'use strict';
@@ -39,10 +39,9 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
       <button class='menu-button'></button>
     </hbox>
   `;
-  let outervbox = document.querySelector('#outervbox');
-  let outerhbox = document.querySelector('#outerhbox');
+  let toolbars = document.querySelector('#toolbars');
   let placeholder = document.createElement('hbox');
-  outervbox.insertBefore(placeholder, outerhbox);
+  toolbars.appendChild(placeholder);
   placeholder.outerHTML = html;
 
   let navbar = document.querySelector('.navbar');
@@ -132,6 +131,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     'mozbrowserlocationchange',
     'mozbrowsererror',
     'mozbrowsersecuritychange',
+    'mozbrowserasyncscroll',
   ];
 
   function OnTabSelected() {
