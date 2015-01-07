@@ -206,8 +206,6 @@ define(['js/eventemitter'], function(EventEmitter) {
   tabIframeProto.userInput = '';
 
   tabIframeProto.handleEvent = function(e) {
-    let somethingChanged = true;
-
     switch (e.type) {
       case 'mozbrowserloadstart':
         this._clearTabData();
@@ -233,8 +231,6 @@ define(['js/eventemitter'], function(EventEmitter) {
         this._securityState = e.detail.state;
         this._securityExtendedValidation = e.detail.extendedValidation;
         break;
-      default:
-        somethingChanged = false;
     }
 
     // Forward event
