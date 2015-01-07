@@ -41,8 +41,9 @@
 .urlbar > button {
  background-image: url(images/shared/reload-stop-go.png);
  background-size: 42px 28px;
- width: 12px;
- height: 12px;
+ width: 14px;
+ height: 14px;
+ min-width:14px;
 }
 
 .navbar > button.disabled, .urlbar > button.disabled {
@@ -91,10 +92,10 @@
   
    /* styles for the urlbar buttons */
 
-.urlbar > .reload-button { background-position: 2px -1px; }
-.urlbar > .reload-button:active { background-position: 2px -15px; }
-.urlbar > .stop-button { background-position: -12px 0px; }
-.urlbar > .stop-button:active { background-position: -12px -14px; }
+.urlbar > .reload-button { background-position: 0px 0px; }
+.urlbar > .reload-button:active { background-position: 0px -14px; }
+.urlbar > .stop-button { background-position: -14px 0px; }
+.urlbar > .stop-button:active { background-position: -14px -14px; }
  
 
 .urlbar, .searchbar {
