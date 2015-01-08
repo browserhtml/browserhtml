@@ -42,7 +42,6 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
   });
 
   require([
-    'js/tabstrip',
     'js/navbar',
   ]);
 })

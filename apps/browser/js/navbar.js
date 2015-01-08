@@ -24,19 +24,10 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   let html = `
     <hbox class='navbar toolbar' align='center'>
-      <button class='back-button' title='Go back one page'></button>
-      <button class='forward-button' title='Go forward one page'></button>
-      <button class='reload-button' title='Reload current page'></button>
-      <button class='stop-button' title='Stop loading this page'></button>
       <hbox class='urlbar' flex='1' align='center'>
         <div class='identity'></div>
         <input placeholder='Search or enter address' class='urlinput' flex='1'>
       </hbox>
-      <hbox class='searchbar' flex='1' align='center'>
-        <div class='searchselector'></div>
-        <input placeholder='Yahoo' class='searchinput' flex='1'>
-      </hbox>
-      <button class='menu-button'></button>
     </hbox>
   `;
   let outervbox = document.querySelector('#outervbox');
@@ -51,17 +42,6 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   let urlbar = navbar.querySelector('.urlbar');
   let urlinput = navbar.querySelector('.urlinput');
-  let searchbar = navbar.querySelector('.searchbar');
-  let searchinput = navbar.querySelector('.searchinput');
-  let backButton = navbar.querySelector('.back-button')
-  let forwardButton = navbar.querySelector('.forward-button')
-  let reloadButton = navbar.querySelector('.reload-button');
-  let stopButton = navbar.querySelector('.stop-button');
-
-  backButton.onclick = () => TabIframeDeck.getSelected().goBack();
-  forwardButton.onclick = () => TabIframeDeck.getSelected().goForward();
-  reloadButton.onclick = () => TabIframeDeck.getSelected().reload();
-  stopButton.onclick = () => TabIframeDeck.getSelected().stop();
 
   urlinput.addEventListener('focus', () => {
     urlinput.select();
@@ -82,41 +62,18 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     TabIframeDeck.getSelected().userInput = urlinput.value;
   });
 
-  searchinput.addEventListener('focus', () => {
-    searchinput.select();
-    searchbar.classList.add('focus');
-  })
-  searchinput.addEventListener('blur', () => searchbar.classList.remove('focus'))
-  searchinput.addEventListener('keypress', (e) => {
-    if (e.keyCode == 13) {
-      SearchInputChanged()
-    }
-  });
-
   let mod = window.OS == 'osx' ? 'Cmd' : 'Ctrl';
 
   RegisterKeyBindings(
     [mod,    'l',   () => {
       urlinput.focus();
       urlinput.select();
-    }],
-    [mod,    'k',   () => {
-      searchinput.focus();
-      searchinput.select();
     }]
   );
 
   function UrlInputChanged() {
     let text = urlinput.value;
     let url = PreprocessUrlInput(text);
-    let tabIframe = TabIframeDeck.getSelected();
-    tabIframe.setLocation(url);
-    tabIframe.focus();
-  }
-
-  function SearchInputChanged() {
-    let text = searchinput.value;
-    let url = urlTemplate.replace('{searchTerms}', encodeURIComponent(text));
     let tabIframe = TabIframeDeck.getSelected();
     tabIframe.setLocation(url);
     tabIframe.focus();
@@ -132,6 +89,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     'mozbrowserlocationchange',
     'mozbrowsererror',
     'mozbrowsersecuritychange',
+    'mozbrowsermetachange'
   ];
 
   function OnTabSelected() {
@@ -140,16 +98,18 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
       for (let e of events) {
         lastSelectedTab.off(e, UpdateTab);
       }
+      lastSelectedTab.off('mozbrowserasyncscroll', OnScroll);
     }
     lastSelectedTab = selectedTabIframe;
     if (selectedTabIframe) {
       if (!selectedTabIframe.location) {
-        urlinput.focus();
-        urlinput.select();
+        // urlinput.focus();
+        // urlinput.select();
       }
       for (let e of events) {
         lastSelectedTab.on(e, UpdateTab);
       }
+      selectedTabIframe.on('mozbrowserasyncscroll', OnScroll);
       UpdateTab(null, null, selectedTabIframe);
     }
   }
@@ -187,15 +147,19 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
       navbar.classList.remove('sslev');
     }
 
+    if (tabIframe.color) {
+      document.body.style.backgroundColor = tabIframe.color;
+    } else {
+      document.body.style.backgroundColor = "#00AAE5";
+    }
+
     tabIframe.canGoBack().then(canGoBack => {
       // Make sure iframe is still selected
       if (tabIframe != TabIframeDeck.getSelected()) {
         return;
       }
       if (canGoBack) {
-        backButton.classList.remove('disabled');
       } else {
-        backButton.classList.add('disabled');
       }
     });
 
@@ -205,9 +169,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
         return;
       }
       if (canGoForward) {
-        forwardButton.classList.remove('disabled');
       } else {
-        forwardButton.classList.add('disabled');
       }
     });
   };
@@ -223,5 +185,33 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
     return input;
   };
+
+
+  let lastTop = 0;
+  function OnScroll(eventName, event, tabIframe) {
+    if (tabIframe != TabIframeDeck.getSelected()) {
+      return;
+    }
+    if (eventName != 'mozbrowserasyncscroll') {
+      return;
+    }
+    let top = event.detail.top;
+    if (top == lastTop) {
+      return;
+    }
+    if (top != 0) {
+      if (lastTop < top) {
+        document.body.classList.add("scrollingdown");
+      } else {
+        document.body.classList.remove("scrollingdown");
+      }
+      document.body.classList.add("scrolled");
+    } else {
+      document.body.classList.remove("scrollingdown");
+      document.body.classList.remove("scrolled");
+    }
+    lastTop = top;
+  };
+
 
 });

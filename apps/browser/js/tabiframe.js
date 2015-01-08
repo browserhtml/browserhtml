@@ -22,7 +22,7 @@ define(['js/eventemitter'], function(EventEmitter) {
     'mozbrowsererror', 'mozbrowsericonchange', 'mozbrowserloadend',
     'mozbrowserloadstart', 'mozbrowserlocationchange', 'mozbrowseropenwindow',
     'mozbrowsersecuritychange', 'mozbrowsershowmodalprompt', 'mozbrowsertitlechange',
-    'mozbrowserusernameandpasswordrequired'
+    'mozbrowserusernameandpasswordrequired', 'mozbrowsermetachange'
   ];
 
   let tabIframeProto = Object.create(HTMLElement.prototype);
@@ -163,6 +163,12 @@ define(['js/eventemitter'], function(EventEmitter) {
     }
   });
 
+  Object.defineProperty(tabIframeProto, 'color', {
+    get: function() {
+      return this._color;
+    }
+  });
+
   Object.defineProperty(tabIframeProto, 'securityState', {
     get: function() {
       return this._securityState;
@@ -206,8 +212,6 @@ define(['js/eventemitter'], function(EventEmitter) {
   tabIframeProto.userInput = '';
 
   tabIframeProto.handleEvent = function(e) {
-    let somethingChanged = true;
-
     switch (e.type) {
       case 'mozbrowserloadstart':
         this._clearTabData();
@@ -230,11 +234,23 @@ define(['js/eventemitter'], function(EventEmitter) {
         this._loading = false;
         break;
       case 'mozbrowsersecuritychange':
-        this._securityState = e.detail.state;
-        this._securityExtendedValidation = e.detail.extendedValidation;
+        this._securitystate = e.detail.state;
+        this._securityextendedvalidation = e.detail.extendedvalidation;
         break;
-      default:
-        somethingChanged = false;
+      case 'mozbrowsermetachange':
+        if (e.detail.name == 'msapplication-TileColor' && e.detail.type) {
+          this._color = '';
+          if (e.detail.type !== 'removed') {
+            this._color = e.detail.content;
+          }
+        }
+        if (e.detail.name == 'theme-color' && e.detail.type) {
+          this._color = '';
+          if (e.detail.type !== 'removed') {
+            this._color = e.detail.content;
+          }
+        }
+        break;
     }
 
     // Forward event
