@@ -184,12 +184,46 @@ define((require, exports, module) => {
                       placeholder: "Search or enter address",
                       tabIndex: 0,
                       autoFocus: true,
+                      contextMenu: "url-context-menu",
 
                       onClick: this.focusInput,
                       onChange: this.onInputChange,
                       onKeyDown: this.onInputKey,
                       onFocus: this.onInputFocus,
-                      onBlur: this.onInputBlur})
+                      onBlur: this.onInputBlur}),
+          html.menu({
+            key: "url-context-menu",
+            type: "context",
+            id: "url-context-menu",
+          }, [
+            html.menuitem({
+              key: "undo",
+              label: "Undo",
+              onClick() {
+                alert("Undo")
+              }
+            }),
+            html.menuitem({
+              key: "cut",
+              label: "Cut",
+            }),
+            html.menuitem({
+              key: "copy",
+              label: "Copy",
+            }),
+            html.menuitem({
+              key: "paste",
+              label: "Paste",
+            }),
+            html.menuitem({
+              key: "paste-&-go",
+              label: "Paste & Go",
+            }),
+            html.menuitem({
+              key: "select-all",
+              label: "Select All",
+            })
+          ])
         ]),
         html.div({
           key: "search-bar",

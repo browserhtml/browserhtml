@@ -169,6 +169,34 @@ Backing up stored session to ${backup} & resuming with blank session instead.`);
                         onKeyDown: this.onKeyDown,
                         onKeyUp: this.onKeyUp}, [
 
+          html.menu({key: "toolbox-menu", type: "toolbox"}, [
+            html.menu({
+              key: "file-menu",
+              id: "file-menu",
+              label: "File",
+              accesskey: "F"
+            }, [
+            ]),
+            html.menu({
+              key: "view-menu",
+              id: "view-menu",
+              label: "View"
+            }, [
+              html.menuitem({
+                id: "debugger-start-item",
+                key: "debugger-start-item",
+                label: "start debugger",
+                "data-acceltext": "CTRL-S",
+                accesskey: "ctrl-n",
+                disabled: true
+              }),
+              html.menuitem({
+                key: "debugger-stop-item",
+                label: "stop debugger"
+              })
+            ])
+          ]),
+
           Theme({name: theme}),
 
           ...(tabStyle != "vertical" ? [tabNavigator] : []),
