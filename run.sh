@@ -17,4 +17,4 @@ case `uname` in
     ;;
 esac
 
-$CMD -app $DIR/runtime/application.ini $DIR/apps/browser/manifest.webapp
+$CMD -app $DIR/runtime/application.ini $DIR/apps/browser/manifest.webapp --debugger 6060

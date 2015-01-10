@@ -37,6 +37,12 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
       let session = [];
       try {
         // session = JSON.parse(window.localStorage.session);
+        session = [
+          "http://www.twitter.com",
+          "http://dribbble.com",
+          "http://interactions.webflow.com/",
+          "http://medium.com",
+        ];
       } catch (e) {}
 
       if (Array.isArray(session) && session.length > 0) {

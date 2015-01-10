@@ -31,6 +31,12 @@ define(function() {
       return !UrlHelper.isNotURL(input);
     },
 
+    getDomain: function urlHelper_getDomain(input) {
+      this.a = this.a || document.createElement('a');
+      this.a.href = input;
+      return this.a.hostname;
+    },
+
     isNotURL: function urlHelper_isNotURL(input) {
       var schemeReg = /^\w+\:\/\//;
 

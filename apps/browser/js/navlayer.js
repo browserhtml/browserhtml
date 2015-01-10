@@ -73,6 +73,9 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
   ];
 
   function OnTabSelected() {
+    document.body.classList.remove("scrollingdown");
+    document.body.classList.remove("scrollingup");
+    document.body.classList.remove("scrolled");
     let selectedTabIframe = TabIframeDeck.getSelected();
     if (lastSelectedTab) {
       for (let e of events) {
@@ -182,12 +185,15 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     if (top != 0) {
       if (lastTop < top) {
         document.body.classList.add("scrollingdown");
+        document.body.classList.remove("scrollingup");
       } else {
         document.body.classList.remove("scrollingdown");
+        document.body.classList.add("scrollingup");
       }
       document.body.classList.add("scrolled");
     } else {
       document.body.classList.remove("scrollingdown");
+      document.body.classList.remove("scrollingup");
       document.body.classList.remove("scrolled");
     }
     lastTop = top;

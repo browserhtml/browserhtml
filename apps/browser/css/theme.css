@@ -1,10 +1,10 @@
 :root {
+  background-color: white;
   --theme-color: rgba(255,255,255,0.95);
 }
 
 #veil {
   background-color: var(--theme-color);
-  border-bottom: 1px solid #eee;
 }
 
 #userinput {
@@ -13,6 +13,7 @@
   line-height: 22px;
   vertical-align: bottom;
   min-width: 0;
+  width: 100%;
   color: inherit;
 }
 
@@ -24,16 +25,20 @@
 
 .tile {
   background-color: #ccc;
+  background-size: 100% auto;
   margin: 0 20px;
-  border-radius: 2px;
+  border-radius: 4px 4px 0 0;
   border: 3px solid transparent;
+  border-width: 0 0 3px 0;
   padding: 5px;
   background-clip: padding-box;
+  opacity: 0.5;
+  transition: none;
 }
 
 .tile.selected {
-  border-color: #ddd;
-  background-color: #ddd;
+  opacity: 1;
+  border-color: #F06;
 }
 
 .suggestion-description {

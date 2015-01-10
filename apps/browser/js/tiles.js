@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require(['js/tabiframedeck'], function(TabIframeDeck) {
+require(['js/tabiframedeck', 'js/urlhelper'],
+function(TabIframeDeck, UrlHelper) {
 
   'use strict';
 
@@ -107,6 +108,14 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
         this.dom.classList.remove('loading');
       }
 
+
+      if (this.tabIframe.location) {
+        let domain = UrlHelper.getDomain(this.tabIframe.location);
+        this._dom.style.backgroundImage = 'url(/tb/' + domain + '.png)';
+      } else {
+        this._dom.style.backgroundImage = '';
+      }
+
       let title = this.tabIframe.title;
       if (!title) {
         if (this.tabIframe.location) {
@@ -115,7 +124,7 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
           title = 'New Tab';
         }
       }
-      this.dom.querySelector('.title').textContent = title;
+      // this.dom.querySelector('.title').textContent = title;
       this.dom.title = title;
 
       /*

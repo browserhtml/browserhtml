@@ -223,6 +223,7 @@ define(['js/eventemitter'], function(EventEmitter) {
         this._title = e.detail;
         break;
       case 'mozbrowserlocationchange':
+        this._color = '';
         this.userInput = '';
         this._location = e.detail;
         break;
@@ -237,12 +238,6 @@ define(['js/eventemitter'], function(EventEmitter) {
         this._securityextendedvalidation = e.detail.extendedvalidation;
         break;
       case 'mozbrowsermetachange':
-        if (e.detail.name == 'msapplication-TileColor' && e.detail.type) {
-          this._color = '';
-          if (e.detail.type !== 'removed') {
-            this._color = e.detail.content;
-          }
-        }
         if (e.detail.name == 'theme-color' && e.detail.type) {
           this._color = '';
           if (e.detail.type !== 'removed') {
