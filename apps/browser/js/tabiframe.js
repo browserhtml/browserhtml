@@ -69,7 +69,6 @@ define(['js/eventemitter'], function(EventEmitter) {
   tabIframeProto._createInnerIframe = function() {
     let iframe = document.createElement('iframe');
     iframe.setAttribute('mozbrowser', 'true');
-    iframe.setAttribute('flex', '1');
     iframe.setAttribute('remote', 'true');
     iframe.setAttribute('mozallowfullscreen', 'true');
     this.appendChild(iframe);

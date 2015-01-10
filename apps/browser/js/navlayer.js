@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
- * navbar.js
+ * navlayer.js
  *
  * Code handling the navigation bar. The navigation bar includes
  * the back/forward/stop/reload buttons, the url bar and the search
@@ -11,69 +11,49 @@
  *
  */
 
-require(['js/urlhelper', 'js/tabiframedeck', 'js/keybindings'],
+require(['js/urlhelper', 'js/tabiframedeck', 'js/keybindings', 'js/tiles'],
 function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   'use strict';
 
-  let link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'css/navbar.css';
-  let defaultStyleSheet = document.querySelector('link[title=default]');
-  document.head.insertBefore(link, defaultStyleSheet.nextSibling);
+  let navlayer = document.querySelector('#navlayer');
 
-  let html = `
-    <hbox class='navbar toolbar' align='center'>
-      <hbox class='urlbar' flex='1' align='center'>
-        <div class='identity'></div>
-        <input placeholder='Search or enter address' class='urlinput' flex='1'>
-      </hbox>
-    </hbox>
-  `;
-  let outervbox = document.querySelector('#outervbox');
-  let outerhbox = document.querySelector('#outerhbox');
-  let placeholder = document.createElement('hbox');
-  outervbox.insertBefore(placeholder, outerhbox);
-  placeholder.outerHTML = html;
+  let searchTemplate = 'https://search.yahoo.com/search?p={searchTerms}';
 
-  let navbar = document.querySelector('.navbar');
+  let navbar = navlayer.querySelector('#navbar');
+  let userinput = navlayer.querySelector('#userinput');
 
-  let urlTemplate = 'https://search.yahoo.com/search?p={searchTerms}';
-
-  let urlbar = navbar.querySelector('.urlbar');
-  let urlinput = navbar.querySelector('.urlinput');
-
-  urlinput.addEventListener('focus', () => {
-    urlinput.select();
-    urlbar.classList.add('focus');
+  userinput.addEventListener('focus', () => {
+    userinput.select();
+    navbar.classList.add('focus');
   })
 
-  urlinput.addEventListener('blur', () => {
-    urlbar.classList.remove('focus');
+  userinput.addEventListener('blur', () => {
+    navbar.classList.remove('focus');
   })
 
-  urlinput.addEventListener('keypress', (e) => {
+  userinput.addEventListener('keypress', (e) => {
     if (e.keyCode == 13) {
-      UrlInputChanged()
+      UserInputChanged()
     }
   });
 
-  urlinput.addEventListener('input', () => {
-    TabIframeDeck.getSelected().userInput = urlinput.value;
+  userinput.addEventListener('input', () => {
+    TabIframeDeck.getSelected().userInput = userinput.value;
   });
 
   let mod = window.OS == 'osx' ? 'Cmd' : 'Ctrl';
 
   RegisterKeyBindings(
     [mod,    'l',   () => {
-      urlinput.focus();
-      urlinput.select();
+      userinput.focus();
+      userinput.select();
     }]
   );
 
-  function UrlInputChanged() {
-    let text = urlinput.value;
-    let url = PreprocessUrlInput(text);
+  function UserInputChanged() {
+    let text = userinput.value;
+    let url = PreprocessUserInput(text);
     let tabIframe = TabIframeDeck.getSelected();
     tabIframe.setLocation(url);
     tabIframe.focus();
@@ -103,8 +83,8 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     lastSelectedTab = selectedTabIframe;
     if (selectedTabIframe) {
       if (!selectedTabIframe.location) {
-        // urlinput.focus();
-        // urlinput.select();
+        userinput.focus();
+        userinput.select();
       }
       for (let e of events) {
         lastSelectedTab.on(e, UpdateTab);
@@ -122,17 +102,17 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     }
 
     if (tabIframe.loading) {
-      navbar.classList.add('loading');
+      navlayer.classList.add('loading');
     } else {
-      navbar.classList.remove('loading');
+      navlayer.classList.remove('loading');
     }
 
     if (tabIframe.userInput) {
-      urlinput.value = tabIframe.userInput;
+      userinput.value = tabIframe.userInput;
     } else if (tabIframe.location) {
-      urlinput.value = UrlHelper.trim(tabIframe.location);
+      userinput.value = UrlHelper.trim(tabIframe.location);
     } else if (eventName === null) {
-      urlinput.value = '';
+      userinput.value = '';
     }
 
     if (!window.IS_PRIVILEGED) {
@@ -140,17 +120,17 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     }
 
     if (tabIframe.securityState == 'secure') {
-      navbar.classList.add('ssl');
-      navbar.classList.toggle('sslev', tabIframe.securityExtendedValidation);
+      navlayer.classList.add('ssl');
+      navlayer.classList.toggle('sslev', tabIframe.securityExtendedValidation);
     } else {
-      navbar.classList.remove('ssl');
-      navbar.classList.remove('sslev');
+      navlayer.classList.remove('ssl');
+      navlayer.classList.remove('sslev');
     }
 
     if (tabIframe.color) {
-      document.body.style.backgroundColor = tabIframe.color;
+      document.body.style.setProperty('--theme-color', tabIframe.color);
     } else {
-      document.body.style.backgroundColor = "#00AAE5";
+      document.body.style.setProperty('--theme-color', 'inherit');
     }
 
     tabIframe.canGoBack().then(canGoBack => {
@@ -174,9 +154,9 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     });
   };
 
-  function PreprocessUrlInput(input) {
+  function PreprocessUserInput(input) {
     if (UrlHelper.isNotURL(input)) {
-      return urlTemplate.replace('{searchTerms}', encodeURIComponent(input));
+      return searchTemplate.replace('{searchTerms}', encodeURIComponent(input));
     }
 
     if (!UrlHelper.hasScheme(input)) {

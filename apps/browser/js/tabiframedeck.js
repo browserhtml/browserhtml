@@ -19,7 +19,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
 
   'use strict';
 
-  const HOMEPAGE = 'https://github.com/mozilla/browser.html/commits/master';
+  const HOMEPAGE = 'http://medium.com';
 
   let _tabIframeArray = [];
   let _selectIndex = -1;
@@ -36,7 +36,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
     restoreSession: function() {
       let session = [];
       try {
-        session = JSON.parse(window.localStorage.session);
+        // session = JSON.parse(window.localStorage.session);
       } catch (e) {}
 
       if (Array.isArray(session) && session.length > 0) {
@@ -56,7 +56,7 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
       let tabIframe = document.createElement('tab-iframe');
       tabIframe.setAttribute('flex', '1');
 
-      let parent = document.querySelector('.iframes');
+      let parent = document.querySelector('#iframes');
       parent.appendChild(tabIframe);
       _tabIframeArray.push(tabIframe);
 

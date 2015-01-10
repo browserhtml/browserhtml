@@ -1,67 +1,13 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-/**
- * theme.css
- *
- */
-
 :root {
-  --hwd-pixel: 1px;
+  --theme-color: rgba(255,255,255,0.95);
 }
 
-@media (min-resolution: 2dppx) {
-  :root {
-    --hwd-pixel: 0.5px;
-  }
+#veil {
+  background-color: var(--theme-color);
+  border-bottom: 1px solid #eee;
 }
 
-body {
-  overflow: hidden;
-  background-color: #00AAE5;
-  background-size: 100% auto;
-  transition: background-color 600ms ease;
-}
-
-.urlbar {
-  background-color: white;
-  border-radius: 100px;
-  padding: 0 0 0 16px;
-  min-width: 0;
-  color: #666;
-}
-
-.urlbar:after {
-  content: "";
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
-  margin-right: 1px;
-  background-image: linear-gradient(#999, #999);
-  background-size: 10px 10px;
-  background-repeat: no-repeat;
-  animation: rotate 1000ms linear 0s infinite;
-}
-@keyframes rotate { from {
-    transform:rotate(0deg);
-  } to {
-    transform:rotate(360deg);
-  }
-}
-
-.navbar:not(.loading) .urlbar:after {
-  display: none;
-  animation: none;
-}
-
-.urlbar.focus {
-  border-color: white;
-  box-shadow: 0 0 0 3px #91B8E3;
-  color: black;
-}
-
-.urlinput {
+#userinput {
   font: -moz-field;
   font-size: 12px;
   line-height: 22px;
@@ -70,41 +16,26 @@ body {
   color: inherit;
 }
 
-.urlbar, .iframes {
-  transition-function: linear;
-  transition-duration: 600ms;
-  transition-properties: transform;
-  will-change: transform;
+#navbar {
+  background-color: #EEE;
+  border-radius: 1000px;
+  padding: 0 20px;
 }
 
-.iframes {
-  z-index: 1;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  transform: translateY(200px);
+.tile {
+  background-color: #ccc;
+  margin: 0 20px;
+  border-radius: 2px;
+  border: 3px solid transparent;
+  padding: 5px;
+  background-clip: padding-box;
 }
 
-.urlbar {
-  width: 60vw;
-  margin: 10px 20vw;
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translateY(76px);
+.tile.selected {
+  border-color: #ddd;
+  background-color: #ddd;
 }
 
-
-body.scrolled .urlbar {
-  transform: translateY(0);
-}
-
-body.scrolled .iframes {
-  transform: translateY(40px);
-}
-
-body.scrollingdown .iframes {
-  transform: translateY(0px);
+.suggestion-description {
+  color: blue;
 }

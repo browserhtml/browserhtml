@@ -5,7 +5,7 @@
 /**
  * app.js
  *
- * Firefox.html entry point.
+ * Browser.html entry point.
  *
  */
 
@@ -33,7 +33,8 @@ require.config({
   scriptType: 'text/javascript;version=1.8'
 });
 
-require(['js/tabiframedeck'], function(TabIframeDeck) {
+require(['js/tabiframedeck', 'js/keybindings'],
+function(TabIframeDeck) {
 
   'use strict';
 
@@ -41,7 +42,5 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
     document.title = 'Firefox - ' + tabIframe.title;
   });
 
-  require([
-    'js/navbar',
-  ]);
+  require(['js/navlayer']);
 })
