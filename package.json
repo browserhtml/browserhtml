@@ -13,7 +13,6 @@
   },
   "scripts": {
     "test": "jscs ./",
-    "start": "./run.sh",
     "start": "node ./node_modules/firebox/firebox.js ./manifest.webapp",
     "debug": "node ./node_modules/firebox/firebox.js ./manifest.webapp --debugger 6000"
   },
@@ -28,6 +27,6 @@
     }
   ],
   "dependencies": {
-    "firebox": "^0.2.0"
+    "firebox": "^0.3.0"
   }
 }
