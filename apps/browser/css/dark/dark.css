@@ -41,6 +41,8 @@
   --curve-gradient-end: #424242;
   --curve-border: #212121;
   --curve-hover-border: #212121;
+  --curve-hover-gradient-start: transparent;
+  --curve-hover-gradient-end: transparent;
 }
 
 .tab,

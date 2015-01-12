@@ -37,42 +37,65 @@ body {
   height: 100%;
 }
 
-tab-iframe, box, hbox, vbox, spacer {
+tab-iframe, box, hbox, vbox, spacer,
+.iframe.tab, .box, .hbox, .vbox, .spacer {
   display: flex;
   white-space: pre;
 }
 
-hbox {
+hbox,
+.hbox,
+.box.horizontal {
   flex-flow: row;
 }
 
-vbox {
+vbox,
+.vbox,
+.box.vertical {
   flex-flow: column;
 }
 
-[hidden="true"] {
+[hidden="true"],
+[hidden=""] {
   display: none;
 }
 
-[flex="1"] {         flex-grow: 1 }
-[flex="2"] {         flex-grow: 2 }
-[flex="3"] {         flex-grow: 3 }
-[flex="4"] {         flex-grow: 4 }
-[flex="5"] {         flex-grow: 5 }
-[flex="6"] {         flex-grow: 6 }
-[flex="7"] {         flex-grow: 7 }
-[flex="8"] {         flex-grow: 8 }
-[flex="9"] {         flex-grow: 9 }
+[flex="1"],
+.flex-1 {         flex-grow: 1 }
+[flex="2"],
+.flex-2 {         flex-grow: 2 }
+[flex="3"],
+.flex-3 {         flex-grow: 3 }
+[flex="4"]
+.flex-4 {         flex-grow: 4 }
+[flex="5"],
+.flex-5 {         flex-grow: 5 }
+[flex="6"],
+.flex-6 {         flex-grow: 6 }
+[flex="7"],
+.flex-7 {         flex-grow: 7 }
+[flex="8"],
+.flex-8 {         flex-grow: 8 }
+[flex="9"]
+.flex-9 {         flex-grow: 9 }
 
-[align="start"] {    align-items: flex-start }
-[align="center"] {   align-items: center }
-[align="end"] {      align-items: flex-end }
-[align="baseline"] { align-items: baseline }
-[align="stretch"] {  align-items: stretch }
+[align="start"],
+.align.start {    align-items: flex-start }
+[align="center"],
+.align.center {   align-items: center }
+[align="end"],
+.align.end {      align-items: flex-end }
+[align="baseline"],
+.align.baseline { align-items: baseline }
+[align="stretch"],
+.align.stretch {  align-items: stretch }
 
-[pack="start"] {     justify-content: flex-start }
-[pack="center"] {    justify-content: center }
-[pack="end"] {       justify-content: flex-end }
+[pack="start"],
+.pack.start {     justify-content: flex-start }
+[pack="center"],
+.pack.center {    justify-content: center }
+[pack="end"],
+.pack.end {       justify-content: flex-end }
 
 /* DEBUG */
 .debug * {

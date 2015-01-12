@@ -10,8 +10,11 @@
 }
 
 .vtab > .favicon,
+.tab > .favicon,
 .vtab > .throbber,
-.vtab > .close-button {
+.tab > .throbber,
+.vtab > .close-button,
+.tab > .close-button {
   width: 16px;
   height: 16px;
   display: flex;
@@ -19,7 +22,8 @@
   flex-shrink: 0;
 }
 
-.vtab {
+.vtab,
+.tab {
   -moz-user-select: none;
   cursor: default;
   color: #9C9C9C;
@@ -27,11 +31,13 @@
   border-left: 1px solid black;
 }
 
-.vtab:not(.selected):hover {
+.vtab:not(.selected):hover,
+.tab:not(.selected):hover {
   background-color: #222222;
 }
 
-.vtab.selected {
+.vtab.selected,
+.tab.selected {
   background-color: #424445;
   color: white;
   background-image: linear-gradient(to left, #7B7B7B,  #7B7B7B);
@@ -40,40 +46,49 @@
   box-shadow: 0 0 1px rgba(0,0,0,0.8), inset 0 0 1px rgba(255,255,255,0.2);
 }
 
-.vtab > .throbber {
+.vtab > .throbber,
+.tab > .throbber {
   background-image: url(images/shared/loading.png);
   background-size: 16px 16px;
 }
 
 @media (min-resolution: 2dppx) {
-  .vtab > .throbber {
+  .vtab > .throbber,
+  .tab > .throbber {
     background-image: url(images/shared/loading@2x.png);
   }
 }
 
 .vtab.loading > .favicon,
-.vtab:not(.loading) > .throbber {
+.tab.loading > .favicon,
+.vtab:not(.loading) > .throbber,
+.tab:not(.loading) > .throbber {
   display: none;
 }
 
-.vtab > .title-wrapper {
+.vtab > .title-wrapper,
+.tab > .title-wrapper {
   flex-basis: auto;
   flex-grow: 1;
   min-width: 0;
 }
 
-.vtab > .title-wrapper > .title {
+.vtab > .title-wrapper > .title,
+.tab > .title-wrapper > .title {
   flex-basis: auto;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.vtab:not(.selected):not(:hover) > .close-button {
+.vtab:not(.selected):not(:hover) > .close-button,
+.tab:not(.selected):not(:hover) > .close-button {
   opacity: 0;
 }
 
-.vtab > .close-button {
+.vtab > .close-button,
+.tab > .close-button
+{
   background-color: transparent;
   background-image: url(images/shared/close.png);
   background-size: 64px 16px;;
@@ -81,12 +96,14 @@
   opacity: 0.8;
 }
 
-.vtab > .close-button:hover {
+.vtab > .close-button:hover,
+.tab > .close-button:hover {
   opacity: 1;
 }
 
 @media (min-resolution: 2dppx) {
-  .vtab > .close-button {
+  .vtab > .close-button,
+  .tab > .close-button {
     background-image: url(images/shared/close@2x.png);
   }
 }
