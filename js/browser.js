@@ -139,6 +139,12 @@ Backing up stored session to ${backup} & resuming with blank session instead.`);
     mounted(target, options) {
       target.ownerDocument.defaultView.addEventListener("beforeunload", this.onUnload);
       target.ownerDocument.body.setAttribute("os", options.OS);
+
+      // Manually setup event listeners on document until bug in react
+      // is resoved https://github.com/facebook/react/issues/2846
+      target.ownerDocument.addEventListener("keydown", this.onKeyDown);
+      target.ownerDocument.addEventListener("keyup", this.onKeyUp);
+
       this.restoreSession();
     },
     onUnload(event) {
@@ -164,10 +170,46 @@ Backing up stored session to ${backup} & resuming with blank session instead.`);
 
        return html.div({id: "outervbox",
                         className: "vbox flex-1",
-                        onUnload: this.onUnload,
-                        onBlur: this.onBlur,
-                        onKeyDown: this.onKeyDown,
-                        onKeyUp: this.onKeyUp}, [
+
+                        // React can't handle keyboard events if they occur on
+                        // elements that aren't rendered by it. Since users can
+                        // click aronud causing `document.body` to get a focus
+                        // react won't invoke below event handlers, there for
+                        // issues is resolved on react we'll manually set up
+                        // event listeners instead.
+                        // https://github.com/facebook/react/issues/2846
+                        // onKeyDown: this.onKeyDown,
+                        // onKeyUp: this.onKeyUp,
+
+                        onUnload: this.onUnload}, [
+
+          html.menu({key: "toolbox-menu", type: "toolbox"}, [
+            html.menu({
+              key: "file-menu",
+              id: "file-menu",
+              label: "File",
+              accesskey: "F"
+            }, [
+            ]),
+            html.menu({
+              key: "view-menu",
+              id: "view-menu",
+              label: "View"
+            }, [
+              html.menuitem({
+                id: "debugger-start-item",
+                key: "debugger-start-item",
+                label: "start debugger",
+                "data-acceltext": "CTRL-S",
+                accesskey: "ctrl-n",
+                disabled: true
+              }),
+              html.menuitem({
+                key: "debugger-stop-item",
+                label: "stop debugger"
+              })
+            ])
+          ]),
 
           Theme({name: theme}),
 

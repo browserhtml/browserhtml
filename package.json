@@ -13,7 +13,8 @@
   },
   "scripts": {
     "test": "jscs ./",
-    "start": "./run.sh"
+    "start": "node ./node_modules/firebox/firebox.js ./manifest.webapp",
+    "debug": "node ./node_modules/firebox/firebox.js ./manifest.webapp --debugger 6000"
   },
   "devDependencies": {
     "jscs": "^1.8.1"
@@ -24,5 +25,8 @@
       "version": "2.0",
       "url": "http://mozilla.org/MPL/2.0/"
     }
-  ]
+  ],
+  "dependencies": {
+    "firebox": "^0.3.0"
+  }
 }
