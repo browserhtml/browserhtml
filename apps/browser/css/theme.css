@@ -1,10 +1,61 @@
 :root {
-  background-color: white;
+  --hwd-pixel: 1px;
   --theme-color: rgba(255,255,255,0.95);
+  background-color: white;
 }
 
-#veil {
-  background-color: var(--theme-color);
+* {
+  -moz-appearance: none;
+  background-color: transparent;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  font-family: sans-serif;
+  font-size: 12px;
+}
+
+*::-moz-focus-inner {
+  border: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  overflow-y: hidden;
+}
+
+iframe, tab-iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+[hidden="true"] {
+  display: none;
+}
+
+#iframes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#navbox {
+  position: absolute;
+  top: 0;
+  left: calc(50vw - 150px);
+  width: 300px;
+  height: 64px;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: stretch;
 }
 
 #userinput {
@@ -21,26 +72,58 @@
   background-color: #EEE;
   border-radius: 1000px;
   padding: 0 20px;
+  display: none;
 }
 
-.tile {
-  background-color: #ccc;
-  background-size: 100% auto;
-  margin: 0 20px;
-  border-radius: 4px 4px 0 0;
-  border: 3px solid transparent;
-  border-width: 0 0 3px 0;
-  padding: 5px;
-  background-clip: padding-box;
-  opacity: 0.5;
-  transition: none;
+#dots-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  --theme-color: white;
+  display: flex;
+  justify-content: center;
 }
 
-.tile.selected {
-  opacity: 1;
+#dots {
+  transition: transform 200ms linear;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 30px;
+  display: flex;
+  justify-content: center;
+  background-color: rgba(255,255,255,0);
+}
+
+.dot {
+  box-sizing: border-box;
+  border-radius: 20px;
+  border: 5px solid #DDD;
+  background-color: #AAA;
+  margin: 0 6px;
+  overflow: hidden;
+    width: 10px;
+    height: 10px;
+}
+
+.dot.loading {
+  animation: loading 300ms linear 0s infinite alternate;
+}
+
+@keyframes loading { from {
+    border-width: 5px;
+  } to {
+    border-width: 0;
+  }
+}
+
+.dot.selected {
+  border-color: #8EF;
+  background-color: #6CE;
   border-color: #F06;
+  background-color: #6Ce;
 }
 
-.suggestion-description {
-  color: blue;
+body:not(.loading).scrollingdown #dots {
+  transform: translateY(-30px);
 }

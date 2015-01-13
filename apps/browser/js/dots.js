@@ -11,24 +11,11 @@ function(TabIframeDeck, UrlHelper) {
   // <tab-iframe>
   const allTabs = new Map();
 
-  const tiles = document.querySelector('#tiles');
+  const dots = document.querySelector('#dots');
 
   function Tab(tabIframe) {
     let div = document.createElement('div');
-    div.className = 'tile';
-
-    let title = document.createElement('div');
-    title.className = 'title';
-
-    /* How to close tab? */
-    /*
-    button.onmouseup = (event) => {
-      if (event.button == 0) {
-        event.stopPropagation();
-        TabIframeDeck.remove(tabIframe);
-      }
-    };
-    */
+    div.className = 'dot';
 
     div.onmousedown = (event) => {
       if (event.button == 0) {
@@ -43,14 +30,12 @@ function(TabIframeDeck, UrlHelper) {
       }
     }
 
-    div.appendChild(title);
-
     this._dom = div;
 
     this._tabIframe = tabIframe;
     this._trackTabIframe();
 
-    tiles.appendChild(this._dom);
+    dots.appendChild(this._dom);
 
     this.updateDom();
   }
@@ -108,12 +93,10 @@ function(TabIframeDeck, UrlHelper) {
         this.dom.classList.remove('loading');
       }
 
-
-      if (this.tabIframe.location) {
-        let domain = UrlHelper.getDomain(this.tabIframe.location);
-        this._dom.style.backgroundImage = 'url(/tb/' + domain + '.png)';
+      if (this.tabIframe.color) {
+        this.dom.style.setProperty('--theme-color', this.tabIframe.color);
       } else {
-        this._dom.style.backgroundImage = '';
+        this.dom.style.setProperty('--theme-color', 'inherit');
       }
 
       let title = this.tabIframe.title;
@@ -124,17 +107,7 @@ function(TabIframeDeck, UrlHelper) {
           title = 'New Tab';
         }
       }
-      // this.dom.querySelector('.title').textContent = title;
       this.dom.title = title;
-
-      /*
-      let faviconImg = this.dom.querySelector('.favicon');
-      if (this.tabIframe.favicon) {
-        faviconImg.src = this.tabIframe.favicon;
-      } else {
-        faviconImg.removeAttribute('src');
-      }
-      */
     },
   };
 

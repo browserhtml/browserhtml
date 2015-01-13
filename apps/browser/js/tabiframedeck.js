@@ -38,8 +38,10 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
       try {
         // session = JSON.parse(window.localStorage.session);
         session = [
-          "http://www.twitter.com",
+          "http://dropbox.com",
           "http://dribbble.com",
+          "http://web.telegram.org",
+          "http://telegram.org",
           "http://interactions.webflow.com/",
           "http://medium.com",
         ];

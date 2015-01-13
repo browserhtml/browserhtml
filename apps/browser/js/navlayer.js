@@ -11,7 +11,7 @@
  *
  */
 
-require(['js/urlhelper', 'js/tabiframedeck', 'js/keybindings', 'js/tiles'],
+require(['js/urlhelper', 'js/tabiframedeck', 'js/keybindings', 'js/dots'],
 function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   'use strict';
@@ -105,9 +105,9 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     }
 
     if (tabIframe.loading) {
-      navlayer.classList.add('loading');
+      document.body.classList.add('loading');
     } else {
-      navlayer.classList.remove('loading');
+      document.body.classList.remove('loading');
     }
 
     if (tabIframe.userInput) {
@@ -171,7 +171,9 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
 
   let lastTop = 0;
+  let resetTimeout;
   function OnScroll(eventName, event, tabIframe) {
+    clearTimeout(resetTimeout);
     if (tabIframe != TabIframeDeck.getSelected()) {
       return;
     }
@@ -196,6 +198,12 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
       document.body.classList.remove("scrollingup");
       document.body.classList.remove("scrolled");
     }
+    /*
+    resetTimeout = setTimeout(() => {
+      document.body.classList.remove("scrollingdown");
+      document.body.classList.remove("scrollingup");
+    }, 3000);
+    */
     lastTop = top;
   };
 
