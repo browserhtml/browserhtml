@@ -138,6 +138,47 @@ define(['js/eventemitter'], function(EventEmitter) {
     this._securityExtendedValidation = false;
   };
 
+  tabIframeProto._buildThumbnail = function(iconURL) {
+    const MAXIMUM_PIXELS = Math.pow(300, 2);
+    let blobURL;
+    let image = document.createElement("img");
+
+    let xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
+    xhr.open('GET', iconURL);
+    xhr.responseType = 'blob';
+    xhr.send();
+    xhr.onload = function() {
+      blobURL = window.URL.createObjectURL(xhr.response);
+      image.src = blobURL;
+    };
+
+    image.onload = () => {
+      if (image.naturalWidth * image.naturalHeight > MAXIMUM_PIXELS) {
+        // this will probably take too long to process - fail
+        window.URL.revokeObjectURL(blobURL);
+      } else {
+        let canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(image, 0, 0);
+        let worker = new Worker("/js/colors/ColorAnalyzer_worker.js");
+        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        worker.postMessage({ imageData: imageData, maxColors: 1 });
+        worker.onmessage = (event) => {
+          window.URL.revokeObjectURL(blobURL);
+          if (event.data.colors.length < 1) {
+            // Fail
+            console.log("fail");
+          } else {
+            console.log(iconURL);
+            console.log("#" + event.data.colors[0].toString(16));
+          }
+        }
+      }
+    }
+  };
+
   Object.defineProperty(tabIframeProto, 'loading', {
     get: function() {
       return this._loading;
@@ -229,6 +270,8 @@ define(['js/eventemitter'], function(EventEmitter) {
         break;
       case 'mozbrowsericonchange':
         this._favicon = e.detail.href;
+        console.log(e.detail.size);
+        this._buildThumbnail(e.detail.href);
         break;
       case 'mozbrowsererror':
         this._loading = false;
