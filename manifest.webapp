@@ -8,6 +8,7 @@
     "name": "Paul Rouget",
     "url": "https://paulrouget.com"
   },
+  "origin": "app://browser.mozilla.org",
   "permissions": {
     "browser":{},
     "embed-apps":{},
