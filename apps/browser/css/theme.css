@@ -44,18 +44,20 @@ iframe, tab-iframe {
   left: 0;
   width: 100%;
   height: 100%;
+  transition: transform 200ms linear;
 }
 
 #navbox {
   position: absolute;
   top: 0;
-  left: calc(50vw - 150px);
-  width: 300px;
-  height: 64px;
+  left: 0;
   display: flex;
-  flex-flow: column;
-  justify-content: center;
-  align-items: stretch;
+  width: 100%;
+  background-color: var(--theme-color);
+  padding: 6px 6px 6px 0;
+  transition-properties: transform, background-color;
+  transition-duration: 200ms, 1000ms;
+  transition-timing-function: ease;
 }
 
 #userinput {
@@ -72,58 +74,57 @@ iframe, tab-iframe {
   background-color: #EEE;
   border-radius: 1000px;
   padding: 0 20px;
-  display: none;
+  margin: 0 12px;
 }
 
-#dots-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  --theme-color: white;
+
+#tabs {
   display: flex;
-  justify-content: center;
+  flex-grow: 1;
+  align-items: center;
 }
 
-#dots {
-  transition: transform 200ms linear;
-  margin-top: 8px;
-  padding: 3px 10px;
-  border-radius: 30px;
+.tab {
   display: flex;
-  justify-content: center;
-  background-color: rgba(255,255,255,0);
+  flex-basis: 180px;
+  white-space: pre;
+  padding: 3px;
+  border-radius: 60px;
 }
 
-.dot {
-  box-sizing: border-box;
-  border-radius: 20px;
-  border: 5px solid #DDD;
-  background-color: #AAA;
+.tab:last-of-type {
+}
+
+.tab.selected {
+  background-color: #EEE;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
   margin: 0 6px;
-  overflow: hidden;
-    width: 10px;
-    height: 10px;
 }
 
-.dot.loading {
-  animation: loading 300ms linear 0s infinite alternate;
+.tab > .title {
+  flex-grow: 1;
+  display: inline-block;
+  width: 0;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  font: -moz-field;
+  font-size: 12px;
+  outline: none;
+  color: #777;
 }
 
-@keyframes loading { from {
-    border-width: 5px;
-  } to {
-    border-width: 0;
-  }
+.tab:not(.selected) > .title {
+  color: #CCC;
 }
 
-.dot.selected {
-  border-color: #8EF;
-  background-color: #6CE;
-  border-color: #F06;
-  background-color: #6Ce;
+body:not(.scrolled) #iframes {
+  transform: translateY(34px);
 }
 
-body:not(.loading).scrollingdown #dots {
-  transform: translateY(-30px);
+body.scrolled #navbox {
+  transform: translateY(-34px);
 }

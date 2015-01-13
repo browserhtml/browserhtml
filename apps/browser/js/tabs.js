@@ -11,11 +11,11 @@ function(TabIframeDeck, UrlHelper) {
   // <tab-iframe>
   const allTabs = new Map();
 
-  const dots = document.querySelector('#dots');
+  const tabs = document.querySelector('#tabs');
 
   function Tab(tabIframe) {
     let div = document.createElement('div');
-    div.className = 'dot';
+    div.className = 'tab';
 
     div.onmousedown = (event) => {
       if (event.button == 0) {
@@ -30,12 +30,35 @@ function(TabIframeDeck, UrlHelper) {
       }
     }
 
+    let title = document.createElement('span');
+    title.classList.add('title');
+
+    let icon = document.createElement('img');
+    icon.classList.add('icon');
+
+    /*
+    let button = document.createElement('button');
+    button.className = 'close-button';
+    button.title = 'Close Tab';
+
+    button.onmouseup = (event) => {
+      if (event.button == 0) {
+        event.stopPropagation();
+        TabIframeDeck.remove(tabIframe);
+      }
+    };
+    */
+
+    div.appendChild(icon);
+    div.appendChild(title);
+    // div.appendChild(button);
+
     this._dom = div;
 
     this._tabIframe = tabIframe;
     this._trackTabIframe();
 
-    dots.appendChild(this._dom);
+    tabs.appendChild(this._dom);
 
     this.updateDom();
   }
@@ -107,7 +130,16 @@ function(TabIframeDeck, UrlHelper) {
           title = 'New Tab';
         }
       }
+
       this.dom.title = title;
+      this.dom.querySelector('.title').textContent = title;
+
+      let faviconImg = this.dom.querySelector('.icon');
+      if (this.tabIframe.favicon) {
+        faviconImg.src = this.tabIframe.favicon;
+      } else {
+        faviconImg.removeAttribute('src');
+      }
     },
   };
 

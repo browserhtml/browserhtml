@@ -11,7 +11,7 @@
  *
  */
 
-require(['js/urlhelper', 'js/tabiframedeck', 'js/keybindings', 'js/dots'],
+require(['js/urlhelper', 'js/tabiframedeck', 'js/keybindings', 'js/tabs'],
 function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   'use strict';
