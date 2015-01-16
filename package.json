@@ -12,8 +12,7 @@
     "url": "http://github.com/mozilla/browser.html/issues/"
   },
   "scripts": {
-    "test": "jscs ./",
-    "start": "./run.sh"
+    "test": "jscs ./"
   },
   "devDependencies": {
     "jscs": "^1.8.1"

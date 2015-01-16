@@ -10,40 +10,15 @@ Browser.html: an experimental Desktop browser, based on Firefox Desktop and Fire
 
 **Setup**
 
-Install [Firefox Nightly](http://nightly.mozilla.org/), then:
+Serve code via a HTTP server:
 ```
-# Linux:
-firefox -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp
-
-# Mac:
-open -n -a FirefoxNightly --args -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp
-
-# Windows:
-FIXME
+python -m SimpleHTTPServer 8000
 ```
 
-**Debugging**
-
-You can dubug application via WebIDE if you run an app with additional `--debuger` argument:
-
+Use a recent B2G build:
 ```
-# Linux:
-firefox -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp --debugger 6060
-
-# Mac:
-open -n -a FirefoxNightly --args -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp --debugger 6060
-
-# Windows:
-FIXME
-
+b2g --start-manifest http://localhost:8000/manifest.webapp
 ```
-
-Now you can connect with WebIDE to remote runtime on the port `6060`.
-
-**Hacking**
-
-Frontend code is located in `apps/browser`. `Cmd/Ctrl-Shift-R` to reload
-the whole browser (no restart required).
 
 **The App**
 
@@ -56,14 +31,3 @@ Even though it includes tags like *vbox*, *hbox*, *spacer*, …, it's all HTML
 Current priority is to re-implement the basic features of Firefox Desktop to
 make Browser.html a usable browser, and understand what's missing at the
 platform level for a perfect integration to the OS.
-
-**The Runtime**
-
-Browser.html requires a runtime. As for now, we use Firefox Nightly
-and a wrapper (see `runtime` directory).
-
-It uses a `xul:window` that loads the Browser.html app into an iframe. The
-`xul:window` is still required to build a native window (draw in title bar,
-support opening animations, native colors, …). Eventually, we want to kill
-this window and bring these native features to HTML. This window is nothing
-but a window with window controls (close, minimize, maximize).

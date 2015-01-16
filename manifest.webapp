@@ -1,12 +1,12 @@
 {
-  "name": "Browser2",
-  "description": "Firefox2",
+  "name": "Browser.html",
+  "description": "Browser.html",
   "launch_path": "./index.html",
   "type": "certified",
   "role": "system",
   "developer": {
-    "name": "Paul Rouget",
-    "url": "https://paulrouget.com"
+    "name": "Mozilla",
+    "url": "https://mozilla.org"
   },
   "permissions": {
     "browser":{},
@@ -14,12 +14,8 @@
     "systemXHR":{},
     "settings":{ "access": "readwrite" },
     "geolocation" : {},
-    "storage": {},
     "desktop-notification" : {},
     "audio-capture": {},
     "video-capture": {}
-  },
-  "icons": {
-    "284": "/branding/browser_284.png"
   }
 }
