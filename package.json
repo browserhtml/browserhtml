@@ -13,7 +13,7 @@
   },
   "scripts": {
     "test": "jscs ./",
-    "start": "./run.sh"
+    "start": "XXXX ."
   },
   "devDependencies": {
     "jscs": "^1.8.1"

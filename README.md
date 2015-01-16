@@ -12,38 +12,14 @@ Browser.html: an experimental Desktop browser, based on Firefox Desktop and Fire
 
 Install [Firefox Nightly](http://nightly.mozilla.org/), then:
 ```
-# Linux:
-firefox -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp
-
-# Mac:
-open -n -a FirefoxNightly --args -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp
-
-# Windows:
 FIXME
 ```
 
 **Debugging**
 
-You can dubug application via WebIDE if you run an app with additional `--debuger` argument:
-
 ```
-# Linux:
-firefox -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp --debugger 6060
-
-# Mac:
-open -n -a FirefoxNightly --args -app $PWD/runtime/application.ini $PWD/apps/browser/manifest.webapp --debugger 6060
-
-# Windows:
 FIXME
-
 ```
-
-Now you can connect with WebIDE to remote runtime on the port `6060`.
-
-**Hacking**
-
-Frontend code is located in `apps/browser`. `Cmd/Ctrl-Shift-R` to reload
-the whole browser (no restart required).
 
 **The App**
 
@@ -59,8 +35,7 @@ platform level for a perfect integration to the OS.
 
 **The Runtime**
 
-Browser.html requires a runtime. As for now, we use Firefox Nightly
-and a wrapper (see `runtime` directory).
+Browser.html requires a runtime. FIXME
 
 It uses a `xul:window` that loads the Browser.html app into an iframe. The
 `xul:window` is still required to build a native window (draw in title bar,
