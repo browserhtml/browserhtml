@@ -13,26 +13,33 @@
   <head>
     <meta charset='utf-8'>
     <title>firefox</title>
-    <link rel='stylesheet' href='css/layout.css'>
     <link rel='stylesheet' title='default' href='css/theme.css'>
-
-    <!-- Alternate themes -->
-    <link rel='stylesheet alternate' title='dark' href='css/dark/dark.css'>
 
     <!-- Module handling -->
     <!-- All further JS code is loaded from javascript -->
     <script data-main='app' src='lib/require.js/require.js'
-      type='text/javascript' defer='defer'></script>
-    <script src='js/sanitycheck.js'></script>
+            type='text/javascript' defer='defer'></script>
   </head>
 
   <body>
 
-    <vbox id='outervbox' flex='1'> <!-- This is not XUL. It's html. -->
-      <hbox id='outerhbox' flex='1'>
-        <box class='iframes' flex='1' align='stretch'></box>
-      </hbox>
-    </vbox>
-    <div hidden='true' class='dummy-tab-curve'></div>
+    <div class='iframes'></div>
+    <div class='navbar'>
+      <div class='windowctrls'>
+        <div class='windowctrl button-close' title='close'></div>
+        <div class='windowctrl button-minimize' title='minimize'></div>
+        <div class='windowctrl button-maximize' title='maximize'></div>
+      </div>
+      <div class='tabstrip'></div>
+      <button class='toolbarbutton back-button' title='Go back one page'></button>
+      <button class='toolbarbutton forward-button' title='Go forward one page'></button>
+      <button class='toolbarbutton reload-button' title='Reload current page'></button>
+      <button class='toolbarbutton stop-button' title='Stop loading this page'></button>
+      <div class='urlbar'>
+        <div class='identity'></div>
+        <input placeholder='Search or enter address' class='urlinput' flex='1'>
+      </div>
+    </div>
+
   </body>
 </html>
