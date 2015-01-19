@@ -10,7 +10,8 @@
  *
  */
 
-define(['js/eventemitter'], function(EventEmitter) {
+define(['js/eventemitter', 'js/urlhelper'],
+function(EventEmitter, UrlHelper) {
 
   'use strict';
 
@@ -89,6 +90,9 @@ define(['js/eventemitter'], function(EventEmitter) {
         this._innerIframe.removeEventListener(eventName, this);
       }
     }
+    if (this._faviconXHR) {
+      this._faviconXHR.abort();
+    }
   };
 
   tabIframeProto.zoomIn = function() {
@@ -134,7 +138,8 @@ define(['js/eventemitter'], function(EventEmitter) {
     this._loading = false;
     this._title = '';
     this._location = '';
-    this._favicon = '';
+    this._contentScrollTop = 0;
+    this._icons = {};
     this._securityState = 'insecure';
     this._securityExtendedValidation = false;
   };
@@ -157,9 +162,15 @@ define(['js/eventemitter'], function(EventEmitter) {
     }
   });
 
-  Object.defineProperty(tabIframeProto, 'favicon', {
+  Object.defineProperty(tabIframeProto, 'contentScrollTop', {
     get: function() {
-      return this._favicon;
+      return this._contentScrollTop;
+    }
+  });
+
+  Object.defineProperty(tabIframeProto, 'icons', {
+    get: function() {
+      return this._icons;
     }
   });
 
@@ -205,9 +216,37 @@ define(['js/eventemitter'], function(EventEmitter) {
 
   tabIframeProto.userInput = '';
 
-  tabIframeProto.handleEvent = function(e) {
-    let somethingChanged = true;
+  tabIframeProto.getIcon = function(bestSize) {
+    // FIXME: use bestSize
+    return this._icons.favicon || this._icons.favicon;
+  };
 
+  tabIframeProto._getOriginFavicon = function() {
+    if (this._faviconXHR) {
+      this._faviconXHR.abort();
+    }
+    let origin = UrlHelper.getOrigin(this.location);
+    let url = origin + '/favicon.ico';
+    let xhr = new XMLHttpRequest({ mozSystem: true, mozAnon: true });
+    xhr.timeout = 10 * 1000;
+    xhr.onload = () => {
+      // Simulate a mozbrowsericonchange event
+      if (!this._icons.favicon) {
+        this.handleEvent({
+          type: 'mozbrowsericonchange',
+          detail: {
+            fromOrigin: true,
+            href: url
+          }
+        });
+      }
+    };
+    xhr.open('GET', url, true);
+    xhr.send();
+    this._faviconXHR = xhr;
+  };
+
+  tabIframeProto.handleEvent = function(e) {
     switch (e.type) {
       case 'mozbrowserloadstart':
         this._clearTabData();
@@ -222,9 +261,22 @@ define(['js/eventemitter'], function(EventEmitter) {
       case 'mozbrowserlocationchange':
         this.userInput = '';
         this._location = e.detail;
+        this._getOriginFavicon();
         break;
       case 'mozbrowsericonchange':
-        this._favicon = e.detail.href;
+        // FIXME: e.details.sizes = "72x72"
+        if (e.detail.rel == "apple-touch-icon") {
+          this._icons.appleTouchIcon = e.detail.href;
+        } else {
+          this._icons.favicon = e.detail.href;
+        }
+        break;
+      case 'mozbrowserasyncscroll':
+        if (e.detail.top == this._contentScrollTop) {
+          // Don't forward event
+          return;
+        }
+        this._contentScrollTop = e.detail.top;
         break;
       case 'mozbrowsererror':
         this._loading = false;
@@ -233,8 +285,6 @@ define(['js/eventemitter'], function(EventEmitter) {
         this._securityState = e.detail.state;
         this._securityExtendedValidation = e.detail.extendedValidation;
         break;
-      default:
-        somethingChanged = false;
     }
 
     // Forward event

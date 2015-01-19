@@ -38,11 +38,9 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
   'use strict';
 
   TabIframeDeck.on('selectedTabIframeUpdate', (tabIframe) => {
-    document.title = 'Firefox - ' + tabIframe.title;
+    document.title = 'Browser.html - ' + tabIframe.title;
   });
 
-  require([
-    'js/tabstrip',
-    'js/navbar',
-  ]);
+  require(['js/navbar']);
+
 })

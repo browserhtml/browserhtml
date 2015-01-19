@@ -31,6 +31,12 @@ define(function() {
       return !UrlHelper.isNotURL(input);
     },
 
+    getOrigin: function urlHelper_getOrigin(input) {
+      this.a = this.a || document.createElement('a');
+      this.a.href = input;
+      return this.a.origin;
+    },
+
     isNotURL: function urlHelper_isNotURL(input) {
       var schemeReg = /^\w+\:\/\//;
 

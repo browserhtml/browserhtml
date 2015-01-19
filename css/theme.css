@@ -2,11 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/**
- * theme.css
- *
- */
-
 :root {
   --hwd-pixel: 1px;
 }
@@ -17,11 +12,240 @@
   }
 }
 
-[os="osx"] .toolbar:first-of-type {
-  /* Some room for the window controls */
-  padding-left: 70px;
+* {
+  -moz-appearance: none;
+  background-color: transparent;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  font-family: sans-serif;
+  font-size: 12px;
+  image-rendering: -moz-crisp-edges;
+  white-space: pre;
 }
 
-body:not([os="osx"]) .iframes {
+[hidden="true"] {
+  display: none;
+}
+
+*::-moz-focus-inner {
+  border: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+iframe, tab-iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.windowctrls {
+  display: flex;
+}
+
+.windowctrl {
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: var(--hwd-pixel);
+  background-color: hsl(0, 0%, 86%);
+  border-color: hsla(0, 0%, 46%, 0.5);
+}
+
+body.windowFocused .button-close {
+  background-color: hsl(4, 100%, 67%);
+  border-color: hsla(4, 100%, 46%, 0.5);
+}
+
+body.windowFocused .button-minimize {
+  background-color: hsl(41, 99%, 63%);
+  border-color: hsla(41, 99%, 32%, 0.5);
+}
+
+body.windowFocused .button-maximize {
+  background-color: hsl(144, 100%, 40%);
+  border-color: hsla(144, 100%, 30%, 0.5);
+}
+
+.iframes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.navbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-image: linear-gradient(#424242, #2F2F2F);
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  padding: 8px;
+}
+
+.urlbar {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  margin: 0 6px;
+  min-width: 0;
+}
+
+.urlinput {
+  display: flex;
+  flex-grow: 1;
+  color: #DDD;
+  font: -moz-field;
+  font-size: 12px;
+  line-height: 22px;
+  vertical-align: bottom;
+  min-width: 0;
+  margin: 0 0 0 6px;
+}
+
+.urlinput::-moz-selection {
+  background-color: #AE29D9;
+}
+
+.urlbar.focus > .urlinput {
+  color: #FFF;
+}
+
+.identity {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  background-size: 32px 16px;
+  background-position: -16px 0;
+  background-image: url(images/identity-icons-generic.png);
+  background-position: 0 0;
+}
+
+.navbar.ssl .identity {
+  background-image: url(images/identity-icons-https.png);
+}
+
+.navbar.sslev .identity {
+  background-image: url(images/identity-icons-https-ev.png);
+}
+
+@media (min-resolution: 2dppx) {
+  .identity {
+    background-image: url(images/identity-icons-generic@2x.png);
+  }
+
+  .navbar.ssl .identity {
+    background-image: url(images/identity-icons-https@2x.png);
+  }
+
+  .navbar.sslev .identity {
+    background-image: url(images/identity-icons-https-ev@2x.png);
+  }
+}
+
+.urlbar {
+  padding-left:
+}
+
+.toolbarbutton {
+  background-image: url(images/Toolbar.png);
+  background-size: 756px 72px;
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  margin: 0 6px;
+}
+
+.toolbarbutton.disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+@media (min-resolution: 2dppx) {
+  .toolbarbutton  {
+    background-image: url(images/Toolbar@2x.png);
+  }
+}
+
+.navbar.loading .reload-button,
+.navbar:not(.loading) .stop-button {
+  display: none;
+}
+
+.back-button {    background-position: -36px   0px; }
+.forward-button { background-position: -54px   0px; }
+.reload-button {  background-position: -73px   0px; }
+.stop-button {    background-position: -90px   0px; }
+
+.tabstrip {
+  display: flex;
+  align-items: center;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 2px;
   background-color: white;
+  margin: 0 6px;
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+.tab.selected {
+  opacity: 1;
+}
+
+.tab > .favicon {
+  border-radius: 2px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+}
+
+.throbber {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  background-image: url(images/loading.png);
+  background-size: 16px 16px;
+}
+
+.tab.loading > .favicon,
+.tab:not(.loading) > .throbber {
+  display: none;
+}
+
+@media (min-resolution: 2dppx) {
+  .throbber {
+    background-image: url(images/loading@2x.png);
+  }
+}
+
+.iframes, .navbar {
+  transition: transform 100ms linear;
+  will-change: transform;
+}
+
+.iframes {
+  transform: translateY(38px);
+}
+
+body:not(.cmdpressed):not(.ctrlpressed):not(.urlbarFocused):not(.loading).scrolled .navbar {
+  transform: translateY(-38px);
+}
+
+body:not(.cmdpressed):not(.ctrlpressed):not(.urlbarFocused):not(.loading).scrolled .iframes {
+  transform: translateY(0);
 }
