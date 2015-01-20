@@ -31,10 +31,22 @@ define(function() {
       return !UrlHelper.isNotURL(input);
     },
 
-    getOrigin: function urlHelper_getOrigin(input) {
+    getOrigin: function urlHelper_getOrigin(url) {
       this.a = this.a || document.createElement('a');
-      this.a.href = input;
+      this.a.href = url;
       return this.a.origin;
+    },
+
+    getHostname: function urlHelper_getHostname(url) {
+      this.a = this.a || document.createElement('a');
+      this.a.href = url;
+      return this.a.hostname;
+    },
+
+    getProtocol: function urlHelper_getProtocol(url) {
+      this.a = this.a || document.createElement('a');
+      this.a.href = url;
+      return this.a.protocol;
     },
 
     isNotURL: function urlHelper_isNotURL(input) {

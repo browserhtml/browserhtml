@@ -23,7 +23,7 @@ function(EventEmitter, UrlHelper) {
     'mozbrowsererror', 'mozbrowsericonchange', 'mozbrowserloadend',
     'mozbrowserloadstart', 'mozbrowserlocationchange', 'mozbrowseropenwindow',
     'mozbrowsersecuritychange', 'mozbrowsershowmodalprompt', 'mozbrowsertitlechange',
-    'mozbrowserusernameandpasswordrequired'
+    'mozbrowserusernameandpasswordrequired', 'mozbrowsermetachange'
   ];
 
   let tabIframeProto = Object.create(HTMLElement.prototype);
@@ -138,6 +138,7 @@ function(EventEmitter, UrlHelper) {
     this._loading = false;
     this._title = '';
     this._location = '';
+    this._color = '';
     this._contentScrollTop = 0;
     this._icons = {};
     this._securityState = 'insecure';
@@ -171,6 +172,12 @@ function(EventEmitter, UrlHelper) {
   Object.defineProperty(tabIframeProto, 'icons', {
     get: function() {
       return this._icons;
+    }
+  });
+
+  Object.defineProperty(tabIframeProto, 'color', {
+    get: function() {
+      return this._color;
     }
   });
 
@@ -284,6 +291,14 @@ function(EventEmitter, UrlHelper) {
       case 'mozbrowsersecuritychange':
         this._securityState = e.detail.state;
         this._securityExtendedValidation = e.detail.extendedValidation;
+        break;
+      case 'mozbrowsermetachange':
+        if (e.detail.name == 'theme-color' && e.detail.type) {
+          this._color = '';
+          if (e.detail.type !== 'removed') {
+            this._color = e.detail.content;
+          }
+        }
         break;
     }
 

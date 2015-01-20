@@ -33,8 +33,8 @@ require.config({
   scriptType: 'text/javascript;version=1.8'
 });
 
-require(['js/tabiframedeck'], function(TabIframeDeck) {
 
+require(['js/tabiframedeck'], function(TabIframeDeck) {
   'use strict';
 
   TabIframeDeck.on('selectedTabIframeUpdate', (tabIframe) => {
