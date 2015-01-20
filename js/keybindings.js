@@ -53,6 +53,7 @@ define(function() {
         }
       }
       if (matches) {
+        e.preventDefault();
         oneKeyBinding.func.apply(null);
       }
     }

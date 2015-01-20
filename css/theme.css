@@ -2,8 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('fontawesome-webfont.woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   --hwd-pixel: 1px;
+  background-color: white;
 }
 
 @media (min-resolution: 2dppx) {
@@ -22,7 +30,9 @@
   font-family: sans-serif;
   font-size: 12px;
   image-rendering: -moz-crisp-edges;
-  white-space: pre;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: default;
 }
 
 [hidden="true"] {
@@ -33,15 +43,69 @@
   border: 0;
 }
 
-html, body {
+html {
+  display: flex;
   height: 100%;
-  overflow: hidden;
 }
 
-iframe, tab-iframe {
-  display: block;
-  width: 100%;
-  height: 100%;
+body {
+  display: flex;
+  flex-flow: column;
+  flex-grow: 1;
+}
+
+.scrollable {
+  display: flex;
+  flex-flow: column;
+  flex-basis: content;
+  overflow-y: scroll;
+  flex-shrink: 0;
+  justify-content: flex-start;
+}
+
+.iframes, iframe, tab-iframe {
+  display: flex;
+  flex-grow: 1;
+  height: 100vh;
+}
+
+.navbar {
+  display: flex;
+  padding: 8px 16px 8px 8px;
+  background-color: var(--bg);
+  color: var(--fg);
+  transition: background-color 150ms linear;
+  --fg: #666;
+  --bg: #fff;
+}
+
+.navbar.dark-bg {
+  --fg: #FFF;
+}
+
+.leftbox,
+.urlbar,
+.rightbox {
+  display: flex;
+  flex-grow: 1;
+  flex-basis: 0;
+  align-items: center;
+}
+
+.urlbar {
+  margin: 0 8px;
+}
+
+.leftbox {
+  flex-grow: 0;
+}
+
+/* .leftbox {  justify-content: space-between; } */
+.urlbar {   justify-content: center }
+.rightbox { justify-content: flex-end }
+
+.naviationctrls {
+  display: flex;
 }
 
 .windowctrls {
@@ -55,197 +119,164 @@ iframe, tab-iframe {
   border-radius: 50%;
   border-style: solid;
   border-width: var(--hwd-pixel);
-  background-color: hsl(0, 0%, 86%);
-  border-color: hsla(0, 0%, 46%, 0.5);
 }
 
-body.windowFocused .button-close {
+.win-close-button {
   background-color: hsl(4, 100%, 67%);
   border-color: hsla(4, 100%, 46%, 0.5);
 }
 
-body.windowFocused .button-minimize {
+.win-min-button {
   background-color: hsl(41, 99%, 63%);
   border-color: hsla(41, 99%, 32%, 0.5);
 }
 
-body.windowFocused .button-maximize {
+.win-max-button {
   background-color: hsl(144, 100%, 40%);
   border-color: hsla(144, 100%, 30%, 0.5);
 }
 
-.iframes {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+body:not(.windowFocused) .windowctrls:not(:hover) .windowctrl {
+  background-color: hsl(0, 0%, 86%);
+  border-color: hsla(0, 0%, 46%, 0.5);
 }
 
-.navbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background-image: linear-gradient(#424242, #2F2F2F);
-  display: flex;
-  flex-grow: 1;
-  align-items: center;
-  padding: 8px;
-}
 
 .urlbar {
   display: flex;
-  flex-grow: 1;
   align-items: center;
-  margin: 0 6px;
   min-width: 0;
+}
+
+.urltitlecombo {
+  display: flex;
+  flex-grow: 1;
+  font-size: 12px;
+  font: -moz-field;
+  position: relative;
+  transition: color 150ms linear;
+}
+
+.navbar:not(.urledit) .urlinput,
+.navbar.urledit .pageurlandtitle {
+  max-width: 0;
+  overflow: hidden;
 }
 
 .urlinput {
-  display: flex;
+  width: 100%;
+  color: inherit;
+}
+
+.navbar.dark-bg .urlinput::-moz-selection {
+  color: var(--bg);
+  background-color: var(--fg);
+}
+
+.pageurlandtitle {
   flex-grow: 1;
-  color: #DDD;
-  font: -moz-field;
-  font-size: 12px;
-  line-height: 22px;
-  vertical-align: bottom;
-  min-width: 0;
-  margin: 0 0 0 6px;
+  display: inline-block;
+  width: 0;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
 }
 
-.urlinput::-moz-selection {
-  background-color: #AE29D9;
-}
+/* Buttons */
 
-.urlbar.focus > .urlinput {
-  color: #FFF;
-}
-
-.identity {
+.toolbarbutton, .urlbarbutton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
   width: 16px;
   height: 16px;
-  min-width: 16px;
-  background-size: 32px 16px;
-  background-position: -16px 0;
-  background-image: url(images/identity-icons-generic.png);
-  background-position: 0 0;
+  font-family: FontAwesome;
+  color: var(--fg);
+  transition: color 150ms linear;
 }
 
-.navbar.ssl .identity {
-  background-image: url(images/identity-icons-https.png);
-}
-
-.navbar.sslev .identity {
-  background-image: url(images/identity-icons-https-ev.png);
-}
-
-@media (min-resolution: 2dppx) {
-  .identity {
-    background-image: url(images/identity-icons-generic@2x.png);
-  }
-
-  .navbar.ssl .identity {
-    background-image: url(images/identity-icons-https@2x.png);
-  }
-
-  .navbar.sslev .identity {
-    background-image: url(images/identity-icons-https-ev@2x.png);
-  }
-}
-
-.urlbar {
-  padding-left:
+.urlbarbutton.disabled,
+.toolbarbutton.disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .toolbarbutton {
-  background-image: url(images/Toolbar.png);
-  background-size: 756px 72px;
-  width: 18px;
-  min-width: 18px;
-  height: 18px;
-  margin: 0 6px;
+  margin: 0 8px;
+  font-size: 14px;
 }
 
-.toolbarbutton.disabled {
-  pointer-events: none;
-  opacity: 0.4;
+.urlbarbutton {
+  font-size: 12px;
 }
 
-@media (min-resolution: 2dppx) {
-  .toolbarbutton  {
-    background-image: url(images/Toolbar@2x.png);
-  }
+.navbar:not(.ssl) .pageurlsummary {
+  font-weight: bold;
 }
 
-.navbar.loading .reload-button,
-.navbar:not(.loading) .stop-button {
+.pageurlsummary::before {
+  font-family: FontAwesome;
+  vertical-align: middle;
+  margin-right: 3px;
+}
+
+.navbar.ssl .pageurlsummary::before {
+  content: "\f023";
+}
+
+.navbar.ssl .pageurlsummary {
+  color: #6A6;
+}
+
+.navbar.ssl.dark-bg .pageurlsummary {
+  color: #6F6;
+}
+
+.navbar:not(.cangoforward) .forward-button,
+.navbar:not(.loading) .stop-button,
+.navbar.loading .reload-button {
   display: none;
 }
 
-.back-button {    background-position: -36px   0px; }
-.forward-button { background-position: -54px   0px; }
-.reload-button {  background-position: -73px   0px; }
-.stop-button {    background-position: -90px   0px; }
+/* See: http://fontawesome.io/cheatsheet/ */
+
+.tabs-button::after {                   content: "\f096" }
+.back-button::after {                   content: "\f060" }
+.forward-button::after {                content: "\f061" }
+.reload-button::after {                 content: "\f021" }
+.stop-button::after {                   content: "\f00d" }
+.reader-button::after {                 content: "\f031" }
+
 
 .tabstrip {
   display: flex;
-  align-items: center;
+  flex-flow: row;
 }
 
 .tab {
   display: flex;
-  align-items: center;
-  padding: 2px;
-  background-color: white;
-  margin: 0 6px;
-  border-radius: 2px;
-  opacity: 0.5;
+  width: 16px;
+  opacity: 0.3;
 }
 
 .tab.selected {
   opacity: 1;
 }
 
-.tab > .favicon {
-  border-radius: 2px;
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
+.addtab-button::before,
+.tab::before {
+  font-family: FontAwesome;
+  vertical-align: middle;
+  content: "\f111";
 }
 
-.throbber {
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
-  background-image: url(images/loading.png);
-  background-size: 16px 16px;
+.tab.loading::before {
+  content: "\f1ce";
+  animation: spin 1s linear infinite;
 }
 
-.tab.loading > .favicon,
-.tab:not(.loading) > .throbber {
-  display: none;
+.addtab-button::before {
+  content: "\f055";
 }
 
-@media (min-resolution: 2dppx) {
-  .throbber {
-    background-image: url(images/loading@2x.png);
-  }
-}
-
-.iframes, .navbar {
-  transition: transform 100ms linear;
-  will-change: transform;
-}
-
-.iframes {
-  transform: translateY(38px);
-}
-
-body:not(.cmdpressed):not(.ctrlpressed):not(.urlbarFocused):not(.loading).scrolled .navbar {
-  transform: translateY(-38px);
-}
-
-body:not(.cmdpressed):not(.ctrlpressed):not(.urlbarFocused):not(.loading).scrolled .iframes {
-  transform: translateY(0);
-}
+@keyframes spin { to { transform: rotate(360deg) } }

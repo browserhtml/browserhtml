@@ -183,7 +183,9 @@ define(['js/tabiframe', 'js/eventemitter', 'js/keybindings'],
     ['',              'Esc',        () => TabIframeDeck.getSelected().stop()],
     ['Ctrl',          'Tab',        () => TabIframeDeck.selectNext()],
     ['Ctrl Shift',    'code:9',     () => TabIframeDeck.selectPrevious()],
-    ['',              'F5',         () => TabIframeDeck.getSelected().reload()]
+    ['',              'F5',         () => TabIframeDeck.getSelected().reload()],
+    ['Ctrl',          'PageDown',   () => TabIframeDeck.selectNext()],
+    ['Ctrl',          'PageUp',     () => TabIframeDeck.selectPrevious()]
   );
 
   if (window.OS == 'linux' || window.OS == 'windows') {

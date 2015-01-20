@@ -23,22 +23,41 @@
 
   <body>
 
-    <div class='iframes'></div>
-    <div class='navbar'>
-      <div class='windowctrls'>
-        <div class='windowctrl button-close' title='close'></div>
-        <div class='windowctrl button-minimize' title='minimize'></div>
-        <div class='windowctrl button-maximize' title='maximize'></div>
+    <div class='scrollable'>
+      <div class='navbar'>
+        <div class='leftbox'>
+          <div class='windowctrls'>
+            <div class='windowctrl win-close-button' title='close'></div>
+            <div class='windowctrl win-min-button' title='minimize'></div>
+            <div class='windowctrl win-max-button' title='maximize'></div>
+          </div>
+          <div class='naviationctrls'>
+            <div class='toolbarbutton back-button' title='Go back one page'></div>
+            <div class='toolbarbutton forward-button' title='Go forward one page'></div>
+            <div class='toolbarbutton reload-button' title='Reload current page'></div>
+            <div class='toolbarbutton stop-button' title='Stop loading this page'></div>
+          </div>
+        </div>
+
+        <div class='urlbar'>
+          <div class='urltitlecombo'>
+            <div class='pageurlandtitle'>
+              <span class='pageurlsummary'></span>
+              <span class='pagetitle'></span>
+            </div>
+            <input class='urlinput'>
+          </div>
+          <div class='urlbarbutton go-button'></div>
+        </div>
+
+        <div class='rightbox'>
+          <!-- <div class='toolbarbutton tabs-button' title='Tabs'></div> -->
+          <!-- <div class='toolbarbutton reader-button' title='Reader'></div> -->
+          <div class='tabstrip'></div>
+          <div class='addtab-button' title='Add tab'></div>
+        </div>
       </div>
-      <div class='tabstrip'></div>
-      <button class='toolbarbutton back-button' title='Go back one page'></button>
-      <button class='toolbarbutton forward-button' title='Go forward one page'></button>
-      <button class='toolbarbutton reload-button' title='Reload current page'></button>
-      <button class='toolbarbutton stop-button' title='Stop loading this page'></button>
-      <div class='urlbar'>
-        <div class='identity'></div>
-        <input placeholder='Search or enter address' class='urlinput' flex='1'>
-      </div>
+      <div class='iframes'></div>
     </div>
 
   </body>
