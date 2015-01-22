@@ -33,6 +33,7 @@ require.config({
   scriptType: 'text/javascript;version=1.8'
 });
 
+document.querySelector('.scrollgrab').scrollgrab = true;
 
 require(['js/tabiframedeck'], function(TabIframeDeck) {
   'use strict';
