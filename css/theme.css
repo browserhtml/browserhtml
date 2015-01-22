@@ -54,10 +54,11 @@ body {
   flex-grow: 1;
 }
 
-.scrollable {
+main {
   display: flex;
   flex-flow: column;
   flex-basis: content;
+  height: 100vh;
   overflow-y: scroll;
   flex-shrink: 0;
   justify-content: flex-start;
