@@ -43,31 +43,24 @@
   border: 0;
 }
 
-html {
-  display: flex;
-  height: 100%;
-}
-
-body {
-  display: flex;
-  flex-flow: column;
-  flex-grow: 1;
-}
-
 main {
-  display: flex;
-  flex-flow: column;
-  flex-basis: content;
   height: 100vh;
+  width: 100vw;
   overflow-y: scroll;
-  flex-shrink: 0;
-  justify-content: flex-start;
 }
 
-.iframes, iframe, tab-iframe {
+.iframes {
+  display: flex;
+}
+
+tab-iframe {
+  height: 100vh;
   display: flex;
   flex-grow: 1;
-  height: 100vh;
+}
+
+iframe {
+  flex-grow: 1;
 }
 
 .navbar {
