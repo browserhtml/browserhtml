@@ -1,7 +1,7 @@
 {
   "name": "Browser2",
   "description": "Firefox2",
-  "launch_path": "/index.html",
+  "launch_path": "./index.html",
   "type": "certified",
   "role": "system",
   "developer": {
