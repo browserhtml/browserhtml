@@ -20,14 +20,4 @@ Use a recent B2G build:
 b2g --start-manifest http://localhost:8000/manifest.webapp
 ```
 
-**The App**
-
-Browser.html is a HTML app (like any B2G app). It is based on the
-[Browser API](https://developer.mozilla.org/en-US/docs/DOM/Using_the_Browser_API)
-and works the same way Gaia's browser and system apps work.
-Even though it includes tags like *vbox*, *hbox*, *spacer*, …, it's all HTML
-(see `layout.css` to see how they mimic xul layout).
-
-Current priority is to re-implement the basic features of Firefox Desktop to
-make Browser.html a usable browser, and understand what's missing at the
-platform level for a perfect integration to the OS.
+I recommend to use this branch for now: https://github.com/paulrouget/gecko-dev/compare/b2g-for-browser.html
