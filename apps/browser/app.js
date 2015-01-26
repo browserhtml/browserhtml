@@ -24,6 +24,11 @@ if (navigator.appVersion.indexOf('X11') >= 0) {
   document.body.setAttribute('os', 'linux');
 }
 
+if (!window.OS) { // Defaulting to Linux until issue #58 is fixed
+  window.OS = 'linux';
+  document.body.setAttribute('os', 'linux');
+}
+
 // IS_PRIVILEGED is false if Firefox.html runs in a regular browser,
 // with no Browser API.
 
