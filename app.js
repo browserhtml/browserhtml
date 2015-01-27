@@ -11,20 +11,15 @@
 
 // Detect Operating System
 
-if (navigator.appVersion.indexOf('Win') >= 0) {
+if (navigator.platform.startsWith('Win')) {
   window.OS = 'windows';
   document.body.setAttribute('os', 'windows');
 }
-if (navigator.appVersion.indexOf('Mac') >= 0) {
+if (navigator.platform.startsWith('Mac')) {
   window.OS = 'osx';
   document.body.setAttribute('os', 'osx');
 }
-if (navigator.appVersion.indexOf('X11') >= 0) {
-  window.OS = 'linux';
-  document.body.setAttribute('os', 'linux');
-}
-
-if (!window.OS) { // Defaulting to Linux until issue #58 is fixed
+if (navigator.platform.startsWith('Linux')) {
   window.OS = 'linux';
   document.body.setAttribute('os', 'linux');
 }
