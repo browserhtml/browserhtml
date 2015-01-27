@@ -42,6 +42,6 @@ require(['js/tabiframedeck'], function(TabIframeDeck) {
     document.title = 'Browser.html - ' + tabIframe.title;
   });
 
-  require(['js/navbar']);
+  require(['js/chrome']);
 
 })

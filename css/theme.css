@@ -2,16 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-@font-face {
-  font-family: 'FontAwesome';
-  src: url('fontawesome-webfont.woff');
-  font-weight: normal;
-  font-style: normal;
-}
-
 :root {
   --hwd-pixel: 1px;
-  background-color: white;
+  --bg: white;
 }
 
 @media (min-resolution: 2dppx) {
@@ -23,16 +16,18 @@
 * {
   -moz-appearance: none;
   background-color: transparent;
+  background-image: none;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  min-width: 0;
   border-width: 0;
   font-family: sans-serif;
   font-size: 12px;
+  line-height: 18px;
   image-rendering: -moz-crisp-edges;
   white-space: nowrap;
   vertical-align: middle;
-  cursor: default;
 }
 
 [hidden="true"] {
@@ -43,19 +38,13 @@
   border: 0;
 }
 
-main {
-  height: 100vh;
-  width: 100vw;
-  overflow-y: scroll;
-}
-
-.iframes {
+/* Let's use flexbox everywhere */
+main * {
   display: flex;
 }
 
 tab-iframe {
   height: 100vh;
-  display: flex;
   flex-grow: 1;
 }
 
@@ -63,48 +52,102 @@ iframe {
   flex-grow: 1;
 }
 
+main {
+  height: 100vh;
+  width: 100vw;
+  overflow-y: scroll;
+  flex-flow: column;
+  background-color: var(--bg);
+  color: #404245;
+}
+
+main.dark-bg {
+  color: #BBB;
+}
+
+
+/***************************************
+ *                                     *
+ *               NAVBAR                *
+ *                                     *
+ ***************************************/
+
 .navbar {
   -moz-window-dragging: drag;
-  display: flex;
   padding: 8px 16px 8px 8px;
-  background-color: var(--bg);
-  color: var(--fg);
-  transition: background-color 150ms linear;
-  --fg: #666;
-  --bg: #fff;
+  justify-content: space-between;
 }
 
-.navbar.dark-bg {
-  --fg: #FFF;
+.navbarendspacer {
+  /* Mirror .windowctrls width to align the title */
+  width: 60px;
 }
 
-.leftbox,
-.urlbar,
-.rightbox {
-  display: flex;
-  flex-grow: 1;
-  flex-basis: 0;
+/***************************************
+ *                                     *
+ *               URLBAR                *
+ *                                     *
+ ***************************************/
+
+.urlbar {
+  -moz-window-dragging: no-drag;
+  padding: 0 12px;
+  border-radius: 100px;
   align-items: center;
 }
 
-.urlbar {
-  margin: 0 8px;
+.navbar:not(.urledit) .urlinput,
+.navbar.urledit .pagesummary {
+  /* We don't use display:none. We want the input
+   * to be focussable */
+  max-width: 0;
+  overflow: hidden;
 }
 
-.leftbox {
-  flex-grow: 0;
+p.pagesummary {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-basis: content;
 }
 
-/* .leftbox {  justify-content: space-between; } */
-.urlbar {   justify-content: center }
-.rightbox { justify-content: flex-end }
-
-.naviationctrls {
-  display: flex;
+.pagesummary > span {
+  display: inline;
 }
+
+main:not(.dark-bg) .pageurlsummary {
+  font-weight: bold;
+}
+
+main.dark-bg .pageurlsummary {
+  color: white;
+}
+
+.navbar.urledit .urlbar,
+.navbar.loading .urlbar,
+.urlbar:hover {
+  background-color: #CFD8E1;
+}
+
+.navbar.loading .urlbar {
+  background-image: linear-gradient(110deg, transparent 20%,  #ADB4BB 20%, #ADB4BB 80%, transparent 80%);
+  background-size: 100px 100%;
+  background-position: 0 0;
+  background-repeat: repeat-x;
+  animation: urlloading 1s linear infinite;
+}
+
+@keyframes urlloading { to { background-position: 100px 0 } }
+
+/***************************************
+ *                                     *
+ *         WINDOW CONTROLS             *
+ *                                     *
+ ***************************************/
 
 .windowctrls {
-  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .windowctrl {
@@ -131,147 +174,69 @@ iframe {
   border-color: hsla(144, 100%, 30%, 0.5);
 }
 
-body:not(.windowFocused) .windowctrls:not(:hover) .windowctrl {
+main:not(.windowFocused) .windowctrls:not(:hover) .windowctrl {
   background-color: hsl(0, 0%, 86%);
   border-color: hsla(0, 0%, 46%, 0.5);
 }
 
+/***************************************
+ *                                     *
+ *               TABS                  *
+ *                                     *
+ ***************************************/
 
-.urlbar {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.urltitlecombo {
-  display: flex;
-  flex-grow: 1;
-  font-size: 12px;
-  font: -moz-field;
-  position: relative;
-  transition: color 150ms linear;
-}
-
-.navbar:not(.urledit) .urlinput,
-.navbar.urledit .pageurlandtitle {
-  max-width: 0;
-  overflow: hidden;
-}
-
-.urlinput {
-  width: 100%;
-  color: inherit;
-}
-
-.navbar.dark-bg .urlinput::-moz-selection {
-  color: var(--bg);
-  background-color: var(--fg);
-}
-
-.pageurlandtitle {
-  flex-grow: 1;
-  display: inline-block;
-  width: 0;
-  text-overflow: ellipsis;
-  overflow-x: hidden;
-}
-
-/* Buttons */
-
-.toolbarbutton, .urlbarbutton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default;
-  width: 16px;
-  height: 16px;
-  font-family: FontAwesome;
-  color: var(--fg);
-  transition: color 150ms linear;
-}
-
-.urlbarbutton.disabled,
-.toolbarbutton.disabled {
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  width: 100vw;
   pointer-events: none;
-  opacity: 0.5;
+  justify-content: center;
+  transition: transform 200ms ease;
 }
 
-.toolbarbutton {
-  margin: 0 8px;
-  font-size: 14px;
-}
-
-.urlbarbutton {
-  font-size: 12px;
-}
-
-.navbar:not(.ssl) .pageurlsummary {
-  font-weight: bold;
-}
-
-.pageurlsummary::before {
-  font-family: FontAwesome;
-  vertical-align: middle;
-  margin-right: 3px;
-}
-
-.navbar.ssl .pageurlsummary::before {
-  content: "\f023";
-}
-
-.navbar.ssl .pageurlsummary {
-  color: #6A6;
-}
-
-.navbar.ssl.dark-bg .pageurlsummary {
-  color: #6F6;
-}
-
-.navbar:not(.cangoforward) .forward-button,
-.navbar:not(.loading) .stop-button,
-.navbar.loading .reload-button {
-  display: none;
-}
-
-/* See: http://fontawesome.io/cheatsheet/ */
-
-.tabs-button::after {                   content: "\f096" }
-.back-button::after {                   content: "\f060" }
-.forward-button::after {                content: "\f061" }
-.reload-button::after {                 content: "\f021" }
-.stop-button::after {                   content: "\f00d" }
-.reader-button::after {                 content: "\f031" }
-
-
-.tabstrip {
-  display: flex;
-  flex-flow: row;
+.tabbar-inner {
+  pointer-events: auto;
+  background-color: #444E59;
+  border-radius: 4px 4px 0 0;
+  padding: 0 4px;
 }
 
 .tab {
-  display: flex;
-  width: 16px;
-  opacity: 0.3;
+  width: 48px;
+  height: 36px;
+  border-radius: 2px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #979CA2;
+  background-color: #555D66;
+  margin: 8px;
+}
+
+.tab:hover {
+  border-color: white;
 }
 
 .tab.selected {
-  opacity: 1;
+  border-color: #16A7FF;
 }
 
-.addtab-button::before,
-.tab::before {
-  font-family: FontAwesome;
-  vertical-align: middle;
-  content: "\f111";
+.addtabbutton {
+  line-height: 36px;
+  text-align: center;
+  font-size: 18px;
+  padding: 8px 12px 8px 7px;
+  color: #979CA2;
 }
 
-.tab.loading::before {
-  content: "\f1ce";
-  animation: spin 1s linear infinite;
+.addtabbutton:hover {
+  color: #16A7FF;
 }
 
-.addtab-button::before {
-  content: "\f055";
+.addtabbutton::before {
+  cursor: default;
+  content: "+";
 }
 
-@keyframes spin { to { transform: rotate(360deg) } }
+main.scrolled .tabbar {
+  transform: translateY(54px);
+}

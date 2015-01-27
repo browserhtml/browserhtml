@@ -7,19 +7,11 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   'use strict';
 
+  let main = document.querySelector('main');
   let navbar = document.querySelector('.navbar');
-  let pageTitle = navbar.querySelector('.pagetitle');
-  let pageUrlSummary = navbar.querySelector('.pageurlsummary');
   let urlTemplate = 'https://search.yahoo.com/search?p={searchTerms}';
-  let urlbar = navbar.querySelector('.urlbar');
   let urlinput = navbar.querySelector('.urlinput');
-  let backButton = navbar.querySelector('.back-button')
-  let forwardButton = navbar.querySelector('.forward-button')
-  let reloadButton = navbar.querySelector('.reload-button');
-  let stopButton = navbar.querySelector('.stop-button');
-  let winCloseButton = navbar.querySelector('.win-close-button');
-  let winMaxButton = navbar.querySelector('.win-max-button');
-  let winMinButton = navbar.querySelector('.win-min-button');
+
 
   urlinput.addEventListener('focus', () => {
     urlinput.select();
@@ -32,28 +24,33 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
 
   function updateWindowFocus() {
     if (document.hasFocus()) {
-      document.body.classList.add('windowFocused');
+      main.classList.add('windowFocused');
     } else {
-      document.body.classList.remove('windowFocused');
+      main.classList.remove('windowFocused');
     }
   }
   window.addEventListener('focus', updateWindowFocus);
   window.addEventListener('blur', updateWindowFocus);
   updateWindowFocus();
 
-  backButton.onclick = () => TabIframeDeck.getSelected().goBack();
-  forwardButton.onclick = () => TabIframeDeck.getSelected().goForward();
-  reloadButton.onclick = () => TabIframeDeck.getSelected().reload();
-  stopButton.onclick = () => TabIframeDeck.getSelected().stop();
+  let urlbar = document.querySelector('.urlbar');
+  urlbar.onclick = () => urlinput.focus();
+
+  let winCloseButton = navbar.querySelector('.win-close-button');
+  let winMaxButton = navbar.querySelector('.win-max-button');
+  let winMinButton = navbar.querySelector('.win-min-button');
   winCloseButton.onclick = () => window.close();
   winMinButton.onclick = () => window.minimize();
   winMaxButton.onclick = () => {
     if (document.mozFullScreenElement) {
       document.mozCancelFullScreen();
     } else {
-      document.body.mozRequestFullScreen();
+      main.mozRequestFullScreen();
     }
   }
+
+  let addTabButton = main.querySelector('.addtabbutton');
+  addTabButton.onclick = () => TabIframeDeck.add({select:true});
 
   urlinput.addEventListener('keypress', (e) => {
     if (e.keyCode == 13) {
@@ -83,6 +80,10 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
       urlinput.select();
     }]
   );
+
+  main.onscroll = () => { // FIXME: ARG!
+    main.classList.toggle('scrolled', main.scrollTop != 0);
+  }
 
   const NAVBAR_EVENTS = [
     'mozbrowserloadstart',
@@ -139,17 +140,22 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
       urlinput.value = '';
     }
 
+    let pageTitle = navbar.querySelector('.pagetitle');
     if (tabIframe.title) {
       pageTitle.textContent = tabIframe.title;
     } else {
-      if (tabIframe.location) {
-        pageTitle.textContent = tabIframe.location;
+      if (tabIframe.loading) {
+        pageTitle.textContent = 'Loading...';
       } else {
-        pageTitle.textContent = tabIframe.userInput;
+        if (tabIframe.location) {
+          pageTitle.textContent = tabIframe.location;
+        } else {
+          pageTitle.textContent = 'New Tab';
+        }
       }
     }
 
-
+    let pageUrlSummary = navbar.querySelector('.pageurlsummary');
     if (tabIframe.location) {
       let hostname = UrlHelper.getHostname(tabIframe.location);
       hostname = hostname.replace(/^www\./, '');
@@ -171,16 +177,16 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
     }
 
     if (tabIframe.color) {
-      navbar.style.setProperty('--bg', tabIframe.color);
+      main.style.setProperty('--bg', tabIframe.color);
       let hex = tabIframe.color; // FIXME: assuming a HEX value
       let r = parseInt(hex.substring(1, 3), 16);
       let g = parseInt(hex.substring(3, 5), 16);
       let b = parseInt(hex.substring(5, 7), 16);
       let lum = Math.sqrt(r * r * .241 + g * g * .691 + b * b * .068);
-      navbar.classList.toggle('dark-bg', lum < 128);
+      main.classList.toggle('dark-bg', lum < 128);
     } else {
-      navbar.style.setProperty('--bg', 'inherit');
-      navbar.classList.remove('dark-bg');
+      main.style.setProperty('--bg', 'inherit');
+      main.classList.remove('dark-bg');
     }
 
     tabIframe.canGoBack().then(canGoBack => {
@@ -189,7 +195,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
         return;
       }
       navbar.classList.toggle('cangoback', canGoBack);
-      backButton.classList.toggle('disabled', !canGoBack);
+      // backButton.classList.toggle('disabled', !canGoBack);
     });
 
     tabIframe.canGoForward().then(canGoForward => {
@@ -198,7 +204,7 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
         return;
       }
       navbar.classList.toggle('cangoforward', canGoForward);
-      forwardButton.classList.toggle('disabled', !canGoForward);
+      // forwardButton.classList.toggle('disabled', !canGoForward);
     });
   };
 
@@ -206,94 +212,6 @@ function(UrlHelper, TabIframeDeck, RegisterKeyBindings) {
   };
 
 });
-
-/* Scroll
-require(['js/tabiframedeck'],
-function(TabIframeDeck) {
-
-  'use strict';
-
-  const CTRL_KEY = 17;
-  const CMD_KEY = 224;
-  window.addEventListener("keydown", (e) => {
-    if (e.keyCode == CTRL_KEY) {
-      document.body.classList.add("ctrlpressed");
-    }
-    if (e.keyCode == CMD_KEY) {
-      document.body.classList.add("cmdpressed");
-    }
-  });
-  window.addEventListener("keyup", (e) => {
-    if (e.keyCode == CTRL_KEY) {
-      document.body.classList.remove("ctrlpressed");
-    }
-    if (e.keyCode == CMD_KEY) {
-      document.body.classList.remove("cmdpressed");
-    }
-  });
-
-  let lastSelectedTab = null;
-
-  const NAVBAR_EVENTS = [
-    'mozbrowserloadstart',
-    'mozbrowserloadend',
-    'mozbrowserlocationchange',
-    'mozbrowsererror',
-    'mozbrowsersecuritychange',
-  ];
-
-  let ignoreScroll;
-  let ignoreScrollTimeout;
-  let lastTop;
-
-  function OnTabSelected() {
-    let selectedTabIframe = TabIframeDeck.getSelected();
-    document.body.classList.remove("scrollingdown");
-    document.body.classList.remove("scrollingup");
-    document.body.classList.remove("scrolled");
-    clearTimeout(ignoreScrollTimeout);
-    ignoreScroll = true;
-    ignoreScrollTimeout = setTimeout(() => {
-      ignoreScroll = false;
-      OnScroll(null, null, selectedTabIframe);
-    }, 1500);
-    lastTop = 0;
-    if (lastSelectedTab) {
-      lastSelectedTab.off('mozbrowserasyncscroll', OnScroll);
-    }
-    lastSelectedTab = selectedTabIframe;
-    if (selectedTabIframe) {
-      selectedTabIframe.on('mozbrowserasyncscroll', OnScroll);
-    }
-  }
-  TabIframeDeck.on('select', OnTabSelected);
-  OnTabSelected();
-
-  function OnScroll(eventName, event, tabIframe) {
-    if (tabIframe != TabIframeDeck.getSelected() ||
-        ignoreScroll) {
-      return;
-    }
-    let top = tabIframe.contentScrollTop;
-    if (top != 0) {
-      if (lastTop < top) {
-        document.body.classList.add("scrollingdown");
-        document.body.classList.remove("scrollingup");
-      } else {
-        document.body.classList.remove("scrollingdown");
-        document.body.classList.add("scrollingup");
-      }
-      document.body.classList.add("scrolled");
-    } else {
-      document.body.classList.remove("scrollingdown");
-      document.body.classList.remove("scrollingup");
-      document.body.classList.remove("scrolled");
-    }
-    lastTop = top;
-  };
-
-});
-*/
 
 
 require(['js/tabiframedeck'], function(TabIframeDeck) {

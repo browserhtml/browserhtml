@@ -54,6 +54,7 @@ define(function() {
       }
       if (matches) {
         e.preventDefault();
+        e.stopPropagation();
         oneKeyBinding.func.apply(null);
       }
     }
