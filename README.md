@@ -20,4 +20,4 @@ Use a recent B2G build:
 b2g --start-manifest http://localhost:8000/manifest.webapp
 ```
 
-I recommend to use this branch for now: https://github.com/paulrouget/gecko-dev/compare/b2g-for-browser.html
+I recommend to use this branch for now: https://github.com/paulrouget/gecko-dev/compare/htmlrunner
