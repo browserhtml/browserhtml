@@ -12,7 +12,9 @@
     "url": "http://github.com/mozilla/browser.html/issues/"
   },
   "scripts": {
-    "test": "jscs ./"
+    "test": "jscs ./",
+    "server": "python -m SimpleHTTPServer 8080",
+    "start": "/Applications/B2G.app/Contents/MacOS/b2g --start-manifest=http://localhost:8080/manifest.webapp"
   },
   "devDependencies": {
     "jscs": "^1.8.1"
@@ -23,5 +25,12 @@
       "version": "2.0",
       "url": "http://mozilla.org/MPL/2.0/"
     }
-  ]
+  ],
+  "dependencies": {
+    "immutable": "git://github.com/jcranendonk/immutable-js.git#0986651df9398187390f4638424adb532985439f",
+    "node-uuid": "^1.4.2",
+    "omniscient": "git://github.com/Gozala/omniscient.git#unboxing",
+    "react": "^0.13.0-beta.1",
+    "requirejs": "^2.1.15"
+  }
 }

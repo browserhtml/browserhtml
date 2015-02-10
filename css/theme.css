@@ -2,13 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/**
- * theme.css
- *
- */
-
 :root {
   --hwd-pixel: 1px;
+  --bg: white;
 }
 
 @media (min-resolution: 2dppx) {
@@ -17,11 +13,331 @@
   }
 }
 
-[os="osx"] .toolbar:first-of-type {
-  /* Some room for the window controls */
-  padding-left: 70px;
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('fontawesome-webfont.woff');
+  font-weight: normal;
+  font-style: normal;
 }
 
-body:not([os="osx"]) .iframes {
+* {
+  -moz-appearance: none;
+  background-color: transparent;
+  background-image: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  border-width: 0;
+  font-family: sans-serif;
+  font-size: 12px;
+  /* image-rendering: -moz-crisp-edges; */
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+[hidden="true"] {
+  display: none;
+}
+
+*::-moz-focus-inner {
+  border: 0;
+}
+
+/* Let's use flexbox everywhere */
+
+main {
+  height: 100vh;
+  width: 100vw;
+  overflow-y: scroll;
+  flex-flow: column;
+  background-color: var(--bg);
+  color: black;
+  /* scroll-behavior: smooth; */
+  display: flex;
+}
+
+main * {
+  display: flex;
+}
+
+tab-iframe {
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+
+iframe {
+  display: flex;
+  flex-grow: 1;
+}
+
+.iframes {
+  flex-grow: 1;
+}
+
+.webviewer:not([hidden]).contentoverflows {
+  min-height: 100vh;
+}
+
+/***************************************
+ *                                     *
+ *               NAVBAR                *
+ *                                     *
+ ***************************************/
+
+.navbar {
+  background-color: inherit;
+  -moz-window-dragging: drag;
+  padding: 5px;
+  justify-content: space-between;
+}
+
+.freeendspacer {
+  /* Mirror .windowctrls width to align the title */
+  width: 67px;
+}
+
+/***************************************
+ *                                     *
+ *          locationbar                *
+ *                                     *
+ ***************************************/
+
+.locationbar {
+  -moz-window-dragging: no-drag;
+  align-items: center;
+  width: 460px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  line-height: 30px;
+  background-color: #EEEEEE;
+}
+
+.navbar.loading .locationbar {
+  background-image: linear-gradient(110deg, #82D3FD, #82D3FD 80%, transparent 80%);
+  background-size: 600px 30px;
+  background-position: -460px 0;
+  background-repeat: no-repeat;
+  animation: urlloading 2s ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes urlloading { to { background-position: 0 0 } }
+
+.urlinput,
+.pagesummary {
+  overflow: hidden;
+  width: 100%;
+}
+
+.navbar:not(.urledit) .urlinput,
+.navbar.urledit .pagesummary {
+  /* We don't use display:none. We want the input
+   * to be focussable */
+  max-width: 0;
+  border-width: 0;
+  padding: 0;
+}
+
+.pagesummary {
+  display: block;
+  text-overflow: ellipsis;
+  flex-basis: content;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.pagesummary,
+.urlinput {
+  border-width: 0 1px 0 1px;
+  border-style: solid;
+  border-color: transparent;
+  line-height: 30px;
+  padding: 0 8px;
+  border-color: rgba(0,0,0,0.07);
+}
+
+.urlinput {
+  border-radius: 0;
+}
+
+.backbutton,
+.reloadbutton,
+.stopbutton {
+  display: block;
+  min-width: 30px;
+  height: 30px;
+  font-family: FontAwesome;
+  text-align: center;
+  font-size: 17px;
+  vertical-align: middle;
+  opacity: 0.5;
+}
+
+.backbutton::after,
+.reloadbutton::after,
+.stopbutton::after {
+  pointer-events: none;
+  display: block;
+  line-height: 30px;
+  vertical-align: middle;
+}
+
+.backbutton::after {
+  transform: translateY(var(--hwd-pixel)); /* meh */
+}
+
+.backbutton::after {   content: "\f053" }
+.reloadbutton::after { content: "\f01e" }
+.stopbutton::after {   content: "\f00d" }
+
+.navbar.loading .reloadbutton,
+.navbar:not(.loading) .stopbutton {
+  display: none;
+}
+
+.navbar:not(.cangoback) .backbutton,
+.navbar:not(.canreload) .reloadbutton
+{
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.pagesummary > span {
+  display: inline;
+}
+
+.pagetitle {
+  opacity: 0.5;
+  padding: 5px;
+}
+
+.navbar.ssl .pageurlsummary::before {
+  font-family: FontAwesome;
+  content: "\f023";
+  margin-right: 6px;
+}
+
+/***************************************
+ *                                     *
+ *         WINDOW CONTROLS             *
+ *                                     *
+ ***************************************/
+
+.windowctrls {
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 7px;
+}
+
+.windowctrl {
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: var(--hwd-pixel);
+}
+
+.win-close-button {
+  background-color: hsl(4, 100%, 67%);
+  border-color: hsla(4, 100%, 46%, 0.5);
+}
+
+.win-min-button {
+  background-color: hsl(41, 99%, 63%);
+  border-color: hsla(41, 99%, 32%, 0.5);
+}
+
+.win-max-button {
+  background-color: hsl(144, 100%, 40%);
+  border-color: hsla(144, 100%, 30%, 0.5);
+}
+
+main:not(.windowFocused) .windowctrls:not(:hover) .windowctrl {
+  background-color: hsl(0, 0%, 86%);
+  border-color: hsla(0, 0%, 46%, 0.5);
+}
+
+/***************************************
+ *                                     *
+ *            TABSTRIP                 *
+ *                                     *
+ ***************************************/
+
+.tabstripcontainer {
+  -moz-window-dragging: drag;
+  display: flex;
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 100vw;
+  height: 100px;
   background-color: white;
+  justify-content: center;
+  z-index: 43;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+main.ctrlpressed .tabstripcontainer,
+main.cmdpressed .tabstripcontainer,
+main.showtabstrip .tabstripcontainer {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.tabstripkillzone {
+  display: block;
+  position: absolute;
+  top: 40px;
+  left: 0;
+  height: calc(100vh - 40px);
+  width: 100vw;
+  background-color: rgba(0,0,0,0);
+  transition: background-color 200ms ease;
+  pointer-events: none;
+  z-index: 42;
+}
+
+main.ctrlpressed .tabstripkillzone,
+main.cmdpressed .tabstripkillzone,
+main.showtabstrip .tabstripkillzone {
+  pointer-events: auto;
+  background-color: rgba(0,0,0,0.05);
+}
+
+main.ctrlpressed iframes,
+main.cmdpressed iframes,
+main.showtabstrip iframes {
+  pointer-events: none;
+}
+
+.tab {
+  margin: 15px 0 0;
+  height: 62.5px;
+  width: 100px;
+  border: 1px solid #EEE;
+  border-radius: 4px;
+  background-color: white;
+  transform: scale(0.8);
+  transition: transform 150ms ease;
+  background-size: 100% 100%;
+}
+
+.tab:first-of-type {
+  margin-left: 0;
+}
+
+.tab:last-of-type {
+  margin-right: 0;
+}
+
+.tab:hover {
+  transform: scale(1);
+}
+
+.tabstrip:not(:hover) .tab.selected {
+  transform: scale(1);
 }
