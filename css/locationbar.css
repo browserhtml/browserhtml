@@ -1,0 +1,120 @@
+/***************************************
+ *                                     *
+ *          locationbar                *
+ *                                     *
+ ***************************************/
+
+.locationbar {
+  -moz-window-dragging: no-drag;
+  align-items: center;
+  width: 460px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  line-height: 30px;
+  background-color: #EEEEEE;
+}
+
+.navbar.loading .locationbar {
+  background-image: linear-gradient(110deg, #82D3FD, #82D3FD 80%, transparent 80%);
+  background-size: 600px 30px;
+  background-position: -460px 0;
+  background-repeat: no-repeat;
+  animation: urlloading 2s ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes urlloading { to { background-position: 0 0 } }
+
+.urlinput,
+.pagesummary {
+  overflow: hidden;
+  width: 100%;
+}
+
+.navbar:not(.urledit) .urlinput,
+.navbar.urledit .pagesummary {
+  /* We don't use display:none. We want the input
+   * to be focussable */
+  max-width: 0;
+  border-width: 0;
+  padding: 0;
+}
+
+.pagesummary {
+  display: block;
+  text-overflow: ellipsis;
+  flex-basis: content;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.pagesummary,
+.urlinput {
+  border-width: 0 1px 0 1px;
+  border-style: solid;
+  border-color: transparent;
+  line-height: 30px;
+  padding: 0 8px;
+  border-color: rgba(0,0,0,0.07);
+}
+
+.urlinput {
+  border-radius: 0;
+}
+
+.backbutton,
+.reloadbutton,
+.stopbutton {
+  display: block;
+  min-width: 30px;
+  height: 30px;
+  font-family: FontAwesome;
+  text-align: center;
+  font-size: 17px;
+  vertical-align: middle;
+  opacity: 0.5;
+}
+
+.backbutton::after,
+.reloadbutton::after,
+.stopbutton::after {
+  pointer-events: none;
+  display: block;
+  line-height: 30px;
+  vertical-align: middle;
+}
+
+.backbutton::after {
+  transform: translateY(var(--hwd-pixel)); /* meh */
+}
+
+.backbutton::after {   content: "\f053" }
+.reloadbutton::after { content: "\f01e" }
+.stopbutton::after {   content: "\f00d" }
+
+.navbar.loading .reloadbutton,
+.navbar:not(.loading) .stopbutton {
+  display: none;
+}
+
+.navbar:not(.cangoback) .backbutton,
+.navbar:not(.canreload) .reloadbutton
+{
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.pagesummary > span {
+  display: inline;
+}
+
+.pagetitle {
+  opacity: 0.5;
+  padding: 5px;
+}
+
+.navbar.ssl .pageurlsummary::before {
+  font-family: FontAwesome;
+  content: "\f023";
+  margin-right: 6px;
+}
