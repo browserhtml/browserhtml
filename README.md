@@ -21,3 +21,7 @@ b2g --start-manifest http://localhost:8000/manifest.webapp
 ```
 
 I recommend to use this branch for now: https://github.com/paulrouget/gecko-dev/compare/htmlrunner
+
+**Using WebIDE**
+
+The easiest way to use developer tools with Browser.html is to select the "Remote Runtime" option in WebIDE. By default you should be able to connect to the running browser at: localhost:6000. 
