@@ -43,7 +43,6 @@
 .pagesummary {
   display: block;
   text-overflow: ellipsis;
-  flex-basis: content;
   opacity: 0.8;
   text-align: center;
 }
