@@ -1,0 +1,17 @@
+/***************************************
+ *                                     *
+ *               NAVBAR                *
+ *                                     *
+ ***************************************/
+
+.navbar {
+  background-color: inherit;
+  -moz-window-dragging: drag;
+  padding: 5px;
+  justify-content: space-between;
+}
+
+.freeendspacer {
+  /* Mirror .windowctrls width to align the title */
+  width: 67px;
+}

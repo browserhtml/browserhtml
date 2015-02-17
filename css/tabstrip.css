@@ -1,0 +1,82 @@
+/***************************************
+ *                                     *
+ *            TABSTRIP                 *
+ *                                     *
+ ***************************************/
+
+.tabstripcontainer {
+  -moz-window-dragging: drag;
+  display: flex;
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 100vw;
+  height: 100px;
+  background-color: white;
+  justify-content: center;
+  z-index: 43;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+main.ctrlpressed .tabstripcontainer,
+main.cmdpressed .tabstripcontainer,
+main.showtabstrip .tabstripcontainer {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.tabstripkillzone {
+  display: block;
+  position: absolute;
+  top: 40px;
+  left: 0;
+  height: calc(100vh - 40px);
+  width: 100vw;
+  background-color: rgba(0,0,0,0);
+  transition: background-color 200ms ease;
+  pointer-events: none;
+  z-index: 42;
+}
+
+main.ctrlpressed .tabstripkillzone,
+main.cmdpressed .tabstripkillzone,
+main.showtabstrip .tabstripkillzone {
+  pointer-events: auto;
+  background-color: rgba(0,0,0,0.05);
+}
+
+main.ctrlpressed iframes,
+main.cmdpressed iframes,
+main.showtabstrip iframes {
+  pointer-events: none;
+}
+
+.tab {
+  margin: 15px 0 0;
+  height: 62.5px;
+  width: 100px;
+  border: 1px solid #EEE;
+  border-radius: 4px;
+  background-color: white;
+  transform: scale(0.8);
+  transition: transform 150ms ease;
+  background-size: 100% 100%;
+}
+
+.tab:first-of-type {
+  margin-left: 0;
+}
+
+.tab:last-of-type {
+  margin-right: 0;
+}
+
+.tab:hover {
+  transform: scale(1);
+}
+
+.tabstrip:not(:hover) .tab.selected {
+  transform: scale(1);
+}
