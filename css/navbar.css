@@ -9,6 +9,7 @@
   -moz-window-dragging: drag;
   padding: 5px;
   justify-content: space-between;
+  scroll-snap-coordinate: 0 0;
 }
 
 .freeendspacer {
