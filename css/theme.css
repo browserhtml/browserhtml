@@ -55,6 +55,8 @@ main {
   color: black;
   /* scroll-behavior: smooth; */
   display: flex;
+  scroll-snap-type: mandatory;
+  scroll-snap-destination: 0 0;
 }
 
 main * {
@@ -73,6 +75,7 @@ iframe {
 
 .iframes {
   flex-grow: 1;
+  scroll-snap-coordinate: 0 0;
 }
 
 .webviewer:not([hidden]).contentoverflows {
