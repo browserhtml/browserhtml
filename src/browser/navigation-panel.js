@@ -35,7 +35,6 @@ const WindowControls = Component(options =>
                }
              }})
   ]));
-exports.WindowControls = WindowControls;
 
 const inputBindings = KeyBindings({'escape': focus});
 
@@ -84,7 +83,6 @@ const NavigationControls = Component(({input, tabStrip, webViewer, title}) =>
              className: 'stopbutton',
              onClick: event => webViewer.set('readyState', 'stop')}),
   ]));
-exports.NavigationControls = NavigationControls;
 
 const NavigationPanel = Component(({key, input, tabStrip, webViewer, title}) => {
   return DOM.div({
@@ -101,6 +99,11 @@ const NavigationPanel = Component(({key, input, tabStrip, webViewer, title}) => 
     DOM.div({key: 'spacer', className: 'freeendspacer'})
   ])
   });
+
+// Exports:
+
+exports.WindowControls = WindowControls;
+exports.NavigationControls = NavigationControls;
 exports.NavigationPanel = NavigationPanel;
 
 });

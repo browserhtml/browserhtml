@@ -35,7 +35,6 @@ const Main = Element('main', {
   onDocumentKeyDown: Event('keydown', getOwnerWindow),
   onDocumentKeyUp: Event('keyup', getOwnerWindow)
 });
-exports.Main = Main;
 
 const onNavigation = KeyBindings({
   'accel l': focus,
@@ -144,6 +143,10 @@ const Browser = Component(options => {
                     items: webViewers}),
   ]);
 });
+
+// Exports:
+
+exports.Main = Main;
 exports.Browser = Browser;
 
 });
