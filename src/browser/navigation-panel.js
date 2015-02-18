@@ -21,7 +21,7 @@ const WindowControls = Component(options =>
              key: 'close',
              onClick: event => window.close()}),
     DOM.div({className: 'windowctrl win-min-button',
-             title: 'minimze',
+             title: 'minimize',
              key: 'minimize',
              onClick: event => window.minimize()}),
     DOM.div({className: 'windowctrl win-max-button',
