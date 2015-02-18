@@ -1,7 +1,1 @@
-# Lot of node developers have `node_modules` in `~/.gitignore`
-# so we use this hack to reinable it than disable everything
-# except dirs we're interested in.
-!node_modules/
-node_modules/*
-!node_modules/browser
-!node_modules/shims
+node_modules/
