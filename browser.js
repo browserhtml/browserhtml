@@ -3,6 +3,8 @@ require.config({
   baseUrl: 'node_modules/',
   nodeIdCompat: true,
   paths: {
+    browser: '../src/browser',
+    shims: '../src/shims',
     // http://facebook.github.io/react/
     react: 'react/dist/react',
     // http://facebook.github.io/immutable-js/
