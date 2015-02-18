@@ -109,14 +109,11 @@ const Browser = Component(options => {
     os: options.get('os'),
     title: webViewer.get('uri'),
     scrollGrab: true,
-    className: 'scrollgrab moz-noscrollbars' +
-               (options.get('isScrolled') ? ' scrolled' : '') +
+    className: 'moz-noscrollbars' +
                (options.get('isDocumentFocused') ? ' windowFocused' : '') +
                (isTabStripVisible ? ' showtabstrip' : ''),
-    onScroll: event => options.set('isScrolled', event.target.scrollTop != 0),
     onDocumentFocus: event => options.set('isDocumentFocused', true),
     onDocumentBlur: event => options.set('isDocumentFocused', false),
-
     onDocumentKeyDown: compose(onNavigation(input),
                                onTabStripKeyDown(tabStrip),
                                onViewerBinding(webViewer),
@@ -139,7 +136,7 @@ const Browser = Component(options => {
              onMouseEnter: event => tabStrip.set("isActive", false)}),
 
     WebViewer.Deck({key: 'deck',
-                    className: 'iframes deck',
+                    className: 'iframes',
                     items: webViewers}),
   ]);
 });
