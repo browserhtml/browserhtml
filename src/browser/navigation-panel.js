@@ -70,8 +70,6 @@ const NavigationControls = Component(({input, tabStrip, webViewer, title, theme}
     DOM.p({key: 'page-info',
            className: 'pagesummary',
            onClick: event => input.set('isFocused', true)}, [
-      DOM.span({key: 'identity',
-                className: 'identity'}, ''),
       DOM.span({key: 'location',
                 style: theme.locationText,
                 className: 'pageurlsummary'},
