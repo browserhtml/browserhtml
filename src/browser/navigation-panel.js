@@ -65,7 +65,7 @@ define((require, exports, module) => {
         onFocus: _ => inputCursor.set('isFocused', true),
         onBlur: _ => inputCursor.set('isFocused', false),
         onChange: event => inputCursor.set('value', event.target.value),
-        onSubmit: event => navigateTo({inputCursor, selectedWebViewerCursor}, event.target.value, true),
+        onSubmit: event => navigateTo({inputCursor, webViewerCursor: selectedWebViewerCursor}, event.target.value, true),
         onKeyUp: inputBindings(selectedWebViewerCursor),
       }),
       DOM.p({key: 'page-info',

@@ -20,9 +20,9 @@ define((require, exports, module) => {
   // and navigates that webViewer to that location (if it's not valid
   // url either normalizes it or converts to search). Optional `focus`
   // can be passed as `false` to navigate to a url but not focus it.
-  const navigateTo = ({input, webViewer}, location, focus=true) => {
-    input.set('value', null);
-    webViewer.merge({uri: readInputURL(location), isFocused: focus});
+  const navigateTo = ({inputCursor, webViewerCursor}, location, focus=true) => {
+    inputCursor.set('value', null);
+    webViewerCursor.merge({uri: readInputURL(location), isFocused: focus});
   }
 
   // Exports:
