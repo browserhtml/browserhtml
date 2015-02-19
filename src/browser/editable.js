@@ -7,7 +7,7 @@ define((require, exports, module) => {
 'use strict';
 
 const {isFocused} = require('./focusable');
-const {Element, Option, Field, Event} = require('./element');
+const {Element, BeforeAppendAttribute, Field, Event} = require('./element');
 const {Component, createFactory} = require("react");
 
 const selection = Field((node, current, past) => {
