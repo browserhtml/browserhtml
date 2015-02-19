@@ -45,7 +45,7 @@ const InputElement = Element("input", {
   selection: selection
 });
 
-const InputField = function(options) {
+const InputField = function(immutableState) {
   this.onKeyDown = this.onKeyDown.bind(this);
   Component.call(this);
 }
