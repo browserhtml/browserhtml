@@ -3,6 +3,7 @@
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
 
 define((require, exports, module) => {
+
   "use strict";
 
   const React = require("react");

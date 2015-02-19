@@ -5,6 +5,7 @@
 // Manages events coming from gecko.
 
 (function() {
+
   'use strict';
 
   function handleEvent(evt) {
@@ -25,4 +26,5 @@
   }
 
   window.addEventListener('mozChromeEvent', handleEvent, false);
+
 })();
