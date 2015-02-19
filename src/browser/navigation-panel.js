@@ -70,6 +70,7 @@ define((require, exports, module) => {
       }),
       DOM.p({key: 'page-info',
              className: 'pagesummary',
+             style: theme.pageInfoText,
              onClick: event => inputCursor.set('isFocused', true)}, [
         DOM.span({key: 'location',
                   style: theme.locationText,

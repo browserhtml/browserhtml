@@ -21,6 +21,7 @@ define((require, exports, module) => {
     urlInput: {color: 'rgba(0,0,0,0.65)'},
     locationText: {color: 'rgba(0,0,0, 0.65)'},
     titleText: {color: 'rgba(0,0,0,0.5)'},
+    pageInfoText: {color: 'rgba(0,0,0,0.5)'},
     tabstrip: {backgroundColor: '#fff'},
     navigationPanel: {backgroundColor: '#fff'}
   });
@@ -69,6 +70,7 @@ define((require, exports, module) => {
     urlInput: {color: foregroundColor},
     locationText: {color: foregroundColor},
     titleText: {color: foregroundColor},
+    pageInfoText: {color: foregroundColor},
     tabstrip: {backgroundColor: backgroundColor},
     navigationPanel: {backgroundColor: backgroundColor}
   });
