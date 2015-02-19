@@ -15,12 +15,12 @@ const createDefaultTheme = () => ({
   windowCloseButton: {backgroundColor: '#FC5753'},
   windowMinButton: {backgroundColor: '#FDBC40'},
   windowMaxButton: {backgroundColor: '#33C748'},
-  reloadButton: {color: 'rgba(0, 0, 0, 0.5)'},
-  stopButton: {color: 'rgba(0, 0, 0, 0.5)'},
-  backButton: {color: 'rgba(0, 0, 0, 0.5)'},
-  urlInput: {color: 'rgba(0, 0, 0, 0.65)'},
-  locationText: {color: 'rgba(0, 0, 0, 0.65)'},
-  titleText: {color: 'rgba(0, 0, 0, 0.5)'},
+  reloadButton: {color: 'rgba(0,0,0,0.5)'},
+  stopButton: {color: 'rgba(0,0,0,0.5)'},
+  backButton: {color: 'rgba(0,0,0,0.5)'},
+  urlInput: {color: 'rgba(0,0,0,0.65)'},
+  locationText: {color: 'rgba(0,0,0, 0.65)'},
+  titleText: {color: 'rgba(0,0,0,0.5)'},
   tabstrip: {backgroundColor: '#fff'},
   navigationPanel: {backgroundColor: '#fff'}
 });
