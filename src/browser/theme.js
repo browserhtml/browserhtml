@@ -85,7 +85,6 @@ define((require, exports, module) => {
       expandCustomTheme(foregroundColor, backgroundColor, isDark) :
       createDefaultTheme();
   }
-  exports.readTheme = readTheme;
 
   // Creates a state patch for webViewer from foregroundColor, backgroundColor,
   // isDark.
@@ -103,6 +102,10 @@ define((require, exports, module) => {
     const colors = hardcodedColors[hostname];
     return colors ? makeColorPatch(...colors) : makeColorPatch(null, null, !IS_DARK);
   }
+
+  // Exports:
+
+  exports.readTheme = readTheme;
   exports.getHardcodedColors = getHardcodedColors;
 
 });
