@@ -126,11 +126,11 @@ const Browser = Component(options => {
   }, [
     NavigationPanel({
       key: 'navigation',
-      input, webViewer, tabStrip,
+      input, webViewer, tabStrip, theme,
       title: webViewer.get('title'),
     }),
     DOM.div({key: 'tabstrip',
-             style: {backgroundColor: theme.background},
+             style: theme.tabstrip,
              className: 'tabstripcontainer'}, [
       Tab.Deck({key: 'tabstrip',
                 className: 'tabstrip',

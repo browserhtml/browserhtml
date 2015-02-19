@@ -9,18 +9,21 @@ const url = require("./util/url.js");
 
 'use strict';
 
-const defaultTheme = {
+const createDefaultTheme = () => ({
   isDark: false,
   glyphsShowing: false,
-  close: "#FC5753",
-  min: "#FDBC40",
-  max: "#33C748",
-  buttons: "rgba(0, 0, 0, 0.5)",
-  domain: "rgba(0, 0, 0, 0.65)",
-  title: "rgba(0, 0, 0, 0.5)",
-  background: "#fff"
-};
-exports.defaultTheme = defaultTheme;
+  windowCloseButton: {backgroundColor: '#FC5753'},
+  windowMinButton: {backgroundColor: '#FDBC40'},
+  windowMaxButton: {backgroundColor: '#33C748'},
+  reloadButton: {color: 'rgba(0, 0, 0, 0.5)'},
+  stopButton: {color: 'rgba(0, 0, 0, 0.5)'},
+  backButton: {color: 'rgba(0, 0, 0, 0.5)'},
+  urlInput: {color: 'rgba(0, 0, 0, 0.65)'},
+  locationText: {color: 'rgba(0, 0, 0, 0.65)'},
+  titleText: {color: 'rgba(0, 0, 0, 0.5)'},
+  tabstrip: {backgroundColor: '#fff'},
+  navigationPanel: {backgroundColor: '#fff'}
+});
 
 const IS_DARK = true;
 
@@ -54,16 +57,20 @@ const hardcodedColors = {
 // `backgroundColor`: any valid CSS color string.
 // `isDark`: boolean. Used to change background of location field.
 // Returns a theme object.
-const expandTheme = (foregroundColor, backgroundColor, isDark) => ({
+const expandCustomTheme = (foregroundColor, backgroundColor, isDark) => ({
   isDark: isDark,
   glyphsShowing: true,
-  close: foregroundColor,
-  min: foregroundColor,
-  max: foregroundColor,
-  buttons: foregroundColor,
-  domain: foregroundColor,
-  title: foregroundColor,
-  background: backgroundColor
+  windowCloseButton: {backgroundColor: foregroundColor},
+  windowMinButton: {backgroundColor: foregroundColor},
+  windowMaxButton: {backgroundColor: foregroundColor},
+  reloadButton: {color: foregroundColor},
+  stopButton: {color: foregroundColor},
+  backButton: {color: foregroundColor},
+  urlInput: {color: foregroundColor},
+  locationText: {color: foregroundColor},
+  titleText: {color: foregroundColor},
+  tabstrip: {backgroundColor: backgroundColor},
+  navigationPanel: {backgroundColor: backgroundColor}
 });
 
 // Derive theme object from webViewer object.
@@ -75,8 +82,8 @@ const readTheme = (webViewer) => {
   const isDark = webViewer.get('isDark');
 
   return foregroundColor !== null && backgroundColor !== null ?
-    expandTheme(foregroundColor, backgroundColor, isDark) :
-    Object.assign({}, defaultTheme);
+    expandCustomTheme(foregroundColor, backgroundColor, isDark) :
+    createDefaultTheme();
 }
 exports.readTheme = readTheme;
 
