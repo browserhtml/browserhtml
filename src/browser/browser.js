@@ -46,10 +46,14 @@ define((require, exports, module) => {
 
   const onTabStripKeyDown = KeyBindings({
     'control tab': showTabStrip,
-    'control shift tab': showTabStrip
+    'control shift tab': showTabStrip,
+    'meta shift ]': showTabStrip,
+    'meta shift [': showTabStrip,
+    'meta t': showTabStrip,
   });
   const onTabStripKeyUp = KeyBindings({
-    'control': hideTabStrip
+    'control': hideTabStrip,
+    'meta shift': hideTabStrip
   });
 
   const onViewerBinding = KeyBindings({
