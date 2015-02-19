@@ -7,7 +7,7 @@ define((require, exports, module) => {
   'use strict';
 
   // Return `true` if given deck item is selected one.
-  const isSelected = item => item.get("isSelected");
+  const isSelected = item => item.get('isSelected');
 
   // Takes `f` edit function and returs the function that
   // takes `items` list and optional `isMatch` function, invoking
@@ -22,7 +22,7 @@ define((require, exports, module) => {
   // Takes item and toggles it's selection state, meaning if it is
   // selected it will be updated not to, and if it isn't it will update
   // to be selected.
-  const toggle = item => item.set("isSelected", !isSelected(item));
+  const toggle = item => item.set('isSelected', !isSelected(item));
   // Takes `items` and returs the index of the selected one.
   const selectedIndex = items => items.findIndex(isSelected);
 

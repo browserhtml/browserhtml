@@ -8,7 +8,7 @@ define((require, exports, module) => {
 
   const {isFocused} = require('./focusable');
   const {Element, BeforeAppendAttribute, Field, Event} = require('./element');
-  const {Component, createFactory} = require("react");
+  const {Component, createFactory} = require('react');
 
   const selection = Field((node, current, past) => {
     if (current != past) {
@@ -17,30 +17,30 @@ define((require, exports, module) => {
       } else if (current === false) {
         node.selectionStart = node.selectionEnd;
       } else if (current) {
-        if ("start" in current) {
+        if ('start' in current) {
           node.selectionStart = current.start;
         }
 
-        if ("end" in current) {
+        if ('end' in current) {
           node.selectionEnd = current.end;
         }
 
-        if (current.direction == "forward") {
-          node.selectionDirection = "forward";
+        if (current.direction == 'forward') {
+          node.selectionDirection = 'forward';
         }
 
-        if (current.direction == "backward") {
-          node.selectionDirection = "backward";
+        if (current.direction == 'backward') {
+          node.selectionDirection = 'backward';
         }
 
-        if (current.direction == "none") {
-          node.selectionDirection = "none";
+        if (current.direction == 'none') {
+          node.selectionDirection = 'none';
         }
       }
     }
   });
 
-  const InputElement = Element("input", {
+  const InputElement = Element('input', {
     isFocused: isFocused,
     selection: selection
   });

@@ -25,7 +25,7 @@ define((require, exports, module) => {
                        zoom: 1,
                        isSelected: true,
                        isFocused: true,
-                       uri: "https://github.com/mozilla/browser.html"})]
+                       uri: 'https://github.com/mozilla/browser.html'})]
   });
 
   render(Browser, initialState, document.body);

@@ -4,9 +4,9 @@
 
 define((require, exports, module) => {
 
-  "use strict";
+  'use strict';
 
-  const {Field} = require("./element");
+  const {Field} = require('./element');
 
   const isFocused = new Field((node, current, past) => {
     if (current != past) {

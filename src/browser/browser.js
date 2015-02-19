@@ -141,7 +141,7 @@ define((require, exports, module) => {
       ]),
       DOM.div({key: 'tabstripkillzone',
                className: 'tabstripkillzone',
-               onMouseEnter: event => tabStripCursor.set("isActive", false)}),
+               onMouseEnter: event => tabStripCursor.set('isActive', false)}),
 
       WebViewer.Deck({key: 'deck',
                       className: 'iframes',

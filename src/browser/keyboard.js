@@ -14,16 +14,16 @@ define((require, exports, module) => {
   const readModifiers = ({metaKey, shiftKey, altKey, ctrlKey}) => {
     const modifiers = [];
     if (metaKey) {
-      modifiers.push("Meta");
+      modifiers.push('Meta');
     }
     if (ctrlKey) {
-      modifiers.push("Control");
+      modifiers.push('Control');
     }
     if (altKey) {
-      modifiers.push("Alt");
+      modifiers.push('Alt');
     }
     if (shiftKey) {
-      modifiers.push("Shift");
+      modifiers.push('Shift');
     }
     return modifiers;
   };
@@ -46,15 +46,15 @@ define((require, exports, module) => {
     split(/\s+/).
     map(readKey).
     sort().
-    join(" ");
+    join(' ');
 
   const writeChord = event =>
     [...new Set([...readModifiers(event), readKey(event.key)])].
-      join(" ").
+      join(' ').
       toLowerCase().
-      split(" ").
+      split(' ').
       sort().
-      join(" ");
+      join(' ');
 
 
   const KeyBindings = (handlers) => {
