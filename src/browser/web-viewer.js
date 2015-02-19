@@ -9,7 +9,7 @@ define((require, exports, module) => {
 const {DOM} = require('react');
 const {Map} = require('immutable');
 const {isFocused} = require('./focusable');
-const {Element, Option, Field, Event} = require('./element');
+const {Element, BeforeAppendAttribute, Field, Event} = require('./element');
 const Component = require('omniscient');
 const {Deck} = require('./deck');
 const {open} = require('./web-viewer/actions');
@@ -18,9 +18,9 @@ const {getHardcodedColors} = require('./theme');
 
 const IFrame = Element('iframe', {
   isFocused: isFocused,
-  isRemote: new Option('remote'),
-  isBrowser: new Option('mozbrowser'),
-  allowFullScreen: new Option('mozallowfullscreen'),
+  isRemote: new BeforeAppendAttribute('remote'),
+  isBrowser: new BeforeAppendAttribute('mozbrowser'),
+  allowFullScreen: new BeforeAppendAttribute('mozallowfullscreen'),
   src: Field((node, current, past) => {
     if (current != past) {
       if (node.setVisible) {

@@ -7,7 +7,7 @@ define((require, exports, module) => {
 'use strict';
 
 const {isFocused} = require('./focusable');
-const {Element, Option, Field, Event} = require('./element');
+const {Element, BeforeAppendAttribute, Field, Event} = require('./element');
 const {Component, createFactory} = require("react");
 
 const selection = Field((node, current, past) => {
@@ -45,10 +45,11 @@ const InputElement = Element("input", {
   selection: selection
 });
 
-const InputField = function(options) {
+const InputField = function(immutableState) {
   this.onKeyDown = this.onKeyDown.bind(this);
   Component.call(this);
 }
+
 InputField.prototype = {
   __proto__: Component.prototype,
   constructor: InputField,

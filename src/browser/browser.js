@@ -82,8 +82,8 @@ const onDeckBinding = KeyBindings({
   'meta shift [': edit(selectPrevious),
   'ctrl pagedown': edit(selectNext),
   'ctrl pageup': edit(selectPrevious)
-//  'accel shift backspace': clearSession(options),
-//  'accel shift s': saveSession(options)
+//  'accel shift backspace': clearSession(immutableState),
+//  'accel shift s': saveSession(immutableState)
 });
 
 // Functional composition
@@ -95,54 +95,57 @@ const compose = (...fns) => {
 
 // Browser is a root component for our application that just delegates
 // to a core sub-components here.
-const Browser = Component(options => {
-  const index = selectedIndex(options.get('webViewers'));
-  const webViewers = options.cursor('webViewers');
-  const webViewer = webViewers.cursor(index);
+const Browser = Component(immutableState => {
+  const index = selectedIndex(immutableState.get('webViewers'));
+  const webViewersCursor = immutableState.cursor('webViewers');
+  const selectedWebViewerCursor = webViewersCursor.cursor(index);
 
-  const tabStrip = webViewer.cursor('tabStrip');
-  const input = options.cursor('input');
+  const tabStripCursor = selectedWebViewerCursor.cursor('tabStrip');
+  const inputCursor = immutableState.cursor('input');
 
-  const isTabStripVisible = tabStrip.get('isActive') &&
-                            webViewers.count() > 1;
+  const isTabStripVisible = tabStripCursor.get('isActive') &&
+                            webViewersCursor.count() > 1;
 
-  const theme = readTheme(webViewer);
+  const theme = readTheme(selectedWebViewerCursor);
 
   return  Main({
-    os: options.get('os'),
-    title: webViewer.get('uri'),
+    os: immutableState.get('os'),
+    title: selectedWebViewerCursor.get('uri'),
     scrollGrab: true,
     className: 'moz-noscrollbars' +
                (theme.isDark ? ' isdark' : '') +
-               (options.get('isDocumentFocused') ? ' windowFocused' : '') +
+               (immutableState.get('isDocumentFocused') ? ' windowFocused' : '') +
                (isTabStripVisible ? ' showtabstrip' : ''),
-    onDocumentFocus: event => options.set('isDocumentFocused', true),
-    onDocumentBlur: event => options.set('isDocumentFocused', false),
-    onDocumentKeyDown: compose(onNavigation(input),
-                               onTabStripKeyDown(tabStrip),
-                               onViewerBinding(webViewer),
-                               onDeckBinding(webViewers)),
-    onDocumentKeyUp: onTabStripKeyUp(tabStrip),
+    onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
+    onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
+    onDocumentKeyDown: compose(onNavigation(inputCursor),
+                               onTabStripKeyDown(tabStripCursor),
+                               onViewerBinding(selectedWebViewerCursor),
+                               onDeckBinding(webViewersCursor)),
+    onDocumentKeyUp: onTabStripKeyUp(tabStripCursor),
   }, [
     NavigationPanel({
       key: 'navigation',
-      input, webViewer, tabStrip, theme,
-      title: webViewer.get('title'),
+      inputCursor,
+      tabStripCursor,
+      theme,
+      selectedWebViewerCursor,
+      title: selectedWebViewerCursor.get('title'),
     }),
     DOM.div({key: 'tabstrip',
              style: theme.tabstrip,
              className: 'tabstripcontainer'}, [
       Tab.Deck({key: 'tabstrip',
                 className: 'tabstrip',
-                items: webViewers})
+                items: webViewersCursor})
     ]),
     DOM.div({key: 'tabstripkillzone',
              className: 'tabstripkillzone',
-             onMouseEnter: event => tabStrip.set("isActive", false)}),
+             onMouseEnter: event => tabStripCursor.set("isActive", false)}),
 
     WebViewer.Deck({key: 'deck',
                     className: 'iframes',
-                    items: webViewers}),
+                    items: webViewersCursor}),
   ]);
 });
 
