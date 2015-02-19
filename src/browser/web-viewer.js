@@ -66,7 +66,7 @@ define((require, exports, module) => {
     icons: null,
     title: null,
     location: null,
-    securitywebViewerCursor: 'insecure',
+    securityState: 'insecure',
     securityExtendedValidation: false,
     canGoBack: false,
     canGoForward: false
@@ -105,8 +105,8 @@ define((require, exports, module) => {
               event.detail.height > event.target.parentNode.clientHeight);
 
   WebViewer.onSecurityChange = webViewerCursor => event =>
-    webViewerCursor.merge({securitywebViewerCursor: event.detail.webViewerCursor,
-                 securityExtendedValidation: event.detail.extendedValidation});
+    webViewerCursor.merge({securityState: event.detail.state,
+                           securityExtendedValidation: event.detail.extendedValidation});
 
   WebViewer.Deck = Deck(WebViewer);
 
