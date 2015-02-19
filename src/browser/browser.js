@@ -105,7 +105,7 @@ define((require, exports, module) => {
     const webViewersCursor = immutableState.cursor('webViewers');
     const selectedWebViewerCursor = webViewersCursor.cursor(index);
 
-    const tabStripCursor = selectedWebViewerCursor.cursor('tabStrip');
+    const tabStripCursor = immutableState.cursor('tabStrip');
     const inputCursor = immutableState.cursor('input');
 
     const isTabStripVisible = tabStripCursor.get('isActive') &&
@@ -148,7 +148,7 @@ define((require, exports, module) => {
       ]),
       DOM.div({key: 'tabstripkillzone',
                className: 'tabstripkillzone',
-               onMouseEnter: event => tabStripCursor.set('isActive', false)}),
+               onMouseEnter: event => hideTabStrip(tabStripCursor)}),
 
       WebViewer.Deck({key: 'deck',
                       className: 'iframes',
