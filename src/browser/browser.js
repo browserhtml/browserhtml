@@ -97,20 +97,20 @@ const compose = (...fns) => {
 // to a core sub-components here.
 const Browser = Component(immutableState => {
   const index = selectedIndex(immutableState.get('webViewers'));
-  const webViewers = immutableState.cursor('webViewers');
-  const webViewer = webViewers.cursor(index);
+  const webViewersCursor = immutableState.cursor('webViewers');
+  const selectedWebViewerCursor = webViewersCursor.cursor(index);
 
-  const tabStrip = webViewer.cursor('tabStrip');
-  const input = immutableState.cursor('input');
+  const tabStripCursor = selectedWebViewerCursor.cursor('tabStrip');
+  const inputCursor = immutableState.cursor('input');
 
-  const isTabStripVisible = tabStrip.get('isActive') &&
-                            webViewers.count() > 1;
+  const isTabStripVisible = tabStripCursor.get('isActive') &&
+                            webViewersCursor.count() > 1;
 
-  const theme = readTheme(webViewer);
+  const theme = readTheme(selectedWebViewerCursor);
 
   return  Main({
     os: immutableState.get('os'),
-    title: webViewer.get('uri'),
+    title: selectedWebViewerCursor.get('uri'),
     scrollGrab: true,
     className: 'moz-noscrollbars' +
                (theme.isDark ? ' isdark' : '') +
@@ -118,31 +118,34 @@ const Browser = Component(immutableState => {
                (isTabStripVisible ? ' showtabstrip' : ''),
     onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
     onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
-    onDocumentKeyDown: compose(onNavigation(input),
-                               onTabStripKeyDown(tabStrip),
-                               onViewerBinding(webViewer),
-                               onDeckBinding(webViewers)),
-    onDocumentKeyUp: onTabStripKeyUp(tabStrip),
+    onDocumentKeyDown: compose(onNavigation(inputCursor),
+                               onTabStripKeyDown(tabStripCursor),
+                               onViewerBinding(selectedWebViewerCursor),
+                               onDeckBinding(webViewersCursor)),
+    onDocumentKeyUp: onTabStripKeyUp(tabStripCursor),
   }, [
     NavigationPanel({
       key: 'navigation',
-      input, webViewer, tabStrip, theme,
-      title: webViewer.get('title'),
+      inputCursor,
+      tabStripCursor,
+      theme,
+      selectedWebViewerCursor,
+      title: selectedWebViewerCursor.get('title'),
     }),
     DOM.div({key: 'tabstrip',
              style: theme.tabstrip,
              className: 'tabstripcontainer'}, [
       Tab.Deck({key: 'tabstrip',
                 className: 'tabstrip',
-                items: webViewers})
+                items: webViewersCursor})
     ]),
     DOM.div({key: 'tabstripkillzone',
              className: 'tabstripkillzone',
-             onMouseEnter: event => tabStrip.set("isActive", false)}),
+             onMouseEnter: event => tabStripCursor.set("isActive", false)}),
 
     WebViewer.Deck({key: 'deck',
                     className: 'iframes',
-                    items: webViewers}),
+                    items: webViewersCursor}),
   ]);
 });
 

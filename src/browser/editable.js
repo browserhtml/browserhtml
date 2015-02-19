@@ -49,6 +49,7 @@ const InputField = function(immutableState) {
   this.onKeyDown = this.onKeyDown.bind(this);
   Component.call(this);
 }
+
 InputField.prototype = {
   __proto__: Component.prototype,
   constructor: InputField,

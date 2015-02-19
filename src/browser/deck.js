@@ -10,7 +10,8 @@ const {DOM} = require('react');
 const Component = require('omniscient');
 
 const Deck = Item => Component(immutableState =>
-    DOM.div(immutableState, immutableState.items.map(Deck.Render(Item, immutableState))));
+    DOM.div(immutableState,
+            immutableState.items.map(Deck.Render(Item, immutableState))));
 
 Deck.Render = (Item, immutableState) => item => Item(Object.assign({}, immutableState, {
   key: `deck-item-${item.get("id")}`,

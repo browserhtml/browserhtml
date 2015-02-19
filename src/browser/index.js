@@ -11,7 +11,7 @@ const {render} = require('./core');
 const {Browser} = require('./browser');
 const {open} = require('./web-viewer/actions');
 
-const initial = fromJS({
+const initialState = fromJS({
   isDocumentFocused: document.hasFocus(),
   os: navigator.platform.startsWith('Win') ? 'windows' :
       navigator.platform.startsWith('Mac') ? 'osx' :
@@ -28,6 +28,6 @@ const initial = fromJS({
                      uri: "https://github.com/mozilla/browser.html"})]
 });
 
-render(Browser, initial, document.body);
+render(Browser, initialState, document.body);
 
 });
