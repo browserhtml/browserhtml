@@ -18,6 +18,7 @@ const {zoomIn, zoomOut, zoomReset, open,
 const {focus, showTabStrip, hideTabStrip} = require('./actions');
 const {selectedIndex, selectNext, selectPrevious,
        remove, toggle, append, select} = require('./deck/actions');
+const {readTheme} = require('./theme');
 
 const getOwnerWindow = node => node.ownerDocument.defaultView;
 // Define custom `main` element with a custom `scrollGrab` attribute
@@ -105,11 +106,14 @@ const Browser = Component(options => {
   const isTabStripVisible = tabStrip.get('isActive') &&
                             webViewers.count() > 1;
 
+  const theme = readTheme(webViewer);
+
   return  Main({
     os: options.get('os'),
     title: webViewer.get('uri'),
     scrollGrab: true,
     className: 'moz-noscrollbars' +
+               (theme.isDark ? ' isdark' : '') +
                (options.get('isDocumentFocused') ? ' windowFocused' : '') +
                (isTabStripVisible ? ' showtabstrip' : ''),
     onDocumentFocus: event => options.set('isDocumentFocused', true),
@@ -122,10 +126,11 @@ const Browser = Component(options => {
   }, [
     NavigationPanel({
       key: 'navigation',
-      input, webViewer, tabStrip,
+      input, webViewer, tabStrip, theme,
       title: webViewer.get('title'),
     }),
     DOM.div({key: 'tabstrip',
+             style: theme.tabstrip,
              className: 'tabstripcontainer'}, [
       Tab.Deck({key: 'tabstrip',
                 className: 'tabstrip',

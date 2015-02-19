@@ -22,6 +22,8 @@ const initial = fromJS({
   icons: {},
   meta: {},
   backgroundColor: null,
+  foregroundColor: null,
+  isDark: false,
   securityState: 'insecure',
   securityExtendedValidation: false,
   canGoBack: false,
