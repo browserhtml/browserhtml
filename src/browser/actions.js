@@ -4,34 +4,34 @@
 
 define((require, exports, module) => {
 
-'use strict';
+  'use strict';
 
-const url = require('./util/url');
+  const url = require('./util/url');
 
-const makeSearchURL = input =>
-  `https://search.yahoo.com/search?p=${encodeURIComponent(input)}`;
+  const makeSearchURL = input =>
+    `https://search.yahoo.com/search?p=${encodeURIComponent(input)}`;
 
-const readInputURL = input =>
-  url.isNotURL(input) ? makeSearchURL(input) :
-  !url.hasScheme(input) ? `http://${input}` :
-  input;
+  const readInputURL = input =>
+    url.isNotURL(input) ? makeSearchURL(input) :
+    !url.hasScheme(input) ? `http://${input}` :
+    input;
 
-// Action takes state cursor for the web viewer and input location
-// and navigates that webViewer to that location (if it's not valid
-// url either normalizes it or converts to search). Optional `focus`
-// can be passed as `false` to navigate to a url but not focus it.
-const navigateTo = ({input, webViewer}, location, focus=true) => {
-  input.set("value", null);
-  webViewer.merge({uri: readInputURL(location), isFocused: focus});
-}
+  // Action takes state cursor for the web viewer and input location
+  // and navigates that webViewer to that location (if it's not valid
+  // url either normalizes it or converts to search). Optional `focus`
+  // can be passed as `false` to navigate to a url but not focus it.
+  const navigateTo = ({inputCursor, webViewerCursor}, location, focus=true) => {
+    inputCursor.set('value', null);
+    webViewerCursor.merge({uri: readInputURL(location), isFocused: focus});
+  }
 
-// Exports:
+  // Exports:
 
-exports.makeSearchURL = makeSearchURL;
-exports.readInputURL = readInputURL;
-exports.navigateTo = navigateTo;
-exports.focus = focusable => focusable.set('isFocused', true);
-exports.showTabStrip = input => input.set('isActive', true);
-exports.hideTabStrip = input => input.set('isActive', false);
+  exports.makeSearchURL = makeSearchURL;
+  exports.readInputURL = readInputURL;
+  exports.navigateTo = navigateTo;
+  exports.focus = focusable => focusable.set('isFocused', true);
+  exports.showTabStrip = input => input.set('isActive', true);
+  exports.hideTabStrip = input => input.set('isActive', false);
 
 });

@@ -3,9 +3,10 @@
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
 
 define((require, exports, module) => {
-  "use strict";
 
-  const React = require("react");
+  'use strict';
+
+  const React = require('react');
 
   const isPreMountHook = field => field && field.mount;
 
@@ -91,7 +92,7 @@ define((require, exports, module) => {
   // in general use of `Attribute` is preferred, this should be
   // reserved only for attributes changes to which aren't picked up
   // after node is in the tree.
-  // Example: Element("iframe", { browser: BeforeAppendAttribute("mozbrowser") })
+  // Example: Element('iframe', { browser: BeforeAppendAttribute('mozbrowser') })
   const BeforeAppendAttribute = function(name) { if (!(this instanceof BeforeAppendAttribute)) {
   return new BeforeAppendAttribute(name); }
 
@@ -109,7 +110,7 @@ define((require, exports, module) => {
   // DOM attribute with a given `name`. If the field is
   // set to `undefined` or `null` attribute is removed
   // othrewise it's set to given value.
-  // Example: Element("hbox", {flex: Attribute("flex")})
+  // Example: Element('hbox', {flex: Attribute('flex')})
   const Attribute = function(name) {
     if (!(this instanceof Attribute)) {
       return new Attribute(name);
@@ -128,8 +129,7 @@ define((require, exports, module) => {
       if (present != past) {
         if (present == void(0)) {
           node.removeAttribute(this.name);
-        }
-        else {
+        } else {
           node.setAttribute(this.name, present);
         }
       }
@@ -145,7 +145,7 @@ define((require, exports, module) => {
   // render `past` will be `void(0)`.
   //
   // Example:
-  // Element("iframe", {focused: (node, current, past) => {
+  // Element('iframe', {focused: (node, current, past) => {
   //   if (current) {
   //     node.focus()
   //   }
@@ -171,7 +171,7 @@ define((require, exports, module) => {
   // second argument, in which case event handler will be
   // invoked with `read(event)` instead of `event`.
   // Example:
-  // Element("iframe", {onTitleChange: Event("mozbrowsertitlechange")})
+  // Element('iframe', {onTitleChange: Event('mozbrowsertitlechange')})
   const Event = function(type, read, capture=false) {
     if (!(this instanceof Event)) {
       return new Event(type, read);
