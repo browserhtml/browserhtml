@@ -7,6 +7,12 @@ define((require, exports, module) => {
   'use strict';
 
   const url = require('./util/url');
+  const {fromJS} = require('immutable');
+  const {open} = require('./web-viewer/actions');
+  // TODO: Shuld be `const {version} = require('package.json`);` instead but require.js
+  // does not supports that.
+  const version = '0.0.0';
+
 
   const makeSearchURL = input =>
     `https://search.yahoo.com/search?p=${encodeURIComponent(input)}`;
@@ -25,6 +31,38 @@ define((require, exports, module) => {
     webViewerCursor.merge({uri: readInputURL(location), isFocused: focus});
   }
 
+  // Creates a blank session. Returns immutable map.
+  const resetSession = () => fromJS({
+    isDocumentFocused: document.hasFocus(),
+    os: navigator.platform.startsWith('Win') ? 'windows' :
+    navigator.platform.startsWith('Mac') ? 'osx' :
+    navigator.platform.startsWith('Linux') ? 'linux' :
+    '',
+    input: {value: '', isFocused: false},
+    tabStrip: {
+      isActive: false
+    },
+    webViewers: [open({id: 0,
+                       zoom: 1,
+                       isSelected: true,
+                       isFocused: true,
+                       uri: 'https://github.com/mozilla/browser.html'})]
+  });
+
+  // Reads stored session. Returns either immutable data for the
+  // session or null.
+  const readSession = () => {
+    try {
+      return fromJS(JSON.parse(localStorage[`session@${version}`]));
+    } catch(error) {
+      return null;
+    }
+  };
+
+  const writeSession = session => {
+    localStorage[`session@${version}`] = JSON.stringify(session.toJSON());
+  };
+
   // Exports:
 
   exports.makeSearchURL = makeSearchURL;
@@ -33,5 +71,8 @@ define((require, exports, module) => {
   exports.focus = focusable => focusable.set('isFocused', true);
   exports.showTabStrip = input => input.set('isActive', true);
   exports.hideTabStrip = input => input.set('isActive', false);
+  exports.resetSession = resetSession;
+  exports.readSession = readSession;
+  exports.writeSession = writeSession;
 
 });

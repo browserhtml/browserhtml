@@ -15,7 +15,8 @@ define((require, exports, module) => {
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop} = require('./web-viewer/actions');
-  const {focus, showTabStrip, hideTabStrip} = require('./actions');
+  const {focus, showTabStrip, hideTabStrip,
+         writeSession, resetSession} = require('./actions');
   const {selectedIndex, selectNext, selectPrevious,
          remove, toggle, append, select} = require('./deck/actions');
   const {readTheme} = require('./theme');
@@ -34,7 +35,8 @@ define((require, exports, module) => {
     onDocumentFocus: Event('focus', getOwnerWindow),
     onDocumentBlur: Event('blur', getOwnerWindow),
     onDocumentKeyDown: Event('keydown', getOwnerWindow),
-    onDocumentKeyUp: Event('keyup', getOwnerWindow)
+    onDocumentKeyUp: Event('keyup', getOwnerWindow),
+    onDocumentUnload: Event('unload', getOwnerWindow)
   });
 
   const onNavigation = KeyBindings({
@@ -82,8 +84,11 @@ define((require, exports, module) => {
     'meta shift [': edit(selectPrevious),
     'ctrl pagedown': edit(selectNext),
     'ctrl pageup': edit(selectPrevious)
-  //  'accel shift backspace': clearSession(immutableState),
-  //  'accel shift s': saveSession(immutableState)
+  });
+
+  const onBrowserBinding = KeyBindings({
+    'accel shift backspace': edit(resetSession),
+    'accel shift s': writeSession
   });
 
   // Functional composition
@@ -116,12 +121,14 @@ define((require, exports, module) => {
                  (theme.isDark ? ' isdark' : '') +
                  (immutableState.get('isDocumentFocused') ? ' windowFocused' : '') +
                  (isTabStripVisible ? ' showtabstrip' : ''),
+      onDocumentUnload: event => writeSession(immutableState),
       onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
       onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
       onDocumentKeyDown: compose(onNavigation(inputCursor),
                                  onTabStripKeyDown(tabStripCursor),
                                  onViewerBinding(selectedWebViewerCursor),
-                                 onDeckBinding(webViewersCursor)),
+                                 onDeckBinding(webViewersCursor),
+                                 onBrowserBinding(immutableState)),
       onDocumentKeyUp: onTabStripKeyUp(tabStripCursor),
     }, [
       NavigationPanel({
