@@ -9,7 +9,7 @@ define((require, exports, module) => {
   const url = require('./util/url');
   const {fromJS} = require('immutable');
   const {open} = require('./web-viewer/actions');
-  // TODO: Shuld be `const {version} = require('package.json`);` instead but require.js
+  // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
   const version = '0.0.0';
 
