@@ -12,7 +12,7 @@ const {Deck} = require('./deck');
 const {select, remove} = require('./deck/actions');
 
 const readThumbnailURI = uri =>
-  'none' && `url(https://raw.githubusercontent.com/gordonbrander/website-tiles/master/${url.getDomainName(uri)}.png)`;
+  'none' && `url(/tiles/${url.getDomainName(uri)}.png)`;
 
 const equals = x => y => x.equals(y)
 
