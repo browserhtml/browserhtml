@@ -129,8 +129,7 @@ define((require, exports, module) => {
       if (present != past) {
         if (present == void(0)) {
           node.removeAttribute(this.name);
-        }
-        else {
+        } else {
           node.setAttribute(this.name, present);
         }
       }

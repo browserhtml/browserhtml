@@ -14,7 +14,7 @@ define((require, exports, module) => {
               immutableState.items.map(Deck.Render(Item, immutableState))));
 
   Deck.Render = (Item, immutableState) => item => Item(Object.assign({}, immutableState, {
-    key: `deck-item-${item.get("id")}`,
+    key: `deck-item-${item.get('id')}`,
     item: item
   }));
 

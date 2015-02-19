@@ -100,14 +100,14 @@ define((require, exports, module) => {
   });
 
   IFrame.onCanGoBackChange = node => request => {
-    node.dispatchEvent(new CustomEvent('mozbrowsercangobackchange',{
-      'detail': request.target.result
+    node.dispatchEvent(new CustomEvent('mozbrowsercangobackchange', {
+      detail: request.target.result
     }));
   }
 
   IFrame.onCanGoForwardChange = node => request => {
-    node.dispatchEvent(new CustomEvent('mozbrowsercangoforwardchange',{
-      'detail': request.target.result
+    node.dispatchEvent(new CustomEvent('mozbrowsercangoforwardchange', {
+      detail: request.target.result
     }));
   }
 
@@ -116,45 +116,46 @@ define((require, exports, module) => {
     // Do not render anything unless viewer has any `uri`
     if (!item.get('uri')) return null;
     return IFrame({
-    className: 'frame flex-1 webviewer' +
-                (item.get('contentOverflows') ? ' contentoverflows' : ''),
-    key: `frame-${item.get('id')}`,
-    isBrowser: true,
-    isRemote: true,
-    allowFullScreen: true,
+      className: 'frame flex-1 webviewer' +
+                  (item.get('contentOverflows') ? ' contentoverflows' : ''),
+      key: `frame-${item.get('id')}`,
+      isBrowser: true,
+      isRemote: true,
+      allowFullScreen: true,
 
-    isVisible: item.get('isSelected'),
-    hidden: !item.get('isSelected'),
-    zoom: item.get('zoom'),
-    isFocused: item.get('isFocused'),
-    src: item.get('uri'),
-    readyState: item.get('readyState'),
+      isVisible: item.get('isSelected'),
+      hidden: !item.get('isSelected'),
+      zoom: item.get('zoom'),
+      isFocused: item.get('isFocused'),
+      src: item.get('uri'),
+      readyState: item.get('readyState'),
 
-    onCanGoBackChange: WebViewer.onCanGoBackChange(item),
-    onCanGoForwardChange: WebViewer.onCanGoForwardChange(item),
-    onBlur: WebViewer.onBlur(item),
-    onFocus: WebViewer.onFocus(item),
-    // onAsyncScroll: WebViewer.onUnhandled,
-    onClose: event => remove(items, x => x.equals(item)),
-    onOpenWindow: event => {
-      items.update(items => {
-        const item = open({uri: event.detail.url});
-        return append(items, item);
-      });
-    },
-    onContextMenu: WebViewer.onUnhandled,
-    onError: event => console.error(event),
-    onLoadStart: WebViewer.onLoadStart(item),
-    onLoadEnd: WebViewer.onLoadEnd(item),
-    onMetaChange: WebViewer.onMetaChange(item),
-    onIconChange: WebViewer.onIconChange(item),
-    onLocationChange: WebViewer.onLocationChange(item),
-    onSecurityChange: WebViewer.onSecurityChange(item),
-    onTitleChange: WebViewer.onTitleChange(item),
-    onPrompt: WebViewer.onPrompt(item),
-    onAuthentificate: WebViewer.onAuthentificate(item),
-    onScrollAreaChange: WebViewer.onScrollAreaChange(item)
-    })});
+      onCanGoBackChange: WebViewer.onCanGoBackChange(item),
+      onCanGoForwardChange: WebViewer.onCanGoForwardChange(item),
+      onBlur: WebViewer.onBlur(item),
+      onFocus: WebViewer.onFocus(item),
+      // onAsyncScroll: WebViewer.onUnhandled,
+      onClose: event => remove(items, x => x.equals(item)),
+      onOpenWindow: event => {
+        items.update(items => {
+          const item = open({uri: event.detail.url});
+          return append(items, item);
+        });
+      },
+      onContextMenu: WebViewer.onUnhandled,
+      onError: event => console.error(event),
+      onLoadStart: WebViewer.onLoadStart(item),
+      onLoadEnd: WebViewer.onLoadEnd(item),
+      onMetaChange: WebViewer.onMetaChange(item),
+      onIconChange: WebViewer.onIconChange(item),
+      onLocationChange: WebViewer.onLocationChange(item),
+      onSecurityChange: WebViewer.onSecurityChange(item),
+      onTitleChange: WebViewer.onTitleChange(item),
+      onPrompt: WebViewer.onPrompt(item),
+      onAuthentificate: WebViewer.onAuthentificate(item),
+      onScrollAreaChange: WebViewer.onScrollAreaChange(item)
+    })
+  });
 
   WebViewer.onUnhandled = event => console.log(event)
   WebViewer.onBlur = state => event => state.set('isFocused', false);

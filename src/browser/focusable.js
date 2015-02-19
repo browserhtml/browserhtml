@@ -12,8 +12,7 @@ define((require, exports, module) => {
     if (current != past) {
       if (current) {
         node.focus();
-      }
-      else {
+      } else {
         node.blur();
       }
     }

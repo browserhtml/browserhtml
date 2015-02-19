@@ -108,7 +108,7 @@ define((require, exports, module) => {
 
     const theme = readTheme(selectedWebViewerCursor);
 
-    return  Main({
+    return Main({
       os: immutableState.get('os'),
       title: selectedWebViewerCursor.get('uri'),
       scrollGrab: true,

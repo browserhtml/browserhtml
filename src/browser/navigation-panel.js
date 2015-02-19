@@ -93,18 +93,16 @@ define((require, exports, module) => {
                onClick: event => selectedWebViewerCursor.set('readyState', 'stop')}),
     ]));
 
-  const NavigationPanel = Component(({key, inputCursor, tabStripCursor,
-                                      selectedWebViewerCursor, title, theme}) => {
-
+  const NavigationPanel = Component(({key, inputCursor, tabStripCursor, selectedWebViewerCursor, title, theme}) => {
     return DOM.div({
       key,
       style: theme.navigationPanel,
-      className: 'navbar' + (inputCursor.get('isFocused') ? ' urledit' : '')
-                          + (selectedWebViewerCursor.get('canGoBack') ? ' cangoback' : '')
-                          + (selectedWebViewerCursor.get('location') ? ' canreload' : '')
-                          + (selectedWebViewerCursor.get('isLoading') ? ' loading' : '')
-                          + (selectedWebViewerCursor.get('securityState') == 'secure' ? ' ssl' : '')
-                          + (selectedWebViewerCursor.get('securityExtendedValidation') ? ' sslv' : '')
+      className: 'navbar' + (inputCursor.get('isFocused') ? ' urledit' : '') +
+                            (selectedWebViewerCursor.get('canGoBack') ? ' cangoback' : '') +
+                            (selectedWebViewerCursor.get('location') ? ' canreload' : '') +
+                            (selectedWebViewerCursor.get('isLoading') ? ' loading' : '') +
+                            (selectedWebViewerCursor.get('securityState') == 'secure' ? ' ssl' : '') +
+                            (selectedWebViewerCursor.get('securityExtendedValidation') ? ' sslv' : '')
     }, [
       WindowControls({key: 'controls', theme}),
       NavigationControls({key: 'navigation', inputCursor, tabStripCursor,
