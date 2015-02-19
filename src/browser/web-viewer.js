@@ -160,7 +160,7 @@ define((require, exports, module) => {
   WebViewer.onFocus = webViewerCursor => event => webViewerCursor.set('isFocused', true);
 
   WebViewer.onLoadStart = webViewerCursor => event => webViewerCursor.merge({
-    readywebViewerCursor: 'loading',
+    readyState: 'loading',
     isLoading: true,
     icons: null,
     title: null,
@@ -172,7 +172,7 @@ define((require, exports, module) => {
   });
 
   WebViewer.onLoadEnd = webViewerCursor => event => webViewerCursor.merge({
-    readywebViewerCursor: 'loaded',
+    readyState: 'loaded',
     isLoading: false
   });
 
