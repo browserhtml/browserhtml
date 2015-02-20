@@ -17,8 +17,9 @@ define((require, exports, module) => {
          goBack, goForward, reload, stop} = require('./web-viewer/actions');
   const {focus, showTabStrip, hideTabStrip,
          writeSession, resetSession} = require('./actions');
-  const {selectedIndex, selectNext, selectPrevious,
-         remove, toggle, append, select} = require('./deck/actions');
+  const {indexOfSelected, selectNext, selectPrevious, select,
+         indexOfPreviewed, previewNext, previewPrevious, preview,
+         previewed, remove, append} = require('./deck/actions');
   const {readTheme} = require('./theme');
 
   const getOwnerWindow = node => node.ownerDocument.defaultView;
@@ -69,25 +70,37 @@ define((require, exports, module) => {
 
   const openTab = items => {
     const item = open();
-    return select(append(items, item), x => x == item);
+    const isItem = x => x == item;
+    return preview(select(append(items, item), isItem), isItem);
   }
 
   // If closing viewer, replace it with a fresh one & select it.
   // This avoids code branching down the pipe that otherwise will
   // need to deal with 0 viewer & no active viewer case.
   const closeTab = items =>
-    items.count() > 1 ? remove(items) : items.set(0, toggle(open()));
+    items.count() > 1 ? remove(items) :
+    remove(append(items, open()));
+
+  const selectPreviewed = items => {
+    const id = previewed(items).get("id");
+    select(items, item => item.get("id") == id);
+  }
 
   const edit = edit => cursor => cursor.update(edit);
   const onDeckBinding = KeyBindings({
     'accel t': edit(openTab),
     'accel w': edit(closeTab),
-    'control tab': edit(selectNext),
-    'control shift tab': edit(selectPrevious),
-    'meta shift ]': edit(selectNext),
-    'meta shift [': edit(selectPrevious),
-    'ctrl pagedown': edit(selectNext),
-    'ctrl pageup': edit(selectPrevious)
+    'control tab': edit(previewNext),
+    'control shift tab': edit(previewPrevious),
+    'meta shift ]': edit(previewNext),
+    'meta shift [': edit(previewPrevious),
+    'ctrl pagedown': edit(previewNext),
+    'ctrl pageup': edit(previewPrevious)
+  });
+
+  const onDeckBindingRelease = KeyBindings({
+    'control': selectPreviewed,
+    'meta shift': selectPreviewed
   });
 
   const onBrowserBinding = KeyBindings({
@@ -102,12 +115,16 @@ define((require, exports, module) => {
       steps.reduce((x, step) => step(x), init(...args));
   }
 
+
   // Browser is a root component for our application that just delegates
   // to a core sub-components here.
   const Browser = Component(immutableState => {
-    const index = selectedIndex(immutableState.get('webViewers'));
+    const selectIndex = indexOfSelected(immutableState.get('webViewers'));
+    const previewIndex = indexOfPreviewed(immutableState.get('webViewers'));
     const webViewersCursor = immutableState.cursor('webViewers');
-    const selectedWebViewerCursor = webViewersCursor.cursor(index);
+
+    const selectedWebViewerCursor = webViewersCursor.cursor(selectIndex);
+    const previewedWebViewerCursor = webViewersCursor.cursor(previewIndex);
 
     const tabStripCursor = immutableState.cursor('tabStrip');
     const inputCursor = immutableState.cursor('input');
@@ -115,7 +132,7 @@ define((require, exports, module) => {
     const isTabStripVisible = tabStripCursor.get('isActive') &&
                               webViewersCursor.count() > 1;
 
-    const theme = readTheme(selectedWebViewerCursor);
+    const theme = readTheme(previewedWebViewerCursor);
 
     return Main({
       os: immutableState.get('os'),
@@ -133,15 +150,15 @@ define((require, exports, module) => {
                                  onViewerBinding(selectedWebViewerCursor),
                                  onDeckBinding(webViewersCursor),
                                  onBrowserBinding(immutableState)),
-      onDocumentKeyUp: onTabStripKeyUp(tabStripCursor),
+      onDocumentKeyUp: compose(onTabStripKeyUp(tabStripCursor),
+                               onDeckBindingRelease(webViewersCursor))
     }, [
       NavigationPanel({
         key: 'navigation',
         inputCursor,
         tabStripCursor,
         theme,
-        selectedWebViewerCursor,
-        title: selectedWebViewerCursor.get('title'),
+        selectedWebViewerCursor: previewedWebViewerCursor,
       }),
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,

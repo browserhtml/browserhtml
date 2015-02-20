@@ -15,6 +15,7 @@ define((require, exports, module) => {
     loading: false,
     isFocused: false,
     isSelected: false,
+    isPreviewed: false,
     input: null,
     uri: null,
     location: null,

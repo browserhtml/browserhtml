@@ -11,7 +11,7 @@ define((require, exports, module) => {
   const {open} = require('./web-viewer/actions');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
-  const version = '0.0.0';
+  const version = '0.0.1';
 
 
   const makeSearchURL = input =>
@@ -46,6 +46,7 @@ define((require, exports, module) => {
                        zoom: 1,
                        isSelected: true,
                        isFocused: true,
+                       isPreviewed: true,
                        uri: 'https://github.com/mozilla/browser.html'})]
   });
 

@@ -21,7 +21,7 @@ define((require, exports, moudle) => {
     DOM.div({
       key: `tab-${item.get('id')}`,
       className: 'tab' +
-                 (item.get('isSelected') ? ' selected' : ''),
+                 (item.get('isPreviewed') ? ' selected' : ''),
       style: {
         backgroundImage: readThumbnailURI(item.get('location'))
       },

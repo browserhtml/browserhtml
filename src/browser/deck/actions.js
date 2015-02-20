@@ -6,8 +6,11 @@ define((require, exports, module) => {
 
   'use strict';
 
+  const Is = flag => item => item.get(flag);
+
   // Return `true` if given deck item is selected one.
-  const isSelected = item => item.get('isSelected');
+  const isSelected = Is('isSelected');
+  const isPreviewed = Is('isPreviewed');
 
   // Takes `f` edit function and returs the function that
   // takes `items` list and optional `isMatch` function, invoking
@@ -19,50 +22,81 @@ define((require, exports, module) => {
     return items.set(index, f(items.get(index)));
   }
 
+  const toggle = field => item => item.update(field, x => !x);
+
   // Takes item and toggles it's selection state, meaning if it is
   // selected it will be updated not to, and if it isn't it will update
   // to be selected.
-  const toggle = item => item.set('isSelected', !isSelected(item));
+  const toggleSelection = toggle('isSelected');
+  const togglePreview = toggle('isPreviewed');
+
+  const IndexOf = p => items => items.findIndex(p);
+
   // Takes `items` and returs the index of the selected one.
-  const selectedIndex = items => items.findIndex(isSelected);
+  const indexOfSelected = IndexOf(isSelected);
+  const indexOfPreviewed = IndexOf(isPreviewed);
+
+  const Find = p => items => items.find(p);
 
   // Takes `items` and returs the selected one.
-  const selected = items => items.find(isSelected);
+  const selected = Find(isSelected);
+  const previewed = Find(isPreviewed);
 
-  // Takes `items` and switches selection `from` index `to` given index.
-  const switchSelected = (items, from, to) =>
+  const indexOfNext = (items, index) => {
+    const isLast = index == items.count() - 1;
+    return isLast ? 0 : index + 1;
+  };
+
+  const indexOfPrevious = (items, index) => {
+    const isFirst = index == 0;
+    return isFirst ? items.count() - 1 : index - 1;
+  }
+
+
+  const switchWith = (toggle, items, from, to) =>
     from == to ? items : items.withMutations(items =>
       items.update(from, toggle)
            .update(to, toggle));
-  // Takes `items` and select item next to currently selected one,
-  // unless it's last one in which case it selects the first item.
-  // If only item is contained nothing happens.
-  const selectNext = items => {
-    const from = selectedIndex(items);
-    const isFromLast = from == items.count() - 1;
-    const to = isFromLast ? 0 : from + 1;
 
-    return switchSelected(items, from, to);
-  };
+  const Switch = (toggle, indexOf, step) => items => {
+    const from = indexOf(items);
+    const to = step(items, from);
+    return switchWith(toggle, items, from, to);
+  }
+
 
   // Takes `items` and selects item previous to currently selected one.
   // If selected item is first item, then last item is selected.
-  const selectPrevious = items => {
-    const from = selectedIndex(items);
-    const isFromFirst = from == 0;
-    const to = isFromFirst ? items.count() - 1 : from - 1;
+  const selectPrevious = Switch(toggleSelection,
+                                indexOfSelected,
+                                indexOfPrevious);
 
-    return switchSelected(items, from, to);
-  };
+  const previewPrevious = Switch(togglePreview,
+                                 indexOfPreviewed,
+                                 indexOfPrevious);
+
+  // Takes `items` and select item next to currently selected one,
+  // unless it's last one in which case it selects the first item.
+  // If only item is contained nothing happens.
+  const selectNext = Switch(toggleSelection,
+                            indexOfSelected,
+                            indexOfNext);
+
+  const previewNext = Switch(togglePreview,
+                             indexOfPreviewed,
+                             indexOfNext);
+
+  const SwitchTo = (toggle, indexOf) => (items, isTo) => {
+    const from = indexOf(items);
+    const to = items.findIndex(isTo);
+    return switchWith(toggle, items, from, to);
+  }
 
   // Takes `items` and `shouldSelecet` predicate and switches selection
   // from currently selected item to the first item for which `shouldSelect(item)`
   // is true.
-  const select = (items, shouldSelect) => {
-    const from = items.findIndex(isSelected);
-    const to = items.findIndex(shouldSelect);
-    return switchSelected(items, from, to);
-  };
+  const select = SwitchTo(toggleSelection, indexOfSelected);
+  const preview = SwitchTo(togglePreview, indexOfPreviewed);
 
   // Take an `items` and optionally `shouldClose` function and updates items
   // to exclude first one for which `shouldClose(item)` is `true`. If `shouldClose`
@@ -108,12 +142,16 @@ define((require, exports, module) => {
 
   exports.isSelected = isSelected;
   exports.edit = edit;
-  exports.toggle = toggle;
-  exports.selectedIndex = selectedIndex;
+  exports.toggleSelection = toggleSelection;
+  exports.indexOfSelected = indexOfSelected;
+  exports.indexOfPreviewed = indexOfPreviewed;
   exports.selected = selected;
-  exports.switchSelected = switchSelected;
   exports.selectNext = selectNext;
   exports.selectPrevious = selectPrevious;
+  exports.previewNext = previewNext;
+  exports.previewPrevious = previewPrevious;
+  exports.preview = preview;
+  exports.previewed = previewed;
   exports.select = select;
   exports.remove = remove;
   exports.insertAfter = insertAfter;

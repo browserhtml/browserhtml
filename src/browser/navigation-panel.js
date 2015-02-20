@@ -43,7 +43,7 @@ define((require, exports, module) => {
 
 
   const NavigationControls = Component(({inputCursor, tabStripCursor,
-                                         selectedWebViewerCursor, title, theme}) =>
+                                         selectedWebViewerCursor, theme}) =>
     DOM.div({
       className: 'locationbar',
       onMouseEnter: event => showTabStrip(tabStripCursor)
@@ -79,7 +79,7 @@ define((require, exports, module) => {
         DOM.span({key: 'title',
                   className: 'pagetitle',
                   style: theme.titleText},
-                 title ? title :
+                 selectedWebViewerCursor.get('title') ? selectedWebViewerCursor.get('title') :
                  selectedWebViewerCursor.get('isLoading') ? 'Loading...' :
                  selectedWebViewerCursor.get('location') ? selectedWebViewerCursor.get('location') :
                  'New Tab')
