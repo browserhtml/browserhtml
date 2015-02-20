@@ -132,7 +132,7 @@ define((require, exports, module) => {
     const isTabStripVisible = tabStripCursor.get('isActive') &&
                               webViewersCursor.count() > 1;
 
-    const theme = readTheme(previewedWebViewerCursor);
+    const theme = readTheme(selectedWebViewerCursor);
 
     return Main({
       os: immutableState.get('os'),
