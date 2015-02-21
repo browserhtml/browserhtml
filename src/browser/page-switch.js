@@ -10,26 +10,25 @@ define((require, exports, moudle) => {
   const Component = require('omniscient');
   const url = require('./util/url');
   const {Deck} = require('./deck');
-  const {select, remove} = require('./deck/actions');
+  const {select, activate, remove, isSelected} = require('./deck/actions');
 
   const readThumbnailURI = uri =>
     'none' && `url(/tiles/${url.getDomainName(uri)}.png)`;
 
-  const equals = x => y => x.equals(y)
-
-  const Tab = Component(({items, item}) =>
+  const Tab = Component(({items, item: webViewerCursor}) =>
     DOM.div({
-      key: `tab-${item.get('id')}`,
+      key: `tab-${webViewerCursor.get('id')}`,
       className: 'tab' +
-                 (item.get('isPreviewed') ? ' selected' : ''),
+                 (isSelected(webViewerCursor) ? ' selected' : ''),
       style: {
-        backgroundImage: readThumbnailURI(item.get('location'))
+        backgroundImage: readThumbnailURI(webViewerCursor.get('location'))
       },
-      onMouseDown: event => select(items, equals(item)),
+      onMouseOver: event => select(items, webViewerCursor),
+      onMouseDown: event => activate(items),
       onMouseUp: event => {
         if (event.button == 1) {
           event.stopPropagation();
-          remove(items, equals(item));
+          remove(items, webViewerCursor);
         }
       }
     }));

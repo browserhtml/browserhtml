@@ -9,7 +9,7 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {Deck} = require('./deck');
   const {open} = require('./web-viewer/actions');
-  const {remove, append} = require('./deck/actions');
+  const {remove, append, isActive, isSelected} = require('./deck/actions');
   const {getHardcodedColors} = require('./theme');
   const {IFrame} = require('./iframe');
 
@@ -26,8 +26,8 @@ define((require, exports, module) => {
       isRemote: true,
       allowFullScreen: true,
 
-      isVisible: webViewerCursor.get('isSelected'),
-      hidden: !webViewerCursor.get('isSelected'),
+      isVisible: isActive(webViewerCursor) || isSelected(webViewerCursor),
+      hidden: !isActive(webViewerCursor),
       zoom: webViewerCursor.get('zoom'),
       isFocused: webViewerCursor.get('isFocused'),
       src: webViewerCursor.get('uri'),
@@ -56,9 +56,11 @@ define((require, exports, module) => {
   });
 
   WebViewer.onUnhandled = event => console.log(event)
-  WebViewer.onBlur = webViewerCursor => event => webViewerCursor.set('isFocused', false);
+  WebViewer.onBlur = webViewerCursor => event =>
+    webViewerCursor.set('isFocused', false);
 
-  WebViewer.onFocus = webViewerCursor => event => webViewerCursor.set('isFocused', true);
+  WebViewer.onFocus = webViewerCursor => event =>
+    webViewerCursor.set('isFocused', true);
 
   WebViewer.onLoadStart = webViewerCursor => event => webViewerCursor.merge({
     readyState: 'loading',
@@ -77,13 +79,17 @@ define((require, exports, module) => {
     isLoading: false
   });
 
-  WebViewer.onOpenWindow = webViewersCursor => event => webViewersCursor.update(
-    webViewersCursor => append(webViewersCursor, open({uri: event.detail.url})));
+  WebViewer.onOpenWindow = webViewersCursor => event =>
+    webViewersCursor.update(webViewersCursor =>
+                              append(webViewersCursor,
+                                     open({uri: event.detail.url})));
 
-  WebViewer.onTitleChange = webViewerCursor => event => webViewerCursor.set('title', event.detail);
+  WebViewer.onTitleChange = webViewerCursor => event =>
+    webViewerCursor.set('title', event.detail);
 
-  WebViewer.onLocationChange = webViewerCursor => event => webViewerCursor.merge(
-    Object.assign({location: event.detail}, getHardcodedColors(event.detail)));
+  WebViewer.onLocationChange = webViewerCursor => event =>
+    webViewerCursor.merge(Object.assign({location: event.detail},
+                                        getHardcodedColors(event.detail)));
 
   WebViewer.onIconChange = webViewerCursor => event =>
     webViewerCursor.set(['icons', event.detail.href], event.detail);
@@ -100,6 +106,7 @@ define((require, exports, module) => {
   WebViewer.onPrompt = webViewerCursor => event => console.log(event);
 
   WebViewer.onAuthentificate = webViewerCursor => event => console.log(event);
+
   WebViewer.onScrollAreaChange = webViewerCursor => event =>
     webViewerCursor.set('contentOverflows',
               event.detail.height > event.target.parentNode.clientHeight);

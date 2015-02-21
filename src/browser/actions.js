@@ -70,6 +70,7 @@ define((require, exports, module) => {
   exports.readInputURL = readInputURL;
   exports.navigateTo = navigateTo;
   exports.focus = focusable => focusable.set('isFocused', true);
+  exports.blur = focusable => focusable.set('isFocused', false);
   exports.showTabStrip = tabStripCursor =>
     tabStripCursor.set('isActive', true);
   exports.hideTabStrip = tabStripCursor =>
