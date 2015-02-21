@@ -31,8 +31,8 @@ define((require, exports, moudle) => {
       }
     }, [
       DOM.span({
-        key: `thumb-${item.get('id')}`,
-        className: 'tab-thumb',
+        key: 'thumbnail',
+        className: 'tab-thumbnail',
         style: {backgroundImage: readThumbnailURI(item.get('location'))},
       })
     ]));
