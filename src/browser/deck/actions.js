@@ -115,7 +115,7 @@ define((require, exports, module) => {
   // to be selected or active then it takes care of activating / selecting
   // different item according to logic explained in the inline comments
   // below.
-  const remove = (items, p=isActive) => {
+  const remove = (items, p=exports.isActive) => {
     const target = items.findIndex(p);
     const selected = indexOfSelected(items);
     const active = indexOfActive(items);
@@ -190,11 +190,7 @@ define((require, exports, module) => {
                            isSelected(item) ? deselect : identity,
                            isActive(item) ? deactivate : identity);
 
-    // Use composed `update` function to transform `items`. `withMutations`
-    // is used to mutate same data structure across all steps as results of
-    // intermidiate steps isn't interesting and there for we can mutate in
-    // place. Please not that result is still immutable data structure.
-    return items.withMutations(update);
+    return update(items);
   }
 
   // Appends `item` to the deck `items`. If appended `item` is marked
