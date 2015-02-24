@@ -19,9 +19,6 @@ define((require, exports, moudle) => {
     DOM.div({
       className: 'tab' +
                  (isSelected(webViewerCursor) ? ' selected' : ''),
-      style: {
-        backgroundImage: readThumbnailURI(webViewerCursor.get('location'))
-      },
       onMouseOver: event => onSelect(webViewerCursor),
       onMouseDown: event => onActivate(),
       onMouseUp: event => {
@@ -30,8 +27,13 @@ define((require, exports, moudle) => {
           onClose(webViewerCursor);
         }
       }
-    }));
-
+    }, [
+      DOM.span({
+        key: 'thumbnail',
+        className: 'tab-thumbnail',
+        style: {backgroundImage: readThumbnailURI(webViewerCursor.get('location'))},
+      })
+    ]));
   Tab.Deck = Deck(Tab);
 
   // Exports:
