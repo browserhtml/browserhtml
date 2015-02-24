@@ -55,10 +55,7 @@ define((require, exports, module) => {
   });
   const onTabStripKeyUp = KeyBindings({
     'control': hideTabStrip,
-    'control tab': hideTabStrip,
-    'control shift tab': hideTabStrip,
-    'control shift': hideTabStrip,
-    'meta shift': hideTabStrip
+    'meta': hideTabStrip
   });
 
   const onViewerBinding = KeyBindings({
@@ -108,10 +105,7 @@ define((require, exports, module) => {
 
   const onDeckBindingRelease = KeyBindings({
     'control': activate,
-    'control shift': activate,
-    'control tab': activate,
-    'control shift tab': activate,
-    'meta shift': activate
+    'meta': activate
   });
 
   const onBrowserBinding = KeyBindings({
