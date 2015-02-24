@@ -66,11 +66,8 @@ define((require, exports, module) => {
     return isFirst ? items.count() - 1 : index - 1;
   }
 
-  const update = (unmark, mark, from, to) => items =>
-    items.update(from, unmark).update(to, mark);
-
   const transition = (unmark, mark) => (items, from, to) =>
-    from == to ? items : items.withMutations(update(unmark, mark, from, to));
+    from == to ? items : items.update(from, unmark).update(to, mark);
 
   const advance = (transition, indexOfFrom, indexOfTo) => items => {
     const from = indexOfFrom(items);
@@ -108,7 +105,7 @@ define((require, exports, module) => {
   }
 
   const activateNext = compose(activate, selectNext);
-  const activatePrevious = compose(active, selectPrevious);
+  const activatePrevious = compose(activate, selectPrevious);
 
   // Take an `items` and optional `p` predicate function and removes
   // first item where `p(item)` is true. If item to be removed happens

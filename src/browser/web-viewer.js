@@ -9,19 +9,19 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {Deck} = require('./deck');
   const {open} = require('./web-viewer/actions');
-  const {remove, append, isActive, isSelected} = require('./deck/actions');
+  const {isActive, isSelected} = require('./deck/actions');
   const {getHardcodedColors} = require('./theme');
   const {IFrame} = require('./iframe');
+  const {DOM} = require('react');
 
-  const WebViewer = Component(({item: webViewerCursor,
-                                items: webViewersCursor }) => {
+  const WebViewer = Component('WebViewer', ({item: webViewerCursor, onOpen, onClose}) => {
 
     // Do not render anything unless viewer has any `uri`
     if (!webViewerCursor.get('uri')) return null;
     return IFrame({
       className: 'frame flex-1 webviewer' +
                   (webViewerCursor.get('contentOverflows') ? ' contentoverflows' : ''),
-      key: `frame-${webViewerCursor.get('id')}`,
+      key: webViewerCursor.get('id'),
       isBrowser: true,
       isRemote: true,
       allowFullScreen: true,
@@ -38,8 +38,8 @@ define((require, exports, module) => {
       onBlur: WebViewer.onBlur(webViewerCursor),
       onFocus: WebViewer.onFocus(webViewerCursor),
       // onAsyncScroll: WebViewer.onUnhandled,
-      onClose: event => remove(webViewersCursor, x => x.equals(webViewerCursor)),
-      onOpenWindow: WebViewer.onOpenWindow(webViewersCursor),
+      onClose: event => onClose(webViewerCursor),
+      onOpenWindow: event => onOpen(open({uri: event.detail.url})),
       onContextMenu: WebViewer.onUnhandled,
       onError: event => console.error(event),
       onLoadStart: WebViewer.onLoadStart(webViewerCursor),
@@ -65,7 +65,7 @@ define((require, exports, module) => {
   WebViewer.onLoadStart = webViewerCursor => event => webViewerCursor.merge({
     readyState: 'loading',
     isLoading: true,
-    icons: null,
+    icons: {},
     title: null,
     location: null,
     securityState: 'insecure',
@@ -79,11 +79,6 @@ define((require, exports, module) => {
     isLoading: false
   });
 
-  WebViewer.onOpenWindow = webViewersCursor => event =>
-    webViewersCursor.update(webViewersCursor =>
-                              append(webViewersCursor,
-                                     open({uri: event.detail.url})));
-
   WebViewer.onTitleChange = webViewerCursor => event =>
     webViewerCursor.set('title', event.detail);
 
@@ -92,7 +87,7 @@ define((require, exports, module) => {
                                         getHardcodedColors(event.detail)));
 
   WebViewer.onIconChange = webViewerCursor => event =>
-    webViewerCursor.set(['icons', event.detail.href], event.detail);
+    webViewerCursor.setIn(['icons', event.detail.href], event.detail);
 
   WebViewer.onMetaChange = webViewerCursor => event =>
     webViewerCursor.set('metadata', event.detail);
@@ -116,7 +111,6 @@ define((require, exports, module) => {
                            securityExtendedValidation: event.detail.extendedValidation});
 
   WebViewer.Deck = Deck(WebViewer);
-
   // Exports:
 
   exports.WebViewer = WebViewer;

@@ -8,7 +8,7 @@ define((require, exports, module) => {
 
   const Component = require('omniscient');
   const {DOM} = require('react');
-  const {compose} = require('lang/functional');
+  const {compose, throttle} = require('lang/functional');
   const {NavigationPanel} = require('./navigation-panel');
   const {WebViewer} = require('./web-viewer');
   const {Tab} = require('./page-switch');
@@ -17,8 +17,8 @@ define((require, exports, module) => {
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
   const {focus, showTabStrip, hideTabStrip,
-         writeSession, resetSession} = require('./actions');
-  const {indexOfSelected, indexOfActive,
+         writeSession, resetSession, resetSelected} = require('./actions');
+  const {indexOfSelected, indexOfActive, isActive,
          selectNext, selectPrevious, select, activate,
          previewed, remove, append} = require('./deck/actions');
   const {readTheme} = require('./theme');
@@ -69,29 +69,38 @@ define((require, exports, module) => {
     'F5': reload
   });
 
-  const openTab = items =>
+
+  const addTab = item => items => append(items, item);
+
+  const openTab = (items) =>
     append(items, open({isSelected: true,
                         isActive: true}));
 
   // If closing viewer, replace it with a fresh one & select it.
   // This avoids code branching down the pipe that otherwise will
   // need to deal with 0 viewer & no active viewer case.
-  const closeTab = items =>
-    items.count() > 1 ? remove(items) :
-    items.set(0, open({isSelected: true,
-                       isActive: true}));
+  const close = p => items =>
+    items.count() > 1 ? remove(items, p) :
+    items.set(0, open({isSelected: true, isActive: true}));
+
+  const closeTab = item =>
+    close(x => x.get('id') == item.get('id'));
 
 
   const edit = edit => cursor => cursor.update(edit);
+
+  const onSelectNext = throttle(edit(selectNext), 200)
+  const onSelectPrevious = throttle(edit(selectPrevious), 200);
+
   const onDeckBinding = KeyBindings({
     'accel t': edit(openTab),
-    'accel w': edit(closeTab),
-    'control tab': edit(selectNext),
-    'control shift tab': edit(selectPrevious),
-    'meta shift ]': edit(selectNext),
-    'meta shift [': edit(selectPrevious),
-    'ctrl pagedown': edit(selectNext),
-    'ctrl pageup': edit(selectPrevious)
+    'accel w': edit(close(isActive)),
+    'control tab': onSelectNext,
+    'control shift tab': onSelectPrevious,
+    'meta shift ]': onSelectNext,
+    'meta shift [': onSelectPrevious,
+    'ctrl pagedown': onSelectNext,
+    'ctrl pageup': onSelectPrevious
   });
 
   const onDeckBindingRelease = KeyBindings({
@@ -106,7 +115,7 @@ define((require, exports, module) => {
 
   // Browser is a root component for our application that just delegates
   // to a core sub-components here.
-  const Browser = Component(immutableState => {
+  const Browser = Component('Browser', immutableState => {
     const webViewers = immutableState.get('webViewers');
     const webViewersCursor = immutableState.cursor('webViewers');
 
@@ -155,15 +164,27 @@ define((require, exports, module) => {
                className: 'tabstripcontainer'}, [
         Tab.Deck({key: 'tabstrip',
                   className: 'tabstrip',
-                  items: webViewersCursor})
+                  items: webViewersCursor,
+
+                  onSelect: item => webViewersCursor.update(items => select(items, item)),
+                  onActivate: _ => webViewersCursor.update(items => activate(items)),
+                  onClose: item => webViewersCursor.update(closeTab(item))
+                 })
       ]),
       DOM.div({key: 'tabstripkillzone',
                className: 'tabstripkillzone',
-               onMouseEnter: event => hideTabStrip(tabStripCursor)}),
+               onMouseEnter: event => {
+                 resetSelected(webViewersCursor);
+                 hideTabStrip(tabStripCursor);
+               }
+              }),
 
-      WebViewer.Deck({key: 'deck',
+      WebViewer.Deck({key: 'web-viewers',
                       className: 'iframes',
-                      items: webViewersCursor}),
+                      items: webViewersCursor,
+                      onClose: item => webViewersCursor.update(closeTab(item)),
+                      onOpen: item => webViewersCursor.update(addTab(item))
+                     })
     ]);
   });
 

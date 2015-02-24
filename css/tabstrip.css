@@ -67,10 +67,12 @@ main.showtabstrip iframes {
   margin-right: 0;
 }
 
+/*
 .tab:hover {
   transform: scale(1);
 }
+*/
 
-.tabstrip:not(:hover) .tab.selected {
+.tab.selected {
   transform: scale(1);
 }

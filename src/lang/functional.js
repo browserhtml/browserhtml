@@ -82,6 +82,84 @@ define((require, exports, module) => {
   const or = (...ps) => (...params) => ps.some(p => p(...params));
 
 
+  const scheduler = task => {
+    let isScheduled = false;
+    const end = () => isScheduled = false;
+    const schedule = () => {
+      if (!isScheduled) {
+        task(end);
+      }
+    }
+  }
+
+
+  const throttle = (f, wait, options={}) => {
+    let args = null;
+    let result = null;
+    let timeout = null;
+    let previous = 0;
+    let {leading, trailing} = options;
+
+
+    const later = () => {
+      previous = leading === false ? 0 : Date.now();
+      timeout = null;
+      result = f(...args);
+      args = null;
+    };
+
+    return (...params) => {
+      let now = Date.now();
+      if (!previous && leading === false) previous = now;
+      let remaining = wait - (now - previous);
+      args = params;
+      if (remaining <= 0) {
+        clearTimeout(timeout);
+        timeout = null;
+        previous = now;
+        result = f(...args);
+        args = null;
+      } else if (!timeout && trailing !== false) {
+        timeout = setTimeout(later, remaining);
+      }
+      return result;
+    };
+  };
+
+  const debounce = (f, wait, immediate) => {
+    let timeout = null;
+    let args = null;
+    let timestamp = null;
+    let result = null;
+
+    const later = (...args) => {
+      let last = Date.now() - timestamp;
+
+      if (last < wait && last >= 0) {
+        timeout = setTimeout(later, wait - last);
+      } else {
+        timeout = null;
+        if (!immediate) {
+          result = f(...args);
+          if (!timeout) args = null;
+        }
+      }
+    };
+
+    return (...params) => {
+      args = params;
+      timestamp = Date.now();
+      let callNow = immediate && !timeout;
+      if (!timeout) timeout = setTimeout(later, wait);
+      if (callNow) {
+        result = f(...args);
+        args = null;
+      }
+
+      return result;
+    }
+  }
+
   exports.compose = compose;
   exports.partial = partial;
   exports.curry = curry;
@@ -95,4 +173,7 @@ define((require, exports, module) => {
   exports.not = not;
   exports.and = and;
   exports.or = or;
+
+  exports.throttle = throttle;
+  exports.debounce = debounce;
 });

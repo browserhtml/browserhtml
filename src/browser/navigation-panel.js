@@ -14,7 +14,7 @@ define((require, exports, module) => {
   const {KeyBindings} = require('./keyboard');
   const url = require('./util/url');
 
-  const WindowControls = Component(({theme}) =>
+  const WindowControls = Component('WindowControls', ({theme}) =>
     DOM.div({className: 'windowctrls'}, [
       DOM.div({className: 'windowctrl win-close-button',
                style: theme.windowCloseButton,
@@ -42,7 +42,7 @@ define((require, exports, module) => {
   const inputBindings = KeyBindings({'escape': focus});
 
 
-  const NavigationControls = Component(({inputCursor, tabStripCursor,
+  const NavigationControls = Component('NavigationControls', ({inputCursor, tabStripCursor,
                                          webViewerCursor, theme}) =>
     DOM.div({
       className: 'locationbar',
@@ -94,7 +94,7 @@ define((require, exports, module) => {
                onClick: event => webViewerCursor.set('readyState', 'stop')}),
     ]));
 
-  const NavigationPanel = Component(({key, inputCursor, tabStripCursor, webViewerCursor, title, theme}) => {
+  const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStripCursor, webViewerCursor, title, theme}) => {
     return DOM.div({
       key,
       style: theme.navigationPanel,

@@ -17,7 +17,32 @@ define(function(require, exports, module) {
   var render = (Component, initial, target) => {
     let current = null;
 
+    const schedule = (task) => {
+      if (!schedule.d) {
+        schedule.d = true;
+        window.requestAnimationFrame(() => {
+          schedule.d = false;
+          task();
+        });
+      }
+    }
+    schedule.d = false;
+
+    const draw = () => {
+      if (window.debug) {
+        console.log('! render', current.toJSON());
+      }
+      // create a cursor for a current up to date state with a
+      // step as change handler, to retriger render loop on change.
+      const cursor = Cursor.from(current, step);
+      // Finally use React to render current state with a component.
+      React.render(Component(cursor), target);
+    }
+
     const step = (to, from, path) => {
+      if (window.debug) {
+        console.log('! update', path.join('.'), to.toJSON());
+      }
       // Note that only components that rely on state that changed
       // will be retriggered during rendering. This implies that some components
       // may be holding onto old cursors. If that is the case state `from` which
@@ -45,15 +70,11 @@ define(function(require, exports, module) {
         }
       }
 
-      // create a cursor for a current up to date state with a
-      // step as change handler, to retriger render loop on change.
-      const cursor = Cursor.from(current, step);
-      // Finally use React to render current state with a component.
-      React.render(Component(cursor), target);
+      schedule(draw);
     }
 
     // Spawn render loop by stepping into!
-    step(initial, null);
+    step(initial, null, ['/']);
   };
 
   // Exports:
