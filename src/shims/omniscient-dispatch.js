@@ -5,6 +5,9 @@
 define((require, exports, module) => {
   'use strict';
 
+  // This is a workaround for the issue described here:
+  // https://github.com/omniscientjs/omniscient/issues/67
+
   const delegate = delegee => {
     const delegate = (...args) => delegate.delegee(...args);
     return delegate

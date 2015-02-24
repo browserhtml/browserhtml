@@ -20,15 +20,19 @@ define(function(require, exports, module) {
     const schedule = (task) => {
       if (!schedule.d) {
         schedule.d = true;
-        window.requestAnimationFrame(() => {
+
+        // Disable anymation framing as it couses some
+        // misbehavior (see https://github.com/mozilla/browser.html/issues/82)
+        //window.requestAnimationFrame(() => {
           schedule.d = false;
           task();
-        });
+        //});
       }
     }
     schedule.d = false;
 
     const draw = () => {
+      window.current = current;
       if (window.debug) {
         console.log('! render', current.toJSON());
       }
@@ -40,9 +44,6 @@ define(function(require, exports, module) {
     }
 
     const step = (to, from, path) => {
-      if (window.debug) {
-        console.log('! update', path.join('.'), to.toJSON());
-      }
       // Note that only components that rely on state that changed
       // will be retriggered during rendering. This implies that some components
       // may be holding onto old cursors. If that is the case state `from` which
@@ -70,11 +71,16 @@ define(function(require, exports, module) {
         }
       }
 
+      if (window.debug) {
+        console.log('! update', path.join('.'), current.toJSON());
+      }
+
+
       schedule(draw);
     }
 
     // Spawn render loop by stepping into!
-    step(initial, null, ['/']);
+    step(initial, null, []);
   };
 
   // Exports:
