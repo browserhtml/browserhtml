@@ -17,22 +17,8 @@ define(function(require, exports, module) {
   var render = (Component, initial, target) => {
     let current = null;
 
-    const schedule = (task) => {
-      if (!schedule.d) {
-        schedule.d = true;
-
-        // Disable anymation framing as it couses some
-        // misbehavior (see https://github.com/mozilla/browser.html/issues/82)
-        //window.requestAnimationFrame(() => {
-          schedule.d = false;
-          task();
-        //});
-      }
-    }
-    schedule.d = false;
-
     const draw = () => {
-      window.current = current;
+      window.state = current;
       if (window.debug) {
         console.log('! render', current.toJSON());
       }
@@ -76,7 +62,7 @@ define(function(require, exports, module) {
       }
 
 
-      schedule(draw);
+      draw();
     }
 
     // Spawn render loop by stepping into!
