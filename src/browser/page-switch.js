@@ -34,6 +34,7 @@ define((require, exports, moudle) => {
         style: {backgroundImage: readThumbnailURI(webViewerCursor.get('location'))},
       }),
       DOM.button({
+        key: 'close-button',
         onClick: event => onClose(webViewerCursor),
         className: "tab-close-button fa fa-times",
       })
