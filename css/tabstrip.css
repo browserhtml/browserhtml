@@ -83,17 +83,17 @@ main.showtabstrip iframes {
   font-family: FontAwesome;
   text-align: center;
   font-size: 16px;
-  vertical-align: middle;
-  width: 22px;
-  height: 22px;
+  line-height: 18px;
+  width: 18px;
+  height: 18px;
   position: absolute;
-  top: 10px;
-  right: -10px;
+  top: 7px;
+  right: -9px;
   background: #222;
   color: white;
 
   z-index: 2;
-  border-radius: 100%;
+  border-radius: 50%;
 
   display: none;
 }
@@ -104,5 +104,5 @@ main.showtabstrip iframes {
 }
 
 .tab:hover .tab-close-button {
-  display: inline-block;
+  display: block;
 }
