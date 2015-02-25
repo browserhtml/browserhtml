@@ -28,7 +28,7 @@ define((require, exports, module) => {
   // that maps to same named proprety.
   const Main = Element('main', {
     os: Attribute('os'),
-    title: Field((node, current, past) => {
+    windowTitle: Field((node, current, past) => {
       node.ownerDocument.title = current;
     }),
     scrollGrab: Field((node, current, past) => {
@@ -134,7 +134,7 @@ define((require, exports, module) => {
 
     return Main({
       os: immutableState.get('os'),
-      title: title(selectedWebViewerCursor),
+      windowTitle: title(selectedWebViewerCursor),
       scrollGrab: true,
       className: 'moz-noscrollbars' +
                  (theme.isDark ? ' isdark' : '') +
