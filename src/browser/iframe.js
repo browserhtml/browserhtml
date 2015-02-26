@@ -7,14 +7,14 @@ define((require, exports, module) => {
   'use strict';
 
   const {isFocused} = require('./focusable');
-  const {Element, BeforeAppendAttribute, Field, Event} = require('./element');
+  const {Element, BeforeAppendAttribute, VirtualAttribute, Event} = require('./element');
 
   const IFrame = Element('iframe', {
     isFocused: isFocused,
     isRemote: new BeforeAppendAttribute('remote'),
     isBrowser: new BeforeAppendAttribute('mozbrowser'),
     allowFullScreen: new BeforeAppendAttribute('mozallowfullscreen'),
-    src: Field((node, current, past) => {
+    src: VirtualAttribute((node, current, past) => {
       if (current != past) {
         if (node.setVisible) {
           node.src = current;
@@ -23,21 +23,21 @@ define((require, exports, module) => {
         }
       }
     }),
-    isVisible: Field((node, current, past) => {
+    isVisible: VirtualAttribute((node, current, past) => {
       if (current != past) {
         if (node.setVisible) {
           node.setVisible(current);
         }
       }
     }),
-    zoom: Field((node, current, past) => {
+    zoom: VirtualAttribute((node, current, past) => {
       if (current != past) {
         if (node.zoom) {
           node.zoom(current);
         }
       }
     }),
-    readyState: Field((node, current, past) => {
+    readyState: VirtualAttribute((node, current, past) => {
       if (current == 'reload') {
         if (node.reload) {
           node.reload();

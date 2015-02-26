@@ -8,7 +8,7 @@ define((require, exports, module) => {
 
   const {DOM} = require('react')
   const Component = require('omniscient');
-  const {InputField} = require('./editable');
+  const {InputVirtualAttribute} = require('./editable');
   const {Element} = require('./element');
   const {navigateTo, showTabStrip, focus} = require('./actions');
   const {KeyBindings} = require('./keyboard');
@@ -54,7 +54,7 @@ define((require, exports, module) => {
                style: theme.backButton,
                key: 'back',
                onClick: event => webViewerCursor.set('readyState', 'goBack')}),
-      InputField({
+      InputVirtualAttribute({
         key: 'input',
         className: 'urlinput',
         style: theme.urlInput,

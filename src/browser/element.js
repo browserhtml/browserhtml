@@ -137,8 +137,8 @@ define((require, exports, module) => {
   }
   Element.Attribute = Attribute;
 
-  // Field can be used to define fields that can't be
-  // mapped to an attribute in the DOM. Field is defined
+  // VirtualAttribute can be used to define fields that can't be
+  // mapped to an attribute in the DOM. VirtualAttribute is defined
   // by providing a function that will be invoked target
   // `node` `current` value & `past` value and it's supposed
   // to reflect changes in the DOM. Note that on initial
@@ -150,19 +150,19 @@ define((require, exports, module) => {
   //     node.focus()
   //   }
   // }})
-  const Field = function(write) {
-    if (!(this instanceof Field)) {
-      return new Field(write);
+  const VirtualAttribute = function(write) {
+    if (!(this instanceof VirtualAttribute)) {
+      return new VirtualAttribute(write);
     }
     this.write = write;
   };
-  Field.prototype = {
+  VirtualAttribute.prototype = {
     constructor: Attribute,
     mounted(node, value) {
       this.write(node, value, void(0));
     }
   };
-  Element.Field = Field;
+  Element.VirtualAttribute = VirtualAttribute;
 
   // Event can be used to define event handler fields, for
   // the given event `type`. When event of that type occurs
@@ -226,7 +226,7 @@ define((require, exports, module) => {
   exports.Element = Element;
   exports.BeforeAppendAttribute = BeforeAppendAttribute;
   exports.Attribute = Attribute;
-  exports.Field = Field;
+  exports.VirtualAttribute = VirtualAttribute;
   exports.Event = Event;
   exports.CapturedEvent = CapturedEvent;
 });

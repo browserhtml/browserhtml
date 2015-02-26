@@ -12,7 +12,7 @@ define((require, exports, module) => {
   const {NavigationPanel} = require('./navigation-panel');
   const {WebViewer} = require('./web-viewer');
   const {Tab} = require('./page-switch');
-  const {Element, Event, Field, Attribute} = require('./element');
+  const {Element, Event, VirtualAttribute, Attribute} = require('./element');
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
@@ -28,10 +28,10 @@ define((require, exports, module) => {
   // that maps to same named proprety.
   const Main = Element('main', {
     os: Attribute('os'),
-    windowTitle: Field((node, current, past) => {
+    windowTitle: VirtualAttribute((node, current, past) => {
       node.ownerDocument.title = current;
     }),
-    scrollGrab: Field((node, current, past) => {
+    scrollGrab: VirtualAttribute((node, current, past) => {
       node.scrollgrab = current;
     }),
     onDocumentFocus: Event('focus', getOwnerWindow),
