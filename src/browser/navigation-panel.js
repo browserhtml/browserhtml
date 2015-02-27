@@ -107,7 +107,7 @@ define((require, exports, module) => {
         cangoback: webViewerCursor.get('canGoBack'),
         canreload: webViewerCursor.get('location'),
         loading: webViewerCursor.get('isLoading'),
-        ssl: webViewerCursor.get('securityState'),
+        ssl: webViewerCursor.get('securityState') == 'secure',
         sslv: webViewerCursor.get('securityExtendedValidation')
       })
     }, [
