@@ -15,11 +15,11 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {Element, Field} = require('./element');
+  const {Element, VirtualAttribute} = require('./element');
   const Component = require('omniscient');
 
   const ProgressBarElement = Element('div', {
-    progressBarColor: Field((node, current, past) => {
+    progressBarColor: VirtualAttribute((node, current, past) => {
       if (current != past) {
         node.style.setProperty('--progressbar-color', current);
       }
