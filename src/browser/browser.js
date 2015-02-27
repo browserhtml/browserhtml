@@ -22,6 +22,7 @@ define((require, exports, module) => {
          selectNext, selectPrevious, select, activate,
          previewed, remove, append} = require('./deck/actions');
   const {readTheme} = require('./theme');
+  const ClassSet = require('./util/class-set');
 
   const getOwnerWindow = node => node.ownerDocument.defaultView;
   // Define custom `main` element with a custom `scrollGrab` attribute
@@ -136,11 +137,13 @@ define((require, exports, module) => {
       os: immutableState.get('os'),
       windowTitle: title(selectedWebViewerCursor),
       scrollGrab: true,
-      className: 'moz-noscrollbars' +
-                 (theme.isDark ? ' isdark' : '') +
-                 (immutableState.get('isDocumentFocused') ? ' windowFocused' : '') +
-                 (isTabStripVisible ? ' showtabstrip' : '') +
-                 (inputCursor.get('isFocused') ? '' : ' scrollable'),
+      className: ClassSet({
+        'moz-noscrollbars': true,
+        isdark: theme.isDark,
+        windowFocused: immutableState.get('isDocumentFocused'),
+        showtabstrip: isTabStripVisible,
+        scrollable: !inputCursor.get('isFocused')
+      }),
       onDocumentUnload: event => writeSession(immutableState),
       onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
       onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
