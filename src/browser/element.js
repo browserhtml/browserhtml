@@ -216,6 +216,32 @@ define((require, exports, module) => {
   CapturedEvent.prototype = Event.prototype;
   Element.CapturedEvent = CapturedEvent;
 
+  const VirtualEvent = function(setup) {
+    if (!(this instanceof VirtualEvent)) {
+      return new VirtualEvent(setup);
+    }
+
+    this.setup = setup;
+  }
+  VirtualEvent.prototype = {
+    constructor: VirtualEvent,
+    construct() {
+      return new this.constructor(this.setup);
+    },
+    mounted(node, handler) {
+      this.write(node, handler);
+      this.setup(node, this.handleEvent.bind(this));
+    },
+    write(node, present) {
+      this.handler = present;
+    },
+    handleEvent(event) {
+      if (this.handler) {
+        this.handler(event);
+      }
+    }
+  };
+  Element.VirtualEvent = VirtualEvent;
 
   // Exports:
 
@@ -229,4 +255,5 @@ define((require, exports, module) => {
   exports.VirtualAttribute = VirtualAttribute;
   exports.Event = Event;
   exports.CapturedEvent = CapturedEvent;
+  exports.VirtualEvent = VirtualEvent;
 });

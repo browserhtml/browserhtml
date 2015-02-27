@@ -7,7 +7,8 @@ define((require, exports, module) => {
   'use strict';
 
   const {isFocused} = require('./focusable');
-  const {Element, BeforeAppendAttribute, VirtualAttribute, Event} = require('./element');
+  const {Element, BeforeAppendAttribute,
+         VirtualAttribute, Event, VirtualEvent} = require('./element');
 
   const IFrame = Element('iframe', {
     isFocused: isFocused,
@@ -61,15 +62,6 @@ define((require, exports, module) => {
           node.goForward();
         }
       }
-
-      // Note that goBack / goForward won't trigger load events so we need
-      // to re request canGoBack / canGoForward over on each state change.
-      if (node.getCanGoBack) {
-        node.getCanGoBack().onsuccess = IFrame.onCanGoBackChange(node)
-      }
-      if (node.getCanGoForward) {
-        node.getCanGoForward().onsuccess = IFrame.onCanGoForwardChange(node)
-      }
     }),
     onAsyncScroll: Event('mozbrowserasyncscroll'),
     onClose: Event('mozbrowserclose'),
@@ -87,23 +79,25 @@ define((require, exports, module) => {
     onTitleChange: Event('mozbrowsertitlechange'),
     onPrompt: Event('mozbrowsershowmodalprompt'),
     onAuthentificate: Event('mozbrowserusernameandpasswordrequired'),
-    onCanGoBackChange: Event('mozbrowsercangobackchange'),
-    onCanGoForwardChange: Event('mozbrowsercangoforwardchange'),
     onScrollAreaChange: Event('mozbrowserscrollareachanged'),
-    onLoadProgressChange: Event('mozbrowserloadprogresschanged')
+    onLoadProgressChange: Event('mozbrowserloadprogresschanged'),
+    onCanGoBackChange: VirtualEvent((target, dispatch) => {
+      const onsuccess = request =>
+        dispatch({target, detail: request.target.result});
+
+      target.addEventListener('mozbrowserlocationchange', event => {
+        target.getCanGoBack().onsuccess = onsuccess;
+      });
+    }),
+    onCanGoForwardChange: VirtualEvent((target, dispatch) => {
+      const onsuccess = request =>
+        dispatch({target, detail: request.target.result});
+
+      target.addEventListener('mozbrowserlocationchange', event => {
+        target.getCanGoForward().onsuccess = onsuccess;
+      });
+    })
   });
-
-  IFrame.onCanGoBackChange = node => request => {
-    node.dispatchEvent(new CustomEvent('mozbrowsercangobackchange', {
-      detail: request.target.result
-    }));
-  }
-
-  IFrame.onCanGoForwardChange = node => request => {
-    node.dispatchEvent(new CustomEvent('mozbrowsercangoforwardchange', {
-      detail: request.target.result
-    }));
-  }
 
   // Exports:
 
