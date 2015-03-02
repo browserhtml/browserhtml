@@ -60,6 +60,7 @@
 .isdark .locationbar {
   background-color: rgba(255,255,255,0.15);
 }
+
 .isdark .pagesummary,
 .isdark .urlinput  {
   border-color: rgba(0,0,0,0.1);
@@ -92,7 +93,7 @@
 }
 
 .backbutton::after {
-  transform: translateY(var(--hwd-pixel)); /* meh */
+  transform: translateY(var(--hwd-pixel)); /* fixme. fontawesome alignment issue*/
 }
 
 .backbutton::after {   content: "\f053" }
@@ -105,8 +106,7 @@
 }
 
 .navbar:not(.cangoback) .backbutton,
-.navbar:not(.canreload) .reloadbutton
-{
+.navbar:not(.canreload) .reloadbutton {
   opacity: 0.2;
   pointer-events: none;
 }
