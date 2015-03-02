@@ -142,7 +142,7 @@ define((require, exports, module) => {
         isdark: theme.isDark,
         windowFocused: immutableState.get('isDocumentFocused'),
         showtabstrip: isTabStripVisible,
-        scrollable: !inputCursor.get('isFocused')
+        scrollable: !inputCursor.get('isFocused') && !isTabStripVisible
       }),
       onDocumentUnload: event => writeSession(immutableState),
       onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
