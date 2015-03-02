@@ -71,29 +71,33 @@ main.showtabstrip .tab-thumbnail {
 }
 
 .tab-close-button {
-  font-family: FontAwesome;
-  text-align: center;
-  font-size: 16px;
-  line-height: 18px;
-  width: 18px;
-  height: 18px;
   position: absolute;
-  top: 7px;
-  right: -9px;
-  background: #222;
-  color: white;
-
+  align-items: center;
+  justify-content: center;
   z-index: 2;
-  border-radius: 50%;
-
-  display: none;
+  height: 36px; /* big hitzone */
+  width: 36px;
+  right: -18px; /* (hitzone / 2) */
+  top: -2px; /* 16px - (hitzone / 2) see thumbnail margin top */
+  opacity: 0;
+  pointer-events: none;
 }
 
-
-.tab-close-button:after {
-  content: "\f00d";
+.tab-close-button::after {
+  cursor: default;
+  content: "×";
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  line-height: 18px;
+  width: 18px;
+  background-color: #444;
+  border-radius: 50%;
+  color: white;
 }
 
 .tab:hover .tab-close-button {
-  display: block;
+  opacity: 1;
+  transition: opacity 150ms 250ms ease;
+  pointer-events: auto;
 }
