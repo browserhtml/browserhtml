@@ -1,9 +1,11 @@
 .locationbar {
   -moz-window-dragging: no-drag;
   align-items: center;
+  align-self: center;
   flex-basis: 460px;
   border-radius: 3px;
   line-height: 30px;
+  margin: 0 auto;
   background-color: rgba(0,0,0,0.07);
   overflow: hidden;
 }
