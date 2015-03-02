@@ -20,7 +20,8 @@ define((require, exports, module) => {
          writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive,
          selectNext, selectPrevious, select, activate,
-         previewed, remove, append} = require('./deck/actions');
+         previewed, remove, append,
+         maybeActivateIndex, activateLast} = require('./deck/actions');
   const {readTheme} = require('./theme');
   const ClassSet = require('./util/class-set');
 
@@ -67,7 +68,7 @@ define((require, exports, module) => {
     'accel right': goForward,
     'escape': stop,
     'accel r': reload,
-    'F5': reload
+    'F5': reload,
   });
 
 
@@ -93,6 +94,8 @@ define((require, exports, module) => {
   const onSelectNext = throttle(edit(selectNext), 200)
   const onSelectPrevious = throttle(edit(selectPrevious), 200);
 
+  const switchToTab = index => items => maybeActivateIndex(items, index);
+
   const onDeckBinding = KeyBindings({
     'accel t': edit(openTab),
     'accel w': edit(close(isActive)),
@@ -101,7 +104,16 @@ define((require, exports, module) => {
     'meta shift ]': onSelectNext,
     'meta shift [': onSelectPrevious,
     'ctrl pagedown': onSelectNext,
-    'ctrl pageup': onSelectPrevious
+    'ctrl pageup': onSelectPrevious,
+    'alt 1': edit(switchToTab(0)),
+    'alt 2': edit(switchToTab(1)),
+    'alt 3': edit(switchToTab(2)),
+    'alt 4': edit(switchToTab(3)),
+    'alt 5': edit(switchToTab(4)),
+    'alt 6': edit(switchToTab(5)),
+    'alt 7': edit(switchToTab(6)),
+    'alt 8': edit(switchToTab(7)),
+    'alt 9': edit(activateLast),
   });
 
   const onDeckBindingRelease = KeyBindings({
