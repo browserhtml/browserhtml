@@ -1,8 +1,7 @@
 .locationbar {
   -moz-window-dragging: no-drag;
   align-items: center;
-  width: 460px;
-  flex-shrink: 0;
+  flex-basis: 460px;
   border-radius: 3px;
   line-height: 30px;
   background-color: rgba(0,0,0,0.07);
