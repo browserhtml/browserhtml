@@ -13,12 +13,12 @@ define((require, exports, module) => {
   // in immutable data structures and cursors.
   const get = curry((name, target) => target.get(name));
 
-  // Curried function that takes `p -> items` and returs
+  // Curried function that takes `p -> items` and returns
   // `items.findIndex(p)` useful for finding index of item in
   // immutable collections and cursors.
   const findIndex = curry((p, items) => items.findIndex(p));
 
-  // High oreder function that takes `p -> items` returns
+  // High order function that takes `p -> items` returns
   // `items.find(p)` useful for finding item in the immutable
   // collections and cursors.
   const find = curry((p, items) => items.find(p));
@@ -196,6 +196,14 @@ define((require, exports, module) => {
 
   const prepend = (items, item) => insert(items, item, 0);
 
+  const maybeActivateIndex = (items, index) => {
+    return index <  items.length
+      ? activate(switchSelected(items, indexOfSelected(items), index))
+      : items;
+  }
+
+  const activateLast = items => maybeActivateIndex(items, items.length - 1);
+
   // Exports:
 
   exports.isSelected = isSelected;
@@ -206,6 +214,8 @@ define((require, exports, module) => {
   exports.select = select;
   exports.selectNext = selectNext;
   exports.selectPrevious = selectPrevious;
+  exports.maybeActivateIndex = maybeActivateIndex;
+  exports.activateLast = activateLast;
 
   exports.isActive = isActive;
   exports.asActive = asActive;
