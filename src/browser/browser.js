@@ -94,7 +94,33 @@ define((require, exports, module) => {
   const onSelectNext = throttle(edit(selectNext), 200)
   const onSelectPrevious = throttle(edit(selectPrevious), 200);
 
-  const switchToTab = index => items => maybeActivateIndex(items, index);
+  const switchTab = (items, to) =>
+    to ? activate(select(items, to)) : items;
+
+  switchTab.toIndex = index => items => switchTab(items, items.get(index));
+  switchTab.toLast = items => switchTab(items, items.last());
+
+
+  let onTabSwitch;
+  {
+    const os = navigator.platform.startsWith('Win') ? 'windows' :
+               navigator.platform.startsWith('Mac') ? 'osx' :
+               navigator.platform.startsWith('Linux') ? 'linux' :
+               '';
+    const modifier = os == 'osx' ? 'meta' : 'alt';
+
+    onTabSwitch = KeyBindings({
+      [`${modifier} 1`]: edit(switchTab.toIndex(0)),
+      [`${modifier} 2`]: edit(switchTab.toIndex(1)),
+      [`${modifier} 3`]: edit(switchTab.toIndex(2)),
+      [`${modifier} 4`]: edit(switchTab.toIndex(3)),
+      [`${modifier} 5`]: edit(switchTab.toIndex(4)),
+      [`${modifier} 6`]: edit(switchTab.toIndex(5)),
+      [`${modifier} 7`]: edit(switchTab.toIndex(6)),
+      [`${modifier} 8`]: edit(switchTab.toIndex(7)),
+      [`${modifier} 9`]: edit(switchTab.toLast),
+    });
+  };
 
   const onDeckBinding = KeyBindings({
     'accel t': edit(openTab),
@@ -105,15 +131,6 @@ define((require, exports, module) => {
     'meta shift [': onSelectPrevious,
     'ctrl pagedown': onSelectNext,
     'ctrl pageup': onSelectPrevious,
-    'alt 1': edit(switchToTab(0)),
-    'alt 2': edit(switchToTab(1)),
-    'alt 3': edit(switchToTab(2)),
-    'alt 4': edit(switchToTab(3)),
-    'alt 5': edit(switchToTab(4)),
-    'alt 6': edit(switchToTab(5)),
-    'alt 7': edit(switchToTab(6)),
-    'alt 8': edit(switchToTab(7)),
-    'alt 9': edit(activateLast),
   });
 
   const onDeckBindingRelease = KeyBindings({
@@ -163,6 +180,7 @@ define((require, exports, module) => {
                                  onTabStripKeyDown(tabStripCursor),
                                  onViewerBinding(selectedWebViewerCursor),
                                  onDeckBinding(webViewersCursor),
+                                 onTabSwitch(webViewersCursor),
                                  onBrowserBinding(immutableState)),
       onDocumentKeyUp: compose(onTabStripKeyUp(tabStripCursor),
                                onDeckBindingRelease(webViewersCursor))
