@@ -15,7 +15,7 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {Element, VirtualAttribute} = require('./element');
+  const {DOM} = require('react');
   const Component = require('omniscient');
 
   // Animation parameters:
@@ -53,14 +53,6 @@ define((require, exports, module) => {
     }
     return Math.min(1, progress);
   }
-
-  const ProgressBarElement = Element('div', {
-    progressBarColor: VirtualAttribute((node, current, past) => {
-      if (current != past) {
-        node.style.setProperty('--progressbar-color', current);
-      }
-    }),
-  });
 
   const ProgressBar = Component([{
     step() {
@@ -101,7 +93,7 @@ define((require, exports, module) => {
     const StartFading = 0.8;    // When does opacity starts decreasing to 0
     const percentProgress = 100 * progress;
     const opacity = progress < StartFading  ? 1 : 1 - Math.pow( (progress - StartFading) / (1 - StartFading), 1);
-    return ProgressBarElement({
+    return DOM.div({
       key,
       className: 'progressbar',
       style: {
