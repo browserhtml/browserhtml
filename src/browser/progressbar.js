@@ -18,6 +18,42 @@ define((require, exports, module) => {
   const {Element, VirtualAttribute} = require('./element');
   const Component = require('omniscient');
 
+  // Animation parameters:
+  const A = 0.2;              // Zone A size (a full progress is equal to '1'
+  const B = 0.2;              // Zone B size
+  const APivot = 200;         // When to reach ~80% of zone A
+  const BPivot = 500;         // When to reach ~80% of zone B
+  const CDuration = 200;     // Time it takes to fill zone C
+  const ApproachFunc = (tMs, pivoMs) => 2 * Math.atan(tMs / pivoMs) / Math.PI;
+
+  function ComputeProgress(viewer) {
+    // Inverse tangent function: [0 - inf] -> [0 - PI/2]
+    // ApproachFunc: [time, pivot] -> [0 - 1]
+    // Pivot value is more or less when the animation seriously starts to slow down
+    let progress = 0; // value between 0 and 1
+
+    let now = performance.now();
+
+    if (viewer.get('readyState')) { // Not an empty viewer
+      // Zone A
+      const startLoadingTime = viewer.get('startLoadingTime');
+      progress = A * ApproachFunc(now - startLoadingTime, APivot);
+
+      if (!viewer.get('isConnecting')) {
+        // Zone B
+        const connectedAt = viewer.get('connectedAt');
+        progress += B * ApproachFunc(now - connectedAt, BPivot);
+        if (!viewer.get('isLoading')) {
+          // Zone C
+          const endLoadingTime = viewer.get('endLoadingTime');
+          const C = (1 - progress);
+          progress +=  C * (now - endLoadingTime) / CDuration;
+        }
+      }
+    }
+    return Math.min(1, progress);
+  }
+
   const ProgressBarElement = Element('div', {
     progressBarColor: VirtualAttribute((node, current, past) => {
       if (current != past) {
@@ -26,72 +62,43 @@ define((require, exports, module) => {
     }),
   });
 
-  const PI = 3.1416; // > PI
-
-  // Animation parameters:
-  const A = 0.2;              // Zone A size (a full progress is equal to '1'
-  const B = 0.3;              // Zone B size
-  const APivot = 200;         // When to reach ~80% of zone A
-  const BPivot = 500;         // When to reach ~80% of zone B
-  const CSpeed = 0.002;       // Speed to fill zone C (how fast we reach '1')
-  const StartFading = 0.8;    // When does opacity starts decreasing to 0
-
-  // Inverse tangent function: [0 - inf] -> [0 - PI/2]
-  // ApproachFunc: [time, pivot] -> [0 - 1]
-  // Pivot value is more or less when the animation seriously starts to slow down
-  const ApproachFunc = (tMs, pivoMs) => 2 * Math.atan(tMs / pivoMs) / PI;
-
-  // rfa and before are global and not associated to any state. They are used
-  // to drive the progressbar animation. There's only one animation to play
-  // at the same time.
-  let rfa = -1;
-  let before = 0;
-
   const ProgressBar = Component([{
-    step(now) {
-      const viewer = this.props.webViewerCursor;
-
-      let progress; // value between 0 and 1
-
-      if (viewer.get('isLoading')) {                                            // Zone A
-        const startLoadingTime = viewer.get('startLoadingTime');
-        if (viewer.get('isConnecting')) {
-          progress = A * ApproachFunc(now - startLoadingTime, APivot);
-        } else {                                                                // Zone B
-          const connectedAt = viewer.get('connectedAt');
-          const A_offset = A * ApproachFunc(connectedAt - startLoadingTime, APivot);
-          progress = A_offset + B * ApproachFunc(now - connectedAt, BPivot);
-        }
-      } else {                                                                  // Zone C
-        let lastProgress = viewer.get('progress');
-        if (lastProgress < 1) {
-          progress = lastProgress + (now - before) * CSpeed;
-        } else {
-          progress = 1;
-        }
-      }
-
-      progress = Math.min(1, progress);
-      if (progress < 1) {
-        rfa = requestAnimationFrame(now => this.step(now));
-      } else {
-        rfa = -1;
-      }
-      before = now;
-      this.props.webViewerCursor = viewer.merge({progress});
+    step() {
+      let rfa = requestAnimationFrame(() => this.step());
+      this.props.rfaCursor.set('id', rfa);
     },
     componentDidUpdate() {
-      if (this.props.webViewerCursor.get('progress') < 1) {
-        if (rfa < 0) {
-          rfa = requestAnimationFrame(now => this.step(now));
+      const viewer = this.props.webViewerCursor;
+      // Stop if loaded and had enough time to draw the final animation
+      if (viewer.get('readyState') && !viewer.get('isLoading')) {
+        const endLoadingTime = viewer.get('endLoadingTime');
+        if ((performance.now() - endLoadingTime) > CDuration) {
+          this.stopRFALoop();
         }
-      } else {
-        cancelAnimationFrame(rfa);
-        rfa = -1;
       }
-    }
+      // Start if loading.
+      if (viewer.get('isLoading')) {
+        this.startRFALoopIfNeeded();
+      }
+    },
+    startRFALoopIfNeeded() {
+      if (this.props.rfaCursor.get('id') == -1) {
+        this.step();
+      }
+    },
+    stopRFALoop() {
+      if (this.props.rfaCursor.get('id') != -1) {
+        cancelAnimationFrame(this.props.rfaCursor.get('id'));
+        this.props.rfaCursor.set('id', -1);
+      }
+    },
+    componentDidMount() {
+      this.stopRFALoop(); // force rfa to be set to -1 (rfa value is restored by session restor)
+      this.startRFALoopIfNeeded();
+    },
   }], ({key, webViewerCursor, theme}) => {
-    const progress = webViewerCursor.get('progress');
+    const progress = ComputeProgress(webViewerCursor);
+    const StartFading = 0.8;    // When does opacity starts decreasing to 0
     const percentProgress = 100 * progress;
     const opacity = progress < StartFading  ? 1 : 1 - Math.pow( (progress - StartFading) / (1 - StartFading), 1);
     return ProgressBarElement({
@@ -101,7 +108,8 @@ define((require, exports, module) => {
         backgroundColor: theme.progressbar.color,
         transform: `translateX(${percentProgress}%)`,
         opacity: opacity
-      }});
+      }
+    });
   })
 
 

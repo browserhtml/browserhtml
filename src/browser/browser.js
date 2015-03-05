@@ -154,6 +154,8 @@ define((require, exports, module) => {
     const tabStripCursor = immutableState.cursor('tabStrip');
     const inputCursor = immutableState.cursor('input');
 
+    const rfaCursor = immutableState.cursor('rfa');
+
     const isTabStripVisible = tabStripCursor.get('isActive');
 
     const theme = readTheme(activeWebViewerCursor);
@@ -185,6 +187,7 @@ define((require, exports, module) => {
         inputCursor,
         tabStripCursor,
         theme,
+        rfaCursor,
         webViewerCursor: selectedWebViewerCursor,
       }),
       DOM.div({key: 'tabstrip',

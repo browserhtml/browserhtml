@@ -38,6 +38,7 @@ define((require, exports, module) => {
     isDocumentFocused: document.hasFocus(),
     input: {value: '', isFocused: false},
     tabStrip: {isActive: false},
+    rfa: {id: -1},
     webViewers: [open({isSelected: true,
                        isActive: true,
                        isFocused: true,
