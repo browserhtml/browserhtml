@@ -17,8 +17,6 @@ define((require, exports, module) => {
     readyState: null,
     // `true` if web content is currently loading.
     isLoading: false,
-    // Position of the progressbar (0..1)
-    progress: 1,
     // Has the server replied yet
     isConnecting: false,
     // When the server replied first (while loading)

@@ -96,7 +96,8 @@ define((require, exports, module) => {
                onClick: event => webViewerCursor.set('readyState', 'stop')}),
     ]));
 
-  const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStripCursor, webViewerCursor, title, theme}) => {
+  const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStripCursor,
+                                     webViewerCursor, title, rfaCursor, theme}) => {
     return DOM.div({
       key,
       style: theme.navigationPanel,
@@ -113,7 +114,7 @@ define((require, exports, module) => {
       WindowControls({key: 'controls', theme}),
       NavigationControls({key: 'navigation', inputCursor, tabStripCursor,
                           webViewerCursor, title, theme}),
-      ProgressBar({key: 'progressbar', webViewerCursor, theme}),
+      ProgressBar({key: 'progressbar', rfaCursor, webViewerCursor, theme}),
       DOM.div({key: 'spacer', className: 'freeendspacer'})
     ])
   });

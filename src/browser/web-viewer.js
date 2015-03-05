@@ -73,7 +73,6 @@ define((require, exports, module) => {
     isLoading: true,
     isConnecting: true,
     startLoadingTime: performance.now(),
-    progress: 0,
     icons: {},
     title: null,
     location: null,
@@ -93,7 +92,7 @@ define((require, exports, module) => {
     }
     return webViewerCursor.merge({
       isConnecting: false,
-      connectedAt: performance.now(),
+      endLoadingTime: performance.now(),
       readyState: 'loaded',
       isLoading: false
     });
