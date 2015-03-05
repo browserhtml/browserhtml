@@ -16,7 +16,7 @@ define((require, exports, moudle) => {
   const readThumbnailURI = uri =>
     'none' && `url(/tiles/${url.getDomainName(uri)}.png)`;
 
-  const Tab = Component('Tab', ({item: webViewerCursor, onSelect, onActivate, onClose}) =>
+  const Tab = Component('Tab', ({item: webViewerCursor}, {onSelect, onActivate, onClose}) =>
     DOM.div({
       className: ClassSet({
         tab: true,
