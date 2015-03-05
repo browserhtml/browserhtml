@@ -158,7 +158,7 @@ define((require, exports, module) => {
 
     const isTabStripVisible = tabStripCursor.get('isActive');
 
-    const theme = readTheme(activeWebViewerCursor);
+    const theme = Browser.readTheme(activeWebViewerCursor);
 
     return Main({
       windowTitle: title(selectedWebViewerCursor),
@@ -221,6 +221,9 @@ define((require, exports, module) => {
       })
     ]);
   });
+  // Create a version of readTheme that will return from cache
+  // on repeating calls with an equal cursor.
+  Browser.readTheme = Component.cached(readTheme);
 
   // Exports:
 
