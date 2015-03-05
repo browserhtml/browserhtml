@@ -193,14 +193,15 @@ define((require, exports, module) => {
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,
                className: 'tabstripcontainer'}, [
-        Tab.Deck({key: 'tabstrip',
-                  className: 'tabstrip',
-                  items: webViewersCursor,
-
-                  onSelect: item => webViewersCursor.update(items => select(items, item)),
-                  onActivate: _ => webViewersCursor.update(items => activate(items)),
-                  onClose: item => webViewersCursor.update(closeTab(item))
-                 })
+        Tab.Deck({
+          key: 'tabstrip',
+          className: 'tabstrip',
+          items: webViewersCursor
+        }, {
+          onSelect: item => webViewersCursor.update(items => select(items, item)),
+          onActivate: _ => webViewersCursor.update(items => activate(items)),
+          onClose: item => webViewersCursor.update(closeTab(item))
+        })
       ]),
       DOM.div({key: 'tabstripkillzone',
                className: 'tabstripkillzone',
@@ -210,12 +211,14 @@ define((require, exports, module) => {
                }
               }),
 
-      WebViewer.Deck({key: 'web-viewers',
-                      className: 'iframes',
-                      items: webViewersCursor,
-                      onClose: item => webViewersCursor.update(closeTab(item)),
-                      onOpen: item => webViewersCursor.update(addTab(item))
-                     })
+      WebViewer.Deck({
+        key: 'web-viewers',
+        className: 'iframes',
+        items: webViewersCursor
+      }, {
+        onClose: item => webViewersCursor.update(closeTab(item)),
+        onOpen: item => webViewersCursor.update(addTab(item))
+      })
     ]);
   });
 

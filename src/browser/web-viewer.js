@@ -15,7 +15,7 @@ define((require, exports, module) => {
   const {DOM} = require('react');
   const ClassSet = require('./util/class-set');
 
-  const WebViewer = Component('WebViewer', ({item: webViewerCursor, onOpen, onClose}) => {
+  const WebViewer = Component('WebViewer', ({item: webViewerCursor}, {onOpen, onClose}) => {
 
     // Do not render anything unless viewer has any `uri`
     if (!webViewerCursor.get('uri')) return null;

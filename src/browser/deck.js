@@ -7,13 +7,12 @@ define((require, exports, module) => {
 
   const {DOM} = require('react');
   const Component = require('omniscient');
-  const dispatch = require('shims/omniscient-dispatch');
 
-  const renderItem = (Item, item, options) =>
-    Item(Object.assign({}, options, {key: item.get('id'), item, items: null}));
-
-  const Deck = Item => Component('Deck', [dispatch], options =>
-    DOM.div(options, options.items.map(item => renderItem(Item, item, options))));
+  const Deck = Item => Component('Deck', (options, handlers) =>
+    DOM.div(options, options.items.map(item => Item({
+      key: item.get('id'),
+      item
+    }, handlers))));
 
   // Exports:
 
