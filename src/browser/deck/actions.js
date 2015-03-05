@@ -196,14 +196,6 @@ define((require, exports, module) => {
 
   const prepend = (items, item) => insert(items, item, 0);
 
-  const maybeActivateIndex = (items, index) => {
-    return index <  items.length
-      ? activate(switchSelected(items, indexOfSelected(items), index))
-      : items;
-  }
-
-  const activateLast = items => maybeActivateIndex(items, items.length - 1);
-
   // Exports:
 
   exports.isSelected = isSelected;
@@ -214,8 +206,6 @@ define((require, exports, module) => {
   exports.select = select;
   exports.selectNext = selectNext;
   exports.selectPrevious = selectPrevious;
-  exports.maybeActivateIndex = maybeActivateIndex;
-  exports.activateLast = activateLast;
 
   exports.isActive = isActive;
   exports.asActive = asActive;
