@@ -74,7 +74,6 @@ define((require, exports, module) => {
     isConnecting: true,
     startLoadingTime: performance.now(),
     progress: 0,
-    icons: null,
     icons: {},
     title: null,
     location: null,
