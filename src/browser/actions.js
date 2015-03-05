@@ -36,10 +36,6 @@ define((require, exports, module) => {
   // Creates a blank session. Returns immutable map.
   const resetSession = () => fromJS({
     isDocumentFocused: document.hasFocus(),
-    os: navigator.platform.startsWith('Win') ? 'windows' :
-    navigator.platform.startsWith('Mac') ? 'osx' :
-    navigator.platform.startsWith('Linux') ? 'linux' :
-    '',
     input: {value: '', isFocused: false},
     tabStrip: {isActive: false},
     webViewers: [open({isSelected: true,

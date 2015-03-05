@@ -24,12 +24,12 @@ define((require, exports, module) => {
          maybeActivateIndex, activateLast} = require('./deck/actions');
   const {readTheme} = require('./theme');
   const ClassSet = require('./util/class-set');
+  const os = require('os');
 
   const getOwnerWindow = node => node.ownerDocument.defaultView;
   // Define custom `main` element with a custom `scrollGrab` attribute
   // that maps to same named proprety.
   const Main = Element('main', {
-    os: Attribute('os'),
     windowTitle: VirtualAttribute((node, current, past) => {
       node.ownerDocument.title = current;
     }),
@@ -103,11 +103,7 @@ define((require, exports, module) => {
 
   let onTabSwitch;
   {
-    const os = navigator.platform.startsWith('Win') ? 'windows' :
-               navigator.platform.startsWith('Mac') ? 'osx' :
-               navigator.platform.startsWith('Linux') ? 'linux' :
-               '';
-    const modifier = os == 'osx' ? 'meta' : 'alt';
+    const modifier = os.platform() == 'darwin' ? 'meta' : 'alt';
 
     onTabSwitch = KeyBindings({
       [`${modifier} 1`]: edit(switchTab.toIndex(0)),
@@ -163,7 +159,6 @@ define((require, exports, module) => {
     const theme = readTheme(activeWebViewerCursor);
 
     return Main({
-      os: immutableState.get('os'),
       windowTitle: title(selectedWebViewerCursor),
       scrollGrab: true,
       className: ClassSet({

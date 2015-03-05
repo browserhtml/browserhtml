@@ -6,10 +6,7 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const os = navigator.platform.startsWith('Win') ? 'windows' :
-             navigator.platform.startsWith('Mac') ? 'osx' :
-             navigator.platform.startsWith('Linux') ? 'linux' :
-             '';
+  const platform = require('os').platform();
 
   const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
     const modifiers = [];
@@ -36,7 +33,7 @@ define((require, exports, module) => {
   const readKey = key => readKey.table[key] || key;
   readKey.table = Object.assign(Object.create(null), {
     'ctrl': 'control',
-    'accel': os == 'osx' ? 'meta' : 'control',
+    'accel': platform == 'darwin' ? 'meta' : 'control',
     'ArrowLeft': 'left',
     'ArrowRight': 'right',
     'ArrowUp': 'up',
