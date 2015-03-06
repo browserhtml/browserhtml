@@ -113,11 +113,16 @@ define((require, exports, module) => {
   const makeFirst = (items, item) =>
     items.sort((a, b) => item === a ? -1 :
                          item === b ? 1 :
-                         -1);
+                         0);
+
+  const makeLast = (items, item) =>
+    items.sort((a, b) => item === a ? 1 :
+                         item === b ? -1 :
+                         0);
 
   // Reorders given `items` such that active item will be moved
-  // to the head of it.
-  const reorder = items => makeFirst(items, active(items));
+  // to the tail of it.
+  const reorder = items => makeLast(items, active(items));
 
 
   const activateNext = compose(activate, selectNext);

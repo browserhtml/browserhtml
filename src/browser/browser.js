@@ -120,8 +120,8 @@ define((require, exports, module) => {
   const onDeckBinding = KeyBindings({
     'accel t': edit(openTab),
     'accel w': edit(close(isActive)),
-    'control tab': onSelectNext,
-    'control shift tab': onSelectPrevious,
+    'control tab': onSelectPrevious,
+    'control shift tab': onSelectNext,
     'meta shift ]': onSelectNext,
     'meta shift [': onSelectPrevious,
     'ctrl pagedown': onSelectNext,
