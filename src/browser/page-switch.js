@@ -42,7 +42,7 @@ define((require, exports, moudle) => {
         className: "tab-close-button fa fa-times",
       })
     ]));
-  Tab.Deck = Deck(Tab);
+  Tab.Deck = Deck(Tab, tab => tab.get('switchTime') * -1);
 
   // Exports:
 

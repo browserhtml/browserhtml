@@ -19,9 +19,8 @@ define((require, exports, module) => {
   const {focus, showTabStrip, hideTabStrip,
          writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive,
-         selectNext, selectPrevious, select, activate,
-         previewed, remove, append,
-         maybeActivateIndex, activateLast} = require('./deck/actions');
+         selectNext, selectPrevious, select, activate, commit,
+         previewed, remove, append} = require('./deck/actions');
   const {readTheme} = require('./theme');
   const ClassSet = require('./util/class-set');
   const os = require('os');
@@ -130,8 +129,8 @@ define((require, exports, module) => {
   });
 
   const onDeckBindingRelease = KeyBindings({
-    'control': activate,
-    'meta': activate
+    'control': commit,
+    'meta': commit
   });
 
   const onBrowserBinding = KeyBindings({
@@ -206,8 +205,8 @@ define((require, exports, module) => {
       DOM.div({key: 'tabstripkillzone',
                className: 'tabstripkillzone',
                onMouseEnter: event => {
-                 resetSelected(webViewersCursor);
                  hideTabStrip(tabStripCursor);
+                 webViewersCursor.update(commit.reset);
                }
               }),
 

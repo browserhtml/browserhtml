@@ -102,7 +102,23 @@ define((require, exports, module) => {
     const to = indexOfSelected(items);
 
     return switchActive(items, from, to);
-  }
+  };
+
+  // Resets currently selecetd tab back to the active one.
+  const reset = items => select(items, active(items));
+
+  // Takes deck `items` and activates selected item if that's not
+  // already a case & stores current time stapm into active item's
+  // `switchTime`.
+  const commit = compose(items => {
+    const index = indexOfActive(items);
+    return items.updateIn([index, 'switchTime'], Date.now);
+  }, activate);
+
+  // Resets currently selected item back to the active one and
+  // updates `switchTime` on active item.
+  commit.reset = compose(commit, reset);
+
 
   const activateNext = compose(activate, selectNext);
   const activatePrevious = compose(activate, selectPrevious);
@@ -215,6 +231,7 @@ define((require, exports, module) => {
   exports.activate = activate;
   exports.activateNext = activateNext;
   exports.activatePrevious = activatePrevious;
+  exports.commit = commit;
 
   exports.remove = remove;
   exports.insert = insert;
