@@ -60,17 +60,21 @@ define((require, exports, module) => {
     'meta': hideTabStrip
   });
 
-  const onViewerBinding = KeyBindings({
-    'accel =': zoomIn,
-    'accel -': zoomOut,
-    'accel 0': zoomReset,
-    'accel left': goBack,
-    'accel right': goForward,
-    'escape': stop,
-    'accel r': reload,
-    'F5': reload,
-  });
+  let onViewerBinding;
+  {
+    const modifier = os.platform() == 'linux' ? 'alt' : 'accel';
 
+    onViewerBinding = KeyBindings({
+      'accel =': zoomIn,
+      'accel -': zoomOut,
+      'accel 0': zoomReset,
+      [`${modifier} left`]: goBack,
+      [`${modifier} right`]: goForward,
+      'escape': stop,
+      'accel r': reload,
+      'F5': reload,
+    });
+  };
 
   const addTab = item => items => append(items, item);
 
