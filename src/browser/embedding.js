@@ -8,23 +8,45 @@
 
   'use strict';
 
+  function dispatchEventToGecko(name, payload) {
+    let details = payload || {};
+    details.type = name;
+    let event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, details);
+    window.dispatchEvent(event);
+  }
+
   function handleEvent(evt) {
     let type = evt.detail.type;
 
     switch (type) {
       case 'remote-debugger-prompt':
         // Always allow remote debugging for now.
-        let event = document.createEvent('CustomEvent');
-        event.initCustomEvent('mozContentEvent', true, true,
-                              {type: 'remote-debugger-prompt',
-                               value: true});
-        window.dispatchEvent(event);
+        dispatchEventToGecko('remote-debugger-prompt', {value: true});
+        break;
+      case 'update-available':
+        // Always download updates.
+        dispatchEventToGecko('update-available-result', {result: 'download'});
+        break;
+      case 'update-downloaded':
+      case 'update-prompt-apply':
+        // TODO: Prompt the user to restart?
         break;
       default:
         console.log('Unknown mozChromeEvent: ' + type);
     }
   }
 
+  function checkUpdate() {
+    let event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true,
+                          {type: 'force-update-check'});
+    window.dispatchEvent(event);
+  }
+
   window.addEventListener('mozChromeEvent', handleEvent, false);
 
+  // Trigger a forced update check after 5s to not slow down startup.
+  // TODO: delay until we're online if needed.
+  window.setTimeout(checkUpdate, 5000);
 })();
