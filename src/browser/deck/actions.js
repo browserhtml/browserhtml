@@ -102,7 +102,28 @@ define((require, exports, module) => {
     const to = indexOfSelected(items);
 
     return switchActive(items, from, to);
-  }
+  };
+
+  // Resets currently selecetd tab back to the active one.
+  const reset = items => select(items, active(items));
+
+
+  // Reorders `items` such that given `item` will be first and
+  // rest items will remain as they were.
+  const makeFirst = (items, item) =>
+    items.sort((a, b) => item === a ? -1 :
+                         item === b ? 1 :
+                         0);
+
+  const makeLast = (items, item) =>
+    items.sort((a, b) => item === a ? 1 :
+                         item === b ? -1 :
+                         0);
+
+  // Reorders given `items` such that active item will be moved
+  // to the tail of it.
+  const reorder = items => makeLast(items, active(items));
+
 
   const activateNext = compose(activate, selectNext);
   const activatePrevious = compose(activate, selectPrevious);
@@ -215,6 +236,8 @@ define((require, exports, module) => {
   exports.activate = activate;
   exports.activateNext = activateNext;
   exports.activatePrevious = activatePrevious;
+  exports.reorder = reorder;
+  exports.reset = reset;
 
   exports.remove = remove;
   exports.insert = insert;

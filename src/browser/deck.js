@@ -8,11 +8,18 @@ define((require, exports, module) => {
   const {DOM} = require('react');
   const Component = require('omniscient');
 
-  const Deck = Item => Component('Deck', (options, handlers) =>
-    DOM.div(options, options.items.map(item => Item({
+  const Deck = (Item, order) => Component('Deck', (options, handlers) => {
+    const items = order ? options.items.sortBy(order) : options.items;
+    return DOM.div(options, items.map(item => Item({
       key: item.get('id'),
+      // Hack to force re-rendering when items get re-arranged, workaround
+      // for a following bugs:
+      // https://github.com/omniscientjs/omniscient/issues/89
+      // https://github.com/facebook/immutable-js/issues/370
+      index: options.items.indexOf(item),
       item
-    }, handlers))));
+    }, handlers)))
+  });
 
   // Exports:
 

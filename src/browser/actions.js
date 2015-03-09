@@ -70,8 +70,6 @@ define((require, exports, module) => {
     tabStripCursor.set('isActive', true);
   exports.hideTabStrip = tabStripCursor =>
     tabStripCursor.set('isActive', false);
-  exports.resetSelected = webViewersCursor =>
-    webViewersCursor.update(items => select(items, active(items)));
   exports.resetSession = resetSession;
   exports.readSession = readSession;
   exports.writeSession = writeSession;

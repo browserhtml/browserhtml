@@ -136,7 +136,9 @@ define((require, exports, module) => {
     }
   }
 
-  WebViewer.Deck = Deck(WebViewer);
+  // WebViewer deck will always inject frames by order of their id. That way
+  // no iframes will need to be removed / injected when order of tabs change.
+  WebViewer.Deck = Deck(WebViewer, item => item.get('id'));
   // Exports:
 
   exports.WebViewer = WebViewer;
