@@ -8,7 +8,7 @@
   z-index: 43;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 200ms ease, background-color 200ms ease;
+  transition: background-color 200ms ease;
 }
 
 main.showtabstrip .tabstripcontainer {
@@ -24,7 +24,7 @@ main.showtabstrip .tabstripcontainer {
   height: calc(100vh - 40px);
   width: 100vw;
   background-color: rgba(0,0,0,0);
-  transition: background-color 200ms ease;
+  transition: background-color 200ms linear;
   pointer-events: none;
   z-index: 42;
 }
