@@ -12,20 +12,13 @@ define((require, exports, module) => {
   const {isActive, isSelected} = require('./deck/actions');
   const {getHardcodedColors} = require('./theme');
   const {IFrame} = require('./iframe');
-  const {Dashboard} = require('./dashboard.js');
   const {DOM} = require('react');
   const ClassSet = require('./util/class-set');
 
-  const WebViewer = Component('WebViewer', ({item: webViewerCursor}, {onOpen, onClose, dashboardItems}) => {
+  const WebViewer = Component('WebViewer', ({item: webViewerCursor}, {onOpen, onClose}) => {
 
     // Do not render anything unless viewer has any `uri`
-    if (!webViewerCursor.get('uri')) return Dashboard({
-      items: dashboardItems,
-      hidden: !isActive(webViewerCursor)
-    }, {
-      onOpen: uri => webViewerCursor.set('uri', uri)
-    });
-
+    if (!webViewerCursor.get('uri')) return null;
     return IFrame({
       className: ClassSet({
         'iframes-frame': true,
