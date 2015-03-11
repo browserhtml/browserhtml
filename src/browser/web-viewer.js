@@ -14,6 +14,11 @@ define((require, exports, module) => {
   const {IFrame} = require('./iframe');
   const {DOM} = require('react');
   const ClassSet = require('./util/class-set');
+  const url = require('./util/url');
+  const makeTileURI = input =>
+    `/tiles/${url.getDomainName(input)}.png`;
+
+
 
   const WebViewer = Component('WebViewer', ({item: webViewerCursor}, {onOpen, onClose}) => {
 
@@ -31,7 +36,10 @@ define((require, exports, module) => {
       isRemote: true,
       allowFullScreen: true,
 
-      isVisible: isActive(webViewerCursor) || isSelected(webViewerCursor),
+      isVisible: isActive(webViewerCursor) ||
+                 isSelected(webViewerCursor) ||
+                 !webViewerCursor.get('thumbnail'),
+
       hidden: !isActive(webViewerCursor),
       zoom: webViewerCursor.get('zoom'),
       isFocused: webViewerCursor.get('isFocused'),
@@ -74,6 +82,7 @@ define((require, exports, module) => {
     isConnecting: true,
     startLoadingTime: performance.now(),
     icons: {},
+    thumbnail: null,
     title: null,
     location: null,
     securityState: 'insecure',
@@ -90,7 +99,15 @@ define((require, exports, module) => {
     if (!isSelected(webViewerCursor)) {
       webViewerCursor = webViewerCursor.set('progress', 1);
     }
-    return webViewerCursor.merge({
+
+    // If web viewer has no thumbnail associated with it, then
+    // request a screenshot and save it into `thumbnail` field.
+    if (!webViewerCursor.get('thumbnail')) {
+      fetchScreenshot(event.target).
+        then(WebViewer.onThumbnailChanged(webViewerCursor));
+    }
+
+    webViewerCursor.merge({
       isConnecting: false,
       endLoadingTime: performance.now(),
       readyState: 'loaded',
@@ -101,9 +118,31 @@ define((require, exports, module) => {
   WebViewer.onTitleChange = webViewerCursor => event =>
     webViewerCursor.set('title', event.detail);
 
-  WebViewer.onLocationChange = webViewerCursor => event =>
-    webViewerCursor.merge(Object.assign({location: event.detail},
-                                        getHardcodedColors(event.detail)));
+  const fetchThumbnail = uri => new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('GET', `/tiles/${url.getDomainName(uri)}.png`);
+    request.responseType = 'blob';
+    request.send();
+    request.onload = event => resolve(request.response);
+    request.onerror = event => reject()
+  });
+
+  WebViewer.onThumbnailChanged = webViewerCursor => blob =>
+    webViewerCursor.set('thumbnail', URL.createObjectURL(blob));
+
+  const fetchScreenshot = iframe => new Promise((resolve, reject) => {
+    const request = iframe.getScreenshot(100, 62.5, 'image/png');
+    request.onsuccess = event => resolve(request.result);
+    request.onerror = event => reject(request.error.name);
+  });
+
+  WebViewer.onLocationChange = webViewerCursor => event => {
+    webViewerCursor.merge({location: event.detail}).
+                    merge(getHardcodedColors(event.detail));
+
+    fetchThumbnail(event.detail).
+      then(WebViewer.onThumbnailChanged(webViewerCursor));
+  }
 
   WebViewer.onIconChange = webViewerCursor => event =>
     webViewerCursor.setIn(['icons', event.detail.href], event.detail);

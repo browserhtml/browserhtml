@@ -13,11 +13,9 @@ define((require, exports, moudle) => {
   const {isSelected} = require('./deck/actions');
   const ClassSet = require('./util/class-set');
 
-  const readThumbnailURI = uri =>
-    'none' && `url(/tiles/${url.getDomainName(uri)}.png)`;
-
-  const Tab = Component('Tab', ({item: webViewerCursor}, {onSelect, onActivate, onClose}) =>
-    DOM.div({
+  const Tab = Component('Tab', ({item: webViewerCursor}, {onSelect, onActivate, onClose}) => {
+    const thumbnail = webViewerCursor.get('thumbnail')
+    return DOM.div({
       className: ClassSet({
         tab: true,
         selected: isSelected(webViewerCursor)
@@ -31,17 +29,26 @@ define((require, exports, moudle) => {
         }
       }
     }, [
-      DOM.span({
+      DOM.div({
         key: 'thumbnail',
         className: 'tab-thumbnail',
-        style: {backgroundImage: readThumbnailURI(webViewerCursor.get('location'))},
-      }),
+      }, [
+        DOM.img({
+          key: 'image',
+          className: 'image',
+          src: thumbnail,
+          alt: '',
+          onLoad: event => URL.revokeObjectURL(event.target.src),
+          onError: event => webViewerCursor.set('thumbnail', null)
+        })
+      ]),
       DOM.div({
         key: 'close-button',
         onClick: event => onClose(webViewerCursor),
         className: "tab-close-button fa fa-times",
       })
-    ]));
+    ])
+  });
   Tab.Deck = Deck(Tab);
 
   // Exports:
