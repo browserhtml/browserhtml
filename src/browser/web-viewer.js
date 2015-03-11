@@ -21,8 +21,7 @@ define((require, exports, module) => {
     if (!webViewerCursor.get('uri')) return null;
     return IFrame({
       className: ClassSet({
-        frame: true,
-        'flex-1': true,
+        'iframes-frame': true,
         webviewer: true,
         contentoverflows: webViewerCursor.get('contentOverflows')
       }),

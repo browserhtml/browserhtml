@@ -12,6 +12,7 @@ define((require, exports, module) => {
   const {NavigationPanel} = require('./navigation-panel');
   const {WebViewer} = require('./web-viewer');
   const {Tab} = require('./page-switch');
+  const {Dashboard} = require('./dashboard');
   const {Element, Event, VirtualAttribute, Attribute} = require('./element');
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
@@ -159,7 +160,12 @@ define((require, exports, module) => {
 
     const rfaCursor = immutableState.cursor('rfa');
 
-    const isTabStripVisible = tabStripCursor.get('isActive');
+    const dashboard = immutableState.get('dashboard');
+    const dashboardItems = dashboard.get('items');
+    const isDashboardActive = activeWebViewerCursor.get('uri') === null;
+
+    const isTabStripVisible =
+      tabStripCursor.get('isActive') || isDashboardActive;
 
     const theme = Browser.readTheme(activeWebViewerCursor);
 
@@ -199,24 +205,32 @@ define((require, exports, module) => {
         Tab.Deck({
           key: 'tabstrip',
           className: 'tabstrip',
-          items: webViewersCursor
+          items: webViewersCursor,
+          onMouseLeave: event => webViewersCursor.update(compose(reorder, reset)),
         }, {
           onSelect: item => webViewersCursor.update(items => select(items, item)),
           onActivate: _ => webViewersCursor.update(items => activate(items)),
           onClose: item => webViewersCursor.update(closeTab(item))
         })
       ]),
-      DOM.div({key: 'tabstripkillzone',
-               className: 'tabstripkillzone',
-               onMouseEnter: event => {
-                 hideTabStrip(tabStripCursor);
-                 webViewersCursor.update(compose(reorder, reset));
-               }
-              }),
-
+      DOM.div({
+        key: 'tabstripkillzone',
+        className: ClassSet({
+          tabstripkillzone: true,
+          'tabstripkillzone-hidden': !isTabStripVisible || isDashboardActive
+        }),
+        onMouseEnter: event => hideTabStrip(tabStripCursor)
+      }),
+      Dashboard({
+        items: dashboardItems,
+        hidden: !isDashboardActive
+      }, {
+        onOpen: uri => activeWebViewerCursor.set('uri', uri)
+      }),
       WebViewer.Deck({
         key: 'web-viewers',
         className: 'iframes',
+        hidden: isDashboardActive,
         items: webViewersCursor
       }, {
         onClose: item => webViewersCursor.update(closeTab(item)),

@@ -1,0 +1,69 @@
+.dashboard {
+  align-content: center;
+  flex: 0 0 100%;
+  flex-flow: row wrap;
+  /* The top margin places the dashboard below the tabstrip, the bottom margin
+  visually centers the tiles vertically. We need the bottom margin because we're
+  using flexbox to align the tiles, but the tiles themselves are not visually
+  even, since they have extra space below for the title. */
+  margin: 0 auto;
+  width: 800px;
+  padding: 100px 0 30px;
+}
+
+.tile-large {
+  align-items: center;
+  /* Setting the flex property on tiles is important to ensure that large titles
+  don't blow up the grid. */
+  flex: 0 0 200px;
+  flex-direction: column;
+  /* Setting the height allows us to maintain extra space beneath title */
+  height: 150px;
+  padding-top: 20px;
+}
+
+.tile-large .tile-thumbnail {
+  background: #fff;
+  background-size: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  height: 100px;
+  transition: transform 80ms ease-out;
+  will-change: transform;
+  width: 160px;
+}
+
+.tile-large:hover .tile-thumbnail {
+  transform: scale(1.1);
+}
+
+.tile-title {
+  color: #555;
+  font-weight: bold;
+  font-size: 12px;
+  opacity: 0;
+  padding: 15px 0 0;
+  transition: opacity 160ms ease-out;
+  white-space: nowrap;
+}
+.tile-large:hover .tile-title {
+  opacity: 1;
+}
+
+@media (max-width: 800px) {
+  .dashboard {
+    width: 520px;
+  }
+
+  .dashboard .tile-large {
+    flex: 0 0 130px;
+    height: 110px;
+    padding-top: 15px 0 0;
+  }
+
+  .tile-large .tile-thumbnail {
+    border-radius: 8px;
+    width: 100px;
+    height: 62.5px;
+  }
+}
