@@ -79,6 +79,10 @@ iframe {
   scroll-snap-coordinate: 0 0;
 }
 
+.iframes-frame {
+  flex-grow: 1;
+}
+
 .webviewer:not([hidden]).contentoverflows {
   min-height: 100vh;
 }
