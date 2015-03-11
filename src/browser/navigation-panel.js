@@ -63,7 +63,7 @@ define((require, exports, module) => {
         className: 'urlinput',
         style: theme.urlInput,
         placeholder: 'Search or enter address',
-        value: inputCursor.get('value') || webViewerCursor.get('location'),
+        value: webViewerCursor.get('userInput'),
         type: 'text',
         submitKey: 'Enter',
         isFocused: inputCursor.get('isFocused'),
@@ -78,7 +78,7 @@ define((require, exports, module) => {
         },
         onChange: event => {
           computeSuggestions(event.target.value, suggestionsCursor);
-          inputCursor.set('value', event.target.value);
+          webViewerCursor.set('userInput', event.target.value),
         },
         onSubmit: event => navigateTo({inputCursor, webViewerCursor: webViewerCursor}, event.target.value, true),
         onKeyUp: inputBindings(webViewerCursor),

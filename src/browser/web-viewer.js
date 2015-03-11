@@ -100,9 +100,11 @@ define((require, exports, module) => {
   WebViewer.onTitleChange = webViewerCursor => event =>
     webViewerCursor.set('title', event.detail);
 
-  WebViewer.onLocationChange = webViewerCursor => event =>
-    webViewerCursor.merge(Object.assign({location: event.detail},
+  WebViewer.onLocationChange = webViewerCursor => event => {
+    webViewerCursor.merge(Object.assign({location: event.detail,
+                                        userInput: event.detail},
                                         getHardcodedColors(event.detail)));
+  }
 
   WebViewer.onIconChange = webViewerCursor => event =>
     webViewerCursor.setIn(['icons', event.detail.href], event.detail);
