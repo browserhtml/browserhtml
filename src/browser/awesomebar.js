@@ -114,6 +114,8 @@ define((require, exports, module) => {
   }
 
   const resetSuggestions = (suggestionsCursor) => {
+    if (xhrSearch) xhrSearch.abort();
+    if (xhrHistory) xhrHistory.abort();
     suggestionsCursor.merge({
       'search': fromJS([]),
       'history': fromJS([]),
