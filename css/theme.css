@@ -75,12 +75,12 @@ iframe {
 }
 
 .iframes {
-  flex: 0 0 100%;
+  flex-grow: 1;
   scroll-snap-coordinate: 0 0;
 }
 
 .iframes-frame {
-  flex: 0 0 100%;
+  flex-grow: 1;
 }
 
 .webviewer:not([hidden]).contentoverflows {
