@@ -80,6 +80,10 @@ define((require, exports, module) => {
     tabStrip: {isActive: false},
     dashboard: {items: dashboardItems},
     rfa: {id: -1},
+    suggestions: {
+      search: [],
+      history: []
+    },
     webViewers: [open({isSelected: true,
                        isActive: true,
                        isFocused: true,
