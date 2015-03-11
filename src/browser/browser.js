@@ -10,6 +10,7 @@ define((require, exports, module) => {
   const {DOM} = require('react');
   const {compose, throttle} = require('lang/functional');
   const {NavigationPanel} = require('./navigation-panel');
+  const {Awesomebar} = require('./awesomebar');
   const {WebViewer} = require('./web-viewer');
   const {Tab} = require('./page-switch');
   const {Dashboard} = require('./dashboard');
@@ -164,10 +165,14 @@ define((require, exports, module) => {
     const dashboardItems = dashboard.get('items');
     const isDashboardActive = activeWebViewerCursor.get('uri') === null;
 
-    const isTabStripVisible =
-      tabStripCursor.get('isActive') || isDashboardActive;
+    const isAwesomebarActive = inputCursor.get('isFocused');
+
+    const isTabStripVisible = (tabStripCursor.get('isActive') || isDashboardActive)
+                              && !isAwesomebarActive;
 
     const theme = Browser.readTheme(activeWebViewerCursor);
+
+    const suggestionsCursor = immutableState.cursor('suggestions');
 
     return Main({
       windowTitle: title(selectedWebViewerCursor),
@@ -197,6 +202,7 @@ define((require, exports, module) => {
         tabStripCursor,
         theme,
         rfaCursor,
+        suggestionsCursor,
         webViewerCursor: selectedWebViewerCursor,
       }),
       DOM.div({key: 'tabstrip',
@@ -213,6 +219,14 @@ define((require, exports, module) => {
           onClose: item => webViewersCursor.update(closeTab(item))
         })
       ]),
+      Awesomebar({
+        key: 'awesomebar',
+        suggestionsCursor,
+        isAwesomebarActive,
+        theme
+      }, {
+        onOpen: uri => activeWebViewerCursor.set('uri', uri)
+      }),
       DOM.div({
         key: 'tabstripkillzone',
         className: ClassSet({
