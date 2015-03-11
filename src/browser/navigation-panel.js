@@ -80,7 +80,10 @@ define((require, exports, module) => {
           computeSuggestions(event.target.value, suggestionsCursor);
           webViewerCursor.set('userInput', event.target.value);
         },
-        onSubmit: event => navigateTo({inputCursor, webViewerCursor: webViewerCursor}, event.target.value, true),
+        onSubmit: event => {
+          resetSuggestions(suggestionsCursor);
+          navigateTo({inputCursor, webViewerCursor: webViewerCursor}, event.target.value, true)
+        },
         onKeyUp: inputBindings(webViewerCursor),
       }),
       DOM.p({key: 'page-info',
