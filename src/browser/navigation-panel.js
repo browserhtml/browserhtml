@@ -74,11 +74,11 @@ define((require, exports, module) => {
         },
         onBlur: event => {
           resetSuggestions(suggestionsCursor);
-          inputCursor.set('isFocused', false)
+          inputCursor.set('isFocused', false);
         },
         onChange: event => {
           computeSuggestions(event.target.value, suggestionsCursor);
-          webViewerCursor.set('userInput', event.target.value),
+          webViewerCursor.set('userInput', event.target.value);
         },
         onSubmit: event => navigateTo({inputCursor, webViewerCursor: webViewerCursor}, event.target.value, true),
         onKeyUp: inputBindings(webViewerCursor),
