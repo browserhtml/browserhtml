@@ -223,14 +223,14 @@ define((require, exports, module) => {
       }),
       Dashboard({
         items: dashboardItems,
-        hidden: activeWebViewerCursor.get('uri') !== null
+        hidden: !isDashboardActive
       }, {
         onOpen: uri => activeWebViewerCursor.set('uri', uri)
       }),
       WebViewer.Deck({
         key: 'web-viewers',
         className: 'iframes',
-        hidden: activeWebViewerCursor.get('uri') === null,
+        hidden: isDashboardActive,
         items: webViewersCursor
       }, {
         onClose: item => webViewersCursor.update(closeTab(item)),
