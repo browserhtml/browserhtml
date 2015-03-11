@@ -34,7 +34,7 @@ define((require, exports, module) => {
       suggestions.push(DOM.p({
         className: 'suggestion search',
         key: 'suggestionSearch' + i,
-        onMouseDown: e => onOpen(href)
+        href,
       }, text));
     }
 
@@ -44,7 +44,7 @@ define((require, exports, module) => {
       suggestions.push(DOM.p({
         className: 'suggestion history',
         key: 'suggestionHistory' + i,
-        onMouseDown: e => onOpen(href)
+        href,
       }, text));
     }
 
@@ -58,7 +58,8 @@ define((require, exports, module) => {
     }, [
       DOM.div({
         className: 'suggestions',
-        key: 'suggestions'
+        key: 'suggestions',
+        onMouseDown: e => onOpen(e.target.getAttribute('href'))
       }, suggestions)
     ])
   });
@@ -75,8 +76,7 @@ define((require, exports, module) => {
     textInput = textInput.trim();
 
     if (!textInput) {
-      suggestionsCursor.set('search', fromJS([]));
-      suggestionsCursor.set('history', fromJS([]));
+      resetSuggestions(suggestionsCursor);
       return;
     }
 

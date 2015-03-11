@@ -15,7 +15,10 @@ define((require, exports, module) => {
   const url = require('./util/url');
   const {ProgressBar} = require('./progressbar');
   const ClassSet = require('./util/class-set');
-  const {computeSuggestions, resetSuggestions} = require('./awesomebar');
+  const {throttle} = require('lang/functional');
+  let {computeSuggestions, resetSuggestions} = require('./awesomebar');
+
+  computeSuggestions = throttle(computeSuggestions, 200)
 
   const WindowControls = Component('WindowControls', ({theme}) =>
     DOM.div({className: 'windowctrls'}, [
