@@ -167,8 +167,8 @@ define((require, exports, module) => {
 
     const isAwesomebarActive = inputCursor.get('isFocused');
 
-    const isTabStripVisible = (tabStripCursor.get('isActive') || isDashboardActive)
-                              && !isAwesomebarActive;
+    const isTabStripVisible = isDashboardActive ||
+                              (tabStripCursor.get('isActive') && !isAwesomebarActive);
 
     const theme = Browser.readTheme(activeWebViewerCursor);
 
