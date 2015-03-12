@@ -9,7 +9,7 @@ define((require, exports, module) => {
   const platform = require('os').platform();
   const {DOM} = require('react')
   const Component = require('omniscient');
-  const {InputVirtualAttribute} = require('./editable');
+  const {InputField} = require('./editable');
   const {Element} = require('./element');
   const {navigateTo, showTabStrip, blur, focus} = require('./actions');
   const {KeyBindings} = require('./keyboard');
@@ -123,7 +123,7 @@ define((require, exports, module) => {
                style: theme.backButton,
                key: 'back',
                onClick: event => webViewerCursor.set('readyState', 'goBack')}),
-      InputVirtualAttribute({
+      InputField({
         key: 'input',
         className: 'urlinput',
         style: theme.urlInput,

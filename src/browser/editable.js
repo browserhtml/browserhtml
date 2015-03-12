@@ -45,14 +45,14 @@ define((require, exports, module) => {
     selection: selection
   });
 
-  const InputVirtualAttribute = function(immutableState) {
+  const InputField = function(immutableState) {
     this.onKeyDown = this.onKeyDown.bind(this);
     Component.call(this);
   }
 
-  InputVirtualAttribute.prototype = {
+  InputField.prototype = {
     __proto__: Component.prototype,
-    constructor: InputVirtualAttribute,
+    constructor: InputField,
     onKeyDown(event) {
       if (event.key == this.props.submitKey) {
         this.props.onSubmit(event);
@@ -66,6 +66,6 @@ define((require, exports, module) => {
   // Exports:
 
   exports.selection = selection;
-  exports.InputVirtualAttribute = createFactory(InputVirtualAttribute);
+  exports.InputField = createFactory(InputField);
 
 });
