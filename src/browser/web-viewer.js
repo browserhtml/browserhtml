@@ -16,7 +16,7 @@ define((require, exports, module) => {
   const ClassSet = require('./util/class-set');
   const url = require('./util/url');
   const makeTileURI = input =>
-    `/tiles/${url.getDomainName(input)}.png`;
+    `tiles/${url.getDomainName(input)}.png`;
   const {fromDOMRequest, fromEvent} = require('lang/promise');
 
 
@@ -79,7 +79,7 @@ define((require, exports, module) => {
   // we will be queyring it instead (see #153)
   const fetchThumbnail = uri => new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.open('GET', `/tiles/${url.getDomainName(uri)}.png`);
+    request.open('GET', `tiles/${url.getDomainName(uri)}.png`);
     request.responseType = 'blob';
     request.send();
     request.onload = event => {
