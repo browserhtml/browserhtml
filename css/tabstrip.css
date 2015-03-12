@@ -47,9 +47,7 @@
 }
 
 .tab-thumbnail {
-  position: relative;
   background: white;
-  background-size: cover;
   border: 1px solid rgba(0,0,0,0.07);
   border-radius: 4px;
   height: 62.5px;
@@ -58,16 +56,7 @@
   transition: transform 150ms ease;
   width: 100px;
   overflow: hidden;
-
 }
-
-.tab-thumbnail .image {
-  position: absolute;
-  width: inherit;
-  height: inherit;
-  -moz-force-broken-image-icon: 0;
-}
-
 
 
 .tab:first-of-type {

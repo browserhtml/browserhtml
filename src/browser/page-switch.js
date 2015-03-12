@@ -36,7 +36,6 @@ define((require, exports, moudle) => {
       }, [
         DOM.img({
           key: 'image',
-          className: 'image',
           src: thumbnail,
           alt: '',
           onLoad: event => URL.revokeObjectURL(event.target.src)
