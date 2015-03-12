@@ -10,7 +10,7 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {InputVirtualAttribute} = require('./editable');
   const {Element} = require('./element');
-  const {navigateTo, showTabStrip, focus} = require('./actions');
+  const {navigateTo, showTabStrip, blur, focus} = require('./actions');
   const {KeyBindings} = require('./keyboard');
   const url = require('./util/url');
   const {ProgressBar} = require('./progressbar');
@@ -45,7 +45,12 @@ define((require, exports, module) => {
       })
     ]));
 
-  const inputBindings = KeyBindings({'escape': focus});
+  const inputBindings = KeyBindings({'escape': (inputCursor, webViewerCursor) => {
+    focus(webViewerCursor);
+    // webViewer might have nothing to focus. So let's blur the input just
+    // in case.
+    blur(inputCursor);
+  }});
 
 
   const NavigationControls = Component('NavigationControls', ({inputCursor, tabStripCursor,
@@ -84,7 +89,7 @@ define((require, exports, module) => {
           resetSuggestions(suggestionsCursor);
           navigateTo({inputCursor, webViewerCursor: webViewerCursor}, event.target.value, true)
         },
-        onKeyUp: inputBindings(webViewerCursor),
+        onKeyUp: inputBindings(inputCursor, webViewerCursor),
       }),
       DOM.p({key: 'page-info',
              className: 'pagesummary',
