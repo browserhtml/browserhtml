@@ -162,8 +162,7 @@ define((require, exports, module) => {
                     merge(getHardcodedColors(event.detail));
 
     requestThumbnail(event.target).
-      then(WebViewer.onThumbnailChanged(webViewerCursor),
-           e => console.error(e));
+      then(WebViewer.onThumbnailChanged(webViewerCursor));
   }
 
   WebViewer.onIconChange = webViewerCursor => event =>
