@@ -236,6 +236,7 @@ define((require, exports, module) => {
         onMouseEnter: event => hideTabStrip(tabStripCursor)
       }),
       Dashboard({
+        key: 'dashboard',
         items: dashboardItems,
         hidden: !isDashboardActive
       }, {
