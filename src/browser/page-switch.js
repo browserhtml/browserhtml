@@ -10,16 +10,17 @@ define((require, exports, moudle) => {
   const Component = require('omniscient');
   const url = require('./util/url');
   const {Deck} = require('./deck');
-  const {isSelected} = require('./deck/actions');
+  const {isSelected, orderOf} = require('./deck/actions');
   const ClassSet = require('./util/class-set');
 
-  const Tab = Component('Tab', ({item: webViewerCursor}, {onSelect, onActivate, onClose}) => {
+  const Tab = Component('Tab', ({item: webViewerCursor, order}, {onSelect, onActivate, onClose}) => {
     const thumbnail = webViewerCursor.get('thumbnail')
     return DOM.div({
       className: ClassSet({
         tab: true,
         selected: isSelected(webViewerCursor)
       }),
+      style: { order: order },
       onMouseOver: event => onSelect(webViewerCursor),
       onMouseDown: event => onActivate(),
       onMouseUp: event => {
@@ -38,8 +39,7 @@ define((require, exports, moudle) => {
           className: 'image',
           src: thumbnail,
           alt: '',
-          onLoad: event => URL.revokeObjectURL(event.target.src),
-          onError: event => webViewerCursor.set('thumbnail', null)
+          onLoad: event => URL.revokeObjectURL(event.target.src)
         })
       ]),
       DOM.div({
@@ -49,10 +49,17 @@ define((require, exports, moudle) => {
       })
     ])
   });
-  Tab.Deck = Deck(Tab);
+  Tab.Deck = Component('Deck', (options, handlers) => {
+    const {items} = options;
+    const ordered = items.sortBy(orderOf);
+    return DOM.div(options, items.map(item => Tab({
+      key: item.get('id'),
+      order: ordered.indexOf(item),
+      item
+    }, handlers)))
+  });
 
   // Exports:
 
   exports.Tab = Tab;
-
 });
