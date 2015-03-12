@@ -38,8 +38,7 @@ define((require, exports, module) => {
       allowFullScreen: true,
 
       isVisible: isActive(webViewerCursor) ||
-                 isSelected(webViewerCursor) ||
-                 !webViewerCursor.get('thumbnail'),
+                 isSelected(webViewerCursor),
 
       hidden: !isActive(webViewerCursor),
       zoom: webViewerCursor.get('zoom'),
