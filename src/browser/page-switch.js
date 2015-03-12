@@ -51,9 +51,10 @@ define((require, exports, moudle) => {
   Tab.Deck = Component('Deck', (options, handlers) => {
     const {items} = options;
     const ordered = items.sortBy(orderOf);
+    const count = items.count();
     return DOM.div(options, items.map(item => Tab({
       key: item.get('id'),
-      order: ordered.indexOf(item),
+      order: count - ordered.indexOf(item),
       item
     }, handlers)))
   });
