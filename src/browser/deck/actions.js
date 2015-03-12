@@ -158,6 +158,7 @@ define((require, exports, module) => {
   // below.
   const remove = (items, p=exports.isActive) => {
     const target = items.find(p);
+    const index = items.indexOf(target);
     const isActive = target == active(items);
     const isSelected = target == selected(items);
 
@@ -165,36 +166,36 @@ define((require, exports, module) => {
       if (isSelected) {
         // If target is selected & active item that is also
         // a last one, activate previous and remove the target.
-        if (target == order(items).last()) {
-          return activatePrevious(items).remove(target);
+        if (target === order(items).last()) {
+          return activatePrevious(items).remove(index);
         }
         // If target is selected & active item but isn't a
         // a last on, activate next & remove the target.
         else {
-          return activateNext(items).remove(target);
+          return activateNext(items).remove(index);
         }
       }
       // If target is active but different one is selected then
       // activate selection and remove this item.
       else {
-        return activate(items).remove(target);
+        return activate(items).remove(index);
       }
     } else {
       if (isSelected) {
         // If target isn't active but is selected and happens to be the last
         // one, then select previous item and remove target.
-        if (target == order(items).last()) {
-          return selectPrevious(items).remove(target);
+        if (target === order(items).last()) {
+          return selectPrevious(items).remove(index);
         }
         // If target isn't active but is selected and does not happen to be
         // the last one, then select next item and remove target.
         else {
-          return selectNext(items).remove(target);
+          return selectNext(items).remove(index);
         }
       }
       // If target neither selected nor active just remove it.
       else {
-        return items.remove(target);
+        return items.remove(index);
       }
     }
   };
