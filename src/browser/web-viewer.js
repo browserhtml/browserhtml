@@ -75,6 +75,8 @@ define((require, exports, module) => {
                                         62.5 * devicePixelRatio,
                                         'image/png'));
 
+  // This is temporary workraound once we've get a history database
+  // we will be queyring it instead (see #153)
   const fetchThumbnail = uri => new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
     request.open('GET', `/tiles/${url.getDomainName(uri)}.png`);
