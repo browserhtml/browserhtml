@@ -76,7 +76,7 @@ define((require, exports, module) => {
   // Creates a blank session. Returns immutable map.
   const resetSession = () => fromJS({
     isDocumentFocused: document.hasFocus(),
-    input: {value: '', isFocused: false},
+    input: {value: '', isFocused: true},
     tabStrip: {isActive: false},
     dashboard: {items: dashboardItems},
     rfa: {id: -1},
@@ -86,8 +86,7 @@ define((require, exports, module) => {
     },
     webViewers: [open({isSelected: true,
                        isActive: true,
-                       isFocused: true,
-                       uri: 'https://github.com/mozilla/browser.html'})]
+                       isFocused: false})]
   });
 
   // Reads stored session. Returns either immutable data for the
