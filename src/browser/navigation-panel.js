@@ -6,6 +6,7 @@ define((require, exports, module) => {
 
   'use strict';
 
+  const platform = require('os').platform();
   const {DOM} = require('react')
   const Component = require('omniscient');
   const {InputVirtualAttribute} = require('./editable');
@@ -56,6 +57,7 @@ define((require, exports, module) => {
   }
 
   const onInputKeyDown = ({event, inputCursor, webViewerCursor, suggestionsCursor}) => {
+
     switch (event.key) {
       case 'Escape':
         // webViewer might have nothing to focus. So let's blur the input just in case.
@@ -75,6 +77,12 @@ define((require, exports, module) => {
         resetSuggestions(suggestionsCursor);
         navigateTo({inputCursor, webViewerCursor}, event.target.value, true)
         break;
+      case 'l':
+        let accel = platform == 'darwin' ? 'metaKey' : 'ctrlKey';
+        if (event[accel]) {
+          event.target.select();
+          break;
+        }
       default:
         // When the user starts doing something that is not navigating
         // through the suggestions, if a suggestion was selected, we
