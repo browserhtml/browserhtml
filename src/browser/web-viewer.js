@@ -71,7 +71,9 @@ define((require, exports, module) => {
 
 
   const fetchScreenshot = iframe =>
-    fromDOMRequest(iframe.getScreenshot(100, 62.5, 'image/png'));
+    fromDOMRequest(iframe.getScreenshot(100 * devicePixelRatio,
+                                        62.5 * devicePixelRatio,
+                                        'image/png'));
 
   const fetchThumbnail = uri => new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
