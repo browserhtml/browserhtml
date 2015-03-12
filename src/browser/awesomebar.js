@@ -96,7 +96,7 @@ define((require, exports, module) => {
     }
 
     xhrHistory = new XMLHttpRequest();
-    xhrHistory.open('GET', '/src/alexa.json', true);
+    xhrHistory.open('GET', 'src/alexa.json', true);
     xhrHistory.responseType = 'json';
     xhrHistory.send();
     xhrHistory.onload = () => {
