@@ -128,10 +128,10 @@ define((require, exports, module) => {
     'accel w': edit(close(isActive)),
     'control tab': onSelectPrevious,
     'control shift tab': onSelectNext,
-    'meta shift ]': onSelectNext,
-    'meta shift [': onSelectPrevious,
-    'ctrl pagedown': onSelectNext,
-    'ctrl pageup': onSelectPrevious,
+    'meta shift ]':onSelectPrevious,
+    'meta shift [': onSelectNext,
+    'ctrl pagedown': onSelectPrevious,
+    'ctrl pageup': onSelectNext,
   });
 
   const onDeckBindingRelease = KeyBindings({
