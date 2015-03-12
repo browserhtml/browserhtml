@@ -11,42 +11,15 @@ define((require, exports, module) => {
   const {DOM} = require('react')
   const {fromJS} = require('immutable');
   const Component = require('omniscient');
-  const {Element, Event} = require('./element');
+  const {Element} = require('./element');
+  const ClassSet = require('./util/class-set');
 
   const Awesomebar = Component('Awesomebar', (
     {suggestionsCursor, theme},
     {onOpen}) => {
 
-    let suggestions = [];
-
-    let search = suggestionsCursor.get('search').toArray();
-    let history = suggestionsCursor.get('history').toArray();
-
-    // searchCount + historyCount == 6
-    let searchCount = Math.min(search.length,
-                               MAX_RESULTS - Math.min(MAX_RESULTS / 2, history.length));
-    let historyCount = Math.min(history.length,
-                                MAX_RESULTS - Math.min(MAX_RESULTS / 2, search.length));
-
-    for (let i = 0; i < searchCount; i++) {
-      let href = search[i].get('href');
-      let text = search[i].get('text');
-      suggestions.push(DOM.p({
-        className: 'suggestion search',
-        key: 'suggestionSearch' + i,
-        href,
-      }, text));
-    }
-
-    for (let i = 0; i < historyCount; i++) {
-      let href = history[i].get('href');
-      let text = history[i].get('text');
-      suggestions.push(DOM.p({
-        className: 'suggestion history',
-        key: 'suggestionHistory' + i,
-        href,
-      }, text));
-    }
+    const selectedIndex = suggestionsCursor.get('selectedIndex');
+    const list = suggestionsCursor.get('list').toJSON();
 
     return DOM.div({
       className: 'suggestionscontainer',
@@ -59,8 +32,14 @@ define((require, exports, module) => {
       DOM.div({
         className: 'suggestions',
         key: 'suggestions',
-        onMouseDown: e => onOpen(e.target.getAttribute('href'))
-      }, suggestions)
+      }, list.map((entry, index) => {
+        return DOM.p({
+          className: `suggestion ${entry.type} ${index == selectedIndex ? 'selected':''}`,
+          key: 'suggestion' + index,
+          onMouseDown: e => onOpen(entry.href),
+          onMouseEnter: e => suggestionsCursor.set('selectedIndex', index)
+        }, entry.text);
+      }))
     ])
   });
 
@@ -85,14 +64,18 @@ define((require, exports, module) => {
     xhrSearch.responseType = 'json';
     xhrSearch.send();
     xhrSearch.onload = () => {
-      const json = xhrSearch.response;
-      suggestionsCursor.set('search', fromJS(
-        json[1].slice(0, MAX_RESULTS)
-               .map(entry => {
-                 return {
-                   text: entry,
-                   href:`https://duckduckgo.com/?q=${encodeURIComponent(entry)}`
-                 }})));
+      const search = xhrSearch.response[1];
+      const other = suggestionsCursor.get('list').filter(e => e.get('type') != 'search').toJSON();
+      const searchCount = Math.min(search.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, other.length));
+      suggestionsCursor = suggestionsCursor.set('list', fromJS([
+      ...other,
+      ...search.slice(0, searchCount)
+            .map(e => { return {
+              text: e,
+              href: `https://duckduckgo.com/?q=${encodeURIComponent(e)}`,
+              type: 'search'
+            }})
+      ].slice(-MAX_RESULTS)));
     }
 
     xhrHistory = new XMLHttpRequest();
@@ -100,16 +83,19 @@ define((require, exports, module) => {
     xhrHistory.responseType = 'json';
     xhrHistory.send();
     xhrHistory.onload = () => {
-      const json = xhrHistory.response;
-      suggestionsCursor.set('history', fromJS(
-        json.filter(entry => entry.startsWith(textInput))
-            .slice(0, MAX_RESULTS)
-            .map(entry => {
-              return {
-                text: entry,
-                href: 'http://' + entry
-              }
-            })));
+      const history = xhrHistory.response.filter(e => e.startsWith(textInput));
+      const other = suggestionsCursor.get('list').filter(e => e.get('type') != 'history').toJSON();
+      const historyCount = Math.min(history.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, other.length));
+      suggestionsCursor = suggestionsCursor.set('list', fromJS([
+      ...history.slice(0, historyCount)
+            .map(e => { return {
+              text: e,
+              href: 'http://' + e,
+              type: 'history'
+            }}),
+      ...other
+      ].slice(0, MAX_RESULTS)));
+
     }
   }
 
@@ -117,8 +103,8 @@ define((require, exports, module) => {
     if (xhrSearch) xhrSearch.abort();
     if (xhrHistory) xhrHistory.abort();
     suggestionsCursor.merge({
-      'search': fromJS([]),
-      'history': fromJS([]),
+      'selectedIndex': -1,
+      'list': fromJS([]),
     });
   }
 
