@@ -53,27 +53,30 @@ define((require, exports, module) => {
   const selected = find(isSelected);
 
 
-  // `indexOfNext` and `indexOfPrevious` encode tab switching logic that takes
-  // into account weather given `index` matches first / last item in the deck
+  // `next` and `previous` encode tab switching logic that takes
+  // into account weather given `item` matches first / last item in the deck
   // `items`.
-  const indexOfNext = (items, index) => {
-    const isLast = index == items.count() - 1;
-    return isLast ? 0 : index + 1;
+  const next = (items, item) => {
+    const ordered = order(items);
+    const isLast = order == items.count() - 1;
+    return ordered.last() === item ? ordered.first() :
+           ordered.get(ordered.indexOf(item) + 1);
   };
 
-  const indexOfPrevious = (items, index) => {
-    const isFirst = index == 0;
-    return isFirst ? items.count() - 1 : index - 1;
+  const previous = (items, item) => {
+    const ordered = order(items);
+    return ordered.first() === item ? ordered.last() :
+           ordered.get(ordered.indexOf(item) - 1);
   }
 
   const transition = (unmark, mark) => (items, from, to) =>
-    from == to ? items : items.update(from, unmark).update(to, mark);
+    from == to ? items : items.update(items.indexOf(from), unmark)
+                              .update(items.indexOf(to), mark);
 
-  const advance = (transition, indexOfFrom, indexOfTo) => items => {
-    const from = indexOfFrom(items);
-    const to = indexOfTo(items, from);
-    return transition(items, from, to);
-  };
+  const advance = (transition, from, to) => items => {
+    const source = from(items);
+    return transition(items, source, to(items, source));
+  }
 
   const asSelected = item => item.update('isSelected', True);
   const asActive = item => item.update('isActive', True);
@@ -85,40 +88,60 @@ define((require, exports, module) => {
   const switchActive = transition(asInactive, asActive);
 
   const select = (items, item) =>
-    switchSelected(items, indexOfSelected(items), items.indexOf(item));
+    switchSelected(items, selected(items), item);
 
   // Takes `items` and selects item previous to currently selected one.
   // If selected item is first item, then last item is selected.
   const selectPrevious = advance(switchSelected,
-                                 indexOfSelected,
-                                 indexOfPrevious);
+                                 selected,
+                                 previous);
   const selectNext = advance(switchSelected,
-                             indexOfSelected,
-                             indexOfNext);
+                             selected,
+                             next);
 
   // Takes deck `items` and activates selected item.
-  const activate = items => {
-    const from = indexOfActive(items);
-    const to = indexOfSelected(items);
-
-    return switchActive(items, from, to);
-  };
+  const activate = advance(switchActive,
+                           active,
+                           selected);
 
   // Resets currently selecetd tab back to the active one.
   const reset = items => select(items, active(items));
 
 
+  const MAX_ORDER = Number.MAX_SAFE_INTEGER;
+  const orderOf = item => item.get('order') || MAX_ORDER / 2;
+  const order = items => items.sortBy(orderOf);
+
+  // Returns `item` that when ordered will be in `n`th position
+  // starting from `0`.
+  const nth = (items, n) => items.sortBy(orderOf).get(n);
+
+  const asNth = (items, n, item) => {
+    const ordered = order(items);
+    const before = items.get(n);
+    const after = items.get(n + 1);
+    const order = ((after - before) / 2) + before;
+    return item.set('order', order);
+  }
+
+  const asFirst = (items, item) => {
+    const order = orderOf(nth(items, 0)) / 2;
+    return item.set('order', order);
+  }
+
+  const asLast = (items, item) => {
+    const last = orderOf(nth(items, items.count() - 1));
+    const order = last + ((MAX_ORDER - last) / 2);
+    return item.set('order', order);
+  }
+
   // Reorders `items` such that given `item` will be first and
   // rest items will remain as they were.
   const makeFirst = (items, item) =>
-    items.sort((a, b) => item === a ? -1 :
-                         item === b ? 1 :
-                         0);
+    items.set(items.indexOf(item), asFirst(items, item));
 
   const makeLast = (items, item) =>
-    items.sort((a, b) => item === a ? 1 :
-                         item === b ? -1 :
-                         0);
+    items.set(items.indexOf(item), asLast(items, item));
 
   // Reorders given `items` such that active item will be moved
   // to the tail of it.
@@ -134,48 +157,45 @@ define((require, exports, module) => {
   // different item according to logic explained in the inline comments
   // below.
   const remove = (items, p=exports.isActive) => {
-    const target = items.findIndex(p);
-    const selected = indexOfSelected(items);
-    const active = indexOfActive(items);
-
-    const isActive = target == active;
-    const isSelected = target == selected;
-    const isLast = target == items.count() - 1;
+    const target = items.find(p);
+    const index = items.indexOf(target);
+    const isActive = target == active(items);
+    const isSelected = target == selected(items);
 
     if (isActive) {
       if (isSelected) {
         // If target is selected & active item that is also
         // a last one, activate previous and remove the target.
-        if (isLast) {
-          return activatePrevious(items).remove(target);
+        if (target === order(items).last()) {
+          return activatePrevious(items).remove(index);
         }
         // If target is selected & active item but isn't a
         // a last on, activate next & remove the target.
         else {
-          return activateNext(items).remove(target);
+          return activateNext(items).remove(index);
         }
       }
       // If target is active but different one is selected then
       // activate selection and remove this item.
       else {
-        return activate(items).remove(target);
+        return activate(items).remove(index);
       }
     } else {
       if (isSelected) {
         // If target isn't active but is selected and happens to be the last
         // one, then select previous item and remove target.
-        if (isLast) {
-          return selectPrevious(items).remove(target);
+        if (target === order(items).last()) {
+          return selectPrevious(items).remove(index);
         }
         // If target isn't active but is selected and does not happen to be
         // the last one, then select next item and remove target.
         else {
-          return selectNext(items).remove(target);
+          return selectNext(items).remove(index);
         }
       }
       // If target neither selected nor active just remove it.
       else {
-        return items.remove(target);
+        return items.remove(index);
       }
     }
   };
@@ -195,16 +215,12 @@ define((require, exports, module) => {
   const deactivate = items => items.update(indexOfActive(items), asInactive);
 
   const insert = (items, item, index) => {
-    // Define a composed function that transforms given `items` in three
-    // steps (Note that compose is from right to left):
-    // 1. If given `item` is marked as active, deactivate item from `items`
-    //    that is active, otherwise use `identity` function to pass `items`
-    //    as is to a next step.
-    // 2. If give `item` is marked selected, deselect item from the `items`
-    //    that is selected, otherwise use `identity` function to pass `items`
-    //    as is to a next step.
-    // 3. Inject item into a given `index`.
-    const update = compose(items => items.splice(index, 0, item),
+    const include = items =>
+      index <= 0 ? items.push(asFirst(items, item)) :
+      index >= items.count() - 1 ? items.push(asLast(items, item)) :
+      items.push(asNth(items, index, item));
+
+    const update = compose(include,
                            isSelected(item) ? deselect : identity,
                            isActive(item) ? deactivate : identity);
 
@@ -232,6 +248,8 @@ define((require, exports, module) => {
   exports.asActive = asActive;
   exports.asInactive = asInactive;
   exports.indexOfActive = indexOfActive;
+  exports.orderOf = orderOf;
+  exports.order = order;
   exports.active = active;
   exports.activate = activate;
   exports.activateNext = activateNext;

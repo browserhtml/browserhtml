@@ -20,7 +20,7 @@ define((require, exports, module) => {
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
   const {focus, showTabStrip, hideTabStrip,
          writeSession, resetSession, resetSelected} = require('./actions');
-  const {indexOfSelected, indexOfActive, isActive,
+  const {indexOfSelected, indexOfActive, isActive, order,
          selectNext, selectPrevious, select, activate,
          reorder, reset, previewed, remove, append} = require('./deck/actions');
   const {readTheme} = require('./theme');
@@ -102,8 +102,8 @@ define((require, exports, module) => {
   const switchTab = (items, to) =>
     to ? activate(select(items, to)) : items;
 
-  switchTab.toIndex = index => items => switchTab(items, items.get(index));
-  switchTab.toLast = items => switchTab(items, items.last());
+  switchTab.toIndex = index => items => switchTab(items, order(items).get(index));
+  switchTab.toLast = items => switchTab(items, order(items).last());
 
 
   let onTabSwitch;

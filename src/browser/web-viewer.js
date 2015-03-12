@@ -14,6 +14,13 @@ define((require, exports, module) => {
   const {IFrame} = require('./iframe');
   const {DOM} = require('react');
   const ClassSet = require('./util/class-set');
+  const url = require('./util/url');
+  const makeTileURI = input =>
+    `/tiles/${url.getDomainName(input)}.png`;
+  const {fromDOMRequest, fromEvent} = require('lang/promise');
+
+
+
 
   const WebViewer = Component('WebViewer', ({item: webViewerCursor}, {onOpen, onClose}) => {
 
@@ -30,7 +37,9 @@ define((require, exports, module) => {
       isRemote: true,
       allowFullScreen: true,
 
-      isVisible: isActive(webViewerCursor) || isSelected(webViewerCursor),
+      isVisible: isActive(webViewerCursor) ||
+                 isSelected(webViewerCursor),
+
       hidden: !isActive(webViewerCursor),
       zoom: webViewerCursor.get('zoom'),
       isFocused: webViewerCursor.get('isFocused'),
@@ -60,6 +69,52 @@ define((require, exports, module) => {
     })
   });
 
+
+  const fetchScreenshot = iframe =>
+    fromDOMRequest(iframe.getScreenshot(100 * devicePixelRatio,
+                                        62.5 * devicePixelRatio,
+                                        'image/png'));
+
+  // This is temporary workraound once we've get a history database
+  // we will be queyring it instead (see #153)
+  const fetchThumbnail = uri => new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('GET', `/tiles/${url.getDomainName(uri)}.png`);
+    request.responseType = 'blob';
+    request.send();
+    request.onload = event => {
+      if (request.status === 200) {
+        resolve(request.response);
+      } else {
+        reject(request.statusText);
+      }
+    }
+    request.onerror = event => reject();
+  });
+
+  const requestThumbnail = iframe => {
+    // Create a promise that is rejected when iframe location is changes,
+    // in order to abort task if this happens before we have a response.
+    const abort = fromEvent(iframe, 'mozbrowserlocationchange').
+      then(event => Promise.reject(event));
+
+    // Create a promise that is resolved once iframe ends loading, it will
+    // be used to defer a screenshot request.
+    const loaded = fromEvent(iframe, 'mozbrowserloadend');
+
+    // Request a thumbnail from DB.
+    const thumbnail = fetchThumbnail(iframe.src).
+    // If thumbnail isn't in database then we race `loaded` against `abort`
+    // and if `loaded` wins we fetch a screenshot that will be our thumbnail.
+    catch(_ => Promise.
+          race([abort, loaded]).
+          then(_ => fetchScreenshot(iframe)));
+
+    // Finally we return promise that rejects if `abort` wins and resolves to a
+    // `thumbnail` if we get it before `abort`.
+    return Promise.race([abort, thumbnail]);
+  }
+
   WebViewer.onUnhandled = event => console.log(event)
   WebViewer.onBlur = webViewerCursor => event =>
     webViewerCursor.set('isFocused', false);
@@ -73,6 +128,7 @@ define((require, exports, module) => {
     isConnecting: true,
     startLoadingTime: performance.now(),
     icons: {},
+    thumbnail: null,
     title: null,
     location: null,
     securityState: 'insecure',
@@ -89,7 +145,8 @@ define((require, exports, module) => {
     if (!isSelected(webViewerCursor)) {
       webViewerCursor = webViewerCursor.set('progress', 1);
     }
-    return webViewerCursor.merge({
+
+    webViewerCursor.merge({
       isConnecting: false,
       endLoadingTime: performance.now(),
       readyState: 'loaded',
@@ -100,10 +157,14 @@ define((require, exports, module) => {
   WebViewer.onTitleChange = webViewerCursor => event =>
     webViewerCursor.set('title', event.detail);
 
+
   WebViewer.onLocationChange = webViewerCursor => event => {
-    webViewerCursor.merge(Object.assign({location: event.detail,
-                                        userInput: event.detail},
-                                        getHardcodedColors(event.detail)));
+    webViewerCursor.merge({location: event.detail,
+                           userInput: event.detail}).
+                    merge(getHardcodedColors(event.detail));
+
+    requestThumbnail(event.target).
+      then(WebViewer.onThumbnailChanged(webViewerCursor));
   }
 
   WebViewer.onIconChange = webViewerCursor => event =>
@@ -137,9 +198,12 @@ define((require, exports, module) => {
     }
   }
 
+  WebViewer.onThumbnailChanged = webViewerCursor => blob =>
+    webViewerCursor.set('thumbnail', URL.createObjectURL(blob));
+
   // WebViewer deck will always inject frames by order of their id. That way
   // no iframes will need to be removed / injected when order of tabs change.
-  WebViewer.Deck = Deck(WebViewer, item => item.get('id'));
+  WebViewer.Deck = Deck(WebViewer);
   // Exports:
 
   exports.WebViewer = WebViewer;
