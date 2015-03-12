@@ -45,17 +45,69 @@ define((require, exports, module) => {
       })
     ]));
 
-  const inputBindings = KeyBindings({'escape': (inputCursor, webViewerCursor) => {
-    focus(webViewerCursor);
-    // webViewer might have nothing to focus. So let's blur the input just
-    // in case.
-    blur(inputCursor);
-  }});
+  const updateSuggestionsSelection = (delta, suggestionsCursor, webViewerCursor) => {
+    const size = suggestionsCursor.get('list').size;
+    let value = suggestionsCursor.get('selectedIndex') + delta;
+    if (value >= size) {
+      value = -1;
+    }
+    value = Math.max(-1, value);
+    suggestionsCursor.set('selectedIndex', value);
+  }
+
+  const onInputKeyDown = ({event, inputCursor, webViewerCursor, suggestionsCursor}) => {
+    switch (event.key) {
+      case 'Escape':
+        // webViewer might have nothing to focus. So let's blur the input just in case.
+        focus(webViewerCursor);
+        blur(inputCursor);
+        event.preventDefault();
+        break;
+      case 'ArrowUp':
+        updateSuggestionsSelection(-1, suggestionsCursor, webViewerCursor),
+        event.preventDefault();
+        break;
+      case 'ArrowDown':
+        updateSuggestionsSelection(+1, suggestionsCursor, webViewerCursor),
+        event.preventDefault();
+        break;
+      case 'Enter':
+        resetSuggestions(suggestionsCursor);
+        navigateTo({inputCursor, webViewerCursor}, event.target.value, true)
+        break;
+      default:
+        // When the user starts doing something that is not navigating
+        // through the suggestions, if a suggestion was selected, we
+        // commit it as a userInput, then the suer can start editing it
+        let suggestionSelectedIndex = suggestionsCursor.get('selectedIndex');
+        if (suggestionSelectedIndex > -1) {
+          webViewerCursor.set('userInput', suggestionsCursor.get('list')
+                                                            .get(suggestionSelectedIndex)
+                                                            .get('text'));
+        }
+        suggestionsCursor.set('selectedIndex', -1);
+    }
+  };
 
 
   const NavigationControls = Component('NavigationControls', ({inputCursor, tabStripCursor,
-                                         webViewerCursor, suggestionsCursor, theme}) =>
-    DOM.div({
+                                         webViewerCursor, suggestionsCursor, theme}) => {
+
+    let inputValue = webViewerCursor.get('userInput');
+
+    let suggestionSelectedIndex = suggestionsCursor.get('selectedIndex');
+    if (suggestionSelectedIndex > -1) {
+      try {
+        inputValue = suggestionsCursor.get('list')
+                                      .get(suggestionSelectedIndex)
+                                      .get('text');
+      } catch(e) {
+        // This failed once. Wondering how it can happen.
+        console.error(e, suggestionsCursor.toJSON());
+      }
+    }
+
+    return DOM.div({
       className: 'locationbar',
       onMouseEnter: event => showTabStrip(tabStripCursor)
     }, [
@@ -68,9 +120,8 @@ define((require, exports, module) => {
         className: 'urlinput',
         style: theme.urlInput,
         placeholder: 'Search or enter address',
-        value: webViewerCursor.get('userInput'),
+        value: inputValue,
         type: 'text',
-        submitKey: 'Enter',
         isFocused: inputCursor.get('isFocused'),
         selection: inputCursor.get('isFocused'),
         onFocus: event => {
@@ -85,11 +136,12 @@ define((require, exports, module) => {
           computeSuggestions(event.target.value, suggestionsCursor);
           webViewerCursor.set('userInput', event.target.value);
         },
-        onSubmit: event => {
-          resetSuggestions(suggestionsCursor);
-          navigateTo({inputCursor, webViewerCursor: webViewerCursor}, event.target.value, true)
-        },
-        onKeyUp: inputBindings(inputCursor, webViewerCursor),
+        onKeyDown: event => onInputKeyDown({
+          event,
+          inputCursor,
+          webViewerCursor,
+          suggestionsCursor
+        })
       }),
       DOM.p({key: 'page-info',
              className: 'pagesummary',
@@ -115,7 +167,7 @@ define((require, exports, module) => {
                className: 'stopbutton',
                style: theme.stopButton,
                onClick: event => webViewerCursor.set('readyState', 'stop')}),
-    ]));
+    ])});
 
   const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStripCursor,
                                      webViewerCursor, suggestionsCursor, title, rfaCursor, theme}) => {

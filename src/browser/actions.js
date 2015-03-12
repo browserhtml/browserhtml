@@ -81,8 +81,8 @@ define((require, exports, module) => {
     dashboard: {items: dashboardItems},
     rfa: {id: -1},
     suggestions: {
-      search: [],
-      history: []
+      selectedIndex: -1,
+      list: []
     },
     webViewers: [open({isSelected: true,
                        isActive: true,
