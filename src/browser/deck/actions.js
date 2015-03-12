@@ -53,8 +53,8 @@ define((require, exports, module) => {
   const selected = find(isSelected);
 
 
-  // `indexOfNext` and `indexOfPrevious` encode tab switching logic that takes
-  // into account weather given `index` matches first / last item in the deck
+  // `next` and `previous` encode tab switching logic that takes
+  // into account weather given `item` matches first / last item in the deck
   // `items`.
   const next = (items, item) => {
     const ordered = order(items);
@@ -66,7 +66,7 @@ define((require, exports, module) => {
   const previous = (items, item) => {
     const ordered = order(items);
     return ordered.first() === item ? ordered.last() :
-           ordered.get(ordered.get(ordered.indexOf(item) - 1));
+           ordered.get(ordered.indexOf(item) - 1);
   }
 
   const transition = (unmark, mark) => (items, from, to) =>
@@ -94,10 +94,10 @@ define((require, exports, module) => {
   // If selected item is first item, then last item is selected.
   const selectPrevious = advance(switchSelected,
                                  selected,
-                                 next);
+                                 previous);
   const selectNext = advance(switchSelected,
                              selected,
-                             previous);
+                             next);
 
   // Takes deck `items` and activates selected item.
   const activate = advance(switchActive,
