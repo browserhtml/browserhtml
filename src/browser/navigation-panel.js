@@ -18,7 +18,10 @@ define((require, exports, module) => {
   const {throttle} = require('lang/functional');
   let {computeSuggestions, resetSuggestions} = require('./awesomebar');
 
-  computeSuggestions = throttle(computeSuggestions, 200)
+  computeSuggestions = throttle(computeSuggestions, 200);
+
+  const sendEventToChrome = type => dispatchEvent(new CustomEvent('mozContentEvent',
+    { bubbles: true, cancelable: false, detail: { type }}))
 
   const WindowControls = Component('WindowControls', ({theme}) =>
     DOM.div({className: 'windowctrls'}, [
@@ -26,23 +29,20 @@ define((require, exports, module) => {
                style: theme.windowCloseButton,
                title: 'close',
                key: 'close',
-               onClick: event => window.close()}),
+               onClick: event => sendEventToChrome('shutdown-application')
+      }),
       DOM.div({className: 'windowctrl win-min-button',
                style: theme.windowMinButton,
                title: 'minimize',
                key: 'minimize',
-               onClick: event => window.minimize()}),
+               onClick: event => sendEventToChrome('minimize-native-window')
+      }),
       DOM.div({className: 'windowctrl win-max-button',
                style: theme.windowMaxButton,
                title: 'maximize',
                key: 'maximize',
-               onClick: event => {
-                 if (document.mozFullScreenElement) {
-                   document.mozCancelFullScreen();
-                 } else {
-                   document.body.mozRequestFullScreen();
-                 }
-               }})
+               onClick: event => sendEventToChrome('toggle-fullscreen-native-window')
+      })
     ]));
 
   const inputBindings = KeyBindings({'escape': focus});
