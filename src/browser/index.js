@@ -10,5 +10,8 @@ define((require, exports, module) => {
   const {Browser} = require('./browser');
   const {readSession, resetSession} = require('./actions');
 
-  render(Browser, readSession() || resetSession(), document.body);
+  // See issue #218
+  // render(Browser, readSession() || resetSession(), document.body);
+  render(Browser, resetSession(), document.body);
+
 });

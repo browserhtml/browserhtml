@@ -10,6 +10,8 @@ define((require, exports, module) => {
   const uuid = require('uuid');
 
   const initial = fromJS({
+    // What the user wrote in the locationbar for this specific view
+    userInput: '',
     // Zoom level of the web content.
     zoom: 1,
     // State of the web content:

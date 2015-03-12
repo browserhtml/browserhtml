@@ -28,8 +28,7 @@ define((require, exports, module) => {
     if (!webViewerCursor.get('uri')) return null;
     return IFrame({
       className: ClassSet({
-        frame: true,
-        'flex-1': true,
+        'iframes-frame': true,
         webviewer: true,
         contentoverflows: webViewerCursor.get('contentOverflows')
       }),
@@ -157,7 +156,8 @@ define((require, exports, module) => {
 
 
   WebViewer.onLocationChange = webViewerCursor => event => {
-    webViewerCursor.merge({location: event.detail}).
+    webViewerCursor.merge({location: event.detail,
+                           userInput: event.detail}).
                     merge(getHardcodedColors(event.detail));
 
     requestThumbnail(event.target).

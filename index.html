@@ -17,7 +17,9 @@
     <link rel='stylesheet' title='default' href='css/locationbar.css'>
     <link rel='stylesheet' title='default' href='css/navbar.css'>
     <link rel='stylesheet' title='default' href='css/tabstrip.css'>
+    <link rel='stylesheet' title='default' href='css/dashboard.css'>
     <link rel='stylesheet' title='default' href='css/window_controls.css'>
+    <link rel='stylesheet' title='default' href='css/awesomebar.css'>
 
 
     <!-- Module handling -->
@@ -25,5 +27,8 @@
     <script data-main='./main' src='node_modules/requirejs/require.js'
             type='text/javascript' defer='defer'></script>
   </head>
-  <body></body>
+  <body>
+    <!-- We need to render something, otherwise osx freaks out -->
+    <h1 id="placeholder" style="color:rgba(0,0,0,0.01)">wtf mac os!</h1>
+  </body>
 </html>

@@ -1,0 +1,55 @@
+.suggestionscontainer {
+  justify-content: center;
+  width: 100vw;
+  position: absolute;
+  top: 40px;
+  z-index: 43;
+  transition: background-color 200ms ease;
+}
+
+.suggestions {
+  flex-flow: column;
+  flex-basis: 460px;
+}
+
+.suggestion:first-of-type {
+  border-top-width: 0;
+}
+
+.suggestion:first-of-type {
+  margin-top: 10px;
+}
+
+.suggestion:last-of-type {
+  margin-bottom: 10px;
+}
+
+.suggestion {
+  line-height: 38px;
+  vertical-align: center;
+  border-top: var(--hwd-pixel) solid rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+
+.suggestion:hover {
+  background-color: rgba(0,0,0,0.01);
+}
+
+.suggestion:before {
+  font-size: 16px;
+  opacity: 0.4;
+  font-family: 'FontAwesome';
+  margin: 0 20px 0 0;
+}
+
+.suggestion.search:before {
+  content: "\f002";
+}
+
+.suggestion.history:before {
+  content: "\f14e";
+}
+
+main.isdark .suggestion {
+  border-top-color: rgba(255,255,255,0.1);
+}
