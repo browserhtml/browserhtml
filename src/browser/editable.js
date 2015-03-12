@@ -12,17 +12,24 @@ define((require, exports, module) => {
 
   const selection = VirtualAttribute((node, current, past) => {
     if (current != past) {
-      if (current === true) {
-        node.select();
-      } else if (current === false) {
+      if (!current) {
         node.selectionStart = node.selectionEnd;
-      } else if (current) {
-        if ('start' in current) {
+      }
+      else if (current) {
+        const hasStart = 'start' in current;
+        const hasEnd = 'end' in current;
+        const isRange = hasStart || hasEnd;
+
+        if (hasStart) {
           node.selectionStart = current.start;
         }
 
-        if ('end' in current) {
+        if (hasEnd) {
           node.selectionEnd = current.end;
+        }
+
+        if (!isRange) {
+          node.select();
         }
 
         if (current.direction == 'forward') {
@@ -54,12 +61,15 @@ define((require, exports, module) => {
     __proto__: Component.prototype,
     constructor: InputField,
     onKeyDown(event) {
+      if (this.props.onKeyDown) {
+        this.props.onKeyDown(event);
+      }
       if (event.key == this.props.submitKey) {
         this.props.onSubmit(event);
       }
     },
     render() {
-      return InputElement(Object.assign({onKeyDown: this.onKeyDown}, this.props));
+      return InputElement(Object.assign({}, this.props, {onKeyDown: this.onKeyDown}));
     }
   };
 
