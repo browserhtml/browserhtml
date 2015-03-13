@@ -1,15 +1,22 @@
 .dashboard {
+  flex: 1 0 auto;
+  flex-flow: column nowrap;
   color: #555;
+  /* The top padding places the dashboard below the tabstrip */
+  padding-top: 100px;
+}
+
+.dashboard-tiles {
   align-content: center;
-  flex: 0 0 100%;
+  flex: 0 0 main-size;
   flex-flow: row wrap;
-  /* The top margin places the dashboard below the tabstrip, the bottom margin
-  visually centers the tiles vertically. We need the bottom margin because we're
-  using flexbox to align the tiles, but the tiles themselves are not visually
-  even, since they have extra space below for the title. */
   margin: 0 auto;
+  /* the bottom margin visually centers the tiles vertically. We need the bottom
+  margin because we're using flexbox to align the tiles, but the tiles
+  themselves are not visually even, since they have extra space below for
+  the title. */
+  padding: 0 0 30px;
   width: 800px;
-  padding: 100px 0 30px;
 }
 
 .tile-large {
@@ -50,8 +57,18 @@
   opacity: 1;
 }
 
+.wallpaper-swatches {
+  flex-flow: row nowrap;
+}
+
+.wallpaper-swatch {
+  background: #000;
+  height: 30px;
+  width: 30px;
+}
+
 @media (max-width: 800px) {
-  .dashboard {
+  .dashboard-tiles {
     width: 520px;
   }
 
