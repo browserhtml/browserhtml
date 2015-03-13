@@ -9,9 +9,12 @@ define((require, exports, module) => {
   const {render} = require('./core');
   const {Browser} = require('./browser');
   const {readSession, resetSession} = require('./actions');
+  const {appUpdateAvailable} = require('./github'); // Pull updates from github
 
-  // See issue #218
-  // render(Browser, readSession() || resetSession(), document.body);
-  render(Browser, resetSession(), document.body);
+  render(Browser, readSession() || resetSession(), document.body);
+
+  appUpdateAvailable.then(() => {
+    dispatchEvent(new CustomEvent("app-update-available"));
+  });
 
 });
