@@ -16,7 +16,7 @@ define((require, exports, module) => {
   const url = require('./util/url');
   const {ProgressBar} = require('./progressbar');
   const ClassSet = require('./util/class-set');
-  const {throttle, compose, arity} = require('lang/functional');
+  const {throttle, compose, arity, curry} = require('lang/functional');
   let {computeSuggestions, resetSuggestions} = require('./awesomebar');
 
   computeSuggestions = throttle(computeSuggestions, 200);
@@ -50,57 +50,38 @@ define((require, exports, module) => {
   const unselect = suggestions =>
     suggestions.set('selectedIndex', -1);
 
-  // Moves selecetion from current index with give `delta`.
-  const move = delta => suggestions =>
-    suggestions.update('selectedIndex', currentIndex => {
+  // Selects suggestion `n` items away relative to currently seleceted suggestion.
+  // Selection over suggestion entries is moved in a loop although there is extra
+  // "no selection" entry between last and first suggestions. Given `n` can be negative
+  // or positive in order to select suggestion before or after the current one.
+  const selectRelative = curry((n, suggestions) =>
+    suggestions.update('selectedIndex', from => {
       const first = 0;
       const last = suggestions.get('list').count() - 1;
-      const index = currentIndex + delta;
-      return index > last ? first :
-             index < first ? last :
-             index;
-    });
+      const to = from + n;
+
+      return to > last ? -1 :
+             to < first ? -1 :
+             to;
+    }));
 
   // Selects next / previous suggestion.
-  const previous = move(-1);
-  const next = move(1);
+  const selectPrevious = selectRelative(-1);
+  const selectNext = selectRelative(1);
 
-  // Returns currently selected suggestion.
+  // Returns currently selected suggestion or void if there's none.
   const selected = suggestions => {
-    // When the user starts doing something that is not navigating
-    // through the suggestions, if a suggestion was selected, we
-    // commit it as a userInput, then the suer can start editing it
     const index = suggestions.get('selectedIndex');
-    if (index > -1) {
-      try {
-        return suggestions.getIn(['list', index, 'text']);
-      } catch(e) {
-        // This failed once. Wondering how it can happen.
-        console.error(e, suggestions.toJSON());
-      }
-    }
+    return index >= 0 ? suggestions.getIn(['list', index, 'text']) : void(0);
   }
-
-  // Activates current selection (if there is any) by moving it to a
-  // webViewer's userInput.
-  const activate = (suggestions, webViewer) =>
-    webViewer.update('userInput', input => selected(suggestions) || input);
-
-  // Activates next suggestion.
-  const activateNext = (suggestionsCursor, webViewerCursor) =>
-    activate(next(suggestionsCursor), webViewerCursor);
-
-  // Activates netx suggestion.
-  const activatePrevious = (suggestionsCursor, webViewerCursor) =>
-    activate(previous(suggestionsCursor), webViewerCursor);
 
   // Bindings for navigation suggestions.
   const onSuggetionNavigation = KeyBindings({
-    'up': activatePrevious,
-    'control p': activatePrevious,
-    'down': activateNext,
-    'control n': activateNext,
-    'enter': arity(1, unselect)
+    'up': selectPrevious,
+    'control p': selectPrevious,
+    'down': selectNext,
+    'control n': selectNext,
+    'enter': unselect
   });
 
   // General input keybindings.
@@ -130,7 +111,8 @@ define((require, exports, module) => {
         className: 'urlinput',
         style: theme.urlInput,
         placeholder: 'Search or enter address',
-        value: webViewerCursor.get('userInput'),
+        value: selected(suggestionsCursor) ||
+               webViewerCursor.get('userInput'),
         type: 'text',
         submitKey: 'Enter',
         isFocused: inputCursor.get('isFocused'),
@@ -155,7 +137,7 @@ define((require, exports, module) => {
           navigateTo({inputCursor, webViewerCursor}, event.target.value, true);
         },
         onKeyDown: compose(onInputNavigation(inputCursor, webViewerCursor),
-                           onSuggetionNavigation(suggestionsCursor, webViewerCursor))
+                           onSuggetionNavigation(suggestionsCursor))
       }),
       DOM.p({key: 'page-info',
              className: 'pagesummary',
