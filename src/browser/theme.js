@@ -49,8 +49,7 @@ define((require, exports, module) => {
     'daringfireball.net': ['#fff', '#4a525a', IS_DARK],
     'firewatchgame.com': ['#EF4338', '#2D102B', IS_DARK],
     'whatliesbelow.com': ['#fff', '#74888B', IS_DARK],
-    'supertimeforce.com': ['#2EBCEC', '#051224', IS_DARK],
-    'huffingtonpost.com': ['#fff', '#2E7360', IS_DARK]
+    'supertimeforce.com': ['#2EBCEC', '#051224', IS_DARK]
   };
 
   // Expands `foregroundColor`, `backgroundColor` and `isDark` into a full theme
