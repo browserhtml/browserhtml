@@ -19,12 +19,12 @@ define((require, exports, module) => {
     'default': {
       navigation: {
         backgroundColor: '#222',
-        forgroundColor: '#fff',
+        foregroundColor: '#fff',
         isDark: true,
       },
       wallpaper: {
         backgroundColor: '#222',
-        forgroundColor: '#fff',
+        foregroundColor: '#fff',
         posterImage: null
       }
     },
@@ -85,18 +85,18 @@ define((require, exports, module) => {
     const wallpaper = dashboard.get('wallpaper');
     const backgroundColor = wallpaper.get('backgroundColor');
     const backgroundImage = wallpaper.get('posterImage') || 'none';
-    const forgroundColor = wallpaper.get('forgroundColor');
+    const foregroundColor = wallpaper.get('foregroundColor');
     return {
       backgroundColor,
       backgroundImage: `url(${backgroundImage})`,
-      color: forgroundColor
+      color: foregroundColor
     };
   }
 
   const readDashboardNavigationTheme = dashboard => {
     const navigation = dashboard.get('navigation');
     return expandCustomTheme(
-      navigation.get('forgroundColor'),
+      navigation.get('foregroundColor'),
       navigation.get('backgroundColor'),
       navigation.get('isDark')
     );
