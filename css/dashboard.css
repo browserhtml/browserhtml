@@ -1,4 +1,5 @@
 .dashboard {
+  color: #555;
   align-content: center;
   flex: 0 0 100%;
   flex-flow: row wrap;
@@ -38,7 +39,6 @@
 }
 
 .tile-title {
-  color: #555;
   font-weight: bold;
   font-size: 12px;
   opacity: 0;
