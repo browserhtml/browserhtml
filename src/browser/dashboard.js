@@ -9,7 +9,7 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {identity} = require('../lang/functional');
   const {readDashboardTheme, readWallpaperTheme,
-         getWallpaperSwatches} = require('./dashboard/theme');
+         getWallpaperSwatches} = require('./dashboard/actions');
 
   const readBackground = uri => ('none' && `url(${uri})`);
 

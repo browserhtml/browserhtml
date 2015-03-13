@@ -7,8 +7,6 @@ define((require, exports, module) => {
 
   const {expandCustomTheme} = require('../theme.js');
 
-  const freeze = Object.freeze;
-
   // Like `array.reduce` but for objects.
   const reducekv = (object, step, value) => {
     for (let key of Object.keys(object)) {
@@ -17,27 +15,37 @@ define((require, exports, module) => {
     return value;
   }
 
-  const hardcodedThemes = freeze({
+  const hardcodedThemes = {
     'default': {
-      backgroundColor: '#222',
-      forgroundColor: '#fff',
-      isDark: true,
-      wallpaper: freeze({
+      navigation: {
+        backgroundColor: '#222',
+        forgroundColor: '#fff',
+        isDark: true,
+      },
+      wallpaper: {
         backgroundColor: '#222',
         forgroundColor: '#fff',
         posterImage: null
-      })
+      }
     }
-  });
-
-  const getTheme = key =>
-    hardcodedThemes[key] ? hardcodedThemes[key] : hardcodedThemes.default;
+  };
 
   // Returns an object that can be used to patch `immutableState.dashboard` via
-  // `merge`. We happen to use the same datastructure for our hardcoded themes
-  // so right now this is just a proxy for `getTheme`. If that changes,
-  // change this function.
-  const getDashboardPatch = getTheme;
+  // `merge`. We happen to use the same datastructure for our hardcoded themes.
+  // If that changes, change this function.
+  const getDashboardThemePatch = key => {
+    const theme = hardcodedThemes[key] ?
+      hardcodedThemes[key] : hardcodedThemes.default;
+    const navigation = Object.assign({}, theme.navigation);
+    const wallpaper = Object.assign({}, theme.wallpaper);
+    return {navigation, wallpaper};
+  }
+
+  // Use to initialize wallpaper in `immutableState`.
+  const init = options => Object.assign(
+    getDashboardThemePatch('default'),
+    options
+  );
 
   const stepSwatch = (array, key, theme) => {
     array.push({key: key, backgroundColor: theme.wallpaper.backgroundColor});
@@ -60,17 +68,21 @@ define((require, exports, module) => {
     };
   }
 
-  const readDashboardNavigationTheme = (dashboard) => expandCustomTheme(
-    dashboard.get('forgroundColor'),
-    dashboard.get('backgroundColor'),
-    dashboard.get('isDark')
-  );
+  const readDashboardNavigationTheme = dashboard => {
+    const navigation = dashboard.get('navigation');
+    return expandCustomTheme(
+      navigation.get('forgroundColor'),
+      navigation.get('backgroundColor'),
+      navigation.get('isDark')
+    );
+  }
 
   // Exports:
 
-  exports.getDashboardPatch = getDashboardPatch;
+  exports.getDashboardThemePatch = getDashboardThemePatch;
   exports.getWallpaperSwatches = getWallpaperSwatches;
   exports.readDashboardTheme = readDashboardTheme;
   exports.readDashboardNavigationTheme = readDashboardNavigationTheme;
+  exports.init = init;
 
 });
