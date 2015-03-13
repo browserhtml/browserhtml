@@ -13,23 +13,21 @@ define((require, exports, module) => {
 
   const readBackground = uri => ('none' && `url(${uri})`);
 
-  const List = (Item, a2b) => (options, handlers) =>
+  const List = (Item, a2b) => Component('List', (options, handlers) =>
     DOM.div(options, options.items.map(options =>
-      Item(a2b(options), handlers)));
+      Item(a2b(options), handlers))));
 
-  const WallpaperSwatch = Component('WallpaperSwatch',
-    ({key, backgroundColor}, {onWallpaperChange}) =>
+  const WallpaperSwatch = ({key, backgroundColor}, {onWallpaperChange}) =>
     DOM.div({
       key,
       className: 'wallpaper-swatch',
       style: {backgroundColor: backgroundColor},
       onClick: event => onWallpaperChange(key)
-    }));
+    });
 
   const WallpaperSwatches = List(WallpaperSwatch, identity);
 
-  const DashboardTile = Component('DashboardTile',
-    ({key, uri, image, title}, {onOpen}) =>
+  const DashboardTile = ({key, uri, image, title}, {onOpen}) =>
     DOM.div({key,
              onClick: event => onOpen(uri),
              className: 'tile tile-large'}, [
@@ -37,7 +35,7 @@ define((require, exports, module) => {
                       className: 'tile-thumbnail',
                       style: {backgroundImage: readBackground(image)}}),
              DOM.div({key: 'tileTitle',
-                      className: 'tile-title'}, null, title)]));
+                      className: 'tile-title'}, null, title)]);
 
   const DashboardTiles = List(DashboardTile, item => ({
     key: item.get('uri'),

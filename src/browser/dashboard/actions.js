@@ -9,7 +9,7 @@ define((require, exports, module) => {
 
   // Like `array.reduce` but for objects.
   const reducekv = (object, step, value) => {
-    for (let key of Object.keys(object)) {
+    for (let key in object) {
       value = step(value, key, object[key]);
     }
     return value;
@@ -27,7 +27,31 @@ define((require, exports, module) => {
         forgroundColor: '#fff',
         posterImage: null
       }
-    }
+    },
+    'mint_blue': {
+      navigation: {
+        backgroundColor: '#68D5A9',
+        foregroundColor: '#fff',
+        isDark: true
+      },
+      wallpaper: {
+        backgroundColor: '#2C3A46',
+        foregroundColor: '#fff',
+        posterImage: null
+      }
+    },
+    'blue_yellow': {
+      navigation: {
+        backgroundColor: '#32B6FF',
+        foregroundColor: '#FFC04B',
+        isDark: true
+      },
+      wallpaper: {
+        backgroundColor: '#32B6FF',
+        foregroundColor: '#FFC04B',
+        posterImage: null
+      }
+    },
   };
 
   // Returns an object that can be used to patch `immutableState.dashboard` via
@@ -48,7 +72,7 @@ define((require, exports, module) => {
   );
 
   const stepSwatch = (array, key, theme) => {
-    array.push({key: key, backgroundColor: theme.wallpaper.backgroundColor});
+    array.push({key, backgroundColor: theme.wallpaper.backgroundColor});
     return array;
   }
 
