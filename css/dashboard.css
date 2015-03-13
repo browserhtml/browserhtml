@@ -13,10 +13,9 @@
   align-content: center;
   flex: 1 0 auto;
   flex-flow: row wrap;
-  /* the bottom margin visually centers the tiles vertically. We need the bottom
-  margin because we're using flexbox to align the tiles, but the tiles
-  themselves are not visually even, since they have extra space below for
-  the title. */
+  /* Add offset to visually center tiles in space above wallpaper swatch
+  picker. */
+  padding-top: 10px;
   width: 800px;
 }
 
