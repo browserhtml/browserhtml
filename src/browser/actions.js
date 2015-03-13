@@ -12,7 +12,7 @@ define((require, exports, module) => {
   const {select, active} = require('./deck/actions');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
-  const version = '0.0.1';
+  const version = '0.0.2';
 
 
   const makeSearchURL = input =>
@@ -78,7 +78,10 @@ define((require, exports, module) => {
     isDocumentFocused: document.hasFocus(),
     input: {value: '', isFocused: false},
     tabStrip: {isActive: false},
-    dashboard: {items: dashboardItems},
+    dashboard: {
+      items: dashboardItems,
+      wallpaper: {}
+    },
     rfa: {id: -1},
     suggestions: {
       selectedIndex: -1,

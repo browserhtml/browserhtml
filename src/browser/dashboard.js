@@ -8,6 +8,9 @@ define((require, exports, module) => {
   const {DOM} = require('react')
   const Component = require('omniscient');
   const {Deck} = require('./deck');
+  const {Wallpaper, WallpaperSwatches} = require('./wallpaper');
+  const {readDashboardTheme, readWallpaperTheme,
+         getWallpaperSwatches} = require('./dashboard/theme');
 
   const readBackground = uri => ('none' && `url(${uri})`);
 
@@ -22,13 +25,38 @@ define((require, exports, module) => {
              DOM.div({key: 'tileTitle',
                       className: 'tile-title'}, null, title)]));
 
-  const Dashboard = Component('Dashboard', ({items, hidden}, {onOpen}) =>
-    DOM.div({className: 'dashboard', hidden}, items.map(item => DashboardTile({
-      key: item.get('uri'),
-      uri: item.get('uri'),
-      image: item.get('image'),
-      title: item.get('title')
-    }, {onOpen}))));
+  const DashboardTiles = (options, handlers) =>
+    DOM.div(options, options.items.map(item =>
+      DashboardTile({
+        key: item.get('uri'),
+        uri: item.get('uri'),
+        image: item.get('image'),
+        title: item.get('title')
+      }, handlers)));
+
+  const Dashboard = Component('Dashboard',
+    ({dashboard, hidden}, {onOpen, onWallpaperChange}) =>
+    DOM.div({
+      style: readDashboardTheme(dashboard),
+      className: 'dashboard',
+      hidden
+    }, [
+      Wallpaper({
+        key: 'wallpaper',
+        className: 'wallpaper',
+        wallpaper: readWallpaperTheme(dashboard)
+      }, {onWallpaperChange}),
+      DashboardTiles({
+        key: 'dashboard-tiles',
+        className: 'dashboard-tiles',
+        items: dashboard.get('items')
+      }, {onOpen}),
+      WallpaperSwatches({
+        key: 'wallpaper-swatches',
+        className: 'wallpaper-swatches',
+        items: getWallpaperSwatches()
+      }, {onWallpaperChange})
+    ]));
 
   // Exports:
 
