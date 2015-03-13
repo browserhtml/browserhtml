@@ -9,23 +9,30 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const createDefaultTheme = () => ({
-    isDark: false,
-    glyphsShowing: false,
-    windowCloseButton: {backgroundColor: '#FC5753'},
-    windowMinButton: {backgroundColor: '#FDBC40'},
-    windowMaxButton: {backgroundColor: '#33C748'},
-    reloadButton: {color: 'rgba(0,0,0,0.5)'},
-    stopButton: {color: 'rgba(0,0,0,0.5)'},
-    backButton: {color: 'rgba(0,0,0,0.5)'},
-    urlInput: {color: 'rgba(0,0,0,0.65)'},
-    locationText: {color: 'rgba(0,0,0, 0.65)'},
-    titleText: {color: 'rgba(0,0,0,0.5)'},
-    pageInfoText: {color: 'rgba(0,0,0,0.5)'},
-    tabstrip: {backgroundColor: '#fff'},
-    navigationPanel: {backgroundColor: '#fff'},
-    progressbar: {color: '#82D3FD'}
-  });
+  // Create a theme object, optionall merging your own custom properties on
+  // top of the default theme.
+  const createTheme = (properties) => {
+    const defaultTheme = {
+      isDark: false,
+      glyphsShowing: false,
+      windowCloseButton: {backgroundColor: '#FC5753'},
+      windowMinButton: {backgroundColor: '#FDBC40'},
+      windowMaxButton: {backgroundColor: '#33C748'},
+      reloadButton: {color: 'rgba(0,0,0,0.5)'},
+      stopButton: {color: 'rgba(0,0,0,0.5)'},
+      backButton: {color: 'rgba(0,0,0,0.5)'},
+      urlInput: {color: 'rgba(0,0,0,0.65)'},
+      locationText: {color: 'rgba(0,0,0, 0.65)'},
+      titleText: {color: 'rgba(0,0,0,0.5)'},
+      pageInfoText: {color: 'rgba(0,0,0,0.5)'},
+      tabstrip: {backgroundColor: '#fff'},
+      navigationPanel: {backgroundColor: '#fff'},
+      progressbar: {color: '#82D3FD'},
+      awesomebarSuggestions: {backgroundColor: '#fff', color: 'rgba(0,0,0, 0.65)'}
+    };
+
+    return properties ? Object.assign(defaultTheme, properties) : defaultTheme;
+  };
 
   const IS_DARK = true;
 
@@ -59,7 +66,7 @@ define((require, exports, module) => {
   // `backgroundColor`: any valid CSS color string.
   // `isDark`: boolean. Used to change background of location field.
   // Returns a theme object.
-  const expandCustomTheme = (foregroundColor, backgroundColor, isDark) => ({
+  const expandCustomTheme = (foregroundColor, backgroundColor, isDark) => createTheme({
     isDark: isDark,
     glyphsShowing: true,
     windowCloseButton: {backgroundColor: foregroundColor},
@@ -72,9 +79,10 @@ define((require, exports, module) => {
     locationText: {color: foregroundColor},
     titleText: {color: foregroundColor},
     pageInfoText: {color: foregroundColor},
-    tabstrip: {backgroundColor: backgroundColor},
-    navigationPanel: {backgroundColor: backgroundColor},
-    progressbar: {color: foregroundColor}
+    tabstrip: {backgroundColor},
+    navigationPanel: {backgroundColor},
+    progressbar: {color: foregroundColor},
+    awesomebarSuggestions: {backgroundColor, color: foregroundColor}
   });
 
   // Derive theme object from webViewer object.
@@ -87,7 +95,7 @@ define((require, exports, module) => {
 
     return foregroundColor !== null && backgroundColor !== null ?
       expandCustomTheme(foregroundColor, backgroundColor, isDark) :
-      createDefaultTheme();
+      createTheme();
   }
 
   // Creates a state patch for webViewer from foregroundColor, backgroundColor,

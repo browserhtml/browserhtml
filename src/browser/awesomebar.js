@@ -27,10 +27,7 @@ define((require, exports, module) => {
         isActive: list.length > 0 && inputCursor.get('isFocused')
       }),
       key: 'suggestionscontainer',
-      style: {
-        backgroundColor: theme.tabstrip.backgroundColor,
-        color: theme.titleText.color
-      }
+      style: theme.awesomebarSuggestions
     }, [
       DOM.div({
         className: 'suggestions',
