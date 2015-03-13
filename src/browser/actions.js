@@ -76,7 +76,10 @@ define((require, exports, module) => {
   // Creates a blank session. Returns immutable map.
   const resetSession = () => fromJS({
     isDocumentFocused: document.hasFocus(),
-    input: {value: '', isFocused: true},
+    // TODO: `isFocuse` should be `true` but that causes
+    // issues when app iframe isn't focused. Can be fixed
+    // once #239 is resolved.
+    input: {value: '', isFocused: false},
     tabStrip: {isActive: false},
     dashboard: {items: dashboardItems},
     rfa: {id: -1},
