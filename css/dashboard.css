@@ -4,6 +4,7 @@
   color: #555;
   /* The top padding places the dashboard below the tabstrip */
   padding-top: 100px;
+  transition: background-color 200ms ease;
 }
 
 .dashboard-tiles {
