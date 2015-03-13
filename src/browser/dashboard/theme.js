@@ -5,6 +5,8 @@
 define((require, exports, module) => {
   'use strict';
 
+  const {expandCustomTheme} = require('../theme.js');
+
   const freeze = Object.freeze;
 
   // Like `array.reduce` but for objects.
@@ -17,13 +19,13 @@ define((require, exports, module) => {
 
   const hardcodedThemes = freeze({
     'default': {
-      backgroundColor: '',
-      forgroundColor: '',
+      backgroundColor: '#222',
+      forgroundColor: '#fff',
       isDark: true,
       wallpaper: freeze({
-        backgroundColor: '',
-        forgroundColor: '',
-        posterImage: ''
+        backgroundColor: '#222',
+        forgroundColor: '#fff',
+        posterImage: null
       })
     }
   });
@@ -58,10 +60,17 @@ define((require, exports, module) => {
     };
   }
 
+  const readDashboardNavigationTheme = (dashboard) => expandCustomTheme(
+    dashboard.get('forgroundColor'),
+    dashboard.get('backgroundColor'),
+    dashboard.get('isDark')
+  );
+
   // Exports:
 
   exports.getDashboardPatch = getDashboardPatch;
   exports.getWallpaperSwatches = getWallpaperSwatches;
   exports.readDashboardTheme = readDashboardTheme;
+  exports.readDashboardNavigationTheme = readDashboardNavigationTheme;
 
 });

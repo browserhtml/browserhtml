@@ -14,7 +14,8 @@ define((require, exports, module) => {
   const {WebViewer} = require('./web-viewer');
   const {Tab} = require('./page-switch');
   const {Dashboard} = require('./dashboard');
-  const {getDashboardPatch} = require('./dashboard/theme');
+  const {getDashboardPatch,
+         readDashboardNavigationTheme} = require('./dashboard/theme');
   const {Element, Event, VirtualAttribute, Attribute} = require('./element');
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
@@ -172,7 +173,9 @@ define((require, exports, module) => {
     const isTabStripVisible = isDashboardActive ||
                               (tabStripCursor.get('isActive') && !isAwesomebarActive);
 
-    const theme = Browser.readTheme(activeWebViewerCursor);
+    const theme = isDashboardActive ?
+      readDashboardNavigationTheme(dashboard) :
+      Browser.readTheme(activeWebViewerCursor);
 
     const suggestionsCursor = immutableState.cursor('suggestions');
 

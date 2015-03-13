@@ -111,5 +111,6 @@ define((require, exports, module) => {
 
   exports.readTheme = readTheme;
   exports.getHardcodedColors = getHardcodedColors;
+  exports.expandCustomTheme = expandCustomTheme;
 
 });
