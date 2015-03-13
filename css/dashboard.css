@@ -1,7 +1,9 @@
 .dashboard {
+  align-items: center;
   flex: 1 0 auto;
   flex-flow: column nowrap;
   color: #555;
+  justify-items: center;
   /* The top padding places the dashboard below the tabstrip */
   padding-top: 100px;
   transition: background-color 200ms ease;
@@ -9,14 +11,12 @@
 
 .dashboard-tiles {
   align-content: center;
-  flex: 0 0 main-size;
+  flex: 1 0 auto;
   flex-flow: row wrap;
-  margin: 0 auto;
   /* the bottom margin visually centers the tiles vertically. We need the bottom
   margin because we're using flexbox to align the tiles, but the tiles
   themselves are not visually even, since they have extra space below for
   the title. */
-  padding: 0 0 30px;
   width: 800px;
 }
 
