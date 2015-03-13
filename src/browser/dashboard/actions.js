@@ -18,38 +18,62 @@ define((require, exports, module) => {
   const hardcodedThemes = {
     'default': {
       navigation: {
-        backgroundColor: '#222',
+        backgroundColor: '#fff',
+        foregroundColor: 'rgba(0,0,0,0.5)',
+        isDark: false,
+      },
+      wallpaper: {
+        backgroundColor: '#f51',
+        foregroundColor: '#fff',
+        posterImage: 'wallpaper/orangeflow.jpg'
+      }
+    },
+    'dark': {
+      navigation: {
+        backgroundColor: '#2E434B',
+        foregroundColor: '#eee',
+        isDark: true,
+      },
+      wallpaper: {
+        backgroundColor: '#25363D',
+        foregroundColor: '#eee',
+        posterImage: null
+      }
+    },
+    'shore': {
+      navigation: {
+        backgroundColor: '#078',
+        foregroundColor: '#eee',
+        isDark: true,
+      },
+      wallpaper: {
+        backgroundColor: '#078',
+        foregroundColor: 'rgb(255,255,255)',
+        posterImage: 'wallpaper/shore.jpg'
+      }
+    },
+    'dandilion': {
+      navigation: {
+        backgroundColor: '#112935',
+        foregroundColor: '#eee',
+        isDark: true,
+      },
+      wallpaper: {
+        backgroundColor: '#134',
+        foregroundColor: 'rgb(255,255,255)',
+        posterImage: 'wallpaper/dandilion.jpg'
+      }
+    },
+    'dock': {
+      navigation: {
+        backgroundColor: '#437',
         foregroundColor: '#fff',
         isDark: true,
       },
       wallpaper: {
-        backgroundColor: '#222',
-        foregroundColor: '#fff',
-        posterImage: null
-      }
-    },
-    'mint_blue': {
-      navigation: {
-        backgroundColor: '#68D5A9',
-        foregroundColor: '#fff',
-        isDark: true
-      },
-      wallpaper: {
-        backgroundColor: '#2C3A46',
-        foregroundColor: '#fff',
-        posterImage: null
-      }
-    },
-    'blue_yellow': {
-      navigation: {
-        backgroundColor: '#32B6FF',
-        foregroundColor: '#FFC04B',
-        isDark: true
-      },
-      wallpaper: {
-        backgroundColor: '#32B6FF',
-        foregroundColor: '#FFC04B',
-        posterImage: null
+        backgroundColor: '#437',
+        foregroundColor: 'rgb(255,255,255)',
+        posterImage: 'wallpaper/dock.jpg'
       }
     },
   };
