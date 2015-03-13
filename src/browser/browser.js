@@ -225,6 +225,7 @@ define((require, exports, module) => {
       Awesomebar({
         key: 'awesomebar',
         suggestionsCursor,
+        inputCursor,
         isAwesomebarActive,
         theme
       }, {
