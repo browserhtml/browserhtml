@@ -7,12 +7,26 @@ define((require, exports, module) => {
 
   const {DOM} = require('react')
   const Component = require('omniscient');
-  const {Deck} = require('./deck');
-  const {Wallpaper, WallpaperSwatches} = require('./wallpaper');
+  const {identity} = require('../lang/functional');
   const {readDashboardTheme, readWallpaperTheme,
          getWallpaperSwatches} = require('./dashboard/theme');
 
   const readBackground = uri => ('none' && `url(${uri})`);
+
+  const List = (Item, a2b) => (options, handlers) =>
+    DOM.div(options, options.items.map(options =>
+      Item(a2b(options), handlers)));
+
+  const WallpaperSwatch = Component('WallpaperSwatch',
+    ({key, backgroundColor}, {onWallpaperChange}) =>
+    DOM.div({
+      key,
+      className: 'wallpaper-swatch',
+      style: {backgroundColor: backgroundColor},
+      onClick: event => onWallpaperChange(key)
+    }));
+
+  const WallpaperSwatches = List(WallpaperSwatch, identity);
 
   const DashboardTile = Component('DashboardTile',
     ({key, uri, image, title}, {onOpen}) =>
@@ -25,14 +39,12 @@ define((require, exports, module) => {
              DOM.div({key: 'tileTitle',
                       className: 'tile-title'}, null, title)]));
 
-  const DashboardTiles = (options, handlers) =>
-    DOM.div(options, options.items.map(item =>
-      DashboardTile({
-        key: item.get('uri'),
-        uri: item.get('uri'),
-        image: item.get('image'),
-        title: item.get('title')
-      }, handlers)));
+  const DashboardTiles = List(DashboardTile, item => ({
+    key: item.get('uri'),
+    uri: item.get('uri'),
+    image: item.get('image'),
+    title: item.get('title')
+  }));
 
   const Dashboard = Component('Dashboard',
     ({dashboard, hidden}, {onOpen, onWallpaperChange}) =>
@@ -41,11 +53,6 @@ define((require, exports, module) => {
       className: 'dashboard',
       hidden
     }, [
-      Wallpaper({
-        key: 'wallpaper',
-        className: 'wallpaper',
-        wallpaper: readWallpaperTheme(dashboard)
-      }, {onWallpaperChange}),
       DashboardTiles({
         key: 'dashboard-tiles',
         className: 'dashboard-tiles',
