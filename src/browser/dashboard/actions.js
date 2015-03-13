@@ -61,10 +61,11 @@ define((require, exports, module) => {
     const wallpaper = dashboard.get('wallpaper');
     const backgroundColor = wallpaper.get('backgroundColor');
     const backgroundImage = wallpaper.get('posterImage') || 'none';
+    const forgroundColor = wallpaper.get('forgroundColor');
     return {
       backgroundColor,
       backgroundImage: `url(${backgroundImage})`,
-      color: dashboard.get('forgroundColor')
+      color: forgroundColor
     };
   }
 
