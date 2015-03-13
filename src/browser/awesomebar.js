@@ -15,14 +15,17 @@ define((require, exports, module) => {
   const ClassSet = require('./util/class-set');
 
   const Awesomebar = Component('Awesomebar', (
-    {suggestionsCursor, theme},
+    {suggestionsCursor, inputCursor, theme},
     {onOpen}) => {
 
     const selectedIndex = suggestionsCursor.get('selectedIndex');
     const list = suggestionsCursor.get('list').toJSON();
 
     return DOM.div({
-      className: 'suggestionscontainer',
+      className: ClassSet({
+        suggestionscontainer: true,
+        isActive: list.length > 0 && inputCursor.get('isFocused')
+      }),
       key: 'suggestionscontainer',
       style: {
         backgroundColor: theme.tabstrip.backgroundColor,

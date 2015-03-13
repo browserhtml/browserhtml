@@ -8,7 +8,7 @@ define((require, exports, module) => {
 
   const Component = require('omniscient');
   const {DOM} = require('react');
-  const {compose, throttle} = require('lang/functional');
+  const {compose, throttle, curry} = require('lang/functional');
   const {NavigationPanel} = require('./navigation-panel');
   const {Awesomebar} = require('./awesomebar');
   const {WebViewer} = require('./web-viewer');
@@ -84,6 +84,9 @@ define((require, exports, module) => {
   const openTab = (items) =>
     append(items, open({isSelected: true,
                         isActive: true}));
+
+  const loadURI = curry((webViewer, uri) =>
+    webViewer.merge({uri, isFocused: true}));
 
   // If closing viewer, replace it with a fresh one & select it.
   // This avoids code branching down the pipe that otherwise will
@@ -227,10 +230,11 @@ define((require, exports, module) => {
       Awesomebar({
         key: 'awesomebar',
         suggestionsCursor,
+        inputCursor,
         isAwesomebarActive,
         theme
       }, {
-        onOpen: uri => activeWebViewerCursor.set('uri', uri)
+        onOpen: loadURI(activeWebViewerCursor)
       }),
       DOM.div({
         key: 'tabstripkillzone',
@@ -245,7 +249,7 @@ define((require, exports, module) => {
         dashboard,
         hidden: !isDashboardActive
       }, {
-        onOpen: uri => activeWebViewerCursor.set('uri', uri),
+        onOpen: loadURI(activeWebViewerCursor),
         onWallpaperChange: key => dashboardCursor.merge(getDashboardThemePatch(key))
       }),
       WebViewer.Deck({

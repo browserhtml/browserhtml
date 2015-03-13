@@ -4,7 +4,13 @@
   position: absolute;
   top: 40px;
   z-index: 43;
-  transition: background-color 200ms ease;
+  height: 254px;
+  transition: background-color 200ms ease, opacity 200ms ease;
+}
+
+.suggestionscontainer:not(.isActive) {
+  pointer-events: none;
+  opacity: 0;
 }
 
 .suggestions {
@@ -13,7 +19,7 @@
 }
 
 .suggestion:first-of-type:not(.selected) {
-  border-top-color: #F1F1F1;
+  border-top-color: transparent;
 }
 
 .suggestion:first-of-type {
@@ -41,6 +47,17 @@
   border-bottom-color: #F1F1F1;
 }
 
+.isdark .suggestion.selected {
+  background-color: #030300;
+}
+
+.isdark .suggestion.selected:last-of-type {
+  border-bottom-color: #0F0F0F;
+}
+
+.isdark .suggestion {
+  border-top-color: #0F0F0F;
+}
 
 .suggestion:before {
   font-size: 16px;
