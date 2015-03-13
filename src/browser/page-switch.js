@@ -10,7 +10,7 @@ define((require, exports, moudle) => {
   const Component = require('omniscient');
   const url = require('./util/url');
   const {Deck} = require('./deck');
-  const {isSelected, orderOf} = require('./deck/actions');
+  const {isSelected, arrange} = require('./deck/actions');
   const ClassSet = require('./util/class-set');
 
   const Tab = Component('Tab', ({item: webViewerCursor, order}, {onSelect, onActivate, onClose}) => {
@@ -43,6 +43,7 @@ define((require, exports, moudle) => {
       ]),
       DOM.div({
         key: 'close-button',
+        hidden: webViewerCursor.get('isPinned'),
         onClick: event => onClose(webViewerCursor),
         className: "tab-close-button fa fa-times",
       })
@@ -50,11 +51,11 @@ define((require, exports, moudle) => {
   });
   Tab.Deck = Component('Deck', (options, handlers) => {
     const {items} = options;
-    const ordered = items.sortBy(orderOf);
+    const ordered = arrange(items);
     const count = items.count();
     return DOM.div(options, items.map(item => Tab({
       key: item.get('id'),
-      order: count - ordered.indexOf(item),
+      order: ordered.indexOf(item),
       item
     }, handlers)))
   });

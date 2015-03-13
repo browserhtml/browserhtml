@@ -86,7 +86,9 @@ define((require, exports, module) => {
       selectedIndex: -1,
       list: []
     },
-    webViewers: [open({isSelected: true,
+    webViewers: [open({id: "about:blank",
+                       isPinned: true,
+                       isSelected: true,
                        isActive: true,
                        isFocused: false})]
   });
