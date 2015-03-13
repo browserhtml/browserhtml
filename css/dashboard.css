@@ -1,4 +1,6 @@
 .dashboard {
+  background-position: center center;
+  background-size: cover;
   align-items: center;
   flex: 1 0 auto;
   flex-flow: column nowrap;
