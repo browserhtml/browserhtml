@@ -19,6 +19,7 @@ define((require, exports, module) => {
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
   const {focus, showTabStrip, hideTabStrip, select: selectField,
+         readInputURL,
          writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive, arrange,
          selectNext, selectPrevious, select, activate,
@@ -79,15 +80,23 @@ define((require, exports, module) => {
     });
   };
 
-  const addTab = item => items =>
-    insertBefore(items, item, isntPinned);
-
   const openTab = uri => items =>
     insertBefore(items, open({uri,
                               isSelected: true,
-							  isFocused: false,
+                              isFocused: true,
                               isActive: true}),
                  isntPinned);
+
+  const navigateTo = (webViewersCursor, webViewerCursor) => location => {
+    const uri = readInputURL(location);
+    if (isPinned(webViewerCursor)) {
+      webViewersCursor.update(openTab(uri));
+      webViewerCursor.set('userInput', '');
+    } else {
+      webViewerCursor.merge({uri, isFocused: true});
+    }
+  }
+
 
   const loadURI = curry((webViewer, uri) =>
     webViewer.merge({uri, isFocused: true}));
@@ -155,6 +164,7 @@ define((require, exports, module) => {
     'accel shift s': writeSession
   });
 
+
   // Browser is a root component for our application that just delegates
   // to a core sub-components here.
   const Browser = Component('Browser', immutableState => {
@@ -217,6 +227,8 @@ define((require, exports, module) => {
         rfaCursor,
         suggestionsCursor,
         webViewerCursor: selectedWebViewerCursor,
+      }, {
+        onNavigate: navigateTo(webViewersCursor, activeWebViewerCursor)
       }),
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,
@@ -269,7 +281,7 @@ define((require, exports, module) => {
         items: webViewersCursor
       }, {
         onClose: item => webViewersCursor.update(closeTab(item)),
-        onOpen: item => webViewersCursor.update(addTab(item))
+        onOpen: uri => webViewersCursor.update(openTab(uri))
       })
     ]),
     DOM.div({

@@ -8,7 +8,6 @@ define((require, exports, module) => {
 
   const Component = require('omniscient');
   const {Deck} = require('./deck');
-  const {open} = require('./web-viewer/actions');
   const {isActive, isSelected} = require('./deck/actions');
   const {getHardcodedColors} = require('./theme');
   const {IFrame} = require('./iframe');
@@ -52,7 +51,7 @@ define((require, exports, module) => {
       onFocus: WebViewer.onFocus(webViewerCursor),
       // onAsyncScroll: WebViewer.onUnhandled,
       onClose: event => onClose(webViewerCursor),
-      onOpenWindow: event => onOpen(open({uri: event.detail.url})),
+      onOpenWindow: event => onOpen(event.detail.url),
       onContextMenu: WebViewer.onUnhandled,
       onError: event => console.error(event),
       onLoadStart: WebViewer.onLoadStart(webViewerCursor),
