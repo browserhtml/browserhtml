@@ -32,7 +32,7 @@
 
 .suggestion {
   line-height: 38px;
-  vertical-align: center;
+  vertical-align: middle;
   border: var(--hwd-pixel) solid transparent;
   border-top-color: rgba(0,0,0,0.07);
   cursor: pointer;
