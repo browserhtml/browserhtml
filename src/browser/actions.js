@@ -12,8 +12,7 @@ define((require, exports, module) => {
   const {select, active} = require('./deck/actions');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
-  const version = '0.0.1';
-
+  const version = '0.0.2';
 
   const makeSearchURL = input =>
     `https://duckduckgo.com/?q=${encodeURIComponent(input)}`;
@@ -103,7 +102,10 @@ define((require, exports, module) => {
   };
 
   const writeSession = session => {
-    localStorage[`session@${version}`] = JSON.stringify(session.toJSON());
+    session = session.toJSON();
+    session.appUpdateAvailable = false;
+    session.rfa.id = -1;
+    localStorage[`session@${version}`] = JSON.stringify(session);
   };
 
   // Exports:
