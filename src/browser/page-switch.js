@@ -18,7 +18,9 @@ define((require, exports, moudle) => {
     return DOM.div({
       className: ClassSet({
         tab: true,
-        selected: isSelected(webViewerCursor)
+        selected: isSelected(webViewerCursor),
+        // Currently "pinned" is a proxy for the dashboard tab
+        'tab-dashboard': webViewerCursor.get('isPinned')
       }),
       style: { order: order },
       onMouseOver: event => onSelect(webViewerCursor),
