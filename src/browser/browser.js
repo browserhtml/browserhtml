@@ -20,7 +20,7 @@ define((require, exports, module) => {
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
-  const {focus, showTabStrip, hideTabStrip,
+  const {focus, showTabStrip, hideTabStrip, select: selectField,
          writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive, order,
          selectNext, selectPrevious, select, activate,
@@ -43,11 +43,12 @@ define((require, exports, module) => {
     onDocumentBlur: Event('blur', getOwnerWindow),
     onDocumentKeyDown: Event('keydown', getOwnerWindow),
     onDocumentKeyUp: Event('keyup', getOwnerWindow),
-    onDocumentUnload: Event('unload', getOwnerWindow)
+    onDocumentUnload: Event('unload', getOwnerWindow),
+    onAppUpdateAvailable: Event('app-update-available', getOwnerWindow)
   });
 
   const onNavigation = KeyBindings({
-    'accel l': focus,
+    'accel l': compose(selectField, focus),
     'accel t': focus
   });
 
@@ -83,6 +84,7 @@ define((require, exports, module) => {
 
   const openTab = (items) =>
     append(items, open({isSelected: true,
+                        isFocused: false,
                         isActive: true}));
 
   const loadURI = curry((webViewer, uri) =>
@@ -182,7 +184,8 @@ define((require, exports, module) => {
 
     const suggestionsCursor = immutableState.cursor('suggestions');
 
-    return Main({
+    return DOM.div({
+    }, [Main({
       windowTitle: title(selectedWebViewerCursor),
       scrollGrab: true,
       className: ClassSet({
@@ -202,7 +205,8 @@ define((require, exports, module) => {
                                  onTabSwitch(webViewersCursor),
                                  onBrowserBinding(immutableState)),
       onDocumentKeyUp: compose(onTabStripKeyUp(tabStripCursor),
-                               onDeckBindingRelease(webViewersCursor))
+                               onDeckBindingRelease(webViewersCursor)),
+      onAppUpdateAvailable: event => immutableState.set('appUpdateAvailable', true),
     }, [
       NavigationPanel({
         key: 'navigation',
@@ -261,8 +265,22 @@ define((require, exports, module) => {
         onClose: item => webViewersCursor.update(closeTab(item)),
         onOpen: item => webViewersCursor.update(addTab(item))
       })
-    ]);
-  });
+    ]),
+    DOM.div({
+      key: 'appUpdateBanner',
+      className: ClassSet({
+        appupdatebanner: true,
+        active: immutableState.get('appUpdateAvailable')
+      }),
+    }, [
+      'Hey! An update just for you!',
+      DOM.div({
+        key: 'appUpdateButton',
+        className: 'appupdatebutton',
+        onClick: e => window.location.reload(true)
+      }, 'Apply')
+    ])]);
+  })
   // Create a version of readTheme that will return from cache
   // on repeating calls with an equal cursor.
   Browser.readTheme = Component.cached(readTheme);

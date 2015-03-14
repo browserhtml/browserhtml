@@ -40,6 +40,12 @@
   border: 0;
 }
 
+/* Prevents scrollbars to show up with out-of-window elements */
+body {
+  height: 100vh;
+  overflow: hidden;
+}
+
 /* Let's use flexbox everywhere */
 
 main {

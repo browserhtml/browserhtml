@@ -15,7 +15,6 @@ define((require, exports, module) => {
   // does not supports that.
   const version = '0.0.2';
 
-
   const makeSearchURL = input =>
     `https://duckduckgo.com/?q=${encodeURIComponent(input)}`;
 
@@ -104,7 +103,10 @@ define((require, exports, module) => {
   };
 
   const writeSession = session => {
-    localStorage[`session@${version}`] = JSON.stringify(session.toJSON());
+    session = session.toJSON();
+    session.appUpdateAvailable = false;
+    session.rfa.id = -1;
+    localStorage[`session@${version}`] = JSON.stringify(session);
   };
 
   // Exports:
@@ -114,6 +116,7 @@ define((require, exports, module) => {
   exports.navigateTo = navigateTo;
   exports.focus = focusable => focusable.set('isFocused', true);
   exports.blur = focusable => focusable.set('isFocused', false);
+  exports.select = editable => editable.set('selection', {all: true});
   exports.showTabStrip = tabStripCursor =>
     tabStripCursor.set('isActive', true);
   exports.hideTabStrip = tabStripCursor =>

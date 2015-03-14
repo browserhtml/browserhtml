@@ -11,12 +11,12 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {InputField} = require('./editable');
   const {Element} = require('./element');
-  const {navigateTo, showTabStrip, blur, focus} = require('./actions');
+  const {navigateTo, showTabStrip, blur, focus, select} = require('./actions');
   const {KeyBindings} = require('./keyboard');
   const url = require('./util/url');
   const {ProgressBar} = require('./progressbar');
   const ClassSet = require('./util/class-set');
-  const {throttle} = require('lang/functional');
+  const {throttle, compose, arity, curry} = require('lang/functional');
   let {computeSuggestions, resetSuggestions} = require('./awesomebar');
 
   computeSuggestions = throttle(computeSuggestions, 200);
@@ -46,78 +46,61 @@ define((require, exports, module) => {
       })
     ]));
 
-  const updateSuggestionsSelection = (delta, suggestionsCursor, webViewerCursor) => {
-    const size = suggestionsCursor.get('list').size;
-    let value = suggestionsCursor.get('selectedIndex') + delta;
-    if (value >= size) {
-      value = -1;
-    }
-    value = Math.max(-1, value);
-    suggestionsCursor.set('selectedIndex', value);
+  // Clears selection in the suggestions
+  const unselect = suggestions =>
+    suggestions.set('selectedIndex', -1);
+
+  // Selects suggestion `n` items away relative to currently seleceted suggestion.
+  // Selection over suggestion entries is moved in a loop although there is extra
+  // "no selection" entry between last and first suggestions. Given `n` can be negative
+  // or positive in order to select suggestion before or after the current one.
+  const selectRelative = curry((n, suggestions) =>
+    suggestions.update('selectedIndex', from => {
+      const first = 0;
+      const last = suggestions.get('list').count() - 1;
+      const to = from + n;
+
+      return to > last ? -1 :
+             to < first ? -1 :
+             to;
+    }));
+
+  // Selects next / previous suggestion.
+  const selectPrevious = selectRelative(-1);
+  const selectNext = selectRelative(1);
+
+  // Returns currently selected suggestion or void if there's none.
+  const selected = suggestions => {
+    const index = suggestions.get('selectedIndex');
+    return index >= 0 ? suggestions.getIn(['list', index, 'text']) : void(0);
   }
 
-  const onInputKeyDown = ({event, inputCursor, webViewerCursor, suggestionsCursor}) => {
+  // Bindings for navigation suggestions.
+  const onSuggetionNavigation = KeyBindings({
+    'up': selectPrevious,
+    'control p': selectPrevious,
+    'down': selectNext,
+    'control n': selectNext,
+    'enter': unselect
+  });
 
-    switch (event.key) {
-      case 'Escape':
-        // webViewer might have nothing to focus. So let's blur the input just in case.
-        focus(webViewerCursor);
-        blur(inputCursor);
-        event.preventDefault();
-        break;
-      case 'ArrowUp':
-        updateSuggestionsSelection(-1, suggestionsCursor, webViewerCursor),
-        event.preventDefault();
-        break;
-      case 'ArrowDown':
-        updateSuggestionsSelection(+1, suggestionsCursor, webViewerCursor),
-        event.preventDefault();
-        break;
-      case 'Enter':
-        resetSuggestions(suggestionsCursor);
-        navigateTo({inputCursor, webViewerCursor}, event.target.value, true)
-        break;
-      case 'l':
-        let accel = platform == 'darwin' ? 'metaKey' : 'ctrlKey';
-        if (event[accel]) {
-          event.target.select();
-          break;
-        }
-      default:
-        // When the user starts doing something that is not navigating
-        // through the suggestions, if a suggestion was selected, we
-        // commit it as a userInput, then the suer can start editing it
-        let suggestionSelectedIndex = suggestionsCursor.get('selectedIndex');
-        if (suggestionSelectedIndex > -1) {
-          webViewerCursor.set('userInput', suggestionsCursor.get('list')
-                                                            .get(suggestionSelectedIndex)
-                                                            .get('text'));
-        }
-        suggestionsCursor.set('selectedIndex', -1);
-    }
-  };
-
+  // General input keybindings.
+  const onInputNavigation = KeyBindings({
+    'escape': (inputCursor, webViewerCursor) => {
+      focus(webViewerCursor);
+      // TODO: This should not be necessary but since in case of dashboard focus
+      // is passed to a hidden iframe DOM ignores that and we end up with focus
+      // still in `inputCursor`. As a workaround for now we manually `blur` input.
+      blur(inputCursor);
+    },
+    'accel l': arity(1, select)
+  });
 
   const NavigationControls = Component('NavigationControls', ({inputCursor, tabStripCursor,
                                          webViewerCursor, suggestionsCursor, theme}) => {
-
-    let inputValue = webViewerCursor.get('userInput');
-
-    let suggestionSelectedIndex = suggestionsCursor.get('selectedIndex');
-    if (suggestionSelectedIndex > -1) {
-      try {
-        inputValue = suggestionsCursor.get('list')
-                                      .get(suggestionSelectedIndex)
-                                      .get('text');
-      } catch(e) {
-        // This failed once. Wondering how it can happen.
-        console.error(e, suggestionsCursor.toJSON());
-      }
-    }
-
     return DOM.div({
       className: 'locationbar',
-      onMouseEnter: event => showTabStrip(tabStripCursor)
+      onMouseEnter: event => showTabStrip(tabStripCursor),
     }, [
       DOM.div({className: 'backbutton',
                style: theme.backButton,
@@ -128,10 +111,12 @@ define((require, exports, module) => {
         className: 'urlinput',
         style: theme.urlInput,
         placeholder: 'Search or enter address',
-        value: inputValue,
+        value: selected(suggestionsCursor) ||
+               webViewerCursor.get('userInput'),
         type: 'text',
+        submitKey: 'Enter',
         isFocused: inputCursor.get('isFocused'),
-        selection: inputCursor.get('isFocused'),
+        selection: inputCursor.get('selection'),
         onFocus: event => {
           computeSuggestions(event.target.value, suggestionsCursor);
           inputCursor.set('isFocused', true);
@@ -141,15 +126,18 @@ define((require, exports, module) => {
           inputCursor.set('isFocused', false);
         },
         onChange: event => {
+          // Reset suggestions & compute new ones from the changed input value.
+          unselect(suggestionsCursor);
           computeSuggestions(event.target.value, suggestionsCursor);
+          // Also reflect changed value onto webViewers useInput.
           webViewerCursor.set('userInput', event.target.value);
         },
-        onKeyDown: event => onInputKeyDown({
-          event,
-          inputCursor,
-          webViewerCursor,
-          suggestionsCursor
-        })
+        onSubmit: event => {
+          resetSuggestions(suggestionsCursor);
+          navigateTo({inputCursor, webViewerCursor}, event.target.value, true);
+        },
+        onKeyDown: compose(onInputNavigation(inputCursor, webViewerCursor),
+                           onSuggetionNavigation(suggestionsCursor))
       }),
       DOM.p({key: 'page-info',
              className: 'pagesummary',
