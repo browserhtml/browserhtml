@@ -201,7 +201,9 @@ define((require, exports, module) => {
     const suggestionsCursor = immutableState.cursor('suggestions');
 
     return DOM.div({
+      key: 'root',
     }, [Main({
+      key: 'main',
       windowTitle: title(selectedWebViewerCursor),
       scrollGrab: true,
       className: ClassSet({
