@@ -32,31 +32,31 @@
 
 .suggestion {
   line-height: 38px;
-  vertical-align: center;
+  vertical-align: middle;
   border: var(--hwd-pixel) solid transparent;
-  border-top-color: #F1F1F1;
+  border-top-color: rgba(0,0,0,0.07);
   cursor: pointer;
   margin-bottom: calc(-1 * var(--hwd-pixel));
 }
 
 .suggestion.selected {
-  background-color: #ECFCFF;
+  background-color: rgba(0,0,0,0.07);
 }
 
 .suggestion.selected:last-of-type {
-  border-bottom-color: #F1F1F1;
+  border-bottom-color: rgba(0,0,0,0.07);
 }
 
 .isdark .suggestion.selected {
-  background-color: #030300;
+  background-color: rgba(255,255,255,0.15);
 }
 
 .isdark .suggestion.selected:last-of-type {
-  border-bottom-color: #0F0F0F;
+  border-bottom-color: rgba(255,255,255,0.15);
 }
 
 .isdark .suggestion {
-  border-top-color: #0F0F0F;
+  border-top-color: rgba(255,255,255,0.15);
 }
 
 .suggestion:before {
