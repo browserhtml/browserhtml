@@ -15,14 +15,14 @@ define((require, exports, module) => {
   const hardcodedThemes = {
     'default': {
       navigation: {
-        backgroundColor: '#fff',
-        foregroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: null,
+        foregroundColor: null,
         isDark: false,
       },
       wallpaper: {
-        backgroundColor: '#f51',
-        foregroundColor: '#fff',
-        posterImage: 'wallpaper/orangeflow.jpg'
+        backgroundColor: '#f5f5f5',
+        foregroundColor: null,
+        posterImage: null
       }
     },
     'dark': {

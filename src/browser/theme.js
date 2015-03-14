@@ -11,28 +11,24 @@ define((require, exports, module) => {
 
   // Create a theme object, optionall merging your own custom properties on
   // top of the default theme.
-  const createTheme = (properties) => {
-    const defaultTheme = {
-      isDark: false,
-      glyphsShowing: false,
-      windowCloseButton: {backgroundColor: '#FC5753'},
-      windowMinButton: {backgroundColor: '#FDBC40'},
-      windowMaxButton: {backgroundColor: '#33C748'},
-      reloadButton: {color: 'rgba(0,0,0,0.5)'},
-      stopButton: {color: 'rgba(0,0,0,0.5)'},
-      backButton: {color: 'rgba(0,0,0,0.5)'},
-      urlInput: {color: 'rgba(0,0,0,0.65)'},
-      locationText: {color: 'rgba(0,0,0, 0.65)'},
-      titleText: {color: 'rgba(0,0,0,0.5)'},
-      pageInfoText: {color: 'rgba(0,0,0,0.5)'},
-      tabstrip: {backgroundColor: '#fff'},
-      navigationPanel: {backgroundColor: '#fff'},
-      progressbar: {color: '#82D3FD'},
-      awesomebarSuggestions: {backgroundColor: '#fff', color: 'rgba(0,0,0, 0.65)'}
-    };
-
-    return properties ? Object.assign(defaultTheme, properties) : defaultTheme;
-  };
+  const createTheme = (properties) => Object.assign({
+    isDark: false,
+    glyphsShowing: false,
+    windowCloseButton: {backgroundColor: '#FC5753'},
+    windowMinButton: {backgroundColor: '#FDBC40'},
+    windowMaxButton: {backgroundColor: '#33C748'},
+    reloadButton: {color: 'rgba(0,0,0,0.5)'},
+    stopButton: {color: 'rgba(0,0,0,0.5)'},
+    backButton: {color: 'rgba(0,0,0,0.5)'},
+    urlInput: {color: 'rgba(0,0,0,0.65)'},
+    locationText: {color: 'rgba(0,0,0, 0.65)'},
+    titleText: {color: 'rgba(0,0,0,0.5)'},
+    pageInfoText: {color: 'rgba(0,0,0,0.5)'},
+    tabstrip: {backgroundColor: '#fff'},
+    navigationPanel: {backgroundColor: '#fff'},
+    progressbar: {color: '#82D3FD'},
+    awesomebarSuggestions: {backgroundColor: '#fff', color: 'rgba(0,0,0, 0.65)'}
+  }, properties);
 
   const IS_DARK = true;
 
@@ -62,41 +58,40 @@ define((require, exports, module) => {
   // Expands `foregroundColor`, `backgroundColor` and `isDark` into a full theme
   // object you can use in React views.
   //
-  // `foregroundColor`: any valid CSS color string.
-  // `backgroundColor`: any valid CSS color string.
+  // `foregroundColor`: any valid CSS color string or null.
+  // `backgroundColor`: any valid CSS color string or null.
   // `isDark`: boolean. Used to change background of location field.
+  //
+  // If either foreground or background is null, will fall back to default theme.
   // Returns a theme object.
-  const expandCustomTheme = (foregroundColor, backgroundColor, isDark) => createTheme({
-    isDark: isDark,
-    glyphsShowing: true,
-    windowCloseButton: {backgroundColor: foregroundColor},
-    windowMinButton: {backgroundColor: foregroundColor},
-    windowMaxButton: {backgroundColor: foregroundColor},
-    reloadButton: {color: foregroundColor},
-    stopButton: {color: foregroundColor},
-    backButton: {color: foregroundColor},
-    urlInput: {color: foregroundColor},
-    locationText: {color: foregroundColor},
-    titleText: {color: foregroundColor},
-    pageInfoText: {color: foregroundColor},
-    tabstrip: {backgroundColor},
-    navigationPanel: {backgroundColor},
-    progressbar: {color: foregroundColor},
-    awesomebarSuggestions: {backgroundColor, color: foregroundColor}
-  });
+  const expandCustomTheme = (foregroundColor, backgroundColor, isDark) =>
+    createTheme(foregroundColor && backgroundColor ? {
+      isDark: isDark,
+      glyphsShowing: true,
+      windowCloseButton: {backgroundColor: foregroundColor},
+      windowMinButton: {backgroundColor: foregroundColor},
+      windowMaxButton: {backgroundColor: foregroundColor},
+      reloadButton: {color: foregroundColor},
+      stopButton: {color: foregroundColor},
+      backButton: {color: foregroundColor},
+      urlInput: {color: foregroundColor},
+      locationText: {color: foregroundColor},
+      titleText: {color: foregroundColor},
+      pageInfoText: {color: foregroundColor},
+      tabstrip: {backgroundColor},
+      navigationPanel: {backgroundColor},
+      progressbar: {color: foregroundColor},
+      awesomebarSuggestions: {backgroundColor, color: foregroundColor}
+    } : {});
 
   // Derive theme object from webViewer object.
   // If foreground and background are present, returns a custom theme object.
   // Otherwise, returns a copy of default theme object.
-  const readTheme = (webViewer) => {
-    const foregroundColor = webViewer.get('foregroundColor');
-    const backgroundColor = webViewer.get('backgroundColor');
-    const isDark = webViewer.get('isDark');
-
-    return foregroundColor !== null && backgroundColor !== null ?
-      expandCustomTheme(foregroundColor, backgroundColor, isDark) :
-      createTheme();
-  }
+  const readTheme = (webViewer) => expandCustomTheme(
+    webViewer.get('foregroundColor'),
+    webViewer.get('backgroundColor'),
+    webViewer.get('isDark')
+  );
 
   // Creates a state patch for webViewer from foregroundColor, backgroundColor,
   // isDark.
