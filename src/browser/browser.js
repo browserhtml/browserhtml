@@ -14,6 +14,8 @@ define((require, exports, module) => {
   const {WebViewer} = require('./web-viewer');
   const {Tab} = require('./page-switch');
   const {Dashboard} = require('./dashboard');
+  const {getDashboardThemePatch,
+         readDashboardNavigationTheme} = require('./dashboard/actions');
   const {Element, Event, VirtualAttribute, Attribute} = require('./element');
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
@@ -167,6 +169,7 @@ define((require, exports, module) => {
     const rfaCursor = immutableState.cursor('rfa');
 
     const dashboard = immutableState.get('dashboard');
+    const dashboardCursor = immutableState.cursor('dashboard');
     const dashboardItems = dashboard.get('items');
     const isDashboardActive = activeWebViewerCursor.get('uri') === null;
 
@@ -175,7 +178,9 @@ define((require, exports, module) => {
     const isTabStripVisible = isDashboardActive ||
                               (tabStripCursor.get('isActive') && !isAwesomebarActive);
 
-    const theme = Browser.readTheme(activeWebViewerCursor);
+    const theme = isDashboardActive ?
+      readDashboardNavigationTheme(dashboard) :
+      Browser.readTheme(activeWebViewerCursor);
 
     const suggestionsCursor = immutableState.cursor('suggestions');
 
@@ -245,10 +250,11 @@ define((require, exports, module) => {
       }),
       Dashboard({
         key: 'dashboard',
-        items: dashboardItems,
+        dashboard,
         hidden: !isDashboardActive
       }, {
-        onOpen: loadURI(activeWebViewerCursor)
+        onOpen: loadURI(activeWebViewerCursor),
+        onWallpaperChange: key => dashboardCursor.merge(getDashboardThemePatch(key))
       }),
       WebViewer.Deck({
         key: 'web-viewers',
