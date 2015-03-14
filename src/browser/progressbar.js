@@ -61,8 +61,11 @@ define((require, exports, module) => {
     },
     componentDidUpdate() {
       const viewer = this.props.webViewerCursor;
-      // Stop if loaded and had enough time to draw the final animation
-      if (viewer.get('readyState') && !viewer.get('isLoading')) {
+      if (!viewer.get('readyState')) {
+        // No empty webviewer
+        this.stopRFALoop();
+      } else if (!viewer.get('isLoading')) {
+        // Stop if loaded and had enough time to draw the final animation
         const endLoadingTime = viewer.get('endLoadingTime');
         if ((performance.now() - endLoadingTime) > CDuration) {
           this.stopRFALoop();
