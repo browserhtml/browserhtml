@@ -18,7 +18,7 @@ define((require, exports, module) => {
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
-  const {focus, showTabStrip, hideTabStrip,
+  const {focus, showTabStrip, hideTabStrip, select: selectField,
          writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive, order,
          selectNext, selectPrevious, select, activate,
@@ -45,7 +45,7 @@ define((require, exports, module) => {
   });
 
   const onNavigation = KeyBindings({
-    'accel l': focus,
+    'accel l': compose(selectField, focus),
     'accel t': focus
   });
 
@@ -81,6 +81,7 @@ define((require, exports, module) => {
 
   const openTab = (items) =>
     append(items, open({isSelected: true,
+                        isFocused: false,
                         isActive: true}));
 
   const loadURI = curry((webViewer, uri) =>

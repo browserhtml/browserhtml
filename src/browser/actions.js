@@ -113,6 +113,7 @@ define((require, exports, module) => {
   exports.navigateTo = navigateTo;
   exports.focus = focusable => focusable.set('isFocused', true);
   exports.blur = focusable => focusable.set('isFocused', false);
+  exports.select = editable => editable.set('selection', {all: true});
   exports.showTabStrip = tabStripCursor =>
     tabStripCursor.set('isActive', true);
   exports.hideTabStrip = tabStripCursor =>
