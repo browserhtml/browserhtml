@@ -10,7 +10,7 @@ define((require, exports, module) => {
   const {fromJS} = require('immutable');
   const {open} = require('./web-viewer/actions');
   const {select, active} = require('./deck/actions');
-  const {init: initDashboard} = require('./dashboard/actions');
+  const {initDashboard} = require('./dashboard/actions');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
   const version = '0.0.2';

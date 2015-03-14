@@ -90,7 +90,7 @@ define((require, exports, module) => {
   }
 
   // Use to initialize wallpaper in `immutableState`.
-  const init = options => Object.assign(
+  const initDashboard = options => Object.assign(
     getDashboardThemePatch('default'),
     options
   );
@@ -132,6 +132,6 @@ define((require, exports, module) => {
   exports.getWallpaperSwatches = getWallpaperSwatches;
   exports.readDashboardTheme = readDashboardTheme;
   exports.readDashboardNavigationTheme = readDashboardNavigationTheme;
-  exports.init = init;
+  exports.initDashboard = initDashboard;
 
 });
