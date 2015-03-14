@@ -21,7 +21,7 @@ define((require, exports, module) => {
     DOM.div({
       key,
       className: 'wallpaper-swatch',
-      style: {backgroundColor: backgroundColor},
+      style: {backgroundColor},
       onClick: event => onWallpaperChange(key)
     });
 
