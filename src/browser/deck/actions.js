@@ -145,7 +145,7 @@ define((require, exports, module) => {
   // Returns given `item` with modified `weight` such that it's
   // weight will fall in the center of `leading` & `following`
   // item weights.
-  const asBetweenOf = (item, leading, following) => {
+  const asWeightedBetween = (item, leading, following) => {
     const start = leading ? weightOf(leading) : MIN_WEIGHT;
     const end = following ? weightOf(following) : MAX_WEIGHT;
     const weight = weightOf(item);
@@ -167,11 +167,11 @@ define((require, exports, module) => {
     let last = null;
     for (let entry of arrange(items)) {
       if (p(entry)) {
-        return asBetweenOf(item, last, entry);
+        return asWeightedBetween(item, last, entry);
       }
       last = entry;
     }
-    return asBetweenOf(item, last, null);
+    return asWeightedBetween(item, last, null);
   }
 
   // Returs given `item` with modified `weight` such that it's
@@ -186,13 +186,13 @@ define((require, exports, module) => {
     let match = null;
     for (let entry of arrange(items)) {
       if (match) {
-        return asBetweenOf(item, last, entry)
+        return asWeightedBetween(item, last, entry);
       }
       last = entry;
       match = p(entry);
     }
 
-    return asBetweenOf(item, last, null);
+    return asWeightedBetween(item, last, null);
   }
 
 

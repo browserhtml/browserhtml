@@ -41,9 +41,9 @@ define((require, exports, moudle) => {
           onLoad: event => URL.revokeObjectURL(event.target.src)
         })
       ]),
+      webViewerCursor.get('isPinned') ? null :
       DOM.div({
         key: 'close-button',
-        hidden: webViewerCursor.get('isPinned'),
         onClick: event => onClose(webViewerCursor),
         className: "tab-close-button fa fa-times",
       })
