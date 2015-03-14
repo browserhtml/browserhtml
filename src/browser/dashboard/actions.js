@@ -7,13 +7,10 @@ define((require, exports, module) => {
 
   const {expandCustomTheme} = require('../theme.js');
 
-  // Like `array.reduce` but for objects.
-  const reducekv = (object, step, value) => {
-    for (let key in object) {
-      value = step(value, key, object[key]);
-    }
-    return value;
-  }
+  // Like `array.reduce` but gives you access to keys and values of object.
+  const reducekv = (object, step, value) =>
+    Object.keys(object).reduce((value, key) =>
+      step(value, key, object[key]), value);
 
   const hardcodedThemes = {
     'default': {
