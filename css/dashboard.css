@@ -32,10 +32,11 @@
 }
 
 .tile-large .tile-thumbnail {
-  background: #fff;
+  background-color: #fff;
+  background-clip: content-box;
   background-size: cover;
   border-radius: 12px;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.07);
+  border: 1px solid rgba(0,0,0,0.05);
   height: 100px;
   transition: transform 80ms ease-out;
   will-change: transform;
