@@ -65,6 +65,7 @@
 .wallpaper-swatch {
   background: #000;
   border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
   border-radius: 50%;
   height: 30px;
   transition: transform 80ms ease-out;
