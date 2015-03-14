@@ -5,7 +5,6 @@
   flex: 1 0 auto;
   flex-flow: column nowrap;
   color: #555;
-  justify-items: center;
   /* The top padding places the dashboard below the tabstrip */
   margin-top: 100px;
   transition: background-color 200ms ease;
