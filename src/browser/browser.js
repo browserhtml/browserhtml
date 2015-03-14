@@ -21,10 +21,12 @@ define((require, exports, module) => {
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
   const {focus, showTabStrip, hideTabStrip, select: selectField,
+         readInputURL,
          writeSession, resetSession, resetSelected} = require('./actions');
-  const {indexOfSelected, indexOfActive, isActive, order,
+  const {indexOfSelected, indexOfActive, isActive, arrange,
          selectNext, selectPrevious, select, activate,
-         reorder, reset, previewed, remove, append} = require('./deck/actions');
+         reorder, reset, remove, insertBefore,
+         isntPinned, isPinned} = require('./deck/actions');
   const {readTheme} = require('./theme');
   const ClassSet = require('./util/class-set');
   const os = require('os');
@@ -80,12 +82,23 @@ define((require, exports, module) => {
     });
   };
 
-  const addTab = item => items => append(items, item);
+  const openTab = uri => items =>
+    insertBefore(items, open({uri,
+                              isSelected: true,
+                              isFocused: true,
+                              isActive: true}),
+                 isntPinned);
 
-  const openTab = (items) =>
-    append(items, open({isSelected: true,
-                        isFocused: false,
-                        isActive: true}));
+  const navigateTo = (webViewersCursor, webViewerCursor) => location => {
+    const uri = readInputURL(location);
+    if (isPinned(webViewerCursor)) {
+      webViewersCursor.update(openTab(uri));
+      webViewerCursor.set('userInput', '');
+    } else {
+      webViewerCursor.merge({uri, isFocused: true});
+    }
+  }
+
 
   const loadURI = curry((webViewer, uri) =>
     webViewer.merge({uri, isFocused: true}));
@@ -109,8 +122,9 @@ define((require, exports, module) => {
   const switchTab = (items, to) =>
     to ? activate(select(items, to)) : items;
 
-  switchTab.toIndex = index => items => switchTab(items, order(items).get(index));
-  switchTab.toLast = items => switchTab(items, order(items).last());
+  switchTab.toIndex = index => items => switchTab(items, arrange(items).get(index));
+  switchTab.toLast = items => switchTab(items, arrange(items).last());
+  switchTab.toDashboard = switchTab.toIndex(0);
 
 
   let onTabSwitch;
@@ -118,27 +132,28 @@ define((require, exports, module) => {
     const modifier = os.platform() == 'darwin' ? 'meta' : 'alt';
 
     onTabSwitch = KeyBindings({
-      [`${modifier} 1`]: edit(switchTab.toIndex(0)),
-      [`${modifier} 2`]: edit(switchTab.toIndex(1)),
-      [`${modifier} 3`]: edit(switchTab.toIndex(2)),
-      [`${modifier} 4`]: edit(switchTab.toIndex(3)),
-      [`${modifier} 5`]: edit(switchTab.toIndex(4)),
-      [`${modifier} 6`]: edit(switchTab.toIndex(5)),
-      [`${modifier} 7`]: edit(switchTab.toIndex(6)),
-      [`${modifier} 8`]: edit(switchTab.toIndex(7)),
+      [`${modifier} 0`]: edit(switchTab.toIndex(0)),
+      [`${modifier} 1`]: edit(switchTab.toIndex(1)),
+      [`${modifier} 2`]: edit(switchTab.toIndex(2)),
+      [`${modifier} 3`]: edit(switchTab.toIndex(3)),
+      [`${modifier} 4`]: edit(switchTab.toIndex(4)),
+      [`${modifier} 5`]: edit(switchTab.toIndex(5)),
+      [`${modifier} 6`]: edit(switchTab.toIndex(6)),
+      [`${modifier} 7`]: edit(switchTab.toIndex(7)),
+      [`${modifier} 8`]: edit(switchTab.toIndex(8)),
       [`${modifier} 9`]: edit(switchTab.toLast),
     });
   };
 
   const onDeckBinding = KeyBindings({
-    'accel t': edit(openTab),
+    'accel t': edit(switchTab.toDashboard),
     'accel w': edit(close(isActive)),
-    'control tab': onSelectPrevious,
-    'control shift tab': onSelectNext,
-    'meta shift ]':onSelectPrevious,
-    'meta shift [': onSelectNext,
-    'ctrl pagedown': onSelectPrevious,
-    'ctrl pageup': onSelectNext,
+    'control tab': onSelectNext,
+    'control shift tab': onSelectPrevious,
+    'meta shift ]':onSelectNext,
+    'meta shift [': onSelectPrevious,
+    'ctrl pagedown': onSelectNext,
+    'ctrl pageup': onSelectPrevious,
   });
 
   const onDeckBindingRelease = KeyBindings({
@@ -150,6 +165,7 @@ define((require, exports, module) => {
     'accel shift backspace': edit(resetSession),
     'accel shift s': writeSession
   });
+
 
   // Browser is a root component for our application that just delegates
   // to a core sub-components here.
@@ -216,6 +232,8 @@ define((require, exports, module) => {
         rfaCursor,
         suggestionsCursor,
         webViewerCursor: selectedWebViewerCursor,
+      }, {
+        onNavigate: navigateTo(webViewersCursor, activeWebViewerCursor)
       }),
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,
@@ -238,7 +256,13 @@ define((require, exports, module) => {
         isAwesomebarActive,
         theme
       }, {
-        onOpen: loadURI(activeWebViewerCursor)
+        onOpen: uri => {
+          if (isPinned(activeWebViewerCursor)) {
+            webViewersCursor.update(openTab(uri));
+          } else {
+            loadURI(activeWebViewerCursor);
+          }
+        }
       }),
       DOM.div({
         key: 'tabstripkillzone',
@@ -253,7 +277,7 @@ define((require, exports, module) => {
         dashboard,
         hidden: !isDashboardActive
       }, {
-        onOpen: loadURI(activeWebViewerCursor),
+        onOpen: uri => webViewersCursor.update(openTab(uri)),
         onWallpaperChange: key => dashboardCursor.merge(getDashboardThemePatch(key))
       }),
       WebViewer.Deck({
@@ -263,7 +287,7 @@ define((require, exports, module) => {
         items: webViewersCursor
       }, {
         onClose: item => webViewersCursor.update(closeTab(item)),
-        onOpen: item => webViewersCursor.update(addTab(item))
+        onOpen: uri => webViewersCursor.update(openTab(uri))
       })
     ]),
     DOM.div({

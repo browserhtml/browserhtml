@@ -6,34 +6,42 @@ define((require, exports, module) => {
 
   'use strict';
 
+  // This module provides functions that can can be used to transform
+  // data strucutre representing a deck of items in from of Immutable.List
+  // or anything compatible like a Cursor to an Immutable.List.
+  //
+  //
+  // Structure is used to represent collection of items where single item
+  // from it could be **selected** and / or **active**. In most cases same
+  // item will be both **selected** and **active**, although there may
+  // be transitive `deq` states where item **active** will be different
+  // from **selected** item. Such state represents state of while switching
+  // **active** item from currently **active** to currently **selected**.
+  // To picture this think of the app switcher UI, quick hits on `cmd tab`
+  // (without releasing keys quickly) selects different application but
+  // only releasing keys activates selected application.
+  //
+  // Items inserted will always be append to the tail of the actual data
+  // structure. Sorting is supported through `weight` proprty that is
+  // assigned & managed by below transformation fucntions.
+
   const {curry, compose, identity, True, False} = require('lang/functional');
 
   // Curried function that takes `name -> target` and returns
   // `target.get(name)`. Useful for getting value of the field
   // in immutable data structures and cursors.
-  const get = curry((name, target) => target.get(name));
+  const get = name => target => target.get(name);
 
-  // Curried function that takes `p -> items` and returns
-  // `items.findIndex(p)` useful for finding index of item in
-  // immutable collections and cursors.
-  const findIndex = curry((p, items) => items.findIndex(p));
+  // Function takes `p` predicate and returns a function which
+  // returns an index of a first item form given `items` where
+  // `p(item)` is logical `true`.
+  const findIndex = p => items => items.findIndex(p);
 
-  // High order function that takes `p -> items` returns
-  // `items.find(p)` useful for finding item in the immutable
-  // collections and cursors.
-  const find = curry((p, items) => items.find(p));
+  // High order function that takes predicate `p` function and
+  // returns a function which returs a first item from given
+  // `items` where `p(item)` is logical `true`.
+  const find = p => items => items.find(p);
 
-
-  // ## Overview
-  //
-  // Below function are used transforming state of the deck which
-  // is represented as an immutable collection of items. API is
-  // designed such that single item in the collection can be
-  // **active** (visible web viewer is an example of active item).
-  // Also single item can be **selected**, selected item may not
-  // be an active item, since selection is used to represent transitive
-  // state (ctl+tab selects a tab while release of keys activates
-  // seleceted tab).
 
   // True if given item is active.
   const isActive = get('isActive');
@@ -52,21 +60,19 @@ define((require, exports, module) => {
   // Returns selected item from a given deck `items`.
   const selected = find(isSelected);
 
-
-  // `next` and `previous` encode tab switching logic that takes
-  // into account weather given `item` matches first / last item in the deck
-  // `items`.
+  // `next` and `previous` encode tab switching logic that treats
+  // `items` as a loop where last item is followed by the first
+  // one.
   const next = (items, item) => {
-    const ordered = order(items);
-    const isLast = order == items.count() - 1;
-    return ordered.last() === item ? ordered.first() :
-           ordered.get(ordered.indexOf(item) + 1);
+    const positioned = arrange(items);
+    return positioned.last() === item ? positioned.first() :
+           positioned.get(positioned.indexOf(item) + 1);
   };
 
   const previous = (items, item) => {
-    const ordered = order(items);
-    return ordered.first() === item ? ordered.last() :
-           ordered.get(ordered.indexOf(item) - 1);
+    const positioned = arrange(items);
+    return positioned.first() === item ? positioned.last() :
+           positioned.get(positioned.indexOf(item) - 1);
   }
 
   const transition = (unmark, mark) => (items, from, to) =>
@@ -90,83 +96,136 @@ define((require, exports, module) => {
   const select = (items, item) =>
     switchSelected(items, selected(items), item);
 
-  // Takes `items` and selects item previous to currently selected one.
-  // If selected item is first item, then last item is selected.
+  //  Makes an item leading a `selected` item `selected`.
   const selectPrevious = advance(switchSelected,
                                  selected,
                                  previous);
+
+  // Make an item following a `selected` item `selected`.
   const selectNext = advance(switchSelected,
                              selected,
                              next);
 
-  // Takes deck `items` and activates selected item.
+  // Makes `active` item `selected`.
+  const reset = items => select(items, active(items));
+
+  // Makes `selected` item `active`.
   const activate = advance(switchActive,
                            active,
                            selected);
 
-  // Resets currently selecetd tab back to the active one.
-  const reset = items => select(items, active(items));
-
-
-  const MAX_ORDER = Number.MAX_SAFE_INTEGER;
-  const orderOf = item => item.get('order') || MAX_ORDER / 2;
-  const order = items => items.sortBy(orderOf);
-
-  // Returns `item` that when ordered will be in `n`th position
-  // starting from `0`.
-  const nth = (items, n) => items.sortBy(orderOf).get(n);
-
-  const asNth = (items, n, item) => {
-    const ordered = order(items);
-    const before = items.get(n);
-    const after = items.get(n + 1);
-    const order = ((after - before) / 2) + before;
-    return item.set('order', order);
-  }
-
-  const asFirst = (items, item) => {
-    const order = orderOf(nth(items, 0)) / 2;
-    return item.set('order', order);
-  }
-
-  const asLast = (items, item) => {
-    const last = orderOf(nth(items, items.count() - 1));
-    const order = last + ((MAX_ORDER - last) / 2);
-    return item.set('order', order);
-  }
-
-  // Reorders `items` such that given `item` will be first and
-  // rest items will remain as they were.
-  const makeFirst = (items, item) =>
-    items.set(items.indexOf(item), asFirst(items, item));
-
-  const makeLast = (items, item) =>
-    items.set(items.indexOf(item), asLast(items, item));
-
-  // Reorders given `items` such that active item will be moved
-  // to the tail of it.
-  const reorder = items => makeLast(items, active(items));
-
-
+  // Makes an item following a `selected` item both `selected` & `active`.
   const activateNext = compose(activate, selectNext);
+  // Makes an item leading a `selected` item both `selected` & `active`.
   const activatePrevious = compose(activate, selectPrevious);
+
+
+  // ## Item weight
+  //
+  // Order of `items` in the list in most cases is irrelevant, in fact any
+  // item inserted is added to the end of the list. In order to allow ordering
+  // though notion of `weight` is used. Each item is assigned a weight during
+  // insertion that is a number right in the middle of leading and following
+  // item weights. In order to move item into arbitrary position it's weight
+  // is updated again to the number that is weight in between leading and
+  // following items. Items get reordered post-activation to position recently
+  // activated items to the head.
+
+  const MAX_WEIGHT = Number.MAX_SAFE_INTEGER;
+  const MIN_WEIGHT = 0;
+
+  // Returns weight for the given item.
+  const weightOf = item => item.get('weight') || (MIN_WEIGHT + MAX_WEIGHT) / 2;
+
+  // Returns items sorted by their weight.
+  const arrange = items => items.sortBy(weightOf);
+
+  const center = (from, to) => (from + to) / 2;
+
+  // Returns given `item` with modified `weight` such that it's
+  // weight will fall in the center of `leading` & `following`
+  // item weights.
+  const asWeightedBetween = (item, leading, following) => {
+    const start = leading ? weightOf(leading) : MIN_WEIGHT;
+    const end = following ? weightOf(following) : MAX_WEIGHT;
+    const weight = weightOf(item);
+    // If weight is already falls in the range then just return
+    // item as is. Otherwise use weight that is right in the middle
+    // of the range.
+    return (weight > start && weight < end) ? item :
+           item.set('weight', (start + end) / 2);
+  }
+
+  // Returs given `item` with modified `weight` such that it's
+  // weight will fall in between of weights of item with lower
+  // weight to match `p(item) == true` and an item with highest
+  // but lower weight than matching one. If matching item has a
+  // lowest `weight` of all than given `item` weight will be
+  // modified to weight in the center of lowest and `0`. If
+  // matching item isn't found highest weight of all will used.
+  const asLeading = (item, p, items) => {
+    let last = null;
+    for (let entry of arrange(items)) {
+      if (p(entry)) {
+        return asWeightedBetween(item, last, entry);
+      }
+      last = entry;
+    }
+    return asWeightedBetween(item, last, null);
+  }
+
+  // Returs given `item` with modified `weight` such that it's
+  // weight will fall in between of weights of item with lowest
+  // weight to match `p(item) == true` an item with lowest but
+  // higher weigth than matching one. If matching item has a highest
+  // `weight` of all than given `item` weight will be modified to
+  // weight in the center of highest and and MAX_WEIGHT. If
+  // matching item isn't found highest weight of all will used.
+  const asFollowing = (item, p, items) => {
+    let last = null;
+    let match = null;
+    for (let entry of arrange(items)) {
+      if (match) {
+        return asWeightedBetween(item, last, entry);
+      }
+      last = entry;
+      match = p(entry);
+    }
+
+    return asWeightedBetween(item, last, null);
+  }
+
+
+  // Item is considered pinned if it's `isPinned` is logical `true`.
+  const isPinned = item => item.get('isPinned');
+  const isntPinned = item => !item.get('isPinned');
+
+  // Updates weight of the `items` such that most recently active
+  // items will get the lowest weights after the pinned tab with a highest
+  // weight. Also reordering does not affect pinned items.
+  const reorder = items => {
+    const item = active(items);
+    return isPinned(item) ? items :
+           items.set(items.indexOf(item), asLeading(item, isntPinned, items));
+  };
+
 
   // Take an `items` and optional `p` predicate function and removes
   // first item where `p(item)` is true. If item to be removed happens
   // to be selected or active then it takes care of activating / selecting
   // different item according to logic explained in the inline comments
   // below.
-  const remove = (items, p=exports.isActive) => {
+  const remove = (items, p=isActive) => {
     const target = items.find(p);
     const index = items.indexOf(target);
-    const isActive = target == active(items);
-    const isSelected = target == selected(items);
+    const isTargetActive = target == active(items);
+    const isTargetSelected = target == selected(items);
 
-    if (isActive) {
-      if (isSelected) {
+    if (isTargetActive) {
+      if (isTargetSelected) {
         // If target is selected & active item that is also
         // a last one, activate previous and remove the target.
-        if (target === order(items).last()) {
+        if (target === arrange(items).last()) {
           return activatePrevious(items).remove(index);
         }
         // If target is selected & active item but isn't a
@@ -176,15 +235,15 @@ define((require, exports, module) => {
         }
       }
       // If target is active but different one is selected then
-      // activate selection and remove this item.
+      // activate selected and remove this item.
       else {
         return activate(items).remove(index);
       }
     } else {
-      if (isSelected) {
+      if (isTargetSelected) {
         // If target isn't active but is selected and happens to be the last
         // one, then select previous item and remove target.
-        if (target === order(items).last()) {
+        if (target === arrange(items).last()) {
           return selectPrevious(items).remove(index);
         }
         // If target isn't active but is selected and does not happen to be
@@ -203,7 +262,7 @@ define((require, exports, module) => {
   // Utility function that deselects currently selected item. Note that this
   // function will put `items` into state with no selection, there for it must
   // be used as a part of larger transform that will take care of selecting some
-  // item. Also note that non of the tranfrom functions can not be used on a result
+  // item. Also note that non of the tranfrom functions can be used on a result
   // of this function as they assume to have a selected item.
   const deselect = items => items.update(indexOfSelected(items), asUnselected);
 
@@ -214,24 +273,19 @@ define((require, exports, module) => {
   // on a result of this function as they assume to have an active item.
   const deactivate = items => items.update(indexOfActive(items), asInactive);
 
-  const insert = (items, item, index) => {
-    const include = items =>
-      index <= 0 ? items.push(asFirst(items, item)) :
-      index >= items.count() - 1 ? items.push(asLast(items, item)) :
-      items.push(asNth(items, index, item));
-
-    const update = compose(include,
-                           isSelected(item) ? deselect : identity,
-                           isActive(item) ? deactivate : identity);
-
-    return update(items);
+  const include = (items, item) => {
+    const edit = compose(items => items.push(item),
+                         isSelected(item) ? deselect : identity,
+                         isActive(item) ? deactivate : identity);
+    return edit(items);
   }
 
-  // Appends `item` to the deck `items`. If appended `item` is marked
-  // as `selected` or `active` also takes care of
-  const append = (items, item) => insert(items, item, items.count());
+  const insertBefore = (items, item, p) =>
+    include(items, asLeading(item, p, items));
 
-  const prepend = (items, item) => insert(items, item, 0);
+  const insertAfter = (items, item, p) =>
+    include(items, asFollowing(item, p, items));
+
 
   // Exports:
 
@@ -241,6 +295,7 @@ define((require, exports, module) => {
   exports.indexOfSelected = indexOfSelected;
   exports.selected = selected;
   exports.select = select;
+  exports.reset = reset;
   exports.selectNext = selectNext;
   exports.selectPrevious = selectPrevious;
 
@@ -248,17 +303,20 @@ define((require, exports, module) => {
   exports.asActive = asActive;
   exports.asInactive = asInactive;
   exports.indexOfActive = indexOfActive;
-  exports.orderOf = orderOf;
-  exports.order = order;
+
   exports.active = active;
   exports.activate = activate;
   exports.activateNext = activateNext;
   exports.activatePrevious = activatePrevious;
+
+  exports.weightOf = weightOf;
+  exports.arrange = arrange;
   exports.reorder = reorder;
-  exports.reset = reset;
 
   exports.remove = remove;
-  exports.insert = insert;
-  exports.append = append;
-  exports.prepend = prepend;
+  exports.insertAfter = insertAfter;
+  exports.insertBefore = insertBefore;
+
+  exports.isPinned = isPinned;
+  exports.isntPinned = isntPinned;
 });
