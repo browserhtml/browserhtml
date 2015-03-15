@@ -104,3 +104,32 @@
   transition: opacity 150ms 250ms ease;
   pointer-events: auto;
 }
+
+.tab-dashboard .tab-thumbnail {
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.tab-dashboard .tab-thumbnail::after {
+  color: rgba(0,0,0,0.2);
+  content: "\f067";
+  cursor: default;
+  display: block;
+  font: 24px/62.5px FontAwesome;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.tab-dashboard .tab-thumbnail {
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.isdark .tab-dashboard .tab-thumbnail::after {
+  color: rgba(255,255,255,0.4);
+}
+
+.isdark .tab-dashboard .tab-thumbnail {
+  border: 1px solid rgba(255,255,255,0.2);
+}
