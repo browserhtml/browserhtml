@@ -7,7 +7,6 @@ define((require, exports, module) => {
   'use strict';
 
   const Component = require('omniscient');
-  const {Deck} = require('./deck');
   const {isActive, isSelected} = require('./deck/actions');
   const {getHardcodedColors} = require('./theme');
   const {IFrame} = require('./iframe');
@@ -21,50 +20,50 @@ define((require, exports, module) => {
 
 
 
-  const WebViewer = Component('WebViewer', ({item: webViewerCursor}, {onOpen, onClose}) => {
+  const WebViewer = Component('WebViewer', ({state}, {onOpen, onClose, edit}) => {
 
     // Do not render anything unless viewer has any `uri`
-    if (!webViewerCursor.get('uri')) return null;
+    if (!state.get('uri')) return null;
     return IFrame({
       className: ClassSet({
         'iframes-frame': true,
         webviewer: true,
-        contentoverflows: webViewerCursor.get('contentOverflows')
+        contentoverflows: state.get('contentOverflows')
       }),
-      key: webViewerCursor.get('id'),
+      key: state.get('id'),
       isBrowser: true,
       isRemote: true,
       allowFullScreen: true,
 
-      isVisible: isActive(webViewerCursor) ||
-                 isSelected(webViewerCursor),
+      isVisible: isActive(state) ||
+                 isSelected(state),
 
-      hidden: !isActive(webViewerCursor),
-      zoom: webViewerCursor.get('zoom'),
-      isFocused: webViewerCursor.get('isFocused'),
-      src: webViewerCursor.get('uri'),
-      readyState: webViewerCursor.get('readyState'),
+      hidden: !isActive(state),
+      zoom: state.get('zoom'),
+      isFocused: state.get('isFocused'),
+      src: state.get('uri'),
+      readyState: state.get('readyState'),
 
-      onCanGoBackChange: WebViewer.onCanGoBackChange(webViewerCursor),
-      onCanGoForwardChange: WebViewer.onCanGoForwardChange(webViewerCursor),
-      onBlur: WebViewer.onBlur(webViewerCursor),
-      onFocus: WebViewer.onFocus(webViewerCursor),
+      onCanGoBackChange: WebViewer.onCanGoBackChange(edit),
+      onCanGoForwardChange: WebViewer.onCanGoForwardChange(edit),
+      onBlur: WebViewer.onBlur(edit),
+      onFocus: WebViewer.onFocus(edit),
       // onAsyncScroll: WebViewer.onUnhandled,
-      onClose: event => onClose(webViewerCursor),
+      onClose: event => onClose(state.get('id')),
       onOpenWindow: event => onOpen(event.detail.url),
       onContextMenu: WebViewer.onUnhandled,
       onError: event => console.error(event),
-      onLoadStart: WebViewer.onLoadStart(webViewerCursor),
-      onLoadEnd: WebViewer.onLoadEnd(webViewerCursor),
-      onMetaChange: WebViewer.onMetaChange(webViewerCursor),
-      onIconChange: WebViewer.onIconChange(webViewerCursor),
-      onLocationChange: WebViewer.onLocationChange(webViewerCursor),
-      onSecurityChange: WebViewer.onSecurityChange(webViewerCursor),
-      onTitleChange: WebViewer.onTitleChange(webViewerCursor),
-      onPrompt: WebViewer.onPrompt(webViewerCursor),
-      onAuthentificate: WebViewer.onAuthentificate(webViewerCursor),
-      onScrollAreaChange: WebViewer.onScrollAreaChange(webViewerCursor),
-      onLoadProgressChange: WebViewer.onLoadProgressChange(webViewerCursor)
+      onLoadStart: WebViewer.onLoadStart(edit),
+      onLoadEnd: WebViewer.onLoadEnd(edit),
+      onMetaChange: WebViewer.onMetaChange(edit),
+      onIconChange: WebViewer.onIconChange(edit),
+      onLocationChange: WebViewer.onLocationChange(edit),
+      onSecurityChange: WebViewer.onSecurityChange(edit),
+      onTitleChange: WebViewer.onTitleChange(edit),
+      onPrompt: WebViewer.onPrompt(edit),
+      onAuthentificate: WebViewer.onAuthentificate(edit),
+      onScrollAreaChange: WebViewer.onScrollAreaChange(edit),
+      onLoadProgressChange: WebViewer.onLoadProgressChange(edit)
     })
   });
 
@@ -115,13 +114,13 @@ define((require, exports, module) => {
   }
 
   WebViewer.onUnhandled = event => console.log(event)
-  WebViewer.onBlur = webViewerCursor => event =>
-    webViewerCursor.set('isFocused', false);
+  WebViewer.onBlur = edit => event =>
+    edit(state => state.set('isFocused', false));
 
-  WebViewer.onFocus = webViewerCursor => event =>
-    webViewerCursor.set('isFocused', true);
+  WebViewer.onFocus = edit => event =>
+    edit(state => state.set('isFocused', true));
 
-  WebViewer.onLoadStart = webViewerCursor => event => webViewerCursor.merge({
+  WebViewer.onLoadStart = edit => event => edit(state => state.merge({
     readyState: 'loading',
     isLoading: true,
     isConnecting: true,
@@ -134,75 +133,79 @@ define((require, exports, module) => {
     securityExtendedValidation: false,
     canGoBack: false,
     canGoForward: false
-  });
+  }));
 
-  WebViewer.onLoadEnd = webViewerCursor => event => {
-    // When the progressbar of a viewer is visible,
-    // we want to animate the progress to 1 on load. This
-    // is handled in the progressbar code. We only set
-    // progress to 1 for non selected viewers.
-    if (!isSelected(webViewerCursor)) {
-      webViewerCursor = webViewerCursor.set('progress', 1);
-    }
-
-    webViewerCursor.merge({
+  WebViewer.onLoadEnd = edit => event => edit(state =>
+    state.merge({
+      // When the progressbar of a viewer is visible,
+      // we want to animate the progress to 1 on load. This
+      // is handled in the progressbar code. We only set
+      // progress to 1 for non selected viewers.
+      progress: isSelected(state) ? state.get('progress') : 1,
       isConnecting: false,
       endLoadingTime: performance.now(),
       readyState: 'loaded',
       isLoading: false
-    });
-  };
+    }));
 
-  WebViewer.onTitleChange = webViewerCursor => event =>
-    webViewerCursor.set('title', event.detail);
+  WebViewer.onTitleChange = edit => event =>
+    edit(state => state.set('title', event.detail));
 
 
-  WebViewer.onLocationChange = webViewerCursor => event => {
-    webViewerCursor.merge({location: event.detail,
+  WebViewer.onLocationChange = edit => event => {
+    edit(state => state.
+                    merge({location: event.detail,
                            userInput: event.detail}).
-                    merge(getHardcodedColors(event.detail));
+                    merge(getHardcodedColors(event.detail)));
 
     requestThumbnail(event.target).
-      then(WebViewer.onThumbnailChanged(webViewerCursor));
+      then(WebViewer.onThumbnailChanged(edit));
   }
 
-  WebViewer.onIconChange = webViewerCursor => event =>
-    webViewerCursor.setIn(['icons', event.detail.href], event.detail);
+  WebViewer.onIconChange = edit => event =>
+    edit(state => state.setIn(['icons', event.detail.href], event.detail));
 
-  WebViewer.onMetaChange = webViewerCursor => event =>
-    webViewerCursor.set('metadata', event.detail);
+  WebViewer.onMetaChange = edit => event =>
+    edit(state => state.set('metadata', event.detail));
 
-  WebViewer.onCanGoBackChange = webViewerCursor => event =>
-    webViewerCursor.set('canGoBack', event.detail);
+  WebViewer.onCanGoBackChange = edit => event =>
+    edit(state => state.set('canGoBack', event.detail));
 
-  WebViewer.onCanGoForwardChange = webViewerCursor => event =>
-    webViewerCursor.set('canGoForward', event.detail);
+  WebViewer.onCanGoForwardChange = edit => event =>
+    edit(state => state.set('canGoForward', event.detail));
 
-  WebViewer.onPrompt = webViewerCursor => event => console.log(event);
+  WebViewer.onPrompt = edit => event => console.log(event);
 
-  WebViewer.onAuthentificate = webViewerCursor => event => console.log(event);
+  WebViewer.onAuthentificate = edit => event => console.log(event);
 
-  WebViewer.onScrollAreaChange = webViewerCursor => event =>
-    webViewerCursor.set('contentOverflows',
-              event.detail.height > event.target.parentNode.clientHeight);
+  WebViewer.onScrollAreaChange = edit => ({target, detail}) =>
+    edit(state => state.set('contentOverflows',
+                            detail.height > target.parentNode.clientHeight));
 
-  WebViewer.onSecurityChange = webViewerCursor => event =>
-    webViewerCursor.merge({securityState: event.detail.state,
-                           securityExtendedValidation: event.detail.extendedValidation});
+  WebViewer.onSecurityChange = edit => event =>
+    edit(state => state.merge({
+      securityState: event.detail.state,
+      securityExtendedValidation: event.detail.extendedValidation}));
 
-  WebViewer.onLoadProgressChange = webViewerCursor => event => {
-    if (webViewerCursor.get('isConnecting')) {
-      webViewerCursor = webViewerCursor.set('isConnecting', false);
-      return webViewerCursor.set('connectedAt', performance.now());
-    }
-  }
+  WebViewer.onLoadProgressChange = edit => event =>
+    edit(state => !state.get('isConnecting') ? state :
+                  state.merge({isConnecting: false,
+                               connectedAt: performance.now()}));
 
-  WebViewer.onThumbnailChanged = webViewerCursor => blob =>
-    webViewerCursor.set('thumbnail', URL.createObjectURL(blob));
+  WebViewer.onThumbnailChanged = edit => blob =>
+    edit(state => state.set('thumbnail', URL.createObjectURL(blob)));
 
+  const id = item => item.get('id');
   // WebViewer deck will always inject frames by order of their id. That way
   // no iframes will need to be removed / injected when order of tabs change.
-  WebViewer.Deck = Deck(WebViewer);
+  WebViewer.Deck = Component('WebViewerDeck', (options, {onOpen, onClose}) => {
+    const {items} = options;
+    return DOM.div(options, items.sortBy(id).map(cursor => WebViewer({
+      key: cursor.get('id'),
+      state: cursor.deref(),
+    }, {onOpen, onClose, edit(step) {cursor.update(step)}})));
+  });
+
   // Exports:
 
   exports.WebViewer = WebViewer;
