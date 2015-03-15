@@ -8,27 +8,25 @@ define((require, exports, moudle) => {
 
   const {DOM} = require('react');
   const Component = require('omniscient');
-  const url = require('./util/url');
-  const {Deck} = require('./deck');
-  const {isSelected, arrange} = require('./deck/actions');
+  const {isSelected} = require('./deck/actions');
   const ClassSet = require('./util/class-set');
 
-  const Tab = Component('Tab', ({item: webViewerCursor, order}, {onSelect, onActivate, onClose}) => {
-    const thumbnail = webViewerCursor.get('thumbnail')
+  const Tab = Component('Tab', ({state, order}, {onSelect, onActivate, onClose}) => {
+    const isPinned = state.get('isPinned');
+    const thumbnail = state.get('thumbnail');
     return DOM.div({
       className: ClassSet({
         tab: true,
-        selected: isSelected(webViewerCursor),
-        // Currently "pinned" is a proxy for the dashboard tab
-        'tab-dashboard': webViewerCursor.get('isPinned')
+        selected: isSelected(state),
+        'tab-dashboard': isPinned
       }),
-      style: { order: order },
-      onMouseOver: event => onSelect(webViewerCursor),
+      style: {order},
+      onMouseOver: event => onSelect(state),
       onMouseDown: event => onActivate(),
       onMouseUp: event => {
         if (event.button == 1) {
           event.stopPropagation();
-          onClose(webViewerCursor);
+          onClose(state.get('id'));
         }
       }
     }, [
@@ -43,22 +41,21 @@ define((require, exports, moudle) => {
           onLoad: event => URL.revokeObjectURL(event.target.src)
         })
       ]),
-      webViewerCursor.get('isPinned') ? null :
+      isPinned ? null :
       DOM.div({
         key: 'close-button',
-        onClick: event => onClose(webViewerCursor),
+        onClick: event => onClose(state.get('id')),
         className: "tab-close-button fa fa-times",
       })
     ])
   });
+  const id = item => item.get('id');
   Tab.Deck = Component('Deck', (options, handlers) => {
     const {items} = options;
-    const ordered = arrange(items);
-    const count = items.count();
-    return DOM.div(options, items.map(item => Tab({
-      key: item.get('id'),
-      order: ordered.indexOf(item),
-      item
+    return DOM.div(options, items.sortBy(id).map(cursor => Tab({
+      key: id(cursor),
+      order: items.indexOf(cursor),
+      state: cursor.deref()
     }, handlers)))
   });
 

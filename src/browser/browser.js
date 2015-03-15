@@ -23,7 +23,7 @@ define((require, exports, module) => {
   const {focus, showTabStrip, hideTabStrip, select: selectField,
          readInputURL,
          writeSession, resetSession, resetSelected} = require('./actions');
-  const {indexOfSelected, indexOfActive, isActive, arrange,
+  const {indexOfSelected, indexOfActive, isActive,
          selectNext, selectPrevious, select, activate,
          reorder, reset, remove, insertBefore,
          isntPinned, isPinned} = require('./deck/actions');
@@ -110,8 +110,8 @@ define((require, exports, module) => {
     items.count() > 1 ? remove(items, p) :
     items.set(0, open({isSelected: true, isActive: true}));
 
-  const closeTab = item =>
-    close(x => x.get('id') == item.get('id'));
+  const closeTab = id =>
+    close(x => x.get('id') == id);
 
 
   const edit = edit => cursor => cursor.update(edit);
@@ -122,8 +122,8 @@ define((require, exports, module) => {
   const switchTab = (items, to) =>
     to ? activate(select(items, to)) : items;
 
-  switchTab.toIndex = index => items => switchTab(items, arrange(items).get(index));
-  switchTab.toLast = items => switchTab(items, arrange(items).last());
+  switchTab.toIndex = index => items => switchTab(items, items.get(index));
+  switchTab.toLast = items => switchTab(items, items.last());
   switchTab.toDashboard = switchTab.toIndex(0);
 
 
@@ -248,7 +248,7 @@ define((require, exports, module) => {
         }, {
           onSelect: item => webViewersCursor.update(items => select(items, item)),
           onActivate: _ => webViewersCursor.update(items => activate(items)),
-          onClose: item => webViewersCursor.update(closeTab(item))
+          onClose: id => webViewersCursor.update(closeTab(id))
         })
       ]),
       Awesomebar({
@@ -288,7 +288,7 @@ define((require, exports, module) => {
         hidden: isDashboardActive,
         items: webViewersCursor
       }, {
-        onClose: item => webViewersCursor.update(closeTab(item)),
+        onClose: id => webViewersCursor.update(closeTab(id)),
         onOpen: uri => webViewersCursor.update(openTab(uri))
       })
     ]),
