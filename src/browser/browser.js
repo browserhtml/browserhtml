@@ -17,11 +17,11 @@ define((require, exports, module) => {
   const {getDashboardThemePatch,
          readDashboardNavigationTheme} = require('./dashboard/actions');
   const {Element, Event, VirtualAttribute, Attribute} = require('./element');
+  const {select: selectField} = require('./editable');
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
-  const {focus, showTabStrip, hideTabStrip, select: selectField,
-         readInputURL,
+  const {focus, showTabStrip, hideTabStrip, readInputURL,
          writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive,
          selectNext, selectPrevious, select, activate,

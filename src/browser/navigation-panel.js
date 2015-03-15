@@ -9,9 +9,9 @@ define((require, exports, module) => {
   const platform = require('os').platform();
   const {DOM} = require('react')
   const Component = require('omniscient');
-  const {InputField} = require('./editable');
+  const {InputField, select} = require('./editable');
   const {Element} = require('./element');
-  const {showTabStrip, blur, focus, select} = require('./actions');
+  const {showTabStrip, blur, focus} = require('./actions');
   const {KeyBindings} = require('./keyboard');
   const url = require('./util/url');
   const {ProgressBar} = require('./progressbar');
@@ -126,6 +126,13 @@ define((require, exports, module) => {
         onBlur: event => {
           resetSuggestions(suggestionsCursor);
           inputCursor.set('isFocused', false);
+        },
+        onSelect: event => {
+          inputCursor.set('selection', {
+            start: event.target.selectionStart,
+            end: event.target.selectionEnd,
+            direction: event.target.selectionDirection
+          });
         },
         onChange: event => {
           // Reset suggestions & compute new ones from the changed input value.
