@@ -47,9 +47,10 @@
 }
 
 .tab-thumbnail {
-  background: #fff;
+  background-color: #fff;
   background-size: cover;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.07);
+  background-clip: content-box;
+  border: 1px solid rgba(0,0,0,0.07);
   border-radius: 8px;
   height: 62px;
   margin: 9px 0 0;
