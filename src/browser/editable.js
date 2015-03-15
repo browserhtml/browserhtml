@@ -11,37 +11,21 @@ define((require, exports, module) => {
   const {Component, createFactory} = require('react');
 
   const selection = VirtualAttribute((node, current, past) => {
-    if (current != past) {
-      if (!current) {
-        node.selectionStart = node.selectionEnd;
-      }
-      else if (current) {
-        const hasStart = 'start' in current;
-        const hasEnd = 'end' in current;
-        const isRange = hasStart || hasEnd;
+    past = past || {};
+    if (current !== past) {
+      if (current) {
+        const {start, end, direction} = current;
 
-        if (hasStart) {
-          node.selectionStart = current.start;
+        if (start !== past.start) {
+          node.selectionStart = start === Infinity ? node.value.length : start;
         }
 
-        if (hasEnd) {
-          node.selectionEnd = current.end;
+        if (end !== past.end) {
+          node.selectionEnd = end === Infinity ? node.value.length : end;
         }
 
-        if (!isRange) {
-          node.select();
-        }
-
-        if (current.direction == 'forward') {
-          node.selectionDirection = 'forward';
-        }
-
-        if (current.direction == 'backward') {
-          node.selectionDirection = 'backward';
-        }
-
-        if (current.direction == 'none') {
-          node.selectionDirection = 'none';
+        if (direction !== past.direction) {
+          node.selectionDirection = direction;
         }
       }
     }
@@ -77,5 +61,8 @@ define((require, exports, module) => {
 
   exports.selection = selection;
   exports.InputField = createFactory(InputField);
+
+  exports.select = (input, start=0, end=Infinity, direction='forward') =>
+    input.set('selection', {start, end, direction});
 
 });
