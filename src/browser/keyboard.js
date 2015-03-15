@@ -69,10 +69,6 @@ define((require, exports, module) => {
         const chord = writeChord(event);
         const binding = bindings[chord];
 
-        if (window.debug) {
-          console.log(`${event.type}: ${chord} @ ${event.timeStamp}`);
-        }
-
         if (binding) {
           binding(...args);
           event.preventDefault();

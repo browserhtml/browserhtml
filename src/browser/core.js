@@ -16,12 +16,10 @@ define(function(require, exports, module) {
   // render loop.
   var render = (Component, initial, target) => {
     let current = null;
+    let previous = null;
 
     const draw = () => {
       window.state = current;
-      if (window.debug) {
-        console.log('! render', current.toJSON());
-      }
       // create a cursor for a current up to date state with a
       // step as change handler, to retriger render loop on change.
       const cursor = Cursor.from(current, step);
@@ -30,6 +28,7 @@ define(function(require, exports, module) {
     }
 
     const step = (to, from, path) => {
+      previous = current;
       // Note that only components that rely on state that changed
       // will be retriggered during rendering. This implies that some components
       // may be holding onto old cursors. If that is the case state `from` which
@@ -57,8 +56,8 @@ define(function(require, exports, module) {
         }
       }
 
-      if (window.debug) {
-        console.log('! update', path.join('.'), current.toJSON());
+      if (typeof(window.debug) === 'function') {
+        window.debug(current, previous, path);
       }
 
 
