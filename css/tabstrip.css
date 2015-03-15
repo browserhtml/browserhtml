@@ -1,9 +1,9 @@
 .tabstripcontainer {
   justify-content: center;
   width: 100vw;
-  height: 100px;
+  height: 90px;
   position: absolute;
-  top: 40px;
+  top: 50px;
   left: 0;
   z-index: 43;
   pointer-events: none;
@@ -19,9 +19,9 @@
 .tabstripkillzone {
   display: block;
   position: absolute;
-  top: 40px;
+  top: 50px;
   left: 0;
-  height: calc(100vh - 40px);
+  height: calc(100vh - 50px);
   width: 100vw;
   background-color: rgba(0,0,0,0.05);
   transition: background-color 200ms linear;
@@ -41,17 +41,18 @@
 .tab {
   /* Keep buffer space around the visual thumbnail to make them easier
   to click. */
-  height: 100px;
+  height: 90px;
   width: 100px;
   position: relative;
 }
 
 .tab-thumbnail {
-  background: white;
-  border: 1px solid rgba(0,0,0,0.07);
-  border-radius: 4px;
-  height: 62.5px;
-  margin: 16px 0 0;
+  background: #fff;
+  background-size: cover;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.07);
+  border-radius: 8px;
+  height: 62px;
+  margin: 9px 0 0;
   transform: scale(0.8);
   transition: transform 150ms ease;
   width: 100px;
@@ -79,7 +80,7 @@
   height: 36px; /* big hitzone */
   width: 36px;
   right: -18px; /* (hitzone / 2) */
-  top: -2px; /* 16px - (hitzone / 2) see thumbnail margin top */
+  top: -9px; /* 9px - (hitzone / 2) see thumbnail margin top */
   opacity: 0;
   pointer-events: none;
 }

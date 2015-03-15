@@ -20,7 +20,7 @@ define((require, exports, module) => {
         isDark: false,
       },
       wallpaper: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#F0F4F7',
         foregroundColor: null,
         posterImage: null
       }

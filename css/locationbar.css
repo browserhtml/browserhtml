@@ -21,14 +21,22 @@
   height: 3px;
   margin-left: -100%;
   position: absolute;
-  top: 40px;
+  top: 50px;
   left: 0;
 }
 
 .urlinput,
 .pagesummary {
+  line-height: 30px;
   overflow: hidden;
   width: 100%;
+}
+
+.pagesummary {
+  display: block;
+  padding: 0 30px;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
 .navbar:not(.urledit) .urlinput,
@@ -36,40 +44,11 @@
   /* We don't use display:none. We want the input
    * to be focussable */
   max-width: 0;
-  border-width: 0;
   padding: 0;
-}
-
-.pagesummary {
-  display: block;
-  text-overflow: ellipsis;
-  padding: 0 30px;
-  text-align: center;
-}
-
-.pagesummary,
-.urlinput {
-  border-width: 0 1px 0 1px;
-  border-style: solid;
-  border-color: transparent;
-  line-height: 30px;
-  padding: 0 8px;
-  border-color: rgba(0,0,0,0.07);
-}
-
-/* Dark theme case */
-.isdark .locationbar {
-  background-color: rgba(255,255,255,0.15);
-}
-
-.isdark .pagesummary,
-.isdark .urlinput  {
-  border-color: rgba(0,0,0,0.1);
 }
 
 .urlinput {
   border-radius: 0;
-  padding: 0 8px;
 }
 
 .backbutton,

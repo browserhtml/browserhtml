@@ -101,6 +101,7 @@ define((require, exports, module) => {
                                        {onNavigate}) => {
     return DOM.div({
       className: 'locationbar',
+      style: theme.locationBar,
       onMouseEnter: event => showTabStrip(tabStripCursor),
     }, [
       DOM.div({className: 'backbutton',
