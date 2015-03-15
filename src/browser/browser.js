@@ -107,8 +107,7 @@ define((require, exports, module) => {
   // This avoids code branching down the pipe that otherwise will
   // need to deal with 0 viewer & no active viewer case.
   const close = p => items =>
-    items.count() > 1 ? remove(items, p) :
-    items.set(0, open({isSelected: true, isActive: true}));
+    !isPinned(items.find(p)) ? remove(items, p) : items;
 
   const closeTab = id =>
     close(x => x.get('id') == id);
