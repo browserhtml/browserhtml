@@ -163,7 +163,9 @@ define((require, exports, module) => {
 
   const onBrowserBinding = KeyBindings({
     'accel shift backspace': edit(resetSession),
-    'accel shift s': writeSession
+    'accel shift s': writeSession,
+    'accel u': root =>
+      root.cursor('webViewers').update(openTab(`data:application/json,${JSON.stringify(root, null, 2)}`))
   });
 
 
