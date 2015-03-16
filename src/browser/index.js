@@ -13,10 +13,10 @@ define((require, exports, module) => {
 
   render(Browser, readSession() || resetSession(), document.body);
 
-  /*
   appUpdateAvailable.then(() => {
-    dispatchEvent(new CustomEvent("app-update-available"));
+    dispatchEvent(new CustomEvent('app-update-available'));
+  }, () => {
+    console.log('Not checking for updates');
   });
-  */
 
 });

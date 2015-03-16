@@ -9,13 +9,18 @@ define((require, exports, module) => {
 
   const API = 'https://api.github.com/repos/mozilla/browser.html/events';
   const REF = 'refs/heads/gh-pages';
+  const HOSTNAME = 'mozilla.github.io';
   const MIN_INTERVAL = 60000;
   const knownEvents = new Set();
 
   let etag;
   let interval = MIN_INTERVAL;
 
-  const pull = (resolve) => {
+  const pull = (resolve, reject) => {
+    if (location.hostname != HOSTNAME) {
+      reject();
+      return;
+    }
     let headers = {};
     if (etag) {
       headers = { "If-None-Match": etag }
