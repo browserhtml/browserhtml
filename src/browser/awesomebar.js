@@ -36,8 +36,7 @@ define((require, exports, module) => {
         return DOM.p({
           className: `suggestion ${entry.type} ${index == selectedIndex ? 'selected':''}`,
           key: 'suggestion' + index,
-          onMouseDown: e => onOpen(entry.href),
-          onMouseEnter: e => suggestionsCursor.set('selectedIndex', index)
+          onMouseDown: e => onOpen(entry.href)
         }, entry.text);
       }))
     ])
