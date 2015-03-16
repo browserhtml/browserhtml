@@ -1,5 +1,6 @@
 {
   "name": "Browser.html",
+  "version": "0.0.1",
   "description": "Browser.html",
   "launch_path": "./index.html",
   "type": "certified",
