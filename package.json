@@ -1,7 +1,7 @@
 {
   "name": "browser.html",
   "description": "browser.html",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/mozilla/browser.html",
   "repository": {
     "type": "git",
@@ -28,9 +28,9 @@
   ],
   "dependencies": {
     "immutable": "git://github.com/jcranendonk/immutable-js.git#0986651df9398187390f4638424adb532985439f",
-    "node-uuid": "^1.4.2",
+    "node-uuid": "1.4.3",
     "omniscient": "3.1.0",
-    "react": "0.13.0-beta.1",
-    "requirejs": "^2.1.15"
+    "react": "0.13.0",
+    "requirejs": "2.1.16"
   }
 }
