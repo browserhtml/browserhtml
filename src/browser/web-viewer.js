@@ -28,7 +28,10 @@ define((require, exports, module) => {
       className: ClassSet({
         'iframes-frame': true,
         webviewer: true,
-        contentoverflows: state.get('contentOverflows')
+        contentoverflows: state.get('contentOverflows'),
+        // We need to style hidden iframes that don't have tiles differntly
+        // to workaround #266 & be able to capture screenshots.
+        rendered: state.get('thumbnail')
       }),
       key: state.get('id'),
       isBrowser: true,
@@ -39,6 +42,7 @@ define((require, exports, module) => {
                  isSelected(state),
 
       hidden: !isActive(state),
+
       zoom: state.get('zoom'),
       isFocused: state.get('isFocused'),
       src: state.get('uri'),
