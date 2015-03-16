@@ -7,7 +7,7 @@ define((require, exports, module) => {
   'use strict';
 
   const url = require('./util/url');
-  const {fromJS} = require('immutable');
+  const {fromJS, List} = require('immutable');
   const {open} = require('./web-viewer/actions');
   const {select, active} = require('./deck/actions');
   const {initDashboard} = require('./dashboard/actions');
@@ -96,9 +96,28 @@ define((require, exports, module) => {
   };
 
   const writeSession = session => {
-    session = session.toJSON();
-    session.appUpdateAvailable = false;
-    session.rfa.id = -1;
+    session = session.
+      setIn(['rfa', 'id'], -1).
+      set('appUpdateAvailable', false).
+      // Reset state of each web viewer that can't be carried across the sessions.
+      updateIn(['webViewers'], viewers => viewers.map(viewer => viewer.merge({
+        uri: viewer.get('location') || viewer.get('uri'),
+        thumbnail: null,
+        location: null,
+        readyState: null,
+        isLoading: false,
+        isConnecting: false,
+        connectedAt: null,
+        title: null,
+        backgroundColor: null,
+        foregroundColor: null,
+        isDark: false,
+        securityState: 'insecure',
+        securityExtendedValidation: false,
+        canGoBack: false,
+        canGoForward: false
+      }))).
+      toJSON();
     localStorage[`session@${version}`] = JSON.stringify(session);
   };
 

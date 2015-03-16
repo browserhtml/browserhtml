@@ -214,7 +214,7 @@ define((require, exports, module) => {
         showtabstrip: isTabStripVisible,
         scrollable: !inputCursor.get('isFocused') && !isTabStripVisible
       }),
-      onDocumentUnload: event => writeSession(immutableState),
+      onDocumentUnload: event => writeSession(immutableState.valueOf()),
       onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
       onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
       onDocumentKeyDown: compose(onNavigation(inputCursor),
