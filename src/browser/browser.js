@@ -21,7 +21,7 @@ define((require, exports, module) => {
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
-  const {focus, showTabStrip, hideTabStrip, readInputURL,
+  const {focus, showTabStrip, hideTabStrip, readInputURL, sendEventToChrome,
          writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive,
          selectNext, selectPrevious, select, activate,
@@ -304,7 +304,7 @@ define((require, exports, module) => {
       DOM.div({
         key: 'appUpdateButton',
         className: 'appupdatebutton',
-        onClick: e => window.location.reload(true)
+        onClick: e => sendEventToChrome('clear-cache-and-reload')
       }, 'Apply')
     ])]);
   })

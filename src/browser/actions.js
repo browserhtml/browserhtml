@@ -18,6 +18,8 @@ define((require, exports, module) => {
   const makeSearchURL = input =>
     `https://duckduckgo.com/?q=${encodeURIComponent(input)}`;
 
+  const sendEventToChrome = type => dispatchEvent(new CustomEvent('mozContentEvent',
+    { bubbles: true, cancelable: false, detail: { type }}))
 
   const readInputURL = input =>
     url.isNotURL(input) ? makeSearchURL(input) :
@@ -134,5 +136,6 @@ define((require, exports, module) => {
   exports.resetSession = resetSession;
   exports.readSession = readSession;
   exports.writeSession = writeSession;
+  exports.sendEventToChrome = sendEventToChrome;
 
 });

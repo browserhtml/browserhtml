@@ -11,7 +11,7 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {InputField, select} = require('./editable');
   const {Element} = require('./element');
-  const {showTabStrip, blur, focus} = require('./actions');
+  const {showTabStrip, blur, focus, sendEventToChrome} = require('./actions');
   const {KeyBindings} = require('./keyboard');
   const url = require('./util/url');
   const {ProgressBar} = require('./progressbar');
@@ -20,9 +20,6 @@ define((require, exports, module) => {
   let {computeSuggestions, resetSuggestions} = require('./awesomebar');
 
   computeSuggestions = throttle(computeSuggestions, 200);
-
-  const sendEventToChrome = type => dispatchEvent(new CustomEvent('mozContentEvent',
-    { bubbles: true, cancelable: false, detail: { type }}))
 
   const WindowControls = Component('WindowControls', ({theme}) =>
     DOM.div({className: 'windowctrls'}, [
