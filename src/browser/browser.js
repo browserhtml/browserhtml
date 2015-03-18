@@ -195,6 +195,13 @@ define((require, exports, module) => {
     const isTabStripVisible = isDashboardActive ||
                               (tabStripCursor.get('isActive') && !isAwesomebarActive);
 
+    const isTabstripkillzoneVisible = (
+      // Show when tabstrip is visible, except on dashboard
+      (tabStripCursor.get('isActive') && !isDashboardActive) ||
+      // Also show when Awesomebar is active
+      isAwesomebarActive
+    );
+
     const theme = isDashboardActive ?
       readDashboardNavigationTheme(dashboard) :
       Browser.readTheme(activeWebViewerCursor);
@@ -271,7 +278,7 @@ define((require, exports, module) => {
         key: 'tabstripkillzone',
         className: ClassSet({
           tabstripkillzone: true,
-          'tabstripkillzone-hidden': !isTabStripVisible || isDashboardActive
+          'tabstripkillzone-hidden': !isTabstripkillzoneVisible
         }),
         onMouseEnter: event => hideTabStrip(tabStripCursor)
       }),
