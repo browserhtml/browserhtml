@@ -314,15 +314,15 @@ define((require, exports, module) => {
         key: 'appUpdateButton',
         className: 'appupdatebutton',
         onClick: e => {
-          if (immutableState.get('runtimeUpdateAvailable') && immutableState.get('runtimeUpdateAvailable')) {
+          if (immutableState.get('runtimeUpdateAvailable') && immutableState.get('appUpdateAvailable')) {
             // FIXME: Not supported yet
             sendEventToChrome('clear-cache-and-restart')
           }
-          if (immutableState.get('runtimeUpdateAvailable') && !immutableState.get('runtimeUpdateAvailable')) {
+          if (immutableState.get('runtimeUpdateAvailable') && !immutableState.get('appUpdateAvailable')) {
             // FIXME: Not supported yet
             sendEventToChrome('restart')
           }
-          if (!immutableState.get('runtimeUpdateAvailable') && immutableState.get('runtimeUpdateAvailable')) {
+          if (!immutableState.get('runtimeUpdateAvailable') && immutableState.get('appUpdateAvailable')) {
             sendEventToChrome('clear-cache-and-reload')
           }
         }
