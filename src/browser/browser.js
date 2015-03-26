@@ -22,7 +22,7 @@ define((require, exports, module) => {
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
   const {focus, activate: activateStrip, readInputURL, sendEventToChrome,
          deactivate, writeSession, resetSession, resetSelected} = require('./actions');
-  const {indexOfSelected, indexOfActive, isActive,
+  const {indexOfSelected, indexOfActive, isActive, active,
          selectNext, selectPrevious, select, activate,
          reorder, reset, remove, insertBefore,
          isntPinned, isPinned} = require('./deck/actions');
@@ -89,6 +89,12 @@ define((require, exports, module) => {
     });
   };
 
+  const loadURI = (uri, viewer) => viewers => {
+    const target = viewer || active(viewers);
+    return viewers.mergeIn([viewers.indexOf(target)],
+                           {uri, isFocused: true});
+  }
+
   const openTab = uri => items =>
     insertBefore(items, open({uri,
                               isSelected: true,
@@ -96,19 +102,16 @@ define((require, exports, module) => {
                               isActive: true}),
                  isntPinned);
 
-  const navigateTo = (webViewersCursor, webViewerCursor) => location => {
+  const clearActiveInput = viewers =>
+    viewers.setIn([indexOfActive(viewers), 'userInput'], '');
+
+  const navigateTo = location => viewers => {
     const uri = readInputURL(location);
-    if (isPinned(webViewerCursor)) {
-      webViewersCursor.update(openTab(uri));
-      webViewerCursor.set('userInput', '');
-    } else {
-      webViewerCursor.merge({uri, isFocused: true});
-    }
-  }
+    const navigate = !isPinned(active(viewers)) ? loadURI(uri) :
+                     compose(openTab(uri), clearActiveInput);
 
-
-  const loadURI = curry((webViewer, uri) =>
-    webViewer.merge({uri, isFocused: true}));
+    return navigate(viewers);
+  };
 
   // If closing viewer, replace it with a fresh one & select it.
   // This avoids code branching down the pipe that otherwise will
@@ -179,6 +182,7 @@ define((require, exports, module) => {
   const Browser = Component('Browser', immutableState => {
     const webViewers = immutableState.get('webViewers');
     const webViewersCursor = immutableState.cursor('webViewers');
+    const editViewers = editor(immutableState.cursor('webViewers'));
 
     const selectIndex = indexOfSelected(webViewers);
     const activeIndex = indexOfActive(webViewers);
@@ -186,8 +190,7 @@ define((require, exports, module) => {
 
     const editSelectedViewer = editor(webViewersCursor.cursor(selectIndex));
     const selectedWebViewer = webViewersCursor.get(selectIndex);
-
-    const activeWebViewerCursor = webViewersCursor.cursor(activeIndex);
+    const activeWebViewer = webViewersCursor.get(activeIndex);
 
     const tabStrip = immutableState.get('tabStrip');
     const editTabStrip = editor(immutableState.cursor('tabStrip'));
@@ -200,7 +203,7 @@ define((require, exports, module) => {
     const dashboard = immutableState.get('dashboard');
     const dashboardItems = dashboard.get('items');
 
-    const isDashboardActive = activeWebViewerCursor.get('uri') === null;
+    const isDashboardActive = activeWebViewer.get('uri') === null;
 
     const isAwesomebarActive = inputCursor.get('isFocused');
     const isTabStripActive = tabStrip.get('isActive');
@@ -217,7 +220,7 @@ define((require, exports, module) => {
 
     const theme = isDashboardActive ?
       readDashboardNavigationTheme(dashboard) :
-      Browser.readTheme(activeWebViewerCursor);
+      Browser.readTheme(activeWebViewer);
 
     const suggestionsCursor = immutableState.cursor('suggestions');
 
@@ -257,7 +260,7 @@ define((require, exports, module) => {
         suggestionsCursor,
         webViewer: selectedWebViewer,
       }, {
-        onNavigate: navigateTo(webViewersCursor, activeWebViewerCursor),
+        onNavigate: location => editViewers(navigateTo(location)),
         editTabStrip,
         editSelectedViewer
       }),
@@ -282,13 +285,7 @@ define((require, exports, module) => {
         isAwesomebarActive,
         theme
       }, {
-        onOpen: uri => {
-          if (isPinned(activeWebViewerCursor)) {
-            webViewersCursor.update(openTab(uri));
-          } else {
-            loadURI(activeWebViewerCursor);
-          }
-        }
+        onOpen: uri => editViewers(navigateTo(uri))
       }),
       DOM.div({
         key: 'tabstripkillzone',
