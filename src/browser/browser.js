@@ -14,8 +14,7 @@ define((require, exports, module) => {
   const {WebViewer} = require('./web-viewer');
   const {Tab} = require('./page-switch');
   const {Dashboard} = require('./dashboard');
-  const {getDashboardThemePatch,
-         readDashboardNavigationTheme} = require('./dashboard/actions');
+  const {readDashboardNavigationTheme} = require('./dashboard/actions');
   const {Element, Event, VirtualAttribute, Attribute} = require('./element');
   const {select: selectField} = require('./editable');
   const {KeyBindings} = require('./keyboard');
@@ -195,9 +194,10 @@ define((require, exports, module) => {
 
     const rfaCursor = immutableState.cursor('rfa');
 
+    const editDashboard = editor(immutableState.cursor('dashboard'));
     const dashboard = immutableState.get('dashboard');
-    const dashboardCursor = immutableState.cursor('dashboard');
     const dashboardItems = dashboard.get('items');
+
     const isDashboardActive = activeWebViewerCursor.get('uri') === null;
 
     const isAwesomebarActive = inputCursor.get('isFocused');
@@ -301,7 +301,7 @@ define((require, exports, module) => {
         hidden: !isDashboardActive
       }, {
         onOpen: uri => webViewersCursor.update(openTab(uri)),
-        onWallpaperChange: key => dashboardCursor.merge(getDashboardThemePatch(key))
+        edit: editDashboard
       }),
       WebViewer.Deck({
         key: 'web-viewers',
