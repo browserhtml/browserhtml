@@ -84,19 +84,20 @@ define((require, exports, module) => {
 
   // General input keybindings.
   const onInputNavigation = KeyBindings({
-    'escape': (inputCursor, editSelectedViewer) => {
+    'escape': (editInput, editSelectedViewer) => {
       editSelectedViewer(focus);
       // TODO: This should not be necessary but since in case of dashboard focus
       // is passed to a hidden iframe DOM ignores that and we end up with focus
-      // still in `inputCursor`. As a workaround for now we manually `blur` input.
-      blur(inputCursor);
+      // still in an `input`. As a workaround for now we manually `blur` input.
+      editInput(blur);
     },
-    'accel l': arity(1, select)
+    'accel l': (editInput, _) => editInput(select())
   });
 
-  const NavigationControls = Component('NavigationControls', ({inputCursor, tabStrip,
+  const NavigationControls = Component('NavigationControls', ({input, tabStrip,
                                          webViewer, suggestionsCursor, theme},
-                                       {onNavigate, editTabStrip, onGoBack, editSelectedViewer}) => {
+                                       {onNavigate, editTabStrip, onGoBack,
+                                        editSelectedViewer, editInput}) => {
     return DOM.div({
       className: 'locationbar',
       style: theme.locationBar,
@@ -115,23 +116,19 @@ define((require, exports, module) => {
                webViewer.get('userInput'),
         type: 'text',
         submitKey: 'Enter',
-        isFocused: inputCursor.get('isFocused'),
-        selection: inputCursor.get('selection'),
+        isFocused: input.get('isFocused'),
+        selection: input.get('selection'),
         onFocus: event => {
           computeSuggestions(event.target.value, suggestionsCursor);
-          inputCursor.set('isFocused', true);
+          editInput(focus);
         },
         onBlur: event => {
           resetSuggestions(suggestionsCursor);
-          inputCursor.set('isFocused', false);
+          editInput(blur);
         },
-        onSelect: event => {
-          inputCursor.set('selection', {
-            start: event.target.selectionStart,
-            end: event.target.selectionEnd,
-            direction: event.target.selectionDirection
-          });
-        },
+        onSelect: event => editInput(select(event.target.selectionStart,
+                                            event.target.selectionEnd,
+                                            event.target.selectionDirection)),
         onChange: event => {
           // Reset suggestions & compute new ones from the changed input value.
           unselect(suggestionsCursor);
@@ -143,13 +140,13 @@ define((require, exports, module) => {
           resetSuggestions(suggestionsCursor);
           onNavigate(event.target.value);
         },
-        onKeyDown: compose(onInputNavigation(inputCursor, editSelectedViewer),
+        onKeyDown: compose(onInputNavigation(editInput, editSelectedViewer),
                            onSuggetionNavigation(suggestionsCursor))
       }),
       DOM.p({key: 'page-info',
              className: 'pagesummary',
              style: theme.pageInfoText,
-             onClick: event => inputCursor.set('isFocused', true)}, [
+             onClick: event => editInput(compose(select(), focus))}, [
         DOM.span({key: 'location',
                   style: theme.locationText,
                   className: 'pageurlsummary'},
@@ -172,7 +169,7 @@ define((require, exports, module) => {
                onClick: event => editSelectedViewer(stop)}),
     ])});
 
-  const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStrip,
+  const NavigationPanel = Component('NavigationPanel', ({key, input, tabStrip,
                                      webViewer, suggestionsCursor, title, rfa, theme},
                                      handlers) => {
     return DOM.div({
@@ -180,7 +177,7 @@ define((require, exports, module) => {
       style: theme.navigationPanel,
       className: ClassSet({
         navbar: true,
-        urledit: inputCursor.get('isFocused'),
+        urledit: input.get('isFocused'),
         cangoback: webViewer.get('canGoBack'),
         canreload: webViewer.get('location'),
         loading: webViewer.get('isLoading'),
@@ -189,7 +186,7 @@ define((require, exports, module) => {
       })
     }, [
       WindowControls({key: 'controls', theme}),
-      NavigationControls({key: 'navigation', inputCursor, tabStrip,
+      NavigationControls({key: 'navigation', input, tabStrip,
                           webViewer, suggestionsCursor, title, theme},
                           handlers),
       ProgressBar({key: 'progressbar', rfa, webViewer, theme},

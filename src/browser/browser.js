@@ -57,8 +57,8 @@ define((require, exports, module) => {
   });
 
   const onNavigation = KeyBindings({
-    'accel l': compose(selectField, focus),
-    'accel t': focus
+    'accel l': editWith(compose(selectField(), focus)),
+    'accel t': editWith(focus)
   });
 
   const onTabStripKeyDown = KeyBindings({
@@ -195,7 +195,8 @@ define((require, exports, module) => {
     const tabStrip = immutableState.get('tabStrip');
     const editTabStrip = editor(immutableState.cursor('tabStrip'));
 
-    const inputCursor = immutableState.cursor('input');
+    const input = immutableState.get('input');
+    const editInput = editor(immutableState.cursor('input'));
 
     const editRfa = editor(immutableState.cursor('rfa'));
     const rfa = immutableState.get('rfa');
@@ -206,7 +207,7 @@ define((require, exports, module) => {
 
     const isDashboardActive = activeWebViewer.get('uri') === null;
 
-    const isAwesomebarActive = inputCursor.get('isFocused');
+    const isAwesomebarActive = input.get('isFocused');
     const isTabStripActive = tabStrip.get('isActive');
 
     const isTabStripVisible = isDashboardActive ||
@@ -236,12 +237,12 @@ define((require, exports, module) => {
         isdark: theme.isDark,
         windowFocused: immutableState.get('isDocumentFocused'),
         showtabstrip: isTabStripVisible,
-        scrollable: !inputCursor.get('isFocused') && !isTabStripVisible
+        scrollable: !input.get('isFocused') && !isTabStripVisible
       }),
       onDocumentUnload: event => writeSession(immutableState.valueOf()),
       onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
       onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
-      onDocumentKeyDown: compose(onNavigation(inputCursor),
+      onDocumentKeyDown: compose(onNavigation(editInput),
                                  onTabStripKeyDown(editTabStrip),
                                  onViewerBinding(editSelectedViewer),
                                  onDeckBinding(webViewersCursor),
@@ -254,7 +255,7 @@ define((require, exports, module) => {
     }, [
       NavigationPanel({
         key: 'navigation',
-        inputCursor,
+        input,
         tabStrip,
         theme,
         rfa,
@@ -264,7 +265,8 @@ define((require, exports, module) => {
         onNavigate: location => editViewers(navigateTo(location)),
         editTabStrip,
         editSelectedViewer,
-        editRfa
+        editRfa,
+        editInput
       }),
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,
@@ -283,7 +285,7 @@ define((require, exports, module) => {
       Awesomebar({
         key: 'awesomebar',
         suggestionsCursor,
-        inputCursor,
+        input,
         isAwesomebarActive,
         theme
       }, {
