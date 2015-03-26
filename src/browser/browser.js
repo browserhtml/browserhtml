@@ -197,7 +197,8 @@ define((require, exports, module) => {
 
     const inputCursor = immutableState.cursor('input');
 
-    const rfaCursor = immutableState.cursor('rfa');
+    const editRfa = editor(immutableState.cursor('rfa'));
+    const rfa = immutableState.get('rfa');
 
     const editDashboard = editor(immutableState.cursor('dashboard'));
     const dashboard = immutableState.get('dashboard');
@@ -256,13 +257,14 @@ define((require, exports, module) => {
         inputCursor,
         tabStrip,
         theme,
-        rfaCursor,
+        rfa,
         suggestionsCursor,
         webViewer: selectedWebViewer,
       }, {
         onNavigate: location => editViewers(navigateTo(location)),
         editTabStrip,
-        editSelectedViewer
+        editSelectedViewer,
+        editRfa
       }),
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,

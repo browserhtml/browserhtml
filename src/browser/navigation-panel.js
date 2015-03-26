@@ -173,7 +173,7 @@ define((require, exports, module) => {
     ])});
 
   const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStrip,
-                                     webViewer, suggestionsCursor, title, rfaCursor, theme},
+                                     webViewer, suggestionsCursor, title, rfa, theme},
                                      handlers) => {
     return DOM.div({
       key,
@@ -192,7 +192,8 @@ define((require, exports, module) => {
       NavigationControls({key: 'navigation', inputCursor, tabStrip,
                           webViewer, suggestionsCursor, title, theme},
                           handlers),
-      ProgressBar({key: 'progressbar', rfaCursor, webViewer, theme}),
+      ProgressBar({key: 'progressbar', rfa, webViewer, theme},
+                  {editRfa: handlers.editRfa}),
       DOM.div({key: 'spacer', className: 'freeendspacer'})
     ])
   });

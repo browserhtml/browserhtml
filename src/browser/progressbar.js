@@ -54,10 +54,12 @@ define((require, exports, module) => {
     return Math.min(1, progress);
   }
 
+  const resetRfa = rfa => rfa.set('id', -1);
+
   const ProgressBar = Component([{
     step() {
       let rfa = requestAnimationFrame(() => this.step());
-      this.props.rfaCursor.set('id', rfa);
+      this.props.statics.editRfa(rfa => rfa.set('id', rfa));
     },
     componentDidUpdate() {
       const viewer = this.props.webViewer;
@@ -77,14 +79,14 @@ define((require, exports, module) => {
       }
     },
     startRFALoopIfNeeded() {
-      if (this.props.rfaCursor.get('id') == -1) {
+      if (this.props.rfa.get('id') == -1) {
         this.step();
       }
     },
     stopRFALoop() {
-      if (this.props.rfaCursor.get('id') != -1) {
-        cancelAnimationFrame(this.props.rfaCursor.get('id'));
-        this.props.rfaCursor.set('id', -1);
+      if (this.props.rfa.get('id') != -1) {
+        cancelAnimationFrame(this.props.rfa.get('id'));
+        this.props.statics.editRfa(resetRfa);
       }
     },
     componentDidMount() {
