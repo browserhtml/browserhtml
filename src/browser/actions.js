@@ -130,10 +130,8 @@ define((require, exports, module) => {
   exports.readInputURL = readInputURL;
   exports.focus = focusable => focusable.set('isFocused', true);
   exports.blur = focusable => focusable.set('isFocused', false);
-  exports.showTabStrip = tabStripCursor =>
-    tabStripCursor.set('isActive', true);
-  exports.hideTabStrip = tabStripCursor =>
-    tabStripCursor.set('isActive', false);
+  exports.activate = state => state.set('isActive', true);
+  exports.deactivate = state => state.set('isActive', false);
   exports.resetSession = resetSession;
   exports.readSession = readSession;
   exports.writeSession = writeSession;

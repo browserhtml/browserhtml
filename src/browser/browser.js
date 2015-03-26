@@ -21,8 +21,8 @@ define((require, exports, module) => {
   const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
-  const {focus, showTabStrip, hideTabStrip, readInputURL, sendEventToChrome,
-         writeSession, resetSession, resetSelected} = require('./actions');
+  const {focus, activate: activateStrip, readInputURL, sendEventToChrome,
+         deactivate, writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive,
          selectNext, selectPrevious, select, activate,
          reorder, reset, remove, insertBefore,
@@ -30,6 +30,13 @@ define((require, exports, module) => {
   const {readTheme} = require('./theme');
   const ClassSet = require('./util/class-set');
   const os = require('os');
+
+  // This is a temporary glue functions that can be used to migrate from cursors onto
+  // stepper approach until cursors can be completely removed.
+  // see: https://github.com/mozilla/browser.html/issues/250
+  const editor = cursor => edit => cursor.update(edit);
+  const editWith = edit => submit => submit(edit);
+
 
   const getOwnerWindow = node => node.ownerDocument.defaultView;
   // Define custom `main` element with a custom `scrollGrab` attribute
@@ -56,15 +63,15 @@ define((require, exports, module) => {
   });
 
   const onTabStripKeyDown = KeyBindings({
-    'control tab': showTabStrip,
-    'control shift tab': showTabStrip,
-    'meta shift ]': showTabStrip,
-    'meta shift [': showTabStrip,
-    'meta t': showTabStrip,
+    'control tab': editWith(activateStrip),
+    'control shift tab': editWith(activateStrip),
+    'meta shift ]': editWith(activateStrip),
+    'meta shift [': editWith(activateStrip),
+    'meta t': editWith(activateStrip),
   });
   const onTabStripKeyUp = KeyBindings({
-    'control': hideTabStrip,
-    'meta': hideTabStrip
+    'control': editWith(deactivate),
+    'meta': editWith(deactivate)
   });
 
   let onViewerBinding;
@@ -181,7 +188,9 @@ define((require, exports, module) => {
     const selectedWebViewerCursor = webViewersCursor.cursor(selectIndex);
     const activeWebViewerCursor = webViewersCursor.cursor(activeIndex);
 
-    const tabStripCursor = immutableState.cursor('tabStrip');
+    const tabStrip = immutableState.get('tabStrip');
+    const editTabStrip = editor(immutableState.cursor('tabStrip'));
+
     const inputCursor = immutableState.cursor('input');
 
     const rfaCursor = immutableState.cursor('rfa');
@@ -192,13 +201,14 @@ define((require, exports, module) => {
     const isDashboardActive = activeWebViewerCursor.get('uri') === null;
 
     const isAwesomebarActive = inputCursor.get('isFocused');
+    const isTabStripActive = tabStrip.get('isActive');
 
     const isTabStripVisible = isDashboardActive ||
-                              (tabStripCursor.get('isActive') && !isAwesomebarActive);
+                              (isTabStripActive && !isAwesomebarActive);
 
     const isTabstripkillzoneVisible = (
       // Show when tabstrip is visible, except on dashboard
-      (tabStripCursor.get('isActive') && !isDashboardActive) ||
+      (isTabStripActive && !isDashboardActive) ||
       // Also show when Awesomebar is active
       isAwesomebarActive
     );
@@ -226,12 +236,12 @@ define((require, exports, module) => {
       onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
       onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
       onDocumentKeyDown: compose(onNavigation(inputCursor),
-                                 onTabStripKeyDown(tabStripCursor),
+                                 onTabStripKeyDown(editTabStrip),
                                  onViewerBinding(selectedWebViewerCursor),
                                  onDeckBinding(webViewersCursor),
                                  onTabSwitch(webViewersCursor),
                                  onBrowserBinding(immutableState)),
-      onDocumentKeyUp: compose(onTabStripKeyUp(tabStripCursor),
+      onDocumentKeyUp: compose(onTabStripKeyUp(editTabStrip),
                                onDeckBindingRelease(webViewersCursor)),
       onAppUpdateAvailable: event => immutableState.set('appUpdateAvailable', true),
       onRuntimeUpdateAvailable: event => immutableState.set('runtimeUpdateAvailable', true),
@@ -239,13 +249,14 @@ define((require, exports, module) => {
       NavigationPanel({
         key: 'navigation',
         inputCursor,
-        tabStripCursor,
+        tabStrip,
         theme,
         rfaCursor,
         suggestionsCursor,
         webViewerCursor: selectedWebViewerCursor,
       }, {
-        onNavigate: navigateTo(webViewersCursor, activeWebViewerCursor)
+        onNavigate: navigateTo(webViewersCursor, activeWebViewerCursor),
+        editTabStrip
       }),
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,
@@ -282,7 +293,7 @@ define((require, exports, module) => {
           tabstripkillzone: true,
           'tabstripkillzone-hidden': !isTabstripkillzoneVisible
         }),
-        onMouseEnter: event => hideTabStrip(tabStripCursor)
+        onMouseEnter: event => editTabStrip(deactivate)
       }),
       Dashboard({
         key: 'dashboard',

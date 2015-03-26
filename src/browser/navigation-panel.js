@@ -11,7 +11,7 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {InputField, select} = require('./editable');
   const {Element} = require('./element');
-  const {showTabStrip, blur, focus, sendEventToChrome} = require('./actions');
+  const {activate, blur, focus, sendEventToChrome} = require('./actions');
   const {KeyBindings} = require('./keyboard');
   const url = require('./util/url');
   const {ProgressBar} = require('./progressbar');
@@ -93,13 +93,13 @@ define((require, exports, module) => {
     'accel l': arity(1, select)
   });
 
-  const NavigationControls = Component('NavigationControls', ({inputCursor, tabStripCursor,
+  const NavigationControls = Component('NavigationControls', ({inputCursor, tabStrip,
                                          webViewerCursor, suggestionsCursor, theme},
-                                       {onNavigate}) => {
+                                       {onNavigate, editTabStrip}) => {
     return DOM.div({
       className: 'locationbar',
       style: theme.locationBar,
-      onMouseEnter: event => showTabStrip(tabStripCursor),
+      onMouseEnter: event => editTabStrip(activate)
     }, [
       DOM.div({className: 'backbutton',
                style: theme.backButton,
@@ -171,7 +171,7 @@ define((require, exports, module) => {
                onClick: event => webViewerCursor.set('readyState', 'stop')}),
     ])});
 
-  const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStripCursor,
+  const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStrip,
                                      webViewerCursor, suggestionsCursor, title, rfaCursor, theme},
                                      handlers) => {
     return DOM.div({
@@ -188,7 +188,7 @@ define((require, exports, module) => {
       })
     }, [
       WindowControls({key: 'controls', theme}),
-      NavigationControls({key: 'navigation', inputCursor, tabStripCursor,
+      NavigationControls({key: 'navigation', inputCursor, tabStrip,
                           webViewerCursor, suggestionsCursor, title, theme},
                           handlers),
       ProgressBar({key: 'progressbar', rfaCursor, webViewerCursor, theme}),
