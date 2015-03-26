@@ -12,6 +12,7 @@ define((require, exports, module) => {
   const {InputField, select} = require('./editable');
   const {Element} = require('./element');
   const {activate, blur, focus, sendEventToChrome} = require('./actions');
+  const {goBack, reload, stop} = require('./web-viewer/actions');
   const {KeyBindings} = require('./keyboard');
   const url = require('./util/url');
   const {ProgressBar} = require('./progressbar');
@@ -83,8 +84,8 @@ define((require, exports, module) => {
 
   // General input keybindings.
   const onInputNavigation = KeyBindings({
-    'escape': (inputCursor, webViewerCursor) => {
-      focus(webViewerCursor);
+    'escape': (inputCursor, editSelectedViewer) => {
+      editSelectedViewer(focus);
       // TODO: This should not be necessary but since in case of dashboard focus
       // is passed to a hidden iframe DOM ignores that and we end up with focus
       // still in `inputCursor`. As a workaround for now we manually `blur` input.
@@ -94,8 +95,8 @@ define((require, exports, module) => {
   });
 
   const NavigationControls = Component('NavigationControls', ({inputCursor, tabStrip,
-                                         webViewerCursor, suggestionsCursor, theme},
-                                       {onNavigate, editTabStrip}) => {
+                                         webViewer, suggestionsCursor, theme},
+                                       {onNavigate, editTabStrip, onGoBack, editSelectedViewer}) => {
     return DOM.div({
       className: 'locationbar',
       style: theme.locationBar,
@@ -104,14 +105,14 @@ define((require, exports, module) => {
       DOM.div({className: 'backbutton',
                style: theme.backButton,
                key: 'back',
-               onClick: event => webViewerCursor.set('readyState', 'goBack')}),
+               onClick: event => editSelectedViewer(goBack)}),
       InputField({
         key: 'input',
         className: 'urlinput',
         style: theme.urlInput,
         placeholder: 'Search or enter address',
         value: selected(suggestionsCursor) ||
-               webViewerCursor.get('userInput'),
+               webViewer.get('userInput'),
         type: 'text',
         submitKey: 'Enter',
         isFocused: inputCursor.get('isFocused'),
@@ -136,13 +137,13 @@ define((require, exports, module) => {
           unselect(suggestionsCursor);
           computeSuggestions(event.target.value, suggestionsCursor);
           // Also reflect changed value onto webViewers useInput.
-          webViewerCursor.set('userInput', event.target.value);
+          editSelectedViewer(viewer => viewer.set('userInput', event.target.value));
         },
         onSubmit: event => {
           resetSuggestions(suggestionsCursor);
           onNavigate(event.target.value);
         },
-        onKeyDown: compose(onInputNavigation(inputCursor, webViewerCursor),
+        onKeyDown: compose(onInputNavigation(inputCursor, editSelectedViewer),
                            onSuggetionNavigation(suggestionsCursor))
       }),
       DOM.p({key: 'page-info',
@@ -152,27 +153,27 @@ define((require, exports, module) => {
         DOM.span({key: 'location',
                   style: theme.locationText,
                   className: 'pageurlsummary'},
-                 webViewerCursor.get('location') ? url.getDomainName(webViewerCursor.get('location')) : ''),
+                 webViewer.get('location') ? url.getDomainName(webViewer.get('location')) : ''),
         DOM.span({key: 'title',
                   className: 'pagetitle',
                   style: theme.titleText},
-                 webViewerCursor.get('title') ? webViewerCursor.get('title') :
-                 webViewerCursor.get('isLoading') ? 'Loading...' :
-                 webViewerCursor.get('location') ? webViewerCursor.get('location') :
+                 webViewer.get('title') ? webViewer.get('title') :
+                 webViewer.get('isLoading') ? 'Loading...' :
+                 webViewer.get('location') ? webViewer.get('location') :
                  'New Tab')
       ]),
       DOM.div({key: 'reload-button',
                className: 'reloadbutton',
                style: theme.reloadButton,
-               onClick: event => webViewerCursor.set('readyState', 'reload')}),
+               onClick: event => editSelectedViewer(reload)}),
       DOM.div({key: 'stop-button',
                className: 'stopbutton',
                style: theme.stopButton,
-               onClick: event => webViewerCursor.set('readyState', 'stop')}),
+               onClick: event => editSelectedViewer(stop)}),
     ])});
 
   const NavigationPanel = Component('NavigationPanel', ({key, inputCursor, tabStrip,
-                                     webViewerCursor, suggestionsCursor, title, rfaCursor, theme},
+                                     webViewer, suggestionsCursor, title, rfaCursor, theme},
                                      handlers) => {
     return DOM.div({
       key,
@@ -180,18 +181,18 @@ define((require, exports, module) => {
       className: ClassSet({
         navbar: true,
         urledit: inputCursor.get('isFocused'),
-        cangoback: webViewerCursor.get('canGoBack'),
-        canreload: webViewerCursor.get('location'),
-        loading: webViewerCursor.get('isLoading'),
-        ssl: webViewerCursor.get('securityState') == 'secure',
-        sslv: webViewerCursor.get('securityExtendedValidation')
+        cangoback: webViewer.get('canGoBack'),
+        canreload: webViewer.get('location'),
+        loading: webViewer.get('isLoading'),
+        ssl: webViewer.get('securityState') == 'secure',
+        sslv: webViewer.get('securityExtendedValidation')
       })
     }, [
       WindowControls({key: 'controls', theme}),
       NavigationControls({key: 'navigation', inputCursor, tabStrip,
-                          webViewerCursor, suggestionsCursor, title, theme},
+                          webViewer, suggestionsCursor, title, theme},
                           handlers),
-      ProgressBar({key: 'progressbar', rfaCursor, webViewerCursor, theme}),
+      ProgressBar({key: 'progressbar', rfaCursor, webViewer, theme}),
       DOM.div({key: 'spacer', className: 'freeendspacer'})
     ])
   });

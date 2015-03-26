@@ -78,14 +78,14 @@ define((require, exports, module) => {
     const modifier = os.platform() == 'linux' ? 'alt' : 'accel';
 
     onViewerBinding = KeyBindings({
-      'accel =': zoomIn,
-      'accel -': zoomOut,
-      'accel 0': zoomReset,
-      [`${modifier} left`]: goBack,
-      [`${modifier} right`]: goForward,
-      'escape': stop,
-      'accel r': reload,
-      'F5': reload,
+      'accel =': editWith(zoomIn),
+      'accel -': editWith(zoomOut),
+      'accel 0': editWith(zoomReset),
+      [`${modifier} left`]: editWith(goBack),
+      [`${modifier} right`]: editWith(goForward),
+      'escape': editWith(stop),
+      'accel r': editWith(reload),
+      'F5': editWith(reload),
     });
   };
 
@@ -138,7 +138,6 @@ define((require, exports, module) => {
     const modifier = os.platform() == 'darwin' ? 'meta' : 'alt';
 
     onTabSwitch = KeyBindings({
-      [`${modifier} 0`]: edit(switchTab.toIndex(0)),
       [`${modifier} 1`]: edit(switchTab.toIndex(1)),
       [`${modifier} 2`]: edit(switchTab.toIndex(2)),
       [`${modifier} 3`]: edit(switchTab.toIndex(3)),
@@ -184,7 +183,10 @@ define((require, exports, module) => {
     const selectIndex = indexOfSelected(webViewers);
     const activeIndex = indexOfActive(webViewers);
 
-    const selectedWebViewerCursor = webViewersCursor.cursor(selectIndex);
+
+    const editSelectedViewer = editor(webViewersCursor.cursor(selectIndex));
+    const selectedWebViewer = webViewersCursor.get(selectIndex);
+
     const activeWebViewerCursor = webViewersCursor.cursor(activeIndex);
 
     const tabStrip = immutableState.get('tabStrip');
@@ -223,7 +225,7 @@ define((require, exports, module) => {
       key: 'root',
     }, [Main({
       key: 'main',
-      windowTitle: title(selectedWebViewerCursor),
+      windowTitle: title(selectedWebViewer),
       scrollGrab: true,
       className: ClassSet({
         'moz-noscrollbars': true,
@@ -237,7 +239,7 @@ define((require, exports, module) => {
       onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
       onDocumentKeyDown: compose(onNavigation(inputCursor),
                                  onTabStripKeyDown(editTabStrip),
-                                 onViewerBinding(selectedWebViewerCursor),
+                                 onViewerBinding(editSelectedViewer),
                                  onDeckBinding(webViewersCursor),
                                  onTabSwitch(webViewersCursor),
                                  onBrowserBinding(immutableState)),
@@ -253,10 +255,11 @@ define((require, exports, module) => {
         theme,
         rfaCursor,
         suggestionsCursor,
-        webViewerCursor: selectedWebViewerCursor,
+        webViewer: selectedWebViewer,
       }, {
         onNavigate: navigateTo(webViewersCursor, activeWebViewerCursor),
-        editTabStrip
+        editTabStrip,
+        editSelectedViewer
       }),
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,
