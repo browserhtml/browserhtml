@@ -22,7 +22,7 @@ define((require, exports, module) => {
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
   const {focus, activate: activateStrip, readInputURL, sendEventToChrome,
          deactivate, writeSession, resetSession, resetSelected} = require('./actions');
-  const {indexOfSelected, indexOfActive, isActive, active,
+  const {indexOfSelected, indexOfActive, isActive, active, selected,
          selectNext, selectPrevious, select, activate,
          reorder, reset, remove, insertBefore,
          isntPinned, isPinned} = require('./deck/actions');
@@ -30,10 +30,6 @@ define((require, exports, module) => {
   const ClassSet = require('./util/class-set');
   const os = require('os');
 
-  // This is a temporary glue functions that can be used to migrate from cursors onto
-  // stepper approach until cursors can be completely removed.
-  // see: https://github.com/mozilla/browser.html/issues/250
-  const editor = cursor => edit => cursor.update(edit);
   const editWith = edit => submit => submit(edit);
 
 
@@ -123,11 +119,6 @@ define((require, exports, module) => {
     close(x => x.get('id') == id);
 
 
-  const edit = edit => cursor => cursor.update(edit);
-
-  const onSelectNext = throttle(edit(selectNext), 200)
-  const onSelectPrevious = throttle(edit(selectPrevious), 200);
-
   const switchTab = (items, to) =>
     to ? activate(select(items, to)) : items;
 
@@ -141,79 +132,70 @@ define((require, exports, module) => {
     const modifier = os.platform() == 'darwin' ? 'meta' : 'alt';
 
     onTabSwitch = KeyBindings({
-      [`${modifier} 1`]: edit(switchTab.toIndex(1)),
-      [`${modifier} 2`]: edit(switchTab.toIndex(2)),
-      [`${modifier} 3`]: edit(switchTab.toIndex(3)),
-      [`${modifier} 4`]: edit(switchTab.toIndex(4)),
-      [`${modifier} 5`]: edit(switchTab.toIndex(5)),
-      [`${modifier} 6`]: edit(switchTab.toIndex(6)),
-      [`${modifier} 7`]: edit(switchTab.toIndex(7)),
-      [`${modifier} 8`]: edit(switchTab.toIndex(8)),
-      [`${modifier} 9`]: edit(switchTab.toLast),
+      [`${modifier} 1`]: editWith(switchTab.toIndex(1)),
+      [`${modifier} 2`]: editWith(switchTab.toIndex(2)),
+      [`${modifier} 3`]: editWith(switchTab.toIndex(3)),
+      [`${modifier} 4`]: editWith(switchTab.toIndex(4)),
+      [`${modifier} 5`]: editWith(switchTab.toIndex(5)),
+      [`${modifier} 6`]: editWith(switchTab.toIndex(6)),
+      [`${modifier} 7`]: editWith(switchTab.toIndex(7)),
+      [`${modifier} 8`]: editWith(switchTab.toIndex(8)),
+      [`${modifier} 9`]: editWith(switchTab.toLast),
     });
   };
 
   const onDeckBinding = KeyBindings({
-    'accel t': edit(switchTab.toDashboard),
-    'accel w': edit(close(isActive)),
-    'control tab': onSelectNext,
-    'control shift tab': onSelectPrevious,
-    'meta shift ]':onSelectNext,
-    'meta shift [': onSelectPrevious,
-    'ctrl pagedown': onSelectNext,
-    'ctrl pageup': onSelectPrevious,
+    'accel t': editWith(switchTab.toDashboard),
+    'accel w': editWith(close(isActive)),
+    'control tab': editWith(selectNext),
+    'control shift tab': editWith(selectPrevious),
+    'meta shift ]': editWith(selectNext),
+    'meta shift [': editWith(selectPrevious),
+    'ctrl pagedown': editWith(selectNext),
+    'ctrl pageup': editWith(selectPrevious),
   });
 
   const onDeckBindingRelease = KeyBindings({
-    'control': edit(compose(reorder, activate)),
-    'meta': edit(compose(reorder, activate))
+    'control': editWith(compose(reorder, activate)),
+    'meta': editWith(compose(reorder, activate))
   });
 
   const onBrowserBinding = KeyBindings({
-    'accel shift backspace': edit(resetSession),
-    'accel shift s': writeSession,
-    'accel u': root =>
-      root.cursor('webViewers').update(openTab(`data:application/json,${JSON.stringify(root, null, 2)}`))
+    'accel shift backspace': editWith(resetSession),
+    'accel shift s': editWith(writeSession),
+    'accel u': edit => edit(state =>
+      state.updateIn('webViewers', openTab(`data:application/json,${JSON.stringify(root, null, 2)}`)))
   });
 
+  const In = (...path) => edit => state =>
+    state.updateIn(path, edit);
 
   // Browser is a root component for our application that just delegates
   // to a core sub-components here.
-  const Browser = Component('Browser', immutableState => {
-    const webViewers = immutableState.get('webViewers');
-    const webViewersCursor = immutableState.cursor('webViewers');
-    const editViewers = editor(immutableState.cursor('webViewers'));
+  const Browser = Component('Browser', (state, {step: edit}) => {
+    const webViewers = state.get('webViewers');
 
-    const selectIndex = indexOfSelected(webViewers);
-    const activeIndex = indexOfActive(webViewers);
+    const editViewers = compose(edit, In('webViewers'));
+    const editSelectedViewer = compose(edit, In('webViewers',
+                                                indexOfSelected(webViewers)));
+    const editTabStrip = compose(edit, In('tabStrip'));
+    const editInput = compose(edit, In('input'));
+    const editRfa = compose(edit, In('rfa'));
+    const editDashboard = compose(edit, In('dashboard'));
+    const editSuggestions = compose(edit, In('suggestions'));
 
+    const selectedWebViewer = selected(webViewers);
+    const activeWebViewer = active(webViewers);
+    const tabStrip = state.get('tabStrip');
+    const input = state.get('input');
+    const rfa = state.get('rfa');
+    const dashboard = state.get('dashboard');
+    const suggestions = state.get('suggestions');
 
-    const editSelectedViewer = editor(webViewersCursor.cursor(selectIndex));
-    const selectedWebViewer = webViewersCursor.get(selectIndex);
-    const activeWebViewer = webViewersCursor.get(activeIndex);
-
-    const tabStrip = immutableState.get('tabStrip');
-    const editTabStrip = editor(immutableState.cursor('tabStrip'));
-
-    const input = immutableState.get('input');
-    const editInput = editor(immutableState.cursor('input'));
-
-    const editRfa = editor(immutableState.cursor('rfa'));
-    const rfa = immutableState.get('rfa');
-
-    const editDashboard = editor(immutableState.cursor('dashboard'));
-    const dashboard = immutableState.get('dashboard');
-    const dashboardItems = dashboard.get('items');
-
-    const suggestions = immutableState.get('suggestions');
-    const editSuggestions = editor(immutableState.cursor('suggestions'));
 
     const isDashboardActive = activeWebViewer.get('uri') === null;
-
     const isAwesomebarActive = input.get('isFocused');
     const isTabStripActive = tabStrip.get('isActive');
-
-
 
     const isTabStripVisible = isDashboardActive ||
                               (isTabStripActive && !isAwesomebarActive);
@@ -239,23 +221,25 @@ define((require, exports, module) => {
       className: ClassSet({
         'moz-noscrollbars': true,
         isdark: theme.isDark,
-        windowFocused: immutableState.get('isDocumentFocused'),
+        windowFocused: state.get('isDocumentFocused'),
         showtabstrip: isTabStripVisible,
         scrollable: !input.get('isFocused') && !isTabStripVisible
       }),
-      onDocumentUnload: event => writeSession(immutableState.valueOf()),
-      onDocumentFocus: event => immutableState.set('isDocumentFocused', true),
-      onDocumentBlur: event => immutableState.set('isDocumentFocused', false),
+      onDocumentUnload: event => writeSession(state),
+      onDocumentFocus: event => state.set('isDocumentFocused', true),
+      onDocumentBlur: event => state.set('isDocumentFocused', false),
       onDocumentKeyDown: compose(onNavigation(editInput),
                                  onTabStripKeyDown(editTabStrip),
                                  onViewerBinding(editSelectedViewer),
-                                 onDeckBinding(webViewersCursor),
-                                 onTabSwitch(webViewersCursor),
-                                 onBrowserBinding(immutableState)),
+                                 onDeckBinding(editViewers),
+                                 onTabSwitch(editViewers),
+                                 onBrowserBinding(edit)),
       onDocumentKeyUp: compose(onTabStripKeyUp(editTabStrip),
-                               onDeckBindingRelease(webViewersCursor)),
-      onAppUpdateAvailable: event => immutableState.set('appUpdateAvailable', true),
-      onRuntimeUpdateAvailable: event => immutableState.set('runtimeUpdateAvailable', true),
+                               onDeckBindingRelease(editViewers)),
+      onAppUpdateAvailable: event =>
+        edit(state => state.set('appUpdateAvailable', true)),
+      onRuntimeUpdateAvailable: event =>
+        edit(state => state.set('runtimeUpdateAvailable', true)),
     }, [
       NavigationPanel({
         key: 'navigation',
@@ -279,12 +263,14 @@ define((require, exports, module) => {
         Tab.Deck({
           key: 'tabstrip',
           className: 'tabstrip',
-          items: webViewersCursor,
-          onMouseLeave: event => webViewersCursor.update(compose(reorder, reset)),
+          items: webViewers,
+          In
         }, {
-          onSelect: item => webViewersCursor.update(items => select(items, item)),
-          onActivate: _ => webViewersCursor.update(items => activate(items)),
-          onClose: id => webViewersCursor.update(closeTab(id))
+          onMouseLeave: event => editViewers(compose(reorder, reset)),
+          onSelect: item => editViewers(items => select(items, item)),
+          onActivate: _ => editViewers(activate),
+          onClose: id => editViewers(closeTab(id)),
+          edit: editViewers
         })
       ]),
       Awesomebar({
@@ -309,24 +295,27 @@ define((require, exports, module) => {
         dashboard,
         hidden: !isDashboardActive
       }, {
-        onOpen: uri => webViewersCursor.update(openTab(uri)),
+        onOpen: uri => editViewers(openTab(uri)),
         edit: editDashboard
       }),
       WebViewer.Deck({
         key: 'web-viewers',
         className: 'iframes',
         hidden: isDashboardActive,
-        items: webViewersCursor
+        items: webViewers,
+        In
       }, {
-        onClose: id => webViewersCursor.update(closeTab(id)),
-        onOpen: uri => webViewersCursor.update(openTab(uri))
+        onClose: id => editViewers(closeTab(id)),
+        onOpen: uri => editViewers(openTab(uri)),
+        edit: editViewers
       })
     ]),
     DOM.div({
       key: 'appUpdateBanner',
       className: ClassSet({
         appupdatebanner: true,
-        active: immutableState.get('appUpdateAvailable') || immutableState.get('runtimeUpdateAvailable')
+        active: state.get('appUpdateAvailable') ||
+                state.get('runtimeUpdateAvailable')
       }),
     }, [
       'Hey! An update just for you!',
@@ -334,19 +323,19 @@ define((require, exports, module) => {
         key: 'appUpdateButton',
         className: 'appupdatebutton',
         onClick: e => {
-          if (immutableState.get('runtimeUpdateAvailable') && immutableState.get('appUpdateAvailable')) {
+          if (state.get('runtimeUpdateAvailable') && state.get('appUpdateAvailable')) {
             // FIXME: Not supported yet
             sendEventToChrome('clear-cache-and-restart')
           }
-          if (immutableState.get('runtimeUpdateAvailable') && !immutableState.get('appUpdateAvailable')) {
+          if (state.get('runtimeUpdateAvailable') && !state.get('appUpdateAvailable')) {
             // FIXME: Not supported yet
             sendEventToChrome('restart')
           }
-          if (!immutableState.get('runtimeUpdateAvailable') && immutableState.get('appUpdateAvailable')) {
+          if (!state.get('runtimeUpdateAvailable') && state.get('appUpdateAvailable')) {
             sendEventToChrome('clear-cache-and-reload')
           }
         }
-      }, 'Apply' + (immutableState.get('runtimeUpdateAvailable') ? ' (restart required)' : ''))
+      }, 'Apply' + (state.get('runtimeUpdateAvailable') ? ' (restart required)' : ''))
     ])]);
   })
   // Create a version of readTheme that will return from cache

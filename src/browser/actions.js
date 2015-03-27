@@ -98,7 +98,7 @@ define((require, exports, module) => {
   };
 
   const writeSession = session => {
-    session = session.
+    const data = session.
       setIn(['rfa', 'id'], -1).
       set('appUpdateAvailable', false).
       set('runtimeUpdateAvailable', false).
@@ -121,7 +121,8 @@ define((require, exports, module) => {
         canGoForward: false
       }))).
       toJSON();
-    localStorage[`session@${version}`] = JSON.stringify(session);
+    localStorage[`session@${version}`] = JSON.stringify(data);
+    return session;
   };
 
   // Exports:
