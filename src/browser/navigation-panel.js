@@ -75,11 +75,11 @@ define((require, exports, module) => {
 
   // Bindings for navigation suggestions.
   const onSuggetionNavigation = KeyBindings({
-    'up': selectPrevious,
-    'control p': selectPrevious,
-    'down': selectNext,
-    'control n': selectNext,
-    'enter': unselect
+    'up': edit => edit(selectPrevious),
+    'control p': edit => edit(selectPrevious),
+    'down': edit => edit(selectNext),
+    'control n': edit => edit(selectNext),
+    'enter': edit => edit(unselect)
   });
 
   // General input keybindings.
@@ -95,9 +95,9 @@ define((require, exports, module) => {
   });
 
   const NavigationControls = Component('NavigationControls', ({input, tabStrip,
-                                         webViewer, suggestionsCursor, theme},
+                                         webViewer, suggestions, theme},
                                        {onNavigate, editTabStrip, onGoBack,
-                                        editSelectedViewer, editInput}) => {
+                                        editSelectedViewer, editInput, editSuggestions}) => {
     return DOM.div({
       className: 'locationbar',
       style: theme.locationBar,
@@ -112,18 +112,18 @@ define((require, exports, module) => {
         className: 'urlinput',
         style: theme.urlInput,
         placeholder: 'Search or enter address',
-        value: selected(suggestionsCursor) ||
+        value: selected(suggestions) ||
                webViewer.get('userInput'),
         type: 'text',
         submitKey: 'Enter',
         isFocused: input.get('isFocused'),
         selection: input.get('selection'),
         onFocus: event => {
-          computeSuggestions(event.target.value, suggestionsCursor);
+          computeSuggestions(event.target.value, editSuggestions);
           editInput(focus);
         },
         onBlur: event => {
-          resetSuggestions(suggestionsCursor);
+          editSuggestions(resetSuggestions);
           editInput(blur);
         },
         onSelect: event => editInput(select(event.target.selectionStart,
@@ -131,17 +131,17 @@ define((require, exports, module) => {
                                             event.target.selectionDirection)),
         onChange: event => {
           // Reset suggestions & compute new ones from the changed input value.
-          unselect(suggestionsCursor);
-          computeSuggestions(event.target.value, suggestionsCursor);
+          editSuggestions(unselect);
+          computeSuggestions(event.target.value, editSuggestions);
           // Also reflect changed value onto webViewers useInput.
           editSelectedViewer(viewer => viewer.set('userInput', event.target.value));
         },
         onSubmit: event => {
-          resetSuggestions(suggestionsCursor);
+          editSuggestions(resetSuggestions);
           onNavigate(event.target.value);
         },
         onKeyDown: compose(onInputNavigation(editInput, editSelectedViewer),
-                           onSuggetionNavigation(suggestionsCursor))
+                           onSuggetionNavigation(editSuggestions))
       }),
       DOM.p({key: 'page-info',
              className: 'pagesummary',
@@ -170,7 +170,7 @@ define((require, exports, module) => {
     ])});
 
   const NavigationPanel = Component('NavigationPanel', ({key, input, tabStrip,
-                                     webViewer, suggestionsCursor, title, rfa, theme},
+                                     webViewer, suggestions, title, rfa, theme},
                                      handlers) => {
     return DOM.div({
       key,
@@ -187,7 +187,7 @@ define((require, exports, module) => {
     }, [
       WindowControls({key: 'controls', theme}),
       NavigationControls({key: 'navigation', input, tabStrip,
-                          webViewer, suggestionsCursor, title, theme},
+                          webViewer, suggestions, title, theme},
                           handlers),
       ProgressBar({key: 'progressbar', rfa, webViewer, theme},
                   {editRfa: handlers.editRfa}),

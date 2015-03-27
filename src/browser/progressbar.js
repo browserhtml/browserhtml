@@ -58,8 +58,8 @@ define((require, exports, module) => {
 
   const ProgressBar = Component([{
     step() {
-      let rfa = requestAnimationFrame(() => this.step());
-      this.props.statics.editRfa(rfa => rfa.set('id', rfa));
+      let id = requestAnimationFrame(() => this.step());
+      this.props.statics.editRfa(rfa => rfa.set('id', id));
     },
     componentDidUpdate() {
       const viewer = this.props.webViewer;

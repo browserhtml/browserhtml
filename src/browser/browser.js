@@ -205,10 +205,15 @@ define((require, exports, module) => {
     const dashboard = immutableState.get('dashboard');
     const dashboardItems = dashboard.get('items');
 
+    const suggestions = immutableState.get('suggestions');
+    const editSuggestions = editor(immutableState.cursor('suggestions'));
+
     const isDashboardActive = activeWebViewer.get('uri') === null;
 
     const isAwesomebarActive = input.get('isFocused');
     const isTabStripActive = tabStrip.get('isActive');
+
+
 
     const isTabStripVisible = isDashboardActive ||
                               (isTabStripActive && !isAwesomebarActive);
@@ -224,7 +229,6 @@ define((require, exports, module) => {
       readDashboardNavigationTheme(dashboard) :
       Browser.readTheme(activeWebViewer);
 
-    const suggestionsCursor = immutableState.cursor('suggestions');
 
     return DOM.div({
       key: 'root',
@@ -259,14 +263,15 @@ define((require, exports, module) => {
         tabStrip,
         theme,
         rfa,
-        suggestionsCursor,
+        suggestions,
         webViewer: selectedWebViewer,
       }, {
         onNavigate: location => editViewers(navigateTo(location)),
         editTabStrip,
         editSelectedViewer,
         editRfa,
-        editInput
+        editInput,
+        editSuggestions
       }),
       DOM.div({key: 'tabstrip',
                style: theme.tabstrip,
@@ -284,7 +289,7 @@ define((require, exports, module) => {
       ]),
       Awesomebar({
         key: 'awesomebar',
-        suggestionsCursor,
+        suggestions,
         input,
         isAwesomebarActive,
         theme
