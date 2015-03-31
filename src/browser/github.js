@@ -70,12 +70,11 @@ define((require, exports, module) => {
     }).catch(reject);
   });
 
-  let lock = navigator.mozSettings.createLock();
 
   localHEAD.then(hash => {
-    lock.set({'browserhtml.HEAD_HASH': hash});
+    navigator.mozSettings.createLock().set({'browserhtml.HEAD_HASH': hash});
   }, e => {
-    lock.set({'browserhtml.HEAD_HASH': `unknown (${e})`});
+    navigator.mozSettings.createLock().set({'browserhtml.HEAD_HASH': `unknown (${e})`});
   });
 
   const appUpdateAvailable = new Promise(pull);
