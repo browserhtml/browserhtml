@@ -59,7 +59,7 @@ define((require, exports, module) => {
 
   const localHEAD = new Promise((resolve, reject) => {
     if (!PROD) {
-      return reject();
+      return reject('Not prod environment');
     }
     fetch('HEAD').then(response => {
       if (response.status == 200) {
@@ -68,6 +68,14 @@ define((require, exports, module) => {
         reject(`Can\'t reach HEAD: ${response.statusText}`);
       }
     }).catch(reject);
+  });
+
+  let lock = navigator.mozSettings.createLock();
+
+  localHEAD.then(hash => {
+    lock.set({'browserhtml.HEAD_HASH': hash});
+  }, e => {
+    lock.set({'browserhtml.HEAD_HASH': `unknown (${e})`});
   });
 
   const appUpdateAvailable = new Promise(pull);
