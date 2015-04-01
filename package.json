@@ -12,7 +12,7 @@
     "url": "http://github.com/mozilla/browser.html/issues/"
   },
   "scripts": {
-    "server": "python -m SimpleHTTPServer 8080",
+    "server": "python2 -m SimpleHTTPServer 8080",
     "start": "/Applications/B2G.app/Contents/MacOS/graphene --start-manifest=http://localhost:8080/manifest.webapp",
     "deploy": "./deploy.sh"
   },
