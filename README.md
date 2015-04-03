@@ -8,7 +8,6 @@ will be on our platform and processes to build our platform, which we want to ev
 
 ```
 npm install
-npm run server
 npm start
 ```
 
