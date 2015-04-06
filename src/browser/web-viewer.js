@@ -37,7 +37,7 @@ define((require, exports, module) => {
       }),
       isBrowser: true,
       isRemote: true,
-      mozApp: url.isPrivileged(state.get('uri')) ? url.getManifestURL() : null,
+      mozApp: url.isPrivileged(state.get('uri')) ? url.getManifestURL().href : null,
       allowFullScreen: true,
 
       isVisible: isActive(state) ||
