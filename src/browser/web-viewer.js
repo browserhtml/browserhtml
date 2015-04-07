@@ -12,9 +12,9 @@ define((require, exports, module) => {
   const {IFrame} = require('./iframe');
   const {DOM} = require('react');
   const ClassSet = require('./util/class-set');
-  const url = require('./util/url');
+  const {isPrivileged, getDomainName, getManifestURL} = require('url-helper');
   const makeTileURI = input =>
-    `tiles/${url.getDomainName(input)}.png`;
+    `tiles/${getDomainName(input)}.png`;
   const {fromDOMRequest, fromEvent} = require('lang/promise');
   const {compose} = require('lang/functional');
 
@@ -37,7 +37,7 @@ define((require, exports, module) => {
       }),
       isBrowser: true,
       isRemote: true,
-      mozApp: url.isPrivileged(state.get('uri')) ? url.getManifestURL().href : null,
+      mozApp: isPrivileged(state.get('uri')) ? getManifestURL().href : null,
       allowFullScreen: true,
 
       isVisible: isActive(state) ||
@@ -84,7 +84,7 @@ define((require, exports, module) => {
   // we will be queyring it instead (see #153)
   const fetchThumbnail = uri => new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.open('GET', `tiles/${url.getDomainName(uri)}.png`);
+    request.open('GET', `tiles/${getDomainName(uri)}.png`);
     request.responseType = 'blob';
     request.send();
     request.onload = event => {

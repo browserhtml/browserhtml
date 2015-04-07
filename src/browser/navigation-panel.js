@@ -14,7 +14,7 @@ define((require, exports, module) => {
   const {activate, blur, focus, sendEventToChrome} = require('./actions');
   const {goBack, reload, stop} = require('./web-viewer/actions');
   const {KeyBindings} = require('./keyboard');
-  const url = require('./util/url');
+  const {getDomainName, isPrivileged} = require('url-helper');
   const {ProgressBar} = require('./progressbar');
   const ClassSet = require('./util/class-set');
   const {throttle, compose, arity, curry} = require('lang/functional');
@@ -150,7 +150,7 @@ define((require, exports, module) => {
         DOM.span({key: 'location',
                   style: theme.locationText,
                   className: 'pageurlsummary'},
-                 webViewer.get('location') ? url.getDomainName(webViewer.get('location')) : ''),
+                 webViewer.get('location') ? getDomainName(webViewer.get('location')) : ''),
         DOM.span({key: 'title',
                   className: 'pagetitle',
                   style: theme.titleText},
@@ -183,7 +183,7 @@ define((require, exports, module) => {
         loading: webViewer.get('isLoading'),
         ssl: webViewer.get('securityState') == 'secure',
         sslv: webViewer.get('securityExtendedValidation'),
-        privileged: url.isPrivileged(webViewer.get('location'))
+        privileged: isPrivileged(webViewer.get('location'))
       })
     }, [
       WindowControls({key: 'controls', theme}),
