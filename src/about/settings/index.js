@@ -6,11 +6,11 @@ define((require, exports, module) => {
 
   'use strict';
 
+  const {render} = require('common/render');
   const Component = require('omniscient');
-  const {render} = require('browser/core');
   const {DOM} = require('react');
-
   const {Map} = require('immutable');
+
   const Table = Component('Table', state => {
 
     let rows = [];

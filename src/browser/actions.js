@@ -6,8 +6,8 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {isAboutURL, isNotURL, hasScheme, getBaseURI} = require('url-helper');
   const {fromJS, List} = require('immutable');
+  const {isAboutURL, isNotURL, hasScheme, getBaseURI} = require('common/url-helper');
   const {open} = require('./web-viewer/actions');
   const {select, active} = require('./deck/actions');
   const {initDashboard} = require('./dashboard/actions');

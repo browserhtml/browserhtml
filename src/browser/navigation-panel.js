@@ -6,18 +6,16 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const platform = require('os').platform();
   const {DOM} = require('react')
   const Component = require('omniscient');
-  const {InputField, select} = require('./editable');
-  const {Element} = require('./element');
+  const {InputField, select} = require('common/editable');
+  const {KeyBindings} = require('common/keyboard');
+  const {getDomainName, isPrivileged} = require('common/url-helper');
+  const ClassSet = require('common/class-set');
+  const {throttle, compose, curry} = require('lang/functional');
   const {activate, blur, focus, sendEventToChrome} = require('./actions');
   const {goBack, reload, stop} = require('./web-viewer/actions');
-  const {KeyBindings} = require('./keyboard');
-  const {getDomainName, isPrivileged} = require('url-helper');
   const {ProgressBar} = require('./progressbar');
-  const ClassSet = require('./util/class-set');
-  const {throttle, compose, arity, curry} = require('lang/functional');
   let {computeSuggestions, resetSuggestions} = require('./awesomebar');
 
   computeSuggestions = throttle(computeSuggestions, 200);

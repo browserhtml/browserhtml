@@ -6,20 +6,17 @@ define((require, exports, module) => {
 
   'use strict';
 
+  const {DOM} = require('react');
   const Component = require('omniscient');
+  const ClassSet = require('common/class-set');
+  const {isPrivileged, getDomainName, getManifestURL} = require('common/url-helper');
+  const {fromDOMRequest, fromEvent} = require('lang/promise');
+  const {compose} = require('lang/functional');
   const {isActive, isSelected} = require('./deck/actions');
   const {getHardcodedColors} = require('./theme');
   const {IFrame} = require('./iframe');
-  const {DOM} = require('react');
-  const ClassSet = require('./util/class-set');
-  const {isPrivileged, getDomainName, getManifestURL} = require('url-helper');
-  const makeTileURI = input =>
-    `tiles/${getDomainName(input)}.png`;
-  const {fromDOMRequest, fromEvent} = require('lang/promise');
-  const {compose} = require('lang/functional');
 
-
-
+  const makeTileURI = input => `tiles/${getDomainName(input)}.png`;
 
   const WebViewer = Component('WebViewer', ({state}, {onOpen, onOpenBg, onClose, edit}) => {
 

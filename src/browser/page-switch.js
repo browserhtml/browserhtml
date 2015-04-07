@@ -8,8 +8,8 @@ define((require, exports, moudle) => {
 
   const {DOM} = require('react');
   const Component = require('omniscient');
+  const ClassSet = require('common/class-set');
   const {isSelected} = require('./deck/actions');
-  const ClassSet = require('./util/class-set');
 
   const Tab = Component('Tab', ({state, order}, {onSelect, onActivate, onClose}) => {
     const isPinned = state.get('isPinned');

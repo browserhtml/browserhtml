@@ -4,10 +4,9 @@
 
 define((require, exports, module) => {
 
-  // Note that all functions of `url` need to be called as methods.
-  const url = require('./util/url.js');
-
   'use strict';
+
+  const {getDomainName} = require('common/url-helper');
 
   // Create a theme object, optionall merging your own custom properties on
   // top of the default theme.
@@ -107,7 +106,7 @@ define((require, exports, module) => {
   // @FIXME this is a temporary measure until we have the full color matching
   // fallbacks in place.
   const getHardcodedColors = (urlString) => {
-    const hostname = url.getDomainName(urlString);
+    const hostname = getDomainName(urlString);
     const colors = hardcodedColors[hostname];
     return colors ? makeColorPatch(...colors) : makeColorPatch(null, null, !IS_DARK);
   }
