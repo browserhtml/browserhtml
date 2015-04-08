@@ -14,7 +14,7 @@ define((require, exports, module) => {
   const {Suggestions} = require('./awesomebar');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
-  const version = '0.0.3';
+  const version = '0.0.4';
 
   const makeSearchURL = input =>
     `https://duckduckgo.com/?q=${encodeURIComponent(input)}`;

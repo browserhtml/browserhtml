@@ -16,6 +16,7 @@ define((require, exports, module) => {
 
   // Suggestion model
   const Suggestion = Record({type: String, href: String, text: String});
+  const Entries = List(Suggestion);
 
   const SearchSuggestion = result => Suggestion({
     type: 'search',
@@ -32,7 +33,7 @@ define((require, exports, module) => {
   // Awesomebar state model.
   const Suggestions = Record({
     selected: Number(-1),
-    entries: List(Suggestion)
+    entries: Entries
   });
 
   const Awesomebar = Component(function Awesomebar({suggestions, input, theme},
@@ -97,21 +98,20 @@ define((require, exports, module) => {
   const isntSearch = entry => entry.type !== 'search';
   const isntHistory = entry => entry.type !== 'history';
 
-  const updateSearchSuggestions = search => suggestions =>
+  const updateSearchSuggestions = results => suggestions =>
     suggestions.update('entries', entries => {
-      const other = entries.filter(isntSearch);
-      const count = Math.min(search.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, other.count()));
-      return other.slice(0, MAX_RESULT - count).
-				  .concat(search.slice(0, count).map(SearchSuggestion));
+      const history = entries.filter(isntSearch);
+      const count = Math.min(results.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, history.count()));
+      return history.take(MAX_RESULTS - count)
+                    .concat(results.slice(0, count).map(SearchSuggestion));
     });
 
-  const updateHistorySuggestions = history => suggestions =>
+  const updateHistorySuggestions = results => suggestions =>
     suggestions.update('entries', entries => {
-      const other = entries.filter(isntHistory);
-      const count = Math.min(history.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, other.count()));
-      return entries.constructor(history.slice(0, count).map(HistorySuggestion))
-					.concat(other)
-                    .slice(0, MAX_RESULTS);
+      const search = entries.filter(isntHistory);
+      const count = Math.min(results.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, search.count()));
+      const history = results.slice(0, count).map(HistorySuggestion);
+      return search.unshift(...history).take(MAX_RESULTS)
     });
 
 
