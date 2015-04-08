@@ -11,6 +11,7 @@ define((require, exports, module) => {
   const {open} = require('./web-viewer/actions');
   const {select, active} = require('./deck/actions');
   const {initDashboard} = require('./dashboard/actions');
+  const {Suggestions} = require('./awesomebar');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
   const version = '0.0.3';
@@ -80,10 +81,7 @@ define((require, exports, module) => {
     tabStrip: {isActive: false},
     dashboard: initDashboard({items: dashboardItems}),
     rfa: {id: -1},
-    suggestions: {
-      selectedIndex: -1,
-      list: []
-    },
+    suggestions: Suggestions(),
     webViewers: [open({id: "about:blank",
                        isPinned: true,
                        isSelected: true,
@@ -95,7 +93,8 @@ define((require, exports, module) => {
   // session or null.
   const readSession = () => {
     try {
-      return fromJS(JSON.parse(localStorage[`session@${version}`]));
+      return fromJS(JSON.parse(localStorage[`session@${version}`]))
+             .update('suggestions', Suggestions);
     } catch(error) {
       return null;
     }

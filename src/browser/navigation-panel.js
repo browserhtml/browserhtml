@@ -23,20 +23,20 @@ define((require, exports, module) => {
 
   // Clears selection in the suggestions
   const unselect = suggestions =>
-    suggestions.set('selectedIndex', -1);
+    suggestions.remove('selected');
 
   // Selects suggestion `n` items away relative to currently seleceted suggestion.
   // Selection over suggestion entries is moved in a loop although there is extra
   // "no selection" entry between last and first suggestions. Given `n` can be negative
   // or positive in order to select suggestion before or after the current one.
   const selectRelative = curry((n, suggestions) =>
-    suggestions.update('selectedIndex', from => {
+    suggestions.update('selected', from => {
       const first = 0;
-      const last = suggestions.get('list').count() - 1;
+      const last = suggestions.entries.count() - 1;
       const to = from + n;
 
-      return to > last ? -1 :
-             to < first ? -1 :
+      return to > last ? void(0) :
+             to < first ? void(0) :
              to;
     }));
 
@@ -46,8 +46,8 @@ define((require, exports, module) => {
 
   // Returns currently selected suggestion or void if there's none.
   const selected = suggestions => {
-    const index = suggestions.get('selectedIndex');
-    return index >= 0 ? suggestions.getIn(['list', index, 'text']) : void(0);
+    const index = suggestions.selected;
+    return index >= 0 ? suggestions.entries.get(index).text : void(0);
   }
 
   // Bindings for navigation suggestions.

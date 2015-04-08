@@ -13,6 +13,7 @@ require.config({
     // Because of the bug https://github.com/facebook/immutable-js/pull/297
     // we use forked version until it's uplifted.
     immutable: 'immutable/dist/immutable',
+    'typed-immutable': 'typed-immutable/lib/',
     // http://omniscientjs.github.io
     omniscient: 'omniscient/dist/omniscient',
     // https://github.com/broofa/node-uuid
