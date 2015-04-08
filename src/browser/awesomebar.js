@@ -93,16 +93,18 @@ define((require, exports, module) => {
     suggestions.update('list', entries => {
       const other = entries.filter(isntSearch);
       const count = Math.min(search.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, other.count()));
-      return other.concat(search.slice(0, count).map(SearchSuggestion))
-                  .slice(-MAX_RESULTS)
+      return other.slice(0, MAX_RESULTS - count)
+                  .concat(search.slice(0, count).map(SearchSuggestion));
     });
 
   const updateHistorySuggestions = history => suggestions =>
     suggestions.update('list', entries => {
       const other = entries.filter(isntHistory);
       const count = Math.min(history.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, other.count()));
-      return other.concat(history.slice(0, count).map(HistorySuggestion))
-                  .slice(0, MAX_RESULTS)
+      return List(history.slice(0, count))
+              .map(HistorySuggestion)
+              .concat(other)
+              .slice(0, MAX_RESULTS);
     });
 
 
