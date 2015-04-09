@@ -4,8 +4,8 @@ require.config({
   nodeIdCompat: true,
   paths: {
     common: '../src/common',
-    lang: '../src/common/lang',
-    shims: '../src/common/shims',
+    lang: '../src/lang',
+    shims: '../src/shims',
     react: 'react/dist/react',
     immutable: 'immutable/dist/immutable',
     omniscient: 'omniscient/dist/omniscient',

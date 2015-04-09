@@ -5,8 +5,8 @@ require.config({
   paths: {
     browser: '../src/browser',
     common: '../src/common',
-    lang: '../src/common/lang',
-    shims: '../src/common/shims',
+    lang: '../src/lang',
+    shims: '../src/shims',
     // http://facebook.github.io/react/
     react: 'react/dist/react',
     // http://facebook.github.io/immutable-js/
