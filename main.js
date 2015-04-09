@@ -4,9 +4,9 @@ require.config({
   nodeIdCompat: true,
   paths: {
     browser: '../src/browser',
-    shims: '../src/shims',
+    common: '../src/common',
     lang: '../src/lang',
-    os: '../src/os',
+    shims: '../src/shims',
     // http://facebook.github.io/react/
     react: 'react/dist/react',
     // http://facebook.github.io/immutable-js/

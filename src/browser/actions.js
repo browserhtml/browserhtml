@@ -6,8 +6,8 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const url = require('./util/url');
   const {fromJS, List} = require('immutable');
+  const {isAboutURL, isNotURL, hasScheme, getBaseURI} = require('common/url-helper');
   const {open} = require('./web-viewer/actions');
   const {select, active} = require('./deck/actions');
   const {initDashboard} = require('./dashboard/actions');
@@ -19,15 +19,15 @@ define((require, exports, module) => {
     `https://duckduckgo.com/?q=${encodeURIComponent(input)}`;
 
   const makeAboutURL = input =>
-    url.getBaseURI() + 'src/about/' + input.replace('about:', '') + '/index.html';
+    getBaseURI() + 'src/about/' + input.replace('about:', '') + '/index.html';
 
   const sendEventToChrome = type => dispatchEvent(new CustomEvent('mozContentEvent',
     { bubbles: true, cancelable: false, detail: { type }}))
 
   const readInputURL = input =>
-    url.isAboutURL(input) ? makeAboutURL(input) :
-    url.isNotURL(input) ? makeSearchURL(input) :
-    !url.hasScheme(input) ? `http://${input}` :
+    isAboutURL(input) ? makeAboutURL(input) :
+    isNotURL(input) ? makeSearchURL(input) :
+    !hasScheme(input) ? `http://${input}` :
     input;
 
   // We'll hard-code dashboard items for now.

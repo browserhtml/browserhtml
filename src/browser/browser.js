@@ -9,15 +9,17 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {DOM} = require('react');
   const {compose, throttle, curry} = require('lang/functional');
+  const {Element, Event, VirtualAttribute, Attribute} = require('common/element');
+  const {select: selectField} = require('common/editable');
+  const {KeyBindings} = require('common/keyboard');
+  const ClassSet = require('common/class-set');
+  const os = require('common/os');
   const {NavigationPanel} = require('./navigation-panel');
   const {Awesomebar} = require('./awesomebar');
   const {WebViewer} = require('./web-viewer');
   const {Tab} = require('./page-switch');
   const {Dashboard} = require('./dashboard');
   const {readDashboardNavigationTheme} = require('./dashboard/actions');
-  const {Element, Event, VirtualAttribute, Attribute} = require('./element');
-  const {select: selectField} = require('./editable');
-  const {KeyBindings} = require('./keyboard');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
   const {focus, activate: activateStrip, readInputURL, sendEventToChrome,
@@ -27,8 +29,6 @@ define((require, exports, module) => {
          reorder, reset, remove, insertBefore,
          isntPinned, isPinned} = require('./deck/actions');
   const {readTheme} = require('./theme');
-  const ClassSet = require('./util/class-set');
-  const os = require('os');
 
   const editWith = edit => submit => submit(edit);
 

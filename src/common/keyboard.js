@@ -6,7 +6,7 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const platform = require('os').platform();
+  const platform = require('common/os').platform();
 
   const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
     const modifiers = [];

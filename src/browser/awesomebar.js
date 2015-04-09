@@ -11,8 +11,7 @@ define((require, exports, module) => {
   const {DOM} = require('react')
   const {List, Map} = require('immutable');
   const Component = require('omniscient');
-  const {Element} = require('./element');
-  const ClassSet = require('./util/class-set');
+  const ClassSet = require('common/class-set');
 
   const Awesomebar = Component(function Awesomebar({suggestions, input, theme},
                                                    {onOpen}) {

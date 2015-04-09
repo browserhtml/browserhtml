@@ -6,9 +6,8 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {isFocused} = require('./focusable');
-  const {Element, BeforeAppendAttribute,
-         VirtualAttribute, Event, VirtualEvent} = require('./element');
+  const {isFocused} = require('common/focusable');
+  const {Element, BeforeAppendAttribute, VirtualAttribute, Event, VirtualEvent} = require('common/element');
 
   const IFrame = Element('iframe', {
     isFocused: isFocused,
