@@ -43,7 +43,7 @@ define((require, exports, module) => {
     if (case1Reg.test(str) || !case2Reg.test(str) || case3Reg.test(str)) {
       return true;
     }
-    if (!this.hasScheme(input)) {
+    if (!hasScheme(input)) {
       str = 'http://' + str;
     }
     try {
