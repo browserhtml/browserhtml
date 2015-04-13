@@ -15,7 +15,7 @@ define((require, exports, module) => {
   const {throttle, compose, curry} = require('lang/functional');
   const {activate, blur, focus, sendEventToChrome} = require('./actions');
   const {goBack, reload, stop} = require('./web-viewer/actions');
-  const {ProgressBar} = require('./progressbar');
+  const {ProgressBar} = require('./ProgressBar');
   const {WindowControls} = require('./WindowControls');
   let {computeSuggestions, resetSuggestions} = require('./awesomebar');
 

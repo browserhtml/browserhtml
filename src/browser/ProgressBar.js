@@ -100,8 +100,15 @@ define((require, exports, module) => {
     const opacity = progress < StartFading  ? 1 : 1 - Math.pow( (progress - StartFading) / (1 - StartFading), 1);
     return DOM.div({
       key,
-      className: 'progressbar',
       style: {
+        zIndex: 99,
+        display: 'block',
+        width: '100%',
+        height: 3,
+        marginLeft: '-100%',
+        position: 'absolute',
+        top: 50,
+        left: 0,
         backgroundColor: theme.progressbar.color,
         transform: `translateX(${percentProgress}%)`,
         opacity: opacity
