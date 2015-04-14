@@ -32,6 +32,9 @@ define((require, exports, module) => {
         // to workaround #266 & be able to capture screenshots.
         rendered: state.get('thumbnail')
       }),
+      style: {
+        MozUserSelect: 'none'
+      },
       isBrowser: true,
       isRemote: true,
       mozApp: isPrivileged(state.get('uri')) ? getManifestURL().href : null,
