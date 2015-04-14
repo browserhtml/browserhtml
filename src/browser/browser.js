@@ -349,7 +349,6 @@ define((require, exports, module) => {
 
   // Exports:
 
-  exports.Main = Main;
   exports.Browser = Browser;
 
 });

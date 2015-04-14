@@ -7,8 +7,9 @@ define((require, exports, module) => {
   'use strict';
 
   const Component = require('omniscient');
-  const {DOM} = require('react')
+  const {DOM} = require('react');
   const {sendEventToChrome} = require('./actions');
+  const {mix} = require('common/style');
 
   const styleContainer = {
     alignItems: 'center',
@@ -23,15 +24,15 @@ define((require, exports, module) => {
     borderRadius: '50%'
   };
 
-  const styleGreyButton = Object.assign({
+  const styleGreyButton = mix({
     backgroundColor: 'hsl(0, 0%, 86%)'
   }, styleButton);
 
   const WindowControls = Component(({isDocumentFocused, windowControls, theme}) => {
 
-    const styleMinButton = Object.assign({}, theme.windowMinButton, styleButton);
-    const styleMaxButton = Object.assign({}, theme.windowMaxButton, styleButton);
-    const styleCloseButton = Object.assign({}, theme.windowCloseButton, styleButton);
+    const styleMinButton = mix(theme.windowMinButton, styleButton);
+    const styleMaxButton = mix(theme.windowMaxButton, styleButton);
+    const styleCloseButton = mix(theme.windowCloseButton, styleButton);
 
     return DOM.div({
       key: 'WindowControlsContainer',
