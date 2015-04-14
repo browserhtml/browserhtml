@@ -194,7 +194,7 @@ define((require, exports, module) => {
     const rfa = state.get('rfa');
     const dashboard = state.get('dashboard');
     const suggestions = state.get('suggestions');
-
+    const isDocumentFocused = state.get('isDocumentFocused');
 
     const isDashboardActive = activeWebViewer.get('uri') === null;
     const isAwesomebarActive = input.get('isFocused');
@@ -224,13 +224,13 @@ define((require, exports, module) => {
       className: ClassSet({
         'moz-noscrollbars': true,
         isdark: theme.isDark,
-        windowFocused: state.get('isDocumentFocused'),
+        windowFocused: isDocumentFocused,
         showtabstrip: isTabStripVisible,
         scrollable: !input.get('isFocused') && !isTabStripVisible
       }),
       onDocumentUnload: event => writeSession(state),
-      onDocumentFocus: event => state.set('isDocumentFocused', true),
-      onDocumentBlur: event => state.set('isDocumentFocused', false),
+      onDocumentFocus: event => edit(state => state.set('isDocumentFocused', true)),
+      onDocumentBlur: event => edit(state => state.set('isDocumentFocused', false)),
       onDocumentKeyDown: compose(onNavigation(editInput),
                                  onTabStripKeyDown(editTabStrip),
                                  onViewerBinding(editSelectedViewer),
@@ -251,6 +251,7 @@ define((require, exports, module) => {
         theme,
         rfa,
         suggestions,
+        isDocumentFocused,
         webViewer: selectedWebViewer,
       }, {
         onNavigate: location => editViewers(navigateTo(location)),
@@ -348,7 +349,6 @@ define((require, exports, module) => {
 
   // Exports:
 
-  exports.Main = Main;
   exports.Browser = Browser;
 
 });

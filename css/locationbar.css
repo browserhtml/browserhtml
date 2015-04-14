@@ -14,17 +14,6 @@
   z-index: 100;
 }
 
-.progressbar {
-  z-index: 99;
-  display: block;
-  width: 100%;
-  height: 3px;
-  margin-left: -100%;
-  position: absolute;
-  top: 50px;
-  left: 0;
-}
-
 .urlinput,
 .pagesummary {
   line-height: 30px;

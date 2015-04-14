@@ -15,32 +15,11 @@ define((require, exports, module) => {
   const {throttle, compose, curry} = require('lang/functional');
   const {activate, blur, focus, sendEventToChrome} = require('./actions');
   const {goBack, reload, stop} = require('./web-viewer/actions');
-  const {ProgressBar} = require('./progressbar');
+  const {ProgressBar} = require('./ProgressBar');
+  const {WindowControls} = require('./WindowControls');
   let {computeSuggestions, resetSuggestions} = require('./awesomebar');
 
   computeSuggestions = throttle(computeSuggestions, 200);
-
-  const WindowControls = Component('WindowControls', ({theme}) =>
-    DOM.div({className: 'windowctrls'}, [
-      DOM.div({className: 'windowctrl win-close-button',
-               style: theme.windowCloseButton,
-               title: 'close',
-               key: 'close',
-               onClick: event => sendEventToChrome('shutdown-application')
-      }),
-      DOM.div({className: 'windowctrl win-min-button',
-               style: theme.windowMinButton,
-               title: 'minimize',
-               key: 'minimize',
-               onClick: event => sendEventToChrome('minimize-native-window')
-      }),
-      DOM.div({className: 'windowctrl win-max-button',
-               style: theme.windowMaxButton,
-               title: 'maximize',
-               key: 'maximize',
-               onClick: event => sendEventToChrome('toggle-fullscreen-native-window')
-      })
-    ]));
 
   // Clears selection in the suggestions
   const unselect = suggestions =>
@@ -168,8 +147,8 @@ define((require, exports, module) => {
     ])});
 
   const NavigationPanel = Component('NavigationPanel', ({key, input, tabStrip,
-                                     webViewer, suggestions, title, rfa, theme},
-                                     handlers) => {
+                                     webViewer, suggestions, title, rfa, theme,
+                                     isDocumentFocused}, handlers) => {
     return DOM.div({
       key,
       style: theme.navigationPanel,
@@ -184,7 +163,7 @@ define((require, exports, module) => {
         privileged: isPrivileged(webViewer.get('location'))
       })
     }, [
-      WindowControls({key: 'controls', theme}),
+      WindowControls({key: 'WindowControls', isDocumentFocused, theme}),
       NavigationControls({key: 'navigation', input, tabStrip,
                           webViewer, suggestions, title, theme},
                           handlers),
