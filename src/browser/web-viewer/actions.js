@@ -34,11 +34,8 @@ define((require, exports, module) => {
     isSelected: false,
     // Text typed into the address bar.
     input: null,
-    // URI that web viewer was navigated to. Note that this does not
-    // represent uri that is currently loaded.
+    // URI that is loaded / loading in the web viewer.
     uri: null,
-    // Currently loaded `URI` in a web viewer.
-    location: null,
     // Currently loaded content's title.
     title: null,
     // Icons from the loaded web content.
@@ -90,7 +87,7 @@ define((require, exports, module) => {
     viewer.set('zoom', initial.get('zoom'));
 
   const title = viewer =>
-    viewer.get('title') || viewer.get('location') || viewer.get('uri');
+    viewer.get('title') || viewer.get('uri');
 
   // Exports:
 
