@@ -47,7 +47,7 @@ define((require, exports, module) => {
 
       zoom: state.get('zoom'),
       isFocused: state.get('isFocused'),
-      src: state.get('uri'),
+      uri: state.get('uri'),
       readyState: state.get('readyState'),
 
       onCanGoBackChange: WebViewer.onCanGoBackChange(edit),
@@ -135,7 +135,6 @@ define((require, exports, module) => {
     icons: {},
     thumbnail: null,
     title: null,
-    location: null,
     securityState: 'insecure',
     securityExtendedValidation: false,
     canGoBack: false,
@@ -161,7 +160,7 @@ define((require, exports, module) => {
 
   WebViewer.onLocationChange = edit => event => {
     edit(state => state.
-                    merge({location: event.detail,
+                    merge({uri: event.detail,
                            userInput: event.detail}).
                     merge(getHardcodedColors(event.detail)));
 

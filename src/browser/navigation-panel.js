@@ -127,13 +127,13 @@ define((require, exports, module) => {
         DOM.span({key: 'location',
                   style: theme.locationText,
                   className: 'pageurlsummary'},
-                 webViewer.get('location') ? getDomainName(webViewer.get('location')) : ''),
+                 webViewer.get('uri') ? getDomainName(webViewer.get('uri')) : ''),
         DOM.span({key: 'title',
                   className: 'pagetitle',
                   style: theme.titleText},
                  webViewer.get('title') ? webViewer.get('title') :
                  webViewer.get('isLoading') ? 'Loading...' :
-                 webViewer.get('location') ? webViewer.get('location') :
+                 webViewer.get('uri') ? webViewer.get('uri') :
                  'New Tab')
       ]),
       DOM.div({key: 'reload-button',
@@ -156,11 +156,11 @@ define((require, exports, module) => {
         navbar: true,
         urledit: input.get('isFocused'),
         cangoback: webViewer.get('canGoBack'),
-        canreload: webViewer.get('location'),
+        canreload: webViewer.get('uri'),
         loading: webViewer.get('isLoading'),
         ssl: webViewer.get('securityState') == 'secure',
         sslv: webViewer.get('securityExtendedValidation'),
-        privileged: isPrivileged(webViewer.get('location'))
+        privileged: isPrivileged(webViewer.get('uri'))
       })
     }, [
       WindowControls({key: 'WindowControls', isDocumentFocused, theme}),

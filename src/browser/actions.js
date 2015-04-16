@@ -107,7 +107,7 @@ define((require, exports, module) => {
       set('runtimeUpdateAvailable', false).
       // Reset state of each web viewer that can't be carried across the sessions.
       updateIn(['webViewers'], viewers => viewers.map(viewer => viewer.merge({
-        uri: viewer.get('location') || viewer.get('uri'),
+        uri: viewer.get('uri'),
         thumbnail: null,
         location: null,
         readyState: null,
