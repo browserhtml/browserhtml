@@ -161,6 +161,7 @@ define((require, exports, module) => {
   WebViewer.onLocationChange = edit => event => {
     edit(state => state.
                     merge({uri: event.detail,
+                           readyState: state.isLoading ? 'loading' : 'loaded',
                            userInput: event.detail}).
                     merge(getHardcodedColors(event.detail)));
 
