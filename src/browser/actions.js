@@ -11,7 +11,8 @@ define((require, exports, module) => {
   const {open} = require('./web-viewer/actions');
   const {select, active} = require('./deck/actions');
   const {initDashboard} = require('./dashboard/actions');
-  const {Suggestions} = require('./awesomebar');
+  const {Suggestions} = require('./suggestion-box');
+  const {Editable} = require('common/editable');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
   const version = '0.0.4';
@@ -77,7 +78,7 @@ define((require, exports, module) => {
     // TODO: `isFocuse` should be `true` but that causes
     // issues when app iframe isn't focused. Can be fixed
     // once #239 is resolved.
-    input: {value: '', isFocused: false},
+    input: Editable(),
     tabStrip: {isActive: false},
     dashboard: initDashboard({items: dashboardItems}),
     rfa: {id: -1},
@@ -132,8 +133,6 @@ define((require, exports, module) => {
 
   exports.makeSearchURL = makeSearchURL;
   exports.readInputURL = readInputURL;
-  exports.focus = focusable => focusable.set('isFocused', true);
-  exports.blur = focusable => focusable.set('isFocused', false);
   exports.activate = state => state.set('isActive', true);
   exports.deactivate = state => state.set('isActive', false);
   exports.resetSession = resetSession;

@@ -9,52 +9,38 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {DOM} = require('react');
   const {compose, throttle, curry} = require('lang/functional');
-  const {Element, Event, VirtualAttribute, Attribute} = require('common/element');
-  const {select: selectField} = require('common/editable');
+  const {Editable} = require('common/editable');
   const {KeyBindings} = require('common/keyboard');
   const ClassSet = require('common/class-set');
   const os = require('common/os');
-  const {NavigationPanel} = require('./navigation-panel');
-  const {Awesomebar} = require('./awesomebar');
+  const {WindowBar} = require('./window-bar');
+  const {LocationBar} = require('./location-bar');
+  const {Suggestions} = require('./suggestion-box');
+  const {Previews} = require('./preview-box');
   const {WebViewer} = require('./web-viewer');
-  const {Tab} = require('./page-switch');
   const {Dashboard} = require('./dashboard');
   const {readDashboardNavigationTheme} = require('./dashboard/actions');
   const {zoomIn, zoomOut, zoomReset, open,
          goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
-  const {focus, activate: activateStrip, readInputURL, sendEventToChrome,
+  const {activate: activateStrip, readInputURL, sendEventToChrome,
          deactivate, writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive, active, selected,
          selectNext, selectPrevious, select, activate,
          reorder, reset, remove, insertBefore,
          isntPinned, isPinned} = require('./deck/actions');
   const {readTheme} = require('./theme');
+  const {Main} = require('./main');
 
-  const editWith = edit => submit => submit(edit);
-
-
-  const getOwnerWindow = node => node.ownerDocument.defaultView;
-  // Define custom `main` element with a custom `scrollGrab` attribute
-  // that maps to same named proprety.
-  const Main = Element('main', {
-    windowTitle: VirtualAttribute((node, current, past) => {
-      node.ownerDocument.title = current;
-    }),
-    scrollGrab: VirtualAttribute((node, current, past) => {
-      node.scrollgrab = current;
-    }),
-    onDocumentFocus: Event('focus', getOwnerWindow),
-    onDocumentBlur: Event('blur', getOwnerWindow),
-    onDocumentKeyDown: Event('keydown', getOwnerWindow),
-    onDocumentKeyUp: Event('keyup', getOwnerWindow),
-    onDocumentUnload: Event('unload', getOwnerWindow),
-    onAppUpdateAvailable: Event('app-update-available', getOwnerWindow),
-    onRuntimeUpdateAvailable: Event('runtime-update-available', getOwnerWindow)
-  });
+  const editWith = edit => {
+    if (typeof(edit) !== "function") {
+      throw TypeError("Must be a function")
+    }
+    return submit => submit(edit);
+  }
 
   const onNavigation = KeyBindings({
-    'accel l': editWith(compose(selectField(), focus)),
-    'accel t': editWith(focus)
+    'accel l': editWith(LocationBar.enter),
+    'accel t': editWith(Editable.focus)
   });
 
   const onTabStripKeyDown = KeyBindings({
@@ -123,7 +109,7 @@ define((require, exports, module) => {
 
 
   const switchTab = (items, to) =>
-    to ? activate(select(items, to)) : items;
+    to ? activate(select(items, tab => tab === to)) : items;
 
   switchTab.toIndex = index => items => switchTab(items, items.get(index));
   switchTab.toLast = items => switchTab(items, items.last());
@@ -197,17 +183,17 @@ define((require, exports, module) => {
     const isDocumentFocused = state.get('isDocumentFocused');
 
     const isDashboardActive = activeWebViewer.get('uri') === null;
-    const isAwesomebarActive = input.get('isFocused');
+    const isLocationBarActive = input.get('isFocused');
     const isTabStripActive = tabStrip.get('isActive');
 
     const isTabStripVisible = isDashboardActive ||
-                              (isTabStripActive && !isAwesomebarActive);
+                              (isTabStripActive && !isLocationBarActive);
 
     const isTabstripkillzoneVisible = (
       // Show when tabstrip is visible, except on dashboard
       (isTabStripActive && !isDashboardActive) ||
       // Also show when Awesomebar is active
-      isAwesomebarActive
+      isLocationBarActive
     );
 
     const theme = isDashboardActive ?
@@ -244,7 +230,7 @@ define((require, exports, module) => {
       onRuntimeUpdateAvailable: event =>
         edit(state => state.set('runtimeUpdateAvailable', true)),
     }, [
-      NavigationPanel({
+      WindowBar({
         key: 'navigation',
         input,
         tabStrip,
@@ -261,27 +247,20 @@ define((require, exports, module) => {
         editInput,
         editSuggestions
       }),
-      DOM.div({key: 'tabstrip',
-               style: theme.tabstrip,
-               className: 'tabstripcontainer'}, [
-        Tab.Deck({
-          key: 'tabstrip',
-          className: 'tabstrip',
-          items: webViewers,
-          In
-        }, {
-          onMouseLeave: event => editViewers(compose(reorder, reset)),
-          onSelect: item => editViewers(items => select(items, item)),
-          onActivate: _ => editViewers(activate),
-          onClose: id => editViewers(closeTab(id)),
-          edit: editViewers
-        })
-      ]),
-      Awesomebar({
+      Previews.render(Previews({
+        items: webViewers,
+        style: theme.tabstrip
+      }), {
+        onMouseLeave: event => editViewers(compose(reorder, reset)),
+        onSelect: id => editViewers(items => select(items, item => item.get('id') == id)),
+        onActivate: id => editViewers(items => activate(items, item => item.get('id') == id)),
+        onClose: id => editViewers(closeTab(id)),
+        edit: editViewers
+      }),
+      Suggestions.render({
         key: 'awesomebar',
+        isLocationBarActive,
         suggestions,
-        input,
-        isAwesomebarActive,
         theme
       }, {
         onOpen: uri => editViewers(navigateTo(uri))
@@ -292,7 +271,10 @@ define((require, exports, module) => {
           tabstripkillzone: true,
           'tabstripkillzone-hidden': !isTabstripkillzoneVisible
         }),
-        onMouseEnter: event => editTabStrip(deactivate)
+        onMouseEnter: event => {
+          editViewers(reset)
+          editTabStrip(deactivate)
+        }
       }),
       Dashboard({
         key: 'dashboard',

@@ -6,44 +6,58 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {isFocused} = require('./focusable');
+  const {isFocused, focus, blur} = require('./focusable');
   const {Element, BeforeAppendAttribute, VirtualAttribute, Event} = require('./element');
   const {Component, createFactory} = require('react');
+  const {Record} = require('typed-immutable/index');
 
-  const selection = VirtualAttribute((node, current, past) => {
-    past = past || {};
-    if (current !== past) {
-      if (current) {
-        const {start, end, direction} = current;
+  // Model
 
-        if (start !== past.start) {
-          node.selectionStart = start === Infinity ? node.value.length : start;
-        }
-
-        if (end !== past.end) {
-          node.selectionEnd = end === Infinity ? node.value.length : end;
-        }
-
-        if (direction !== past.direction) {
-          node.selectionDirection = direction;
-        }
-      }
-    }
+  const Editable = Record({
+    isFocused: Boolean(false),
+    selectionStart: Number(0),
+    selectionEnd: Number(0),
+    selectionDirection: String('forward'),
+    value: String('')
   });
+
+  // Actions
+
+  Editable.select = (range={}) => editable => editable.merge({
+    selectionStart: range.selectionStart,
+    selectionEnd: range.selectionEnd,
+    selectionDirection: range.selectionDirection
+  });
+
+  Editable.selectAll = Editable.select({selectionStart:0,
+                                        selectionEnd: Infinity});
+
+  Editable.focus = focus;
+  Editable.blur = blur;
+
+  // View
+
+  const updateSelection = field => (node, current, past) => {
+    if (current != past) {
+      node[field] = current === Infinity ? node.value.length : current
+    }
+  };
 
   const InputElement = Element('input', {
-    isFocused: isFocused,
-    selection: selection
+    isFocused,
+    selectionStart: VirtualAttribute(updateSelection('selectionStart')),
+    selectionEnd: VirtualAttribute(updateSelection('selectionEnd')),
+    selectionDirection: VirtualAttribute((node, current, past) => {
+      if (current !== past) {
+        node.selectionDirection = current
+      }
+    }),
   });
 
-  const InputField = function(immutableState) {
-    this.onKeyDown = this.onKeyDown.bind(this);
-    Component.call(this);
-  }
-
-  InputField.prototype = {
-    __proto__: Component.prototype,
-    constructor: InputField,
+  class InputField extends Component {
+    constructor() {
+      this.onKeyDown = this.onKeyDown.bind(this);
+    }
     onKeyDown(event) {
       if (this.props.onKeyDown) {
         this.props.onKeyDown(event);
@@ -51,18 +65,16 @@ define((require, exports, module) => {
       if (event.key == this.props.submitKey) {
         this.props.onSubmit(event);
       }
-    },
+    }
     render() {
       return InputElement(Object.assign({}, this.props, {onKeyDown: this.onKeyDown}));
     }
   };
 
+  Editable.renderInput = InputElement
+  Editable.renderField = createFactory(InputField)
+
   // Exports:
 
-  exports.selection = selection;
-  exports.InputField = createFactory(InputField);
-
-  exports.select = (start=0, end=Infinity, direction='forward') => input =>
-    input.set('selection', {start, end, direction});
-
+  exports.Editable = Editable;
 });

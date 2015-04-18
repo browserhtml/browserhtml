@@ -108,7 +108,7 @@ define((require, exports, module) => {
     const loaded = fromEvent(iframe, 'mozbrowserloadend');
 
     // Request a thumbnail from DB.
-    const thumbnail = fetchThumbnail(iframe.src).
+    const thumbnail = fetchThumbnail(iframe.getAttribute('uri')).
     // If thumbnail isn't in database then we race `loaded` against `abort`
     // and if `loaded` wins we fetch a screenshot that will be our thumbnail.
     catch(_ => Promise.
