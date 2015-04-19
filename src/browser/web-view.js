@@ -218,7 +218,7 @@ define((require, exports, module) => {
 
       onBlur: event => edit(WebView.blur),
       onFocus: event => edit(WebView.focus),
-      // onAsyncScroll: WebViewer.onUnhandled,
+      // onAsyncScroll: WebView.onUnhandled,
       onClose: event => onClose(state.id),
       onOpenWindow: event => onOpen(event.detail.url),
       onOpenTab: event => onOpenBg(event.detail.url),
@@ -299,7 +299,7 @@ define((require, exports, module) => {
     items: WebViews
   });
 
-  // WebViewer deck will always inject frames by order of their id. That way
+  // WebView deck will always inject frames by order of their id. That way
   // no iframes will need to be removed / injected when order of tabs change.
   WebViewBox.render = Component(function WebViewsBox(state, handlers) {
     const {onOpen, onOpenBg, onClose, edit} = handlers;

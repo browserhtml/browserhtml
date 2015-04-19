@@ -62,7 +62,7 @@ define((require, exports, module) => {
       this.props.statics.editRfa(rfa => rfa.set('id', id));
     },
     componentDidUpdate() {
-      const viewer = this.props.webViewer;
+      const viewer = this.props.webView;
       if (!viewer.get('readyState')) {
         // No empty webviewer
         this.stopRFALoop();
@@ -93,8 +93,8 @@ define((require, exports, module) => {
       this.stopRFALoop(); // force rfa to be set to -1 (rfa value is restored by session restor)
       this.startRFALoopIfNeeded();
     },
-  }], ({key, webViewer, theme}) => {
-    const progress = ComputeProgress(webViewer);
+  }], ({key, webView, theme}) => {
+    const progress = ComputeProgress(webView);
     const StartFading = 0.8;    // When does opacity starts decreasing to 0
     const percentProgress = 100 * progress;
     const opacity = progress < StartFading  ? 1 : 1 - Math.pow( (progress - StartFading) / (1 - StartFading), 1);

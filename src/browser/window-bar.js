@@ -10,14 +10,14 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {isPrivileged} = require('common/url-helper');
   const ClassSet = require('common/class-set');
-  const {ProgressBar} = require('./progress-bar');
+  const {webViewssBar} = require('./progress-bar');
   const {WindowControls} = require('./window-controls');
   const {LocationBar} = require('./location-bar');
 
 
 
   const WindowBar = Component(function WindowBar(state, handlers) {
-    const {key, input, tabStrip, webViewer, suggestions,
+    const {key, input, tabStrip, webView, suggestions,
            title, rfa, theme, isDocumentFocused} = state;
     return DOM.div({
       key,
@@ -25,12 +25,12 @@ define((require, exports, module) => {
       className: ClassSet({
         navbar: true,
         urledit: input.get('isFocused'),
-        cangoback: webViewer.get('canGoBack'),
-        canreload: webViewer.get('uri'),
-        loading: webViewer.get('isLoading'),
-        ssl: webViewer.get('securityState') == 'secure',
-        sslv: webViewer.get('securityExtendedValidation'),
-        privileged: isPrivileged(webViewer.get('uri'))
+        cangoback: webView.get('canGoBack'),
+        canreload: webView.get('uri'),
+        loading: webView.get('isLoading'),
+        ssl: webView.get('securityState') == 'secure',
+        sslv: webView.get('securityExtendedValidation'),
+        privileged: isPrivileged(webView.get('uri'))
       })
     }, [
       WindowControls({
@@ -40,10 +40,10 @@ define((require, exports, module) => {
       }),
       LocationBar.render(LocationBar({
         key: 'navigation',
-        input, tabStrip, webViewer,
+        input, tabStrip, webView,
         suggestions, title, theme
       }), handlers),
-      ProgressBar({key: 'progressbar', rfa, webViewer, theme},
+      ProgressBar({key: 'progressbar', rfa, webView, theme},
                   {editRfa: handlers.editRfa}),
       DOM.div({key: 'spacer', className: 'freeendspacer'})
     ])

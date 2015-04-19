@@ -11,7 +11,7 @@ define((require, exports, module) => {
   const {throttle, compose} = require('lang/functional');
   const {Suggestions} = require('./suggestion-box');
   const {Editable} = require('common/editable');
-  const {WebView} = require('./web-view');
+  const {webViews} = require('./web-view');
   const {Previews} = require('./preview-box');
   const {getDomainName} = require('common/url-helper');
   const {KeyBindings} = require('common/keyboard');
@@ -54,7 +54,7 @@ define((require, exports, module) => {
 
 
   LocationBar.render = Component(function LocationBarView(state, handlers) {
-    const {input, tabStrip, webViewer, suggestions, theme} = state;
+    const {input, tabStrip, webView, suggestions, theme} = state;
     const {onNavigate, editTabStrip, onGoBack, editSelectedViewer,
            editInput, editSuggestions} = handlers;
 
@@ -72,7 +72,7 @@ define((require, exports, module) => {
         className: 'urlinput',
         style: theme.urlInput,
         placeholder: 'Search or enter address',
-        value: Suggestions.selected(suggestions) || webViewer.get('userInput'),
+        value: Suggestions.selected(suggestions) || webView.get('userInput'),
         type: 'text',
         submitKey: 'Enter',
         isFocused: input.isFocused,
@@ -92,7 +92,7 @@ define((require, exports, module) => {
           // Reset suggestions & compute new ones from the changed input value.
           editSuggestions(Suggestions.unselect);
           LocationBar.suggest(event.target.value, editSuggestions);
-          // Also reflect changed value onto webViewers useInput.
+          // Also reflect changed value onto webViews useInput.
           editSelectedViewer(viewer => viewer.set('userInput', event.target.value));
         },
         onSubmit: event => {
@@ -109,13 +109,13 @@ define((require, exports, module) => {
         DOM.span({key: 'location',
                   style: theme.locationText,
                   className: 'pageurlsummary'},
-                 webViewer.get('uri') ? getDomainName(webViewer.get('uri')) : ''),
+                 webView.get('uri') ? getDomainName(webView.get('uri')) : ''),
         DOM.span({key: 'title',
                   className: 'pagetitle',
                   style: theme.titleText},
-                 webViewer.get('title') ? webViewer.get('title') :
-                 webViewer.get('isLoading') ? 'Loading...' :
-                 webViewer.get('uri') ? webViewer.get('uri') :
+                 webView.get('title') ? webView.get('title') :
+                 webView.get('isLoading') ? 'Loading...' :
+                 webView.get('uri') ? webView.get('uri') :
                  'New Tab')
       ]),
       DOM.div({key: 'reload-button',

@@ -152,7 +152,7 @@ define((require, exports, module) => {
     'accel shift backspace': editWith(resetSession),
     'accel shift s': editWith(writeSession),
     'accel u': edit => edit(state =>
-      state.updateIn('webViewers', openTab(`data:application/json,${JSON.stringify(root, null, 2)}`)))
+      state.updateIn('webViews', openTab(`data:application/json,${JSON.stringify(root, null, 2)}`)))
   });
 
   const In = (...path) => edit => state =>
@@ -161,19 +161,19 @@ define((require, exports, module) => {
   // Browser is a root component for our application that just delegates
   // to a core sub-components here.
   const Browser = Component('Browser', (state, {step: edit}) => {
-    const webViewers = state.get('webViewers');
+    const webViews = state.get('webViews');
 
-    const editViewers = compose(edit, In('webViewers'));
-    const editSelectedViewer = compose(edit, In('webViewers',
-                                                indexOfSelected(webViewers)));
+    const editWebViews = compose(edit, In('webViews'));
+    const editSelectedWebView = compose(edit, In('webViews',
+                                                indexOfSelected(webViews)));
     const editTabStrip = compose(edit, In('tabStrip'));
     const editInput = compose(edit, In('input'));
     const editRfa = compose(edit, In('rfa'));
     const editDashboard = compose(edit, In('dashboard'));
     const editSuggestions = compose(edit, In('suggestions'));
 
-    const selectedWebViewer = selected(webViewers);
-    const activeWebViewer = active(webViewers);
+    const selectedWebView = selected(webViews);
+    const activeWebView = active(webViews);
     const tabStrip = state.get('tabStrip');
     const input = state.get('input');
     const rfa = state.get('rfa');
@@ -181,7 +181,7 @@ define((require, exports, module) => {
     const suggestions = state.get('suggestions');
     const isDocumentFocused = state.get('isDocumentFocused');
 
-    const isDashboardActive = activeWebViewer.get('uri') === null;
+    const isDashboardActive = activeWebView.get('uri') === null;
     const isLocationBarActive = input.get('isFocused');
     const isTabStripActive = tabStrip.get('isActive');
 
@@ -197,14 +197,14 @@ define((require, exports, module) => {
 
     const theme = isDashboardActive ?
       readDashboardNavigationTheme(dashboard) :
-      Browser.readTheme(activeWebViewer);
+      Browser.readTheme(activeWebView);
 
 
     return DOM.div({
       key: 'root',
     }, [Main({
       key: 'main',
-      windowTitle: selectedWebViewer.title || selectedWebViewer.uri,
+      windowTitle: selectedWebView.title || selectedWebView.uri,
       scrollGrab: true,
       className: ClassSet({
         'moz-noscrollbars': true,
@@ -218,12 +218,12 @@ define((require, exports, module) => {
       onDocumentBlur: event => edit(state => state.set('isDocumentFocused', false)),
       onDocumentKeyDown: compose(onNavigation(editInput),
                                  onTabStripKeyDown(editTabStrip),
-                                 onViewerBinding(editSelectedViewer),
-                                 onDeckBinding(editViewers),
-                                 onTabSwitch(editViewers),
+                                 onViewerBinding(editSelectedWebView),
+                                 onDeckBinding(editWebViews),
+                                 onTabSwitch(editWebViews),
                                  onBrowserBinding(edit)),
       onDocumentKeyUp: compose(onTabStripKeyUp(editTabStrip),
-                               onDeckBindingRelease(editViewers)),
+                               onDeckBindingRelease(editWebViews)),
       onAppUpdateAvailable: event =>
         edit(state => state.set('appUpdateAvailable', true)),
       onRuntimeUpdateAvailable: event =>
@@ -237,24 +237,24 @@ define((require, exports, module) => {
         rfa,
         suggestions,
         isDocumentFocused,
-        webViewer: selectedWebViewer,
+        webView: selectedWebView,
       }, {
-        onNavigate: location => editViewers(navigateTo(location)),
+        onNavigate: location => editWebViews(navigateTo(location)),
         editTabStrip,
-        editSelectedViewer,
+        editSelectedWebView,
         editRfa,
         editInput,
         editSuggestions
       }),
       Previews.render(Previews({
-        items: webViewers,
+        items: webViews,
         style: theme.tabstrip
       }), {
-        onMouseLeave: event => editViewers(compose(reorder, reset)),
-        onSelect: id => editViewers(items => select(items, item => item.get('id') == id)),
-        onActivate: id => editViewers(items => activate(items, item => item.get('id') == id)),
-        onClose: id => editViewers(closeTab(id)),
-        edit: editViewers
+        onMouseLeave: event => editWebViews(compose(reorder, reset)),
+        onSelect: id => editWebViews(items => select(items, item => item.get('id') == id)),
+        onActivate: id => editWebViews(items => activate(items, item => item.get('id') == id)),
+        onClose: id => editWebViews(closeTab(id)),
+        edit: editWebViews
       }),
       Suggestions.render({
         key: 'awesomebar',
@@ -262,7 +262,7 @@ define((require, exports, module) => {
         suggestions,
         theme
       }, {
-        onOpen: uri => editViewers(navigateTo(uri))
+        onOpen: uri => editWebViews(navigateTo(uri))
       }),
       DOM.div({
         key: 'tabstripkillzone',
@@ -271,7 +271,7 @@ define((require, exports, module) => {
           'tabstripkillzone-hidden': !isTabstripkillzoneVisible
         }),
         onMouseEnter: event => {
-          editViewers(reset)
+          editWebViews(reset)
           editTabStrip(deactivate)
         }
       }),
@@ -280,17 +280,17 @@ define((require, exports, module) => {
         dashboard,
         hidden: !isDashboardActive
       }, {
-        onOpen: uri => editViewers(openTab(uri)),
+        onOpen: uri => editWebViews(openTab(uri)),
         edit: editDashboard
       }),
       WebViewBox.render('web-view-box', WebViewBox({
         isActive: !isDashboardActive,
-        items: webViewers,
+        items: webViews,
       }), {
-        onClose: id => editViewers(closeTab(id)),
-        onOpen: uri => editViewers(openTab(uri)),
-        onOpenBg: uri => editViewers(openTabBg(uri)),
-        edit: editViewers
+        onClose: id => editWebViews(closeTab(id)),
+        onOpen: uri => editWebViews(openTab(uri)),
+        onOpenBg: uri => editWebViews(openTabBg(uri)),
+        edit: editWebViews
       })
     ]),
     DOM.div({

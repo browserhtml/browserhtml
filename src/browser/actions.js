@@ -15,7 +15,7 @@ define((require, exports, module) => {
   const {WebView, WebViews} = require('./web-view');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
-  const version = '0.0.4';
+  const version = '0.0.5';
 
   const makeSearchURL = input =>
     `https://duckduckgo.com/?q=${encodeURIComponent(input)}`;
@@ -83,11 +83,11 @@ define((require, exports, module) => {
     dashboard: initDashboard({items: dashboardItems}),
     rfa: {id: -1},
     suggestions: Suggestions(),
-    webViewers: [WebView({id: "about:blank",
-                          isPinned: true,
-                          isSelected: true,
-                          isActive: true,
-                          isFocused: false})]
+    webViewes: [WebView({id: "about:blank",
+                         isPinned: true,
+                         isSelected: true,
+                         isActive: true,
+                         isFocused: false})]
   });
 
   // Reads stored session. Returns either immutable data for the
@@ -97,7 +97,7 @@ define((require, exports, module) => {
       return fromJS(JSON.parse(localStorage[`session@${version}`]))
              .update('suggestions', Suggestions)
              .update('input', Editable)
-             .update('webViewers', WebViews)
+             .update('webViews', WebViews)
     } catch(error) {
       return null;
     }
@@ -109,7 +109,7 @@ define((require, exports, module) => {
       set('appUpdateAvailable', false).
       set('runtimeUpdateAvailable', false).
       // Reset state of each web viewer that can't be carried across the sessions.
-      updateIn(['webViewers'], viewers => viewers.map(WebView.persistent)).
+      updateIn(['webViews'], viewers => viewers.map(WebView.persistent)).
       toJSON();
     localStorage[`session@${version}`] = JSON.stringify(data);
     return session;
