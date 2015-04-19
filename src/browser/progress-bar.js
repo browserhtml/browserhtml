@@ -41,8 +41,8 @@ define((require, exports, module) => {
 
       if (!viewer.get('isConnecting')) {
         // Zone B
-        const connectedAt = viewer.get('connectedAt');
-        progress += B * ApproachFunc(now - connectedAt, BPivot);
+        const connectedTime = viewer.get('connectedTime');
+        progress += B * ApproachFunc(now - connectedTime, BPivot);
         if (!viewer.get('isLoading')) {
           // Zone C
           const endLoadingTime = viewer.get('endLoadingTime');

@@ -17,11 +17,9 @@ define((require, exports, module) => {
   const {LocationBar} = require('./location-bar');
   const {Suggestions} = require('./suggestion-box');
   const {Previews} = require('./preview-box');
-  const {WebViewer} = require('./web-viewer');
+  const {WebViewBox, WebView} = require('./web-view');
   const {Dashboard} = require('./dashboard');
   const {readDashboardNavigationTheme} = require('./dashboard/actions');
-  const {zoomIn, zoomOut, zoomReset, open,
-         goBack, goForward, reload, stop, title} = require('./web-viewer/actions');
   const {activate: activateStrip, readInputURL, sendEventToChrome,
          deactivate, writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive, active, selected,
@@ -60,14 +58,14 @@ define((require, exports, module) => {
     const modifier = os.platform() == 'linux' ? 'alt' : 'accel';
 
     onViewerBinding = KeyBindings({
-      'accel =': editWith(zoomIn),
-      'accel -': editWith(zoomOut),
-      'accel 0': editWith(zoomReset),
-      [`${modifier} left`]: editWith(goBack),
-      [`${modifier} right`]: editWith(goForward),
-      'escape': editWith(stop),
-      'accel r': editWith(reload),
-      'F5': editWith(reload),
+      'accel =': editWith(WebView.zoomIn),
+      'accel -': editWith(WebView.zoomOut),
+      'accel 0': editWith(WebView.zoomReset),
+      [`${modifier} left`]: editWith(WebView.goBack),
+      [`${modifier} right`]: editWith(WebView.goForward),
+      'escape': editWith(WebView.stop),
+      'accel r': editWith(WebView.reload),
+      'F5': editWith(WebView.reload),
     });
   };
 
@@ -78,14 +76,15 @@ define((require, exports, module) => {
   }
 
   const openTab = uri => items =>
-    insertBefore(items, open({uri,
-                              isSelected: true,
-                              isFocused: true,
-                              isActive: true}),
+    insertBefore(items,
+                 WebView.open({uri,
+                               isSelected: true,
+                               isFocused: true,
+                               isActive: true}),
                  isntPinned);
 
   const openTabBg = uri => items =>
-    insertBefore(items, open({uri}), isntPinned);
+    insertBefore(items, WebView.open({uri}), isntPinned);
 
   const clearActiveInput = viewers =>
     viewers.setIn([indexOfActive(viewers), 'userInput'], '');
@@ -205,7 +204,7 @@ define((require, exports, module) => {
       key: 'root',
     }, [Main({
       key: 'main',
-      windowTitle: title(selectedWebViewer),
+      windowTitle: selectedWebViewer.title || selectedWebViewer.uri,
       scrollGrab: true,
       className: ClassSet({
         'moz-noscrollbars': true,
@@ -284,13 +283,10 @@ define((require, exports, module) => {
         onOpen: uri => editViewers(openTab(uri)),
         edit: editDashboard
       }),
-      WebViewer.Deck({
-        key: 'web-viewers',
-        className: 'iframes',
-        hidden: isDashboardActive,
+      WebViewBox.render('web-view-box', WebViewBox({
+        isActive: !isDashboardActive,
         items: webViewers,
-        In
-      }, {
+      }), {
         onClose: id => editViewers(closeTab(id)),
         onOpen: uri => editViewers(openTab(uri)),
         onOpenBg: uri => editViewers(openTabBg(uri)),
