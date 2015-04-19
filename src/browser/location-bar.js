@@ -72,7 +72,7 @@ define((require, exports, module) => {
         className: 'urlinput',
         style: theme.urlInput,
         placeholder: 'Search or enter address',
-        value: Suggestions.selected(suggestions) || webView.get('userInput'),
+        value: Suggestions.selected(suggestions) || webView.userInput,
         type: 'text',
         submitKey: 'Enter',
         isFocused: input.isFocused,
@@ -109,13 +109,13 @@ define((require, exports, module) => {
         DOM.span({key: 'location',
                   style: theme.locationText,
                   className: 'pageurlsummary'},
-                 webView.get('uri') ? getDomainName(webView.get('uri')) : ''),
+                 webView.uri ? getDomainName(webView.uri) : ''),
         DOM.span({key: 'title',
                   className: 'pagetitle',
                   style: theme.titleText},
-                 webView.get('title') ? webView.get('title') :
-                 webView.get('isLoading') ? 'Loading...' :
-                 webView.get('uri') ? webView.get('uri') :
+                 webView.title ? webView.title :
+                 webView.isLoading ? 'Loading...' :
+                 webView.uri ? webView.uri :
                  'New Tab')
       ]),
       DOM.div({key: 'reload-button',

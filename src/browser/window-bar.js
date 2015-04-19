@@ -25,12 +25,12 @@ define((require, exports, module) => {
       className: ClassSet({
         navbar: true,
         urledit: input.get('isFocused'),
-        cangoback: webView.get('canGoBack'),
-        canreload: webView.get('uri'),
-        loading: webView.get('isLoading'),
-        ssl: webView.get('securityState') == 'secure',
-        sslv: webView.get('securityExtendedValidation'),
-        privileged: isPrivileged(webView.get('uri'))
+        cangoback: webView.canGoBack,
+        canreload: webView.uri,
+        loading: webView.isLoading,
+        ssl: webView.securityState == 'secure',
+        sslv: webView.securityExtendedValidation,
+        privileged: isPrivileged(webView.uri)
       })
     }, [
       WindowControls({

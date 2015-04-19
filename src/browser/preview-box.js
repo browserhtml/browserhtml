@@ -67,11 +67,11 @@ define((require, exports, moudle) => {
       key: "tabstrip",
       style,
       items: items.map(webView => Preview({
-        id: webView.get('id'),
-        isPinned: webView.get('isPinned'),
-        isSelected: webView.get('isSelected'),
-        isActive: webView.get('isActive'),
-        thumbnail: webView.get('thumbnail'),
+        id: webView.id,
+        isPinned: webView.isPinned,
+        isSelected: webView.isSelected,
+        isActive: webView.isActive,
+        thumbnail: webView.thumbnail,
       }))
     }
   }

@@ -89,9 +89,9 @@ define((require, exports, module) => {
   // If foreground and background are present, returns a custom theme object.
   // Otherwise, returns a copy of default theme object.
   const readTheme = (webView) => expandCustomTheme(
-    webView.get('foregroundColor'),
-    webView.get('backgroundColor'),
-    webView.get('isDark')
+    webView.foregroundColor,
+    webView.backgroundColor,
+    webView.isDark
   );
 
   // Creates a state patch for webView from foregroundColor, backgroundColor,
