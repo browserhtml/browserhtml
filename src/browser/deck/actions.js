@@ -91,8 +91,8 @@ define((require, exports, module) => {
   const switchSelected = transition(asUnselected, asSelected);
   const switchActive = transition(asInactive, asActive);
 
-  const select = (items, item) =>
-    switchSelected(items, selected(items), item);
+  const select = (items, p) =>
+    switchSelected(items, selected(items), items.find(p));
 
   //  Makes an item leading a `selected` item `selected`.
   const selectPrevious = advance(switchSelected,
@@ -105,11 +105,11 @@ define((require, exports, module) => {
                              next);
 
   // Makes `active` item `selected`.
-  const reset = items => select(items, active(items));
+  const reset = items => select(items, isActive);
 
   // Makes `selected` item `active`.
-  const activate = (items, item=selected(items)) =>
-    switchActive(items, active(items), item);
+  const activate = (items, p=isSelected) =>
+    switchActive(items, active(items), items.find(p));
 
   // Makes an item following a `selected` item both `selected` & `active`.
   const activateNext = compose(activate, selectNext);
