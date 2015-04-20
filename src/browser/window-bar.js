@@ -10,7 +10,7 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {isPrivileged} = require('common/url-helper');
   const ClassSet = require('common/class-set');
-  const {webViewssBar} = require('./progress-bar');
+  const {ProgressBar} = require('./progress-bar');
   const {WindowControls} = require('./window-controls');
   const {LocationBar} = require('./location-bar');
 

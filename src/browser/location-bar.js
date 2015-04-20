@@ -11,7 +11,7 @@ define((require, exports, module) => {
   const {throttle, compose} = require('lang/functional');
   const {Suggestions} = require('./suggestion-box');
   const {Editable} = require('common/editable');
-  const {webViews} = require('./web-view');
+  const {WebView} = require('./web-view');
   const {Previews} = require('./preview-box');
   const {getDomainName} = require('common/url-helper');
   const {KeyBindings} = require('common/keyboard');
@@ -42,12 +42,12 @@ define((require, exports, module) => {
 
   // General input keybindings.
   const onInputNavigation = KeyBindings({
-    'escape': (editInput, editSelectedViewer) => {
-      console.log(editSelectedViewer(Editable.focus).toJSON());
+    'escape': (editInput, editSelectedWebView) => {
+      editSelectedWebView(Editable.focus).toJSON();
       // TODO: This should not be necessary but since in case of dashboard focus
       // is passed to a hidden iframe DOM ignores that and we end up with focus
       // still in an `input`. As a workaround for now we manually `blur` input.
-      console.log(editInput(Editable.blur).toJSON().input);
+      editInput(Editable.blur);
     },
     'accel l': (editInput, _) => editInput(LocationBar.enter)
   });
@@ -55,7 +55,7 @@ define((require, exports, module) => {
 
   LocationBar.render = Component(function LocationBarView(state, handlers) {
     const {input, tabStrip, webView, suggestions, theme} = state;
-    const {onNavigate, editTabStrip, onGoBack, editSelectedViewer,
+    const {onNavigate, editTabStrip, onGoBack, editSelectedWebView,
            editInput, editSuggestions} = handlers;
 
     return DOM.div({
@@ -66,7 +66,7 @@ define((require, exports, module) => {
       DOM.div({className: 'backbutton',
                style: theme.backButton,
                key: 'back',
-               onClick: event => editSelectedViewer(WebView.goBack)}),
+               onClick: event => editSelectedWebView(WebView.goBack)}),
       Editable.renderField({
         key: 'input',
         className: 'urlinput',
@@ -93,13 +93,13 @@ define((require, exports, module) => {
           editSuggestions(Suggestions.unselect);
           LocationBar.suggest(event.target.value, editSuggestions);
           // Also reflect changed value onto webViews useInput.
-          editSelectedViewer(viewer => viewer.set('userInput', event.target.value));
+          editSelectedWebView(viewer => viewer.set('userInput', event.target.value));
         },
         onSubmit: event => {
           editSuggestions(Suggestions.reset);
           onNavigate(event.target.value);
         },
-        onKeyDown: compose(onInputNavigation(editInput, editSelectedViewer),
+        onKeyDown: compose(onInputNavigation(editInput, editSelectedWebView),
                            onSuggetionNavigation(editSuggestions))
       }),
       DOM.p({key: 'page-info',
@@ -121,11 +121,11 @@ define((require, exports, module) => {
       DOM.div({key: 'reload-button',
                className: 'reloadbutton',
                style: theme.reloadButton,
-               onClick: event => editSelectedViewer(WebView.reload)}),
+               onClick: event => editSelectedWebView(WebView.reload)}),
       DOM.div({key: 'stop-button',
                className: 'stopbutton',
                style: theme.stopButton,
-               onClick: event => editSelectedViewer(WebView.stop)}),
+               onClick: event => editSelectedWebView(WebView.stop)}),
     ])});
 
   exports.LocationBar = LocationBar;

@@ -90,7 +90,7 @@ iframe {
   flex-grow: 1;
 }
 
-.webviewer:not([hidden]).contentoverflows {
+.webview:not([hidden]).contentoverflows {
   min-height: 100vh;
 }
 
@@ -101,7 +101,7 @@ Until that's fixed on platform we just hide such elements with
 negative index and absolute position.
 */
 .iframes[hidden],
-.webviewer[hidden]:not(.rendered) {
+.webview[hidden]:not(.rendered) {
   z-index: -1;
   display: initial;
   position: absolute;

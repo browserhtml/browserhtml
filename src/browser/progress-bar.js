@@ -64,7 +64,7 @@ define((require, exports, module) => {
     componentDidUpdate() {
       const viewer = this.props.webView;
       if (!viewer.get('readyState')) {
-        // No empty webviewer
+        // No empty web view
         this.stopRFALoop();
       } else if (!viewer.get('isLoading')) {
         // Stop if loaded and had enough time to draw the final animation

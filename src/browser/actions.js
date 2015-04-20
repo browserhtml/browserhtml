@@ -83,11 +83,11 @@ define((require, exports, module) => {
     dashboard: initDashboard({items: dashboardItems}),
     rfa: {id: -1},
     suggestions: Suggestions(),
-    webViewes: [WebView({id: "about:blank",
-                         isPinned: true,
-                         isSelected: true,
-                         isActive: true,
-                         isFocused: false})]
+    webViews: [WebView({id: "about:blank",
+                        isPinned: true,
+                        isSelected: true,
+                        isActive: true,
+                        isFocused: false})]
   });
 
   // Reads stored session. Returns either immutable data for the

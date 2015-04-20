@@ -189,7 +189,7 @@ define((require, exports, module) => {
     return IFrame({
       className: ClassSet({
         'iframes-frame': true,
-        webviewer: true,
+        webview: true,
         contentoverflows: state.contentOverflows,
         // We need to style hidden iframes that don't have tiles differntly
         // to workaround #266 & be able to capture screenshots.
@@ -238,9 +238,9 @@ define((require, exports, module) => {
       onPrompt: event => console.log(event),
       onAuthentificate: event => console.log(event),
       onScrollAreaChange: event =>
-        WebView.setContentOverflows(event.detail.height >
-                                    event.target.parentNode.clientHeight),
-      onLoadProgressChange: event => WebView.changeProgress(event)
+        edit(WebView.setContentOverflows(event.detail.height >
+                                         event.target.parentNode.clientHeight)),
+      onLoadProgressChange: event => edit(WebView.changeProgress(event))
     });
   });
 
