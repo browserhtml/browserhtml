@@ -51,7 +51,7 @@ body {
 main {
   height: 100vh;
   width: 100vw;
-  overflow-y: hidden;
+  overflow: -moz-hidden-unscrollable;
   flex-flow: column;
   background-color: var(--bg);
   color: black;
