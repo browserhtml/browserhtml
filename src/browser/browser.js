@@ -292,7 +292,10 @@ define((require, exports, module) => {
           tabstripkillzone: true,
           'tabstripkillzone-hidden': !isTabstripkillzoneVisible
         }),
-        onMouseEnter: event => editTabStrip(deactivate)
+        onMouseEnter: event => {
+          editViewers(reset);
+          editTabStrip(deactivate);
+        }
       }),
       Dashboard({
         key: 'dashboard',
