@@ -8,13 +8,14 @@ define((require, exports, module) => {
 
   const {fromJS, List} = require('immutable');
   const {isAboutURL, isNotURL, hasScheme, getBaseURI} = require('common/url-helper');
-  const {open} = require('./web-viewer/actions');
   const {select, active} = require('./deck/actions');
   const {initDashboard} = require('./dashboard/actions');
-  const {Suggestions} = require('./awesomebar');
+  const {Suggestions} = require('./suggestion-box');
+  const {Editable} = require('common/editable');
+  const {WebView, WebViews} = require('./web-view');
   // TODO: Should be `const {version} = require('package.json`);` instead but require.js
   // does not supports that.
-  const version = '0.0.4';
+  const version = '0.0.5';
 
   const makeSearchURL = input =>
     `https://duckduckgo.com/?q=${encodeURIComponent(input)}`;
@@ -77,16 +78,16 @@ define((require, exports, module) => {
     // TODO: `isFocuse` should be `true` but that causes
     // issues when app iframe isn't focused. Can be fixed
     // once #239 is resolved.
-    input: {value: '', isFocused: false},
+    input: Editable(),
     tabStrip: {isActive: false},
     dashboard: initDashboard({items: dashboardItems}),
     rfa: {id: -1},
     suggestions: Suggestions(),
-    webViewers: [open({id: "about:blank",
-                       isPinned: true,
-                       isSelected: true,
-                       isActive: true,
-                       isFocused: false})]
+    webViews: [WebView({id: "about:blank",
+                        isPinned: true,
+                        isSelected: true,
+                        isActive: true,
+                        isFocused: false})]
   });
 
   // Reads stored session. Returns either immutable data for the
@@ -94,7 +95,9 @@ define((require, exports, module) => {
   const readSession = () => {
     try {
       return fromJS(JSON.parse(localStorage[`session@${version}`]))
-             .update('suggestions', Suggestions);
+             .update('suggestions', Suggestions)
+             .update('input', Editable)
+             .update('webViews', WebViews)
     } catch(error) {
       return null;
     }
@@ -106,23 +109,7 @@ define((require, exports, module) => {
       set('appUpdateAvailable', false).
       set('runtimeUpdateAvailable', false).
       // Reset state of each web viewer that can't be carried across the sessions.
-      updateIn(['webViewers'], viewers => viewers.map(viewer => viewer.merge({
-        uri: viewer.get('uri'),
-        thumbnail: null,
-        location: null,
-        readyState: null,
-        isLoading: false,
-        isConnecting: false,
-        connectedAt: null,
-        title: null,
-        backgroundColor: null,
-        foregroundColor: null,
-        isDark: false,
-        securityState: 'insecure',
-        securityExtendedValidation: false,
-        canGoBack: false,
-        canGoForward: false
-      }))).
+      updateIn(['webViews'], viewers => viewers.map(WebView.persistent)).
       toJSON();
     localStorage[`session@${version}`] = JSON.stringify(data);
     return session;
@@ -132,8 +119,6 @@ define((require, exports, module) => {
 
   exports.makeSearchURL = makeSearchURL;
   exports.readInputURL = readInputURL;
-  exports.focus = focusable => focusable.set('isFocused', true);
-  exports.blur = focusable => focusable.set('isFocused', false);
   exports.activate = state => state.set('isActive', true);
   exports.deactivate = state => state.set('isActive', false);
   exports.resetSession = resetSession;

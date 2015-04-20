@@ -34,6 +34,6 @@
     "omniscient": "3.1.0",
     "react": "0.13.0",
     "requirejs": "2.1.16",
-    "typed-immutable": "0.0.2"
+    "typed-immutable": "0.0.3"
   }
 }

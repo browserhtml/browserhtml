@@ -42,8 +42,7 @@ define((require, exports, module) => {
         key: 'WindowCloseButton',
         style: isDocumentFocused ? styleCloseButton : styleGreyButton,
         onClick: e => sendEventToChrome('shutdown-application')
-      }, {
-        }),
+      }),
       DOM.div({
         key: 'WindowMinButton',
         style: isDocumentFocused ? styleMinButton : styleGreyButton,
