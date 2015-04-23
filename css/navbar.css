@@ -1,4 +1,5 @@
 .navbar {
+  display: flex;
   background-color: inherit;
   -moz-window-dragging: drag;
   padding: 10px;

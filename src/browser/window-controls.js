@@ -12,6 +12,7 @@ define((require, exports, module) => {
   const {mix} = require('common/style');
 
   const styleContainer = {
+    display: 'flex',
     alignItems: 'center',
     flexShrink: 0,
     marginLeft: 7

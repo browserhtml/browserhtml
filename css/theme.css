@@ -33,7 +33,7 @@
 }
 
 [hidden] {
-  display: none;
+  display: none !important;
 }
 
 *::-moz-focus-inner {
@@ -46,9 +46,8 @@ body {
   overflow: hidden;
 }
 
-/* Let's use flexbox everywhere */
-
 main {
+  display: flex;
   height: 100vh;
   width: 100vw;
   overflow-y: hidden;
@@ -62,17 +61,8 @@ main {
   position: relative;
 }
 
-main * {
-  display: flex;
-}
-
 main.scrollable {
   overflow-y: scroll;
-}
-
-tab-iframe {
-  flex-grow: 1;
-  flex-shrink: 0;
 }
 
 iframe {
@@ -81,12 +71,13 @@ iframe {
 }
 
 .iframes {
+  display: flex;
   flex-grow: 1;
   scroll-snap-coordinate: 0 0;
 }
 
-
 .iframes-frame {
+  display: flex;
   flex-grow: 1;
 }
 

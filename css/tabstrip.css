@@ -1,4 +1,5 @@
 .tabstripcontainer {
+  display: flex;
   justify-content: center;
   width: 100vw;
   height: 90px;
@@ -9,6 +10,10 @@
   pointer-events: none;
   opacity: 0;
   transition: background-color 200ms ease;
+}
+
+.tabstrip {
+  display: flex;
 }
 
 .showtabstrip .tabstripcontainer {
@@ -47,6 +52,7 @@
 }
 
 .tab-thumbnail {
+  display: flex;
   background-color: #fff;
   background-size: cover;
   background-clip: content-box;
@@ -74,6 +80,7 @@
 }
 
 .tab-close-button {
+  display: flex;
   position: absolute;
   align-items: center;
   justify-content: center;

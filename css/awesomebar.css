@@ -1,4 +1,5 @@
 .suggestionscontainer {
+  display: flex;
   justify-content: center;
   width: 100vw;
   position: absolute;
@@ -14,6 +15,7 @@
 }
 
 .suggestions {
+  display: flex;
   flex-flow: column;
   flex-basis: 460px;
 }
@@ -23,6 +25,7 @@
 }
 
 .suggestion {
+  display: flex;
   line-height: 40px;
   vertical-align: middle;
   border-top: 1px solid rgba(0,0,0,0.05);

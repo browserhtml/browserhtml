@@ -1,4 +1,5 @@
 .locationbar {
+  display: flex;
   -moz-window-dragging: no-drag;
   align-items: center;
   flex-basis: 460px;
