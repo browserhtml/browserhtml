@@ -44,8 +44,7 @@ define((require, exports, module) => {
         suggestions, title, theme
       }), handlers),
       ProgressBar({key: 'progressbar', rfa, webView, theme},
-                  {editRfa: handlers.editRfa}),
-      DOM.div({key: 'spacer', className: 'freeendspacer'})
+                  {editRfa: handlers.editRfa})
     ])
   });
 

@@ -1,6 +1,5 @@
 .suggestionscontainer {
-  display: flex;
-  justify-content: center;
+  text-align: center;
   width: 100vw;
   position: absolute;
   top: 50px;
@@ -15,9 +14,9 @@
 }
 
 .suggestions {
-  display: flex;
-  flex-flow: column;
-  flex-basis: 460px;
+  display: inline-block;
+  text-align: left;
+  width: 460px;
 }
 
 .suggestion:first-of-type {
@@ -25,7 +24,6 @@
 }
 
 .suggestion {
-  display: flex;
   line-height: 40px;
   vertical-align: middle;
   border-top: 1px solid rgba(0,0,0,0.05);
@@ -46,6 +44,7 @@
 }
 
 .suggestion:before {
+  display: inline-block;
   font-size: 16px;
   font-family: 'FontAwesome';
   width: 30px;

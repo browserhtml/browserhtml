@@ -1,7 +1,6 @@
 .appupdatebanner {
-  display: flex;
+  display: block; /* FIXME: untested */
   position: absolute;
-  justify-content: space-between;
   bottom: 10px;
   width: 400px;
   left: calc(50vw - 200px);

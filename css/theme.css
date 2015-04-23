@@ -47,15 +47,12 @@ body {
 }
 
 main {
-  display: flex;
   height: 100vh;
   width: 100vw;
   overflow-y: hidden;
-  flex-flow: column;
   background-color: var(--bg);
   color: black;
   /* scroll-behavior: smooth; */
-  display: flex;
   scroll-snap-type: mandatory;
   scroll-snap-destination: 0 0;
   position: relative;
@@ -66,19 +63,18 @@ main.scrollable {
 }
 
 iframe {
-  display: flex;
-  flex-grow: 1;
+  display: block;
+  height: calc(100vh - 50px);
 }
 
 .iframes {
-  display: flex;
-  flex-grow: 1;
+  display: block;
   scroll-snap-coordinate: 0 0;
 }
 
 .iframes-frame {
-  display: flex;
-  flex-grow: 1;
+  display: block;
+  width: 100vw;
 }
 
 .webview:not([hidden]).contentoverflows {

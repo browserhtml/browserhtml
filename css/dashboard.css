@@ -9,6 +9,8 @@
   /* The top padding places the dashboard below the tabstrip */
   margin-top: 90px;
   transition: background-color 200ms ease;
+  /* tabstrip + navbar */
+  height: calc(100vh - 90px - 50px);
 }
 
 .dashboard-tiles {
