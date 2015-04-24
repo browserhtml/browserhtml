@@ -10,18 +10,27 @@ define((require, exports, module) => {
   const Component = require('omniscient');
   const {isPrivileged} = require('common/url-helper');
   const ClassSet = require('common/class-set');
+  const {mix} = require('common/style');
   const {ProgressBar} = require('./progress-bar');
   const {WindowControls} = require('./window-controls');
   const {LocationBar} = require('./location-bar');
 
-
+  const navbarStyle = {
+    backgroundColor: 'inherit',
+    MozWindowDragging: 'drag',
+    padding: 10,
+    position: 'relative',
+    scrollSnapCoordinate: '0 0',
+    transition: 'background-color 200ms ease',
+    textAlign: 'center'
+  };
 
   const WindowBar = Component(function WindowBar(state, handlers) {
     const {key, input, tabStrip, webView, suggestions,
            title, rfa, theme, isDocumentFocused} = state;
     return DOM.div({
       key,
-      style: theme.navigationPanel,
+      style: mix(navbarStyle, theme.navigationPanel),
       className: ClassSet({
         navbar: true,
         urledit: input.get('isFocused'),
