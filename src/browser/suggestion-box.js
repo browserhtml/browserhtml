@@ -11,8 +11,62 @@ define((require, exports, module) => {
   const {DOM} = require('react')
   const {Record, List} = require('typed-immutable/index');
   const Component = require('omniscient');
-  const ClassSet = require('common/class-set');
+  const {mix} = require('common/style');
 
+  // CSS
+
+  const styleSuggestionsContainer = {
+    textAlign: 'center',
+    width: '100vw',
+    position: 'absolute',
+    top: 50,
+    zIndex: 43,
+    height: 260,
+    transition: 'background-color 200ms ease, opacity 200ms ease'
+  };
+
+  const styleSuggestionsContainerNotActive = {
+    pointerEvents: 'none',
+    opacity: 0
+  };
+
+  const styleSuggestions = {
+    display: 'inline-block',
+    textAlign: 'left',
+    width: 460
+  };
+
+  const styleSuggestionFirstOfType = {
+    borderTop: 0
+  };
+
+  const styleSuggestion = {
+    lineHeight: '40px',
+    verticalAlign: 'middle',
+    borderTop: '1px solid rgba(0,0,0,0.05)',
+    cursor: 'pointer'
+  };
+
+  const styleSuggestionSelected = {
+    backgroundClip: 'content-box',
+    backgroundColor: 'rgba(0,0,0,0.05)'
+  };
+
+  const styleDarkSuggestion = {
+    borderTopColor: 'rgba(255,255,255,0.15)'
+  };
+
+  const styleDarkSuggestionSelected = {
+    backgroundColor: 'rgba(255,255,255,0.15)'
+  };
+
+  const styleSuggestionPrefix = {
+    display: 'inline-block',
+    fontSize: '16px',
+    fontFamily: 'FontAwesome',
+    width: 30,
+    textAlign: 'center'
+  };
 
   // Model
 
@@ -90,23 +144,45 @@ define((require, exports, module) => {
   Suggestions.render = Component(function SuggestionBar(state, {onOpen}) {
     const {suggestions: {selected, entries}, isLocationBarActive, theme} = state;
 
+    const style = (entries.count() > 0 && isLocationBarActive) ?
+      mix(styleSuggestionsContainer,
+          theme.awesomebarSuggestions) :
+      mix(styleSuggestionsContainer,
+          styleSuggestionsContainerNotActive,
+          theme.awesomebarSuggestions);
+
     return DOM.div({
-      className: ClassSet({
-        suggestionscontainer: true,
-        isActive: entries.count() > 0 && isLocationBarActive,
-      }),
+      style: style,
       key: 'suggestionscontainer',
-      style: theme.awesomebarSuggestions
     }, [
       DOM.div({
-        className: 'suggestions',
         key: 'suggestions',
+        style: styleSuggestions
       }, entries.map((entry, index) => {
+
+        let style = styleSuggestion;
+        if (index == 0)
+          style = mix(style, styleSuggestionFirstOfType);
+        if (index == selected)
+          style = mix(style, styleSuggestionSelected);
+        if (theme.isDark)
+          style = mix(style, styleDarkSuggestion);
+        if (theme.isDark && index == selected)
+          style = mix(style, styleDarkSuggestionSelected);
+
         return DOM.p({
           className: `suggestion ${entry.type} ${index == selected ? 'selected':''}`,
           key: 'suggestion' + index,
-          onMouseDown: e => onOpen(entry.href)
-        }, entry.text);
+          onMouseDown: e => onOpen(entry.href),
+          style
+        }, [
+          DOM.span({
+            key: 'suggestionprefix',
+            style: styleSuggestionPrefix,
+          }, entry.type == 'search' ? '\uf002' :
+             entry.type == 'history' ? '\uf14e' : ''),
+          entry.text
+        ]);
       }))
     ])
   });
