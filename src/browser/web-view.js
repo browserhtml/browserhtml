@@ -199,13 +199,23 @@ define((require, exports, module) => {
     if (state.contentOverflows && state.isActive)
       style = mix(style, { minHeight: '100vh' });
 
+    /*
+    This is a workaround for Bug #266 that prevents capturing
+    screenshots if iframe or it's ancesstors have `display: none`.
+    Until that's fixed on platform we just hide such elements with
+    negative index and absolute position.
+    */
+    if (!state.thumbnail) {
+      style = mix(style, {
+        zIndex: -1,
+        display: 'block !important',
+        position: 'absolute',
+        width: '100%',
+        height: '100%'
+      });
+    }
+
     return IFrame({
-      className: ClassSet({
-        webview: true,
-        // We need to style hidden iframes that don't have tiles differntly
-        // to workaround #266 & be able to capture screenshots.
-        rendered: state.thumbnail
-      }),
       style: style,
       isBrowser: true,
       isRemote: true,
@@ -315,7 +325,9 @@ define((require, exports, module) => {
     const {items, isActive} = state;
 
     return DOM.div({
-      className: 'iframes',
+      style: {
+        scrollSnapCoordinate: '0 0'
+      },
       hidden: !isActive,
     }, items.sortBy(id).map(webView => WebView.render(webView.id, webView, {
         onOpen, onOpenBg, onClose,

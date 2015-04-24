@@ -34,23 +34,3 @@ body {
   height: 100vh;
   overflow: hidden;
 }
-
-.iframes {
-  display: block;
-  scroll-snap-coordinate: 0 0;
-}
-
-/*
-This is a workaround for Bug #266 that prevents capturing
-screenshots if iframe or it's ancesstors have `display: none`.
-Until that's fixed on platform we just hide such elements with
-negative index and absolute position.
-*/
-.iframes[hidden],
-.webview[hidden]:not(.rendered) {
-  z-index: -1;
-  display: initial;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
