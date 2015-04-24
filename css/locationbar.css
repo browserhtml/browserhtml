@@ -73,10 +73,6 @@
   vertical-align: middle;
 }
 
-.backbutton::after {
-  transform: translateY(var(--hwd-pixel)); /* fixme. fontawesome alignment issue*/
-}
-
 .backbutton::after {   content: "\f053" }
 .reloadbutton::after { content: "\f01e" }
 .stopbutton::after {   content: "\f00d" }
@@ -118,4 +114,16 @@
 
 .navbar.privileged .pageurlsummary::before {
   content: "\f013";
+}
+
+/* fixme. fontawesome alignment issue*/
+
+.backbutton::after {
+  transform: translateY(1px);
+}
+
+@media (min-resolution: 2dppx) {
+  .backbutton::after {
+    transform: translateY(0.5px);
+  }
 }

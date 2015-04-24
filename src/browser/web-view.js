@@ -9,6 +9,7 @@ define((require, exports, module) => {
   const {DOM} = require('react');
   const Component = require('omniscient');
   const ClassSet = require('common/class-set');
+  const {mix} = require('common/style');
   const {focus, blur} = require('common/focusable');
   const {isPrivileged, getDomainName, getManifestURL} = require('common/url-helper');
   const {fromDOMRequest, fromEvent} = require('lang/promise');
@@ -182,22 +183,30 @@ define((require, exports, module) => {
   WebView.onThumbnailChanged = edit => blob =>
     edit(state => state.set('thumbnail', URL.createObjectURL(blob)));
 
+  const styleIframe = {
+    display: 'block',
+    height: 'calc(100vh - 50px)',
+    MozUserSelect: 'none',
+    width: '100vw'
+  };
+
   WebView.render = Component('WebView', (state, {onOpen, onOpenBg, onClose, edit}) => {
     // Do not render anything unless viewer has an `uri`
     if (!state.uri) return null;
 
+    let style = styleIframe;
+
+    if (state.contentOverflows && state.isActive)
+      style = mix(style, { minHeight: '100vh' });
+
     return IFrame({
       className: ClassSet({
-        'iframes-frame': true,
         webview: true,
-        contentoverflows: state.contentOverflows,
         // We need to style hidden iframes that don't have tiles differntly
         // to workaround #266 & be able to capture screenshots.
         rendered: state.thumbnail
       }),
-      style: {
-        MozUserSelect: 'none'
-      },
+      style: style,
       isBrowser: true,
       isRemote: true,
       mozApp: isPrivileged(state.uri) ? getManifestURL().href : null,

@@ -12,6 +12,7 @@ define((require, exports, module) => {
   const {Editable} = require('common/editable');
   const {KeyBindings} = require('common/keyboard');
   const ClassSet = require('common/class-set');
+  const {mix} = require('common/style');
   const os = require('common/os');
   const {WindowBar} = require('./window-bar');
   const {LocationBar} = require('./location-bar');
@@ -158,6 +159,18 @@ define((require, exports, module) => {
   const In = (...path) => edit => state =>
     state.updateIn(path, edit);
 
+  // CSS
+
+  const styleMain = {
+    height: '100vh',
+    width: '100vw',
+    color: 'black',
+    overflowY: 'scroll',
+    scrollSnapType: 'mandatory',
+    scrollSnapDestination: '0 0',
+    position: 'relative'
+  };
+
   // Browser is a root component for our application that just delegates
   // to a core sub-components here.
   const Browser = Component('Browser', (state, {step: edit}) => {
@@ -199,19 +212,19 @@ define((require, exports, module) => {
       readDashboardNavigationTheme(dashboard) :
       Browser.readTheme(activeWebView);
 
-
     return DOM.div({
       key: 'root',
     }, [Main({
       key: 'main',
       windowTitle: selectedWebView.title || selectedWebView.uri,
       scrollGrab: true,
+      style: mix(styleMain,
+                 (input.get('isFocused') || isTabStripVisible) ?
+                   {overflowY: 'hidden'} : {}),
       className: ClassSet({
         'moz-noscrollbars': true,
-        isdark: theme.isDark,
         windowFocused: isDocumentFocused,
         showtabstrip: isTabStripVisible,
-        scrollable: !input.get('isFocused') && !isTabStripVisible
       }),
       onDocumentUnload: event => writeSession(state),
       onDocumentFocus: event => edit(state => state.set('isDocumentFocused', true)),
