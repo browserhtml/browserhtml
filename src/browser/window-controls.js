@@ -21,7 +21,7 @@ define((require, exports, module) => {
   };
 
   const styleButton = {
-    display: 'inline-block', // FIXME: not vertically aligned
+    display: 'inline-block',
     width: 12,
     height: 12,
     marginRight: 8,

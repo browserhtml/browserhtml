@@ -137,6 +137,7 @@
   border: 1px solid rgba(0,0,0,0.1);
 }
 
+/* FIXME: broken */
 .isdark .tab-dashboard .tab-thumbnail::after {
   color: rgba(255,255,255,0.4);
 }
