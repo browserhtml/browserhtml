@@ -194,10 +194,13 @@ define((require, exports, module) => {
     // Do not render anything unless viewer has an `uri`
     if (!state.uri) return null;
 
-    let style = styleIframe;
+    let style = mix(styleIframe);
 
     if (state.contentOverflows && state.isActive)
-      style = mix(style, { minHeight: '100vh' });
+      style.minHeight = '100vh';
+
+    if (!state.isActive)
+      style.display = 'none';
 
     /*
     This is a workaround for Bug #266 that prevents capturing
@@ -221,11 +224,7 @@ define((require, exports, module) => {
       isRemote: true,
       mozApp: isPrivileged(state.uri) ? getManifestURL().href : null,
       allowFullScreen: true,
-
-
       isVisible: state.isActive || state.isSelected,
-      hidden: !state.isActive,
-
       zoom: state.zoom,
       isFocused: state.isFocused,
       uri: state.uri,
@@ -326,9 +325,9 @@ define((require, exports, module) => {
 
     return DOM.div({
       style: {
-        scrollSnapCoordinate: '0 0'
+        scrollSnapCoordinate: '0 0',
+        display: isActive ? 'block':'none'
       },
-      hidden: !isActive,
     }, items.sortBy(id).map(webView => WebView.render(webView.id, webView, {
         onOpen, onOpenBg, onClose,
         edit: compose(edit, In(items.indexOf(webView)))

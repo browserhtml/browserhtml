@@ -21,10 +21,6 @@
   vertical-align: middle;
 }
 
-[hidden] {
-  display: none !important;
-}
-
 *::-moz-focus-inner {
   border: 0;
 }

@@ -13,6 +13,10 @@
   height: calc(100vh - 90px - 50px);
 }
 
+.dashboard[hidden] {
+  display: none;
+}
+
 .dashboard-tiles {
   display: flex;
   align-content: center;
