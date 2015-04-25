@@ -14,7 +14,7 @@ define((require, exports, module) => {
   const Table = Component('Table', state => {
 
     let rows = [];
-    for (let [name,value] of state) {
+    for (let [name, value] of state) {
       rows.push(DOM.div({
         key: name,
         className: 'row'

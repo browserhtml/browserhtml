@@ -171,7 +171,7 @@ define((require, exports, module) => {
           style = mix(style, styleDarkSuggestionSelected);
 
         return DOM.p({
-          className: `suggestion ${entry.type} ${index == selected ? 'selected':''}`,
+          className: `suggestion ${entry.type} ${index == selected ? 'selected' : ''}`,
           key: 'suggestion' + index,
           onMouseDown: e => onOpen(entry.href),
           style

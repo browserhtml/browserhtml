@@ -18,8 +18,8 @@ define((require, exports, module) => {
     uri: VirtualAttribute((node, current, past) => {
       if (current != past) {
         const uri = node.setVisible ? current : `data:text/html,${current}`
-        if (node.getAttribute("uri") !== uri) {
-          node.setAttribute("uri", uri);
+        if (node.getAttribute('uri') !== uri) {
+          node.setAttribute('uri', uri);
           node.src = uri;
         }
       }
@@ -77,7 +77,7 @@ define((require, exports, module) => {
     onMetaChange: Event('mozbrowsermetachange'),
     onLocationChange: VirtualEvent((target, dispatch) => {
       target.addEventListener('mozbrowserlocationchange', event => {
-        target.setAttribute("uri", event.detail);
+        target.setAttribute('uri', event.detail);
         dispatch(event);
       });
     }),

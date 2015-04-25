@@ -24,7 +24,7 @@ define((require, exports, module) => {
     getBaseURI() + 'src/about/' + input.replace('about:', '') + '/index.html';
 
   const sendEventToChrome = type => dispatchEvent(new CustomEvent('mozContentEvent',
-    { bubbles: true, cancelable: false, detail: { type }}))
+    {bubbles: true, cancelable: false, detail: {type}}))
 
   const readInputURL = input =>
     isAboutURL(input) ? makeAboutURL(input) :
@@ -83,7 +83,7 @@ define((require, exports, module) => {
     dashboard: initDashboard({items: dashboardItems}),
     rfa: {id: -1},
     suggestions: Suggestions(),
-    webViews: [WebView({id: "about:blank",
+    webViews: [WebView({id: 'about:blank',
                         isPinned: true,
                         isSelected: true,
                         isActive: true,
@@ -98,19 +98,19 @@ define((require, exports, module) => {
              .update('suggestions', Suggestions)
              .update('input', Editable)
              .update('webViews', WebViews)
-    } catch(error) {
+    } catch (error) {
       return null;
     }
   };
 
   const writeSession = session => {
-    const data = session.
-      setIn(['rfa', 'id'], -1).
-      set('appUpdateAvailable', false).
-      set('runtimeUpdateAvailable', false).
+    const data = session
+      .setIn(['rfa', 'id'], -1)
+      .set('appUpdateAvailable', false)
+      .set('runtimeUpdateAvailable', false)
       // Reset state of each web viewer that can't be carried across the sessions.
-      updateIn(['webViews'], viewers => viewers.map(WebView.persistent)).
-      toJSON();
+      .updateIn(['webViews'], viewers => viewers.map(WebView.persistent))
+      .toJSON();
     localStorage[`session@${version}`] = JSON.stringify(data);
     return session;
   };

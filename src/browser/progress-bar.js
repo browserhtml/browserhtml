@@ -97,7 +97,7 @@ define((require, exports, module) => {
     const progress = ComputeProgress(webView);
     const StartFading = 0.8;    // When does opacity starts decreasing to 0
     const percentProgress = 100 * progress;
-    const opacity = progress < StartFading  ? 1 : 1 - Math.pow( (progress - StartFading) / (1 - StartFading), 1);
+    const opacity = progress < StartFading  ? 1 : 1 - Math.pow((progress - StartFading) / (1 - StartFading), 1);
     return DOM.div({
       key,
       style: {

@@ -17,7 +17,7 @@ define((require, exports, module) => {
   const isAboutURL = url => {
     try {
       return new URL(url).protocol == 'about:';
-    } catch(e) {
+    } catch (e) {
       return false;
     }
   };
@@ -49,7 +49,7 @@ define((require, exports, module) => {
     try {
       new URL(str);
       return false;
-    } catch(e) {
+    } catch (e) {
       return true;
     }
   }
