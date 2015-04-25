@@ -56,16 +56,16 @@ define((require, exports, moudle) => {
       state.isPinned ? null : DOM.div({
         key: 'close-button',
         onClick: event => onClose(state.id),
-        className: "tab-close-button fa fa-times",
+        className: 'tab-close-button fa fa-times',
       })
     ])
   });
 
   // Todo: Conver this to a record.
-  const Previews = function({items, style}) {
+  const Previews = function({items, theme}) {
     return {
       key: "tabstrip",
-      style,
+      theme,
       items: items.map(webView => Preview({
         id: webView.id,
         isPinned: webView.isPinned,
@@ -76,10 +76,14 @@ define((require, exports, moudle) => {
     }
   }
   Previews.render = Component(function PreviewBox(state, handlers) {
-    const {style, items} = Previews(state);
+    const {theme, items} = Previews(state);
     return DOM.div({
-      style: style,
-      className: 'tabstripcontainer'}, [
+      style: theme.tabstrip,
+      className: ClassSet({
+        tabstripcontainer: true,
+        isdark: theme.isDark
+      }),
+    }, [
         DOM.div({
           key: 'tabstrip',
           className: 'tabstrip',

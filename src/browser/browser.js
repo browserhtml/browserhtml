@@ -261,13 +261,14 @@ define((require, exports, module) => {
       }),
       Previews.render(Previews({
         items: webViews,
-        style: theme.tabstrip
+        theme
       }), {
         onMouseLeave: event => editWebViews(compose(reorder, reset)),
         onSelect: id => editWebViews(items => select(items, item => item.get('id') == id)),
         onActivate: id => editWebViews(items => activate(items, item => item.get('id') == id)),
         onClose: id => editWebViews(closeTab(id)),
-        edit: editWebViews
+        edit: editWebViews,
+        theme
       }),
       Suggestions.render({
         key: 'awesomebar',
