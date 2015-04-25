@@ -1,5 +1,4 @@
 .tabstripcontainer {
-  display: block;
   text-align: center;
   width: 100vw;
   height: 90px;
@@ -14,6 +13,12 @@
 
 .tabstrip {
   display: inline-block;
+
+  /* Temporary fix. We use order:n to sort tabs,
+   * so we need to keep using the flex box model
+   * here. */
+  display: flex;
+  justify-content: center;
 }
 
 .showtabstrip .tabstripcontainer {
@@ -42,8 +47,7 @@
   will-change: transform;
 }
 
-.tab { /* FIXME: order:X doesn't work anymore */
-  display: inline-block;
+.tab {
   /* Keep buffer space around the visual thumbnail to make them easier
   to click. */
   height: 90px;
