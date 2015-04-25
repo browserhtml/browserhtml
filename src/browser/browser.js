@@ -314,7 +314,10 @@ define((require, exports, module) => {
                 state.get('runtimeUpdateAvailable')
       }),
     }, [
-      'Hey! An update just for you!',
+      DOM.div({
+        key: 'appUpdateMessage',
+        className: 'appupdatemessage',
+      }, 'Hey! An update just for you!'),
       DOM.div({
         key: 'appUpdateButton',
         className: 'appupdatebutton',
