@@ -12,12 +12,16 @@ define((require, exports, module) => {
   const {mix} = require('common/style');
 
   const styleContainer = {
-    alignItems: 'center',
-    flexShrink: 0,
-    marginLeft: 7
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    lineHeight: '30px',
+    verticalAlign: 'center',
+    marginLeft: 7,
   };
 
   const styleButton = {
+    display: 'inline-block',
     width: 12,
     height: 12,
     marginRight: 8,

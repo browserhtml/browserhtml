@@ -9,6 +9,7 @@ define((require, exports, module) => {
   const {DOM} = require('react');
   const Component = require('omniscient');
   const ClassSet = require('common/class-set');
+  const {mix} = require('common/style');
   const {focus, blur} = require('common/focusable');
   const {isPrivileged, getDomainName, getManifestURL} = require('common/url-helper');
   const {fromDOMRequest, fromEvent} = require('lang/promise');
@@ -182,31 +183,48 @@ define((require, exports, module) => {
   WebView.onThumbnailChanged = edit => blob =>
     edit(state => state.set('thumbnail', URL.createObjectURL(blob)));
 
+  const styleIframe = {
+    display: 'block',
+    height: 'calc(100vh - 50px)',
+    MozUserSelect: 'none',
+    width: '100vw'
+  };
+
   WebView.render = Component('WebView', (state, {onOpen, onOpenBg, onClose, edit}) => {
     // Do not render anything unless viewer has an `uri`
     if (!state.uri) return null;
 
+    let style = mix(styleIframe);
+
+    if (state.contentOverflows && state.isActive)
+      style.minHeight = '100vh';
+
+    if (!state.isActive)
+      style.display = 'none';
+
+    /*
+    This is a workaround for Bug #266 that prevents capturing
+    screenshots if iframe or it's ancesstors have `display: none`.
+    Until that's fixed on platform we just hide such elements with
+    negative index and absolute position.
+    */
+    if (!state.thumbnail) {
+      style = mix(style, {
+        zIndex: -1,
+        display: 'block !important',
+        position: 'absolute',
+        width: '100%',
+        height: '100%'
+      });
+    }
+
     return IFrame({
-      className: ClassSet({
-        'iframes-frame': true,
-        webview: true,
-        contentoverflows: state.contentOverflows,
-        // We need to style hidden iframes that don't have tiles differntly
-        // to workaround #266 & be able to capture screenshots.
-        rendered: state.thumbnail
-      }),
-      style: {
-        MozUserSelect: 'none'
-      },
+      style: style,
       isBrowser: true,
       isRemote: true,
       mozApp: isPrivileged(state.uri) ? getManifestURL().href : null,
       allowFullScreen: true,
-
-
       isVisible: state.isActive || state.isSelected,
-      hidden: !state.isActive,
-
       zoom: state.zoom,
       isFocused: state.isFocused,
       uri: state.uri,
@@ -306,8 +324,10 @@ define((require, exports, module) => {
     const {items, isActive} = state;
 
     return DOM.div({
-      className: 'iframes',
-      hidden: !isActive,
+      style: {
+        scrollSnapCoordinate: '0 0',
+        display: isActive ? 'block':'none'
+      },
     }, items.sortBy(id).map(webView => WebView.render(webView.id, webView, {
         onOpen, onOpenBg, onClose,
         edit: compose(edit, In(items.indexOf(webView)))
