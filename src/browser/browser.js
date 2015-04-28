@@ -8,7 +8,7 @@ define((require, exports, module) => {
 
   const Component = require('omniscient');
   const {DOM} = require('react');
-  const {compose, throttle, curry} = require('lang/functional');
+  const {compose} = require('lang/functional');
   const {Editable} = require('common/editable');
   const {KeyBindings} = require('common/keyboard');
   const ClassSet = require('common/class-set');
@@ -222,7 +222,6 @@ define((require, exports, module) => {
                    {overflowY: 'hidden'} : {}),
       className: ClassSet({
         'moz-noscrollbars': true,
-        windowFocused: isDocumentFocused,
         showtabstrip: isTabStripVisible,
       }),
       onDocumentUnload: event => writeSession(state),
