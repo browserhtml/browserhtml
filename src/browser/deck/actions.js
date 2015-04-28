@@ -149,16 +149,14 @@ define((require, exports, module) => {
         // a last one, activate previous and remove the target.
         if (target === items.last()) {
           return activatePrevious(items).remove(index);
-        }
-        // If target is selected & active item but isn't a
-        // a last on, activate next & remove the target.
-        else {
+        } else {
+          // If target is selected & active item but isn't a
+          // a last on, activate next & remove the target.
           return activateNext(items).remove(index);
         }
-      }
-      // If target is active but different one is selected then
-      // activate selected and remove this item.
-      else {
+      } else {
+        // If target is active but different one is selected then
+        // activate selected and remove this item.
         return activate(items).remove(index);
       }
     } else {
@@ -167,15 +165,13 @@ define((require, exports, module) => {
         // one, then select previous item and remove target.
         if (target === items.last()) {
           return selectPrevious(items).remove(index);
-        }
-        // If target isn't active but is selected and does not happen to be
-        // the last one, then select next item and remove target.
-        else {
+        } else {
+          // If target isn't active but is selected and does not happen to be
+          // the last one, then select next item and remove target.
           return selectNext(items).remove(index);
         }
-      }
-      // If target neither selected nor active just remove it.
-      else {
+      } else {
+        // If target neither selected nor active just remove it.
         return items.remove(index);
       }
     }

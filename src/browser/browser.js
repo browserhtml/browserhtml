@@ -31,8 +31,8 @@ define((require, exports, module) => {
   const {Main} = require('./main');
 
   const editWith = edit => {
-    if (typeof(edit) !== "function") {
-      throw TypeError("Must be a function")
+    if (typeof (edit) !== 'function') {
+      throw TypeError('Must be a function')
     }
     return submit => submit(edit);
   }
@@ -54,11 +54,9 @@ define((require, exports, module) => {
     'meta': editWith(deactivate)
   });
 
-  let onViewerBinding;
-  {
+  const onViewerBinding = (() => {
     const modifier = os.platform() == 'linux' ? 'alt' : 'accel';
-
-    onViewerBinding = KeyBindings({
+    return KeyBindings({
       'accel =': editWith(WebView.zoomIn),
       'accel -': editWith(WebView.zoomOut),
       'accel 0': editWith(WebView.zoomReset),
@@ -68,7 +66,7 @@ define((require, exports, module) => {
       'accel r': editWith(WebView.reload),
       'F5': editWith(WebView.reload),
     });
-  };
+  })();
 
   const loadURI = (uri, viewer) => viewers => {
     const target = viewer || active(viewers);
@@ -116,11 +114,9 @@ define((require, exports, module) => {
   switchTab.toDashboard = switchTab.toIndex(0);
 
 
-  let onTabSwitch;
-  {
+  const onTabSwitch = (() => {
     const modifier = os.platform() == 'darwin' ? 'meta' : 'alt';
-
-    onTabSwitch = KeyBindings({
+    return KeyBindings({
       [`${modifier} 1`]: editWith(switchTab.toIndex(1)),
       [`${modifier} 2`]: editWith(switchTab.toIndex(2)),
       [`${modifier} 3`]: editWith(switchTab.toIndex(3)),
@@ -131,7 +127,7 @@ define((require, exports, module) => {
       [`${modifier} 8`]: editWith(switchTab.toIndex(8)),
       [`${modifier} 9`]: editWith(switchTab.toLast),
     });
-  };
+  })();
 
   const onDeckBinding = KeyBindings({
     'accel t': editWith(switchTab.toDashboard),

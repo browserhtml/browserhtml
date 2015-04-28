@@ -93,8 +93,10 @@ define((require, exports, module) => {
   // reserved only for attributes changes to which aren't picked up
   // after node is in the tree.
   // Example: Element('iframe', { browser: BeforeAppendAttribute('mozbrowser') })
-  const BeforeAppendAttribute = function(name) { if (!(this instanceof BeforeAppendAttribute)) {
-    return new BeforeAppendAttribute(name); }
+  const BeforeAppendAttribute = function(name) {
+    if (!(this instanceof BeforeAppendAttribute)) {
+      return new BeforeAppendAttribute(name);
+    }
 
     this.name = name;
   }

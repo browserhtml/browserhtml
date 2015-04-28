@@ -248,8 +248,8 @@ define((require, exports, module) => {
       onIconChange: event => edit(WebView.changeIcon(event.detail)),
       onLocationChange: event => {
         edit(WebView.changeLocation(event.detail));
-        requestThumbnail(event.target).
-          then(WebView.onThumbnailChanged(edit));
+        requestThumbnail(event.target)
+          .then(WebView.onThumbnailChanged(edit));
       },
       onSecurityChange: event => edit(WebView.changeSecurity(event.detail)),
       onTitleChange: event => edit(WebView.setTitle(event.detail)),
@@ -288,20 +288,20 @@ define((require, exports, module) => {
   const requestThumbnail = iframe => {
     // Create a promise that is rejected when iframe location is changes,
     // in order to abort task if this happens before we have a response.
-    const abort = fromEvent(iframe, 'mozbrowserlocationchange').
-      then(event => Promise.reject(event));
+    const abort = fromEvent(iframe, 'mozbrowserlocationchange')
+      .then(event => Promise.reject(event));
 
     // Create a promise that is resolved once iframe ends loading, it will
     // be used to defer a screenshot request.
     const loaded = fromEvent(iframe, 'mozbrowserloadend');
 
     // Request a thumbnail from DB.
-    const thumbnail = fetchThumbnail(iframe.getAttribute('uri')).
+    const thumbnail = fetchThumbnail(iframe.getAttribute('uri'))
     // If thumbnail isn't in database then we race `loaded` against `abort`
     // and if `loaded` wins we fetch a screenshot that will be our thumbnail.
-    catch(_ => Promise.
-          race([abort, loaded]).
-          then(_ => fetchScreenshot(iframe)));
+    .catch(_ => Promise
+          .race([abort, loaded])
+          .then(_ => fetchScreenshot(iframe)));
 
     // Finally we return promise that rejects if `abort` wins and resolves to a
     // `thumbnail` if we get it before `abort`.
@@ -326,11 +326,11 @@ define((require, exports, module) => {
     return DOM.div({
       style: {
         scrollSnapCoordinate: '0 0',
-        display: isActive ? 'block':'none'
+        display: isActive ? 'block' : 'none'
       },
     }, items.sortBy(id).map(webView => WebView.render(webView.id, webView, {
-        onOpen, onOpenBg, onClose,
-        edit: compose(edit, In(items.indexOf(webView)))
+      onOpen, onOpenBg, onClose,
+      edit: compose(edit, In(items.indexOf(webView)))
     })))
   });
 

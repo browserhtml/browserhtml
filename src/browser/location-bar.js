@@ -126,7 +126,7 @@ define((require, exports, module) => {
                className: 'stopbutton',
                style: theme.stopButton,
                onClick: event => editSelectedWebView(WebView.stop)}),
-    ])});
+  ])});
 
   exports.LocationBar = LocationBar;
 });

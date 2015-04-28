@@ -64,7 +64,7 @@ define((require, exports, moudle) => {
   // Todo: Conver this to a record.
   const Previews = function({items, theme}) {
     return {
-      key: "tabstrip",
+      key: 'tabstrip',
       theme,
       items: items.map(webView => Preview({
         id: webView.id,

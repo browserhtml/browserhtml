@@ -4,7 +4,7 @@
 
 define((require, exports, module) => {
 
-  const isObject = x => x && typeof(x) === "object"
+  const isObject = x => x && typeof (x) === 'object'
   const mix = (...styles) => Object.assign({}, ...styles.filter(isObject))
 
   exports.mix = mix;
