@@ -208,13 +208,13 @@ define((require, exports, module) => {
     Until that's fixed on platform we just hide such elements with
     negative index and absolute position.
     */
-    if (!state.thumbnail) {
+    if (!state.isActive && !state.thumbnail) {
       style = mix(style, {
         zIndex: -1,
         display: 'block !important',
         position: 'absolute',
-        width: '100%',
-        height: '100%'
+        width: '100vw',
+        height: '100vh'
       });
     }
 
