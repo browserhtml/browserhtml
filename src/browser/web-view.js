@@ -71,7 +71,7 @@ define((require, exports, module) => {
     canGoBack: Boolean(false),
     canGoForward: Boolean(false),
 
-    contentOverflows: Maybe(Boolean),
+    contentOverflows: Boolean(false),
     thumbnail: Maybe(String)
   });
 
@@ -148,7 +148,7 @@ define((require, exports, module) => {
     startLoadingTime: performance.now(),
     icons: void(0),
     thumbnail: void(0),
-    contentOverflows: void(0),
+    contentOverflows: false,
     title: void(0),
     securityState: void(0),
     securityExtendedValidation: void(0),
@@ -260,7 +260,11 @@ define((require, exports, module) => {
       onTitleChange: event => edit(WebView.setTitle(event.detail)),
       onPrompt: event => console.log(event),
       onAuthentificate: event => console.log(event),
-      onScrollAreaChange: state.contentOverflows == void(0) && (event =>
+      // This will trigger a resize. If the content react to the resize by changing its
+      // layout, this might change the scrollarea again, triggering a resize… infinite
+      // loop.
+      // So we only allow contentOverflows to transition from false (default value) to true.
+      onScrollAreaChange: !state.contentOverflows && (event =>
         edit(WebView.setContentOverflows(event.detail.height >
                                          event.target.parentNode.clientHeight))),
       onLoadProgressChange: event => edit(WebView.changeProgress(event))
