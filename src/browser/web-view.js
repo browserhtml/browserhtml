@@ -6,8 +6,7 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {DOM} = require('react');
-  const Component = require('omniscient');
+  const {DOM, render} = require('common/component');
   const ClassSet = require('common/class-set');
   const {mix} = require('common/style');
   const {focus, blur} = require('common/focusable');
@@ -74,7 +73,7 @@ define((require, exports, module) => {
     contentOverflows: Boolean(false),
     thumbnail: Maybe(String)
   });
-
+  WebView.key = ({id}) => id;
 
   const set = field => value => target => target.set(field, value)
   const patch = delta => state => state.merge(delta)
@@ -195,9 +194,8 @@ define((require, exports, module) => {
     width: '100vw'
   };
 
-  WebView.render = Component('WebView', (state, handlers) => {
+  WebView.render = (state, handlers) => {
     const {onOpen, onOpenBg, onClose, edit} = handlers;
-
     // Do not render anything unless viewer has an `uri`
     if (!state.uri) return null;
 
@@ -295,7 +293,7 @@ define((require, exports, module) => {
                                          event.target.parentNode.clientHeight))),
       onLoadProgressChange: event => edit(WebView.changeProgress(event))
     });
-  });
+  };
 
 
   const fetchScreenshot = iframe =>
@@ -343,18 +341,19 @@ define((require, exports, module) => {
     return Promise.race([abort, thumbnail]);
   }
 
-  const id = x => x.id
+  const id = x => x.id;
 
-  const WebViews = List(WebView)
+  const WebViews = List(WebView);
 
   const WebViewBox = Record({
+    key: String('web-view-box'),
     isActive: Boolean(true),
     items: WebViews
   });
 
   // WebView deck will always inject frames by order of their id. That way
   // no iframes will need to be removed / injected when order of tabs change.
-  WebViewBox.render = Component(function WebViewsBox(state, handlers) {
+  WebViewBox.render = (state, handlers) => {
     const {onOpen, onOpenBg, onClose, edit,
            beginVisit, endVisit, changeIcon, changeTitle, changeImage} = handlers;
     const {items, isActive} = state;
@@ -364,12 +363,12 @@ define((require, exports, module) => {
         scrollSnapCoordinate: '0 0',
         display: isActive ? 'block' : 'none'
       },
-    }, items.sortBy(id).map(webView => WebView.render(webView.id, webView, {
+    }, items.sortBy(id).map(webView => render(webView, {
       onOpen, onOpenBg, onClose,
       beginVisit, endVisit, changeIcon, changeTitle, changeImage,
       edit: compose(edit, In(items.indexOf(webView)))
     })))
-  });
+  };
 
 
   // Exports:
