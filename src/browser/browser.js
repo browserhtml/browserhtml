@@ -236,7 +236,7 @@ define((require, exports, module) => {
     );
 
     const theme = isDashboardActive ?
-      readDashboardNavigationTheme(dashboard) :
+      Browser.readDashboardNavigationTheme(dashboard) :
       Browser.readTheme(activeWebView);
 
     return DOM.div({
@@ -339,6 +339,7 @@ define((require, exports, module) => {
   // Create a version of readTheme that will return from cache
   // on repeating calls with an equal cursor.
   Browser.readTheme = Component.cached(readTheme);
+  Browser.readDashboardNavigationTheme = Component.cached(readDashboardNavigationTheme);
 
   // Exports:
 
