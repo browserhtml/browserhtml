@@ -21,7 +21,7 @@ define((require, exports, module) => {
   const {WebViewBox, WebView} = require('./web-view');
   const {Dashboard} = require('./dashboard');
   const {readDashboardNavigationTheme} = require('./dashboard/actions');
-  const {activate: activateStrip, readInputURL,
+  const {activate: activateStrip, readInputURL, sendEventToChrome,
          deactivate, writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive, active, selected,
          selectNext, selectPrevious, select, activate,
@@ -30,6 +30,7 @@ define((require, exports, module) => {
   const {readTheme} = require('./theme');
   const {Main} = require('./main');
   const {Updates} = require('./update-banner');
+  const {History, Site} = require('./history');
 
   const editWith = edit => {
     if (typeof (edit) !== 'function') {
@@ -168,6 +169,32 @@ define((require, exports, module) => {
     position: 'relative'
   };
 
+
+  // History API hooks
+  const history = new History();
+
+  const beginVisit = ({webView, time}) => {
+    history.edit(Site.from(webView), Site.beginVisit({id: webView.id, time}));
+  };
+
+  const endVisit = ({webView, time}) => {
+    history.edit(Site.from(webView), Site.endVisit({id: webView.id, time}));
+  };
+
+  const changeTitle = ({webView, title}) => {
+    history.edit(Site.from(webView), site => site.set('title', title));
+  };
+
+  const changeImage = ({webView, image}) => {
+    history.edit(Site.from(webView), site => site.set('image', image));
+  };
+
+  const changeIcon = ({webView, icon}) => {
+    history.edit(Site.from(webView), site => site.set('icon', icon))
+  };
+
+
+
   // Browser is a root component for our application that just delegates
   // to a core sub-components here.
   const Browser = Component('Browser', (state, {step: edit}) => {
@@ -297,6 +324,7 @@ define((require, exports, module) => {
         isActive: !isDashboardActive,
         items: webViews,
       }), {
+        beginVisit, endVisit, changeIcon, changeTitle, changeImage,
         onClose: id => editWebViews(closeTab(id)),
         onOpen: uri => editWebViews(openTab(uri)),
         onOpenBg: uri => editWebViews(openTabBg(uri)),
