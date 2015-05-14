@@ -171,7 +171,7 @@ define((require, exports, module) => {
 
 
   // History API hooks
-  const history = new History();
+  const history = new History({withTop: true});
 
   const beginVisit = ({webView, time}) => {
     history.edit(Site.from(webView), Site.beginVisit({id: webView.id, time}));

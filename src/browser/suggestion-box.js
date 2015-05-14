@@ -12,6 +12,8 @@ define((require, exports, module) => {
   const {Record, List} = require('typed-immutable/index');
   const Component = require('omniscient');
   const {mix} = require('common/style');
+  const {History} = require('./history');
+  const {spawn} = require('lang/task');
 
   // CSS
 
@@ -79,10 +81,10 @@ define((require, exports, module) => {
     href: `https://duckduckgo.com/?q=${encodeURIComponent(result)}`
   });
 
-  const HistorySuggestion = result => Suggestion({
+  const HistorySuggestion = site => Suggestion({
     type: 'history',
-    text: result,
-    href: `http://${result}`
+    text: site.title,
+    href: site.uri
   });
 
   // Awesomebar state model.
@@ -118,7 +120,7 @@ define((require, exports, module) => {
   // Returns currently selected suggestion or void if there's none.
   Suggestions.selected = suggestions => {
     const index = suggestions.selected;
-    return index >= 0 ? suggestions.entries.get(index).text : void(0);
+    return index >= 0 ? suggestions.entries.get(index).href : void(0);
   };
 
   const isntSearch = entry => entry.type !== 'search';
@@ -131,13 +133,14 @@ define((require, exports, module) => {
     });
 
   const isntHistory = entry => entry.type !== 'history';
-  Suggestions.changeHistorySuggestions = results => suggestions =>
-    suggestions.update('entries', entries => {
+  Suggestions.changeHistorySuggestions = results => suggestions => {
+    return suggestions.update('entries', entries => {
       const search = entries.filter(isntHistory);
       const count = Math.min(results.length, MAX_RESULTS - Math.min(MAX_RESULTS / 2, search.count()));
       const history = results.slice(0, count).map(HistorySuggestion);
       return search.unshift(...history).take(MAX_RESULTS)
     });
+  };
 
   // View
 
@@ -190,18 +193,62 @@ define((require, exports, module) => {
   // IO.
 
   let xhrSearch;
-  let xhrHistory;
 
 
   Suggestions.reset = suggestions => {
     if (xhrSearch) xhrSearch.abort();
-    if (xhrHistory) xhrHistory.abort();
     return suggestions.clear();
   }
 
+  const dbHistory = new History().stores.sites
+
+  // Calculates the score for use in suggestions from
+  // a result array `match` of `RegExp#exec`.
+  const score = (pattern, input='', base=0.3, length=0.25) => {
+      const index = 1 - base - length
+      const text = String(input);
+      const count = text.length;
+      const match = pattern.exec(text);
+
+      return !match ? 0 :
+              base +
+              length * Math.sqrt(match[0].length / count) +
+              index * (1 - match.index / count);
+  }
+
+  const Pattern = (input, flags="i") => {
+    try {
+      return RegExp(input, flags)
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        return RegExp(pattern.escape(input), flags)
+      }
+      throw error
+    }
+  }
+  Pattern.escape = input => input.replace(/[\.\?\*\+\^\$\|\(\)\{\[\]\\]/g, '\\$&')
+
+  const historyService = input => spawn(function*() {
+    const {rows} = yield dbHistory.allDocs({include_docs: true});
+    const query = Pattern(input)
+    return rows.map(row => row.doc)
+               .filter(row => row.type === 'Site' && row.title)
+               .map(site => {
+                  // TODO: Also include `site.visis` into a scoring.
+                  site.score = score(query, site.title) +
+                               score(query, site.uri, 0.3, 0.5)
+                  return site
+                })
+               .filter(site => site.score > 0)
+               .sort((a, b) =>
+                  a.score > b.score ? -1 :
+                  a.score < b.score ? 1 :
+                  0)
+               .slice(0, MAX_RESULTS);
+  });
+
   Suggestions.compute = (textInput, submit) => {
     if (xhrSearch) xhrSearch.abort();
-    if (xhrHistory) xhrHistory.abort();
 
     textInput = textInput.trim();
 
@@ -216,14 +263,8 @@ define((require, exports, module) => {
     xhrSearch.onload = () =>
       submit(Suggestions.changeSearchSuggestions(xhrSearch.response[1]));
 
-    xhrHistory = new XMLHttpRequest();
-    xhrHistory.open('GET', 'src/alexa.json', true);
-    xhrHistory.responseType = 'json';
-    xhrHistory.send();
-    xhrHistory.onload = () => {
-      const result = xhrHistory.response.filter(e => e.startsWith(textInput));
-      submit(Suggestions.changeHistorySuggestions(result));
-    };
+    historyService(textInput)
+      .then(sites => submit(Suggestions.changeHistorySuggestions(sites)));
   }
 
   exports.Suggestions = Suggestions;

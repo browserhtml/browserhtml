@@ -256,8 +256,10 @@ have a following structure.
 
       this.editQueue = Object.create(null);
 
-      this.setupChangeFeeds();
-      this.setupListeners();
+      if (options.withTop) {
+        this.setupChangeFeeds();
+        this.setupListeners();
+      }
     }
     setupChangeFeeds() {
       const {sites} = this.stores
