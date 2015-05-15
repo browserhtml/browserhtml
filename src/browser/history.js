@@ -5,7 +5,8 @@ define((require, exports, module) => {
   'use strict';
 
   const PouchDB = require('pouchdb');
-  const {spawn, async} = require('lang/task');
+  const {spawn, async, schedule} = require('lang/task');
+  const {identity} = require('lang/functional');
   const {Record, List, Maybe, Any, Union} = require('typed-immutable/index');
 
   // PouchDB has a sepcial field `_id` for identifing records
@@ -35,27 +36,30 @@ define((require, exports, module) => {
   const stub = record => record.constructor.Stub(record);
   const hash = record => record.constructor.hash(record);
 
-  const write = (record, db, config) => {
-    return db.put(record.toJSON());
-  };
-
-  const read = async(function*(record, db, config) {
+  const read = async(function*(db, record) {
     try {
       const data = yield db.get(record[PouchDB.id]);
       return new record.constructor(data);
     } catch (error) {
-      if (error.status != 404) {
+      if (error.status !== 404) {
         throw error
       }
       return record;
     }
   });
 
-  const edit = async(function*(record, transform, db, config) {
-    const current = yield read(record, db);
-    const next = yield transform(current);
-    return write(next, db, config);
-  });
+  const upsert = function*(db, record, change) {
+    while (true) {
+      const current = yield read(db, record);
+      try {
+        return db.put(change(current).toJSON());
+      } catch (error) {
+        if (error.status !== 409) {
+          throw error
+        }
+      }
+    }
+  };
 
   const push = x => xs => xs.push(x);
   const remove = x => xs => xs.remove(x);
@@ -80,7 +84,7 @@ define((require, exports, module) => {
   in the future).
 
   {
-    _id: "page/http://learnyouahaskell.com/introduction#about-this-tutorial",
+    _id: "Page/http://learnyouahaskell.com/introduction#about-this-tutorial",
     uri: "http://learnyouahaskell.com/introduction#about-this-tutorial",
     title: "Introduction - Learn You a Haskell for Great Good!",
     backgroundColor: "rgb(255, 255, 255)",
@@ -117,9 +121,8 @@ define((require, exports, module) => {
     icon: Maybe(URI), // Would be better if it was Blob as well.
     image: Blob,
   });
-  Page.storeID = 'pages';
-  Page.frequency = ({visits}) => visits.size;
-  Page.from = ({uri, title}) => Page({[PouchDB.id]: `page/${uri}`, uri, title});
+  Page.frequency = ({visits}) => visits.count();
+  Page.from = ({uri, title}) => Page({[PouchDB.id]: `Page/${uri}`, uri, title});
 
   Page.beginVisit = ({time, id, device}) => page =>
     page.update('visits', push(Visit({start: time, id, device})));
@@ -156,11 +159,10 @@ have a following structure.
     content: String,
     tags: List(TagName)
   });
-  Quote.storeID = 'quotes';
 
   Quote.construct = async(function* ({uri, content}) {
     const hash = yield sha(content);
-    return Quote({[PouchDB.id]: `quote/${uri}/${hash}`, uri, content});
+    return Quote({[PouchDB.id]: `Quote/${uri}/${hash}`, uri, content});
   });
 
 
@@ -170,8 +172,8 @@ have a following structure.
     description: "Haskell programming language",
     name: "haskell",
     items: [
-      "quote/W29iamVjdCBBcnJheUJ1ZmZlcl0="
-      "page/http://learnyouahaskell.com"
+      "Quote/W29iamVjdCBBcnJheUJ1ZmZlcl0="
+      "Page/http://learnyouahaskell.com"
     ]
   }
   **/
@@ -183,7 +185,6 @@ have a following structure.
     name: TagName,
     items: List(ID)
   });
-  Tag.storeID = 'tags';
 
   Tag.add = (tag, item) =>
     tag.update('items', include(item[PouchDB.id]));
@@ -195,120 +196,97 @@ have a following structure.
 
   Tag.untag = (item, tagName) => item.update('tags', exclude(tagName));
 
-  const Top = Record({
-    [PouchDB.id]: ID('top/pages'),
+  const TopPages = Record({
+    [PouchDB.id]: ID('TopPages'),
     [PouchDB.revision]: Maybe(Revision),
+    type: Type('TopPages'),
     pages: List(Page)
   });
-  Top.storeID = Page.storeID;
-  Top.sample = (page, limit) => top => top.update('pages', pages => {
+  TopPages.sample = (page, limit) => top => top.update('pages', pages => {
     const index = pages.findIndex(x => x[PouchDB.id] === page[PouchDB.id])
     return pages.set(index < 0 ? pages.size : index, page)
                 .sortBy(Page.frequency)
                 .take(limit);
   });
 
-  const clear = async(function*({stores}) {
-    yield stores.pages.destroy();
-    yield stores.quotes.destroy();
-    yield stores.tags.destroy();
+  const PopularSitesImported = Record({
+    [PouchDB.id]: ID('PopularSitesImported'),
+    [PouchDB.revision]: Maybe(Revision),
+    value: Boolean(false)
   });
 
-  let taskID = 0;
-
-  const scheduleEdit = async(function*(history, record, transform) {
-    try {
-      // wait for last scehduled edit to complete.
-      yield history.editQueue[record[PouchDB.id]];
-    } catch (error) {
-      // If last operation faild log an error, but proceed to a next
-      // operation.
-      console.error(error);
-    } finally {
-      const store = history.stores[record.constructor.storeID];
-      return edit(record, transform, store);
-    }
-  })
 
   // History
   class History {
     static defaults() {
       return {
-        pagesStoreName: "pages",
-        quotesStoreName: "quotes",
-        tagsStoreName: "tags",
+        name: 'history',
         topPageLimit: 6,
-        trackTopPages: false
+        address: null
       }
     }
     constructor(options={}) {
       this.onPageChange = this.onPageChange.bind(this);
-      this.onTopPagesChange = this.onTopPagesChange.bind(this);
 
       this.options = Object.assign(History.defaults(), options);
-      const {pagesStore, quotesStore, tagsStore,
-             pagesStoreName, quotesStoreName, tagsStoreName} = this.options;
+      this.db = new PouchDB(this.options);
 
-      this.stores = {
-        pages: pagesStore || new PouchDB(pagesStoreName),
-        quotes: quotesStore || new PouchDB(quotesStoreName),
-        tags: tagsStore || new PouchDB(tagsStoreName)
-      }
-
-      this.editQueue = Object.create(null);
-
-      if (options.trackTopPages) {
-        this.setupChangeFeeds();
-        this.setupListeners();
-      }
+      this.trackTopPages();
+      this.importPopularSites();
     }
-    setupChangeFeeds() {
-      const {pages} = this.stores
+    importPopularSites() {
+      spawn.call(this, function*() {
+        const imported = yield read(this.db, PopularSitesImported());
+        if (!imported.value) {
+          const request = yield fetch('src/alexa.json');
+          const sites = yield request.json();
 
-      this.topPageChangeFeed = pages.changes({
-        since: "now",
-        live: true,
-        include_docs: true,
-        doc_ids: ["top/pages"]
+          const tasks = sites.map(site =>
+            this.edit(Page.from({uri: `http://${site}/`, title: site}), identity))
+
+          yield Promise.all(tasks);
+
+          yield this.edit(imported, record => record.set('value', true));
+        }
       });
-
-      this.pagesChangeFeed = pages.changes({
+    }
+    trackTopPages() {
+      this.pagesChangeFeed = this.db.changes({
         since: "now",
         live: true,
-        filter: ({[PouchDB.id]: id}) => id.startsWith("page/"),
+
+        filter: ({[PouchDB.id]: id}) => id.startsWith("Page/"),
         include_docs: true
       });
-    }
-    setupListeners() {
-      this.topPageChangeFeed.on("change", this.onTopPagesChange);
+
       this.pagesChangeFeed.on("change", this.onPageChange);
     }
 
-    // Edits per record are queued, to avoid data loss
-    // due to concurrent edits.
-    edit(record, transform) {
-      const id = record[PouchDB.id];
-      return this.editQueue[id] = scheduleEdit(this, record, transform);
+    // Edits are scheduled by a record id to avoid obvious conflicts with
+    // in the same node transations.
+    edit(record, change) {
+      return schedule(record[PouchDB.id], upsert, this.db, record, change);
     }
 
     clear() {
-      return clear(this);
+      return this.db.destroy();
     }
 
-    onTopPagesChange({doc}) {
-      const top = Top(doc);
-      this.options.topPages = top;
-      if (this.options.onTopPagesChange) {
-        this.options.onTopPagesChange(top);
-      }
+    query({type, docs}) {
+      return this.db.allDocs({
+        include_docs: docs,
+        startkey: type && `${type}/`,
+        endkey: type && `${type}/\uffff`
+      });
     }
+
     onPageChange({doc}) {
       const page = Page(doc);
-      this.edit(Top({[PouchDB.id]: "top/pages"}),
-                Top.sample(page, this.options.topPageLimit));
+      this.edit(TopPages(),
+                TopPages.sample(page, this.options.topPageLimit));
 
-      if (this.options.onPageChange) {
-        this.options.onPageChange(page);
+      if (this.options.address) {
+        this.options.address.send(page);
       }
     }
   };
@@ -316,6 +294,6 @@ have a following structure.
   exports.History = History;
   exports.Page = Page;
   exports.Tag = Tag;
-  exports.Top = Top;
+  exports.TopPages = TopPages;
   exports.Quote = Quote;
 });

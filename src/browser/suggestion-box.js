@@ -200,7 +200,7 @@ define((require, exports, module) => {
     return suggestions.clear();
   }
 
-  const dbHistory = new History().stores.pages
+  const historyDB = new History()
 
   // Calculates the score for use in suggestions from
   // a result array `match` of `RegExp#exec`.
@@ -229,15 +229,13 @@ define((require, exports, module) => {
   Pattern.escape = input => input.replace(/[\.\?\*\+\^\$\|\(\)\{\[\]\\]/g, '\\$&')
 
   const historyService = input => spawn(function*() {
-    const {rows} = yield dbHistory.allDocs({include_docs: true});
+    const {rows} = yield historyDB.query({docs: true, type: 'Page'});
     // Build a query patter from all words and individual words, note that
     // scoring will take into consideration the length of the match so if we match
     // multiple words that gets larger score then if we matched just one.
     const query = Pattern(input.split(/\s+/g).join('[\\s\\S]+') +
                           '|' + input.split(/\s+/g).join('|'));
-    return rows.map(row => row.doc)
-               .filter(row => row.type === 'Page' && row.title)
-               .map(page => {
+    return rows.map(({doc: page}) => {
                   // frequency score is ranked from 0-1 not based on quality of
                   // match but solely on how often this page has been visited in the
                   // past.
@@ -269,7 +267,7 @@ define((require, exports, module) => {
 
                   return page
                 })
-               .filter(page => page.score > 0)
+               .filter(page => page.score > 0 && page.title)
                 // order by score.
                .sort((a, b) =>
                   a.score > b.score ? -1 :
