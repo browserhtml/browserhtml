@@ -81,10 +81,10 @@ define((require, exports, module) => {
     href: `https://duckduckgo.com/?q=${encodeURIComponent(result)}`
   });
 
-  const HistorySuggestion = site => Suggestion({
+  const HistorySuggestion = page => Suggestion({
     type: 'history',
-    text: site.title,
-    href: site.uri
+    text: page.title,
+    href: page.uri
   });
 
   // Awesomebar state model.
@@ -200,7 +200,7 @@ define((require, exports, module) => {
     return suggestions.clear();
   }
 
-  const dbHistory = new History().stores.sites
+  const dbHistory = new History().stores.pages
 
   // Calculates the score for use in suggestions from
   // a result array `match` of `RegExp#exec`.
@@ -236,21 +236,21 @@ define((require, exports, module) => {
     const query = Pattern(input.split(/\s+/g).join('[\\s\\S]+') +
                           '|' + input.split(/\s+/g).join('|'));
     return rows.map(row => row.doc)
-               .filter(row => row.type === 'Site' && row.title)
-               .map(site => {
+               .filter(row => row.type === 'Page' && row.title)
+               .map(page => {
                   // frequency score is ranked from 0-1 not based on quality of
-                  // match but solely on how often this site has been visited in the
+                  // match but solely on how often this page has been visited in the
                   // past.
-                  const frequencyScore = 1 - (0.7 / (1 + site.visits.length));
+                  const frequencyScore = 1 - (0.7 / (1 + page.visits.length));
                   // Title and uri are scored based of input length & match length
                   // and match index.
-                  const titleScore = score(query, site.title);
-                  const uriScore = score(query, site.uri);
+                  const titleScore = score(query, page.title);
+                  const uriScore = score(query, page.uri);
 
                   // Store each score just for debuging purposes.
-                  site.frequencyScore = frequencyScore;
-                  site.titleScore = titleScore;
-                  site.uriScore = uriScore;
+                  page.frequencyScore = frequencyScore;
+                  page.titleScore = titleScore;
+                  page.uriScore = uriScore;
 
                   // Total score is ranked form `-1` to `1`. Score is devided into
                   // 15 slots and individual field get's different weight based of
@@ -263,13 +263,13 @@ define((require, exports, module) => {
                   // query arguments (probably would make sense to score query arguments &
                   // uri hash separately so they weight less, althouh since scoring is length
                   // and index based match in query already get's scored less).
-                  site.score = frequencyScore * 7/15 +
+                  page.score = frequencyScore * 7/15 +
                                titleScore * 5/15 +
                                uriScore * 3/15;
 
-                  return site
+                  return page
                 })
-               .filter(site => site.score > 0)
+               .filter(page => page.score > 0)
                 // order by score.
                .sort((a, b) =>
                   a.score > b.score ? -1 :
@@ -296,7 +296,7 @@ define((require, exports, module) => {
       submit(Suggestions.changeSearchSuggestions(xhrSearch.response[1]));
 
     historyService(textInput)
-      .then(sites => submit(Suggestions.changeHistorySuggestions(sites)));
+      .then(pages => submit(Suggestions.changeHistorySuggestions(pages)));
   }
 
   exports.Suggestions = Suggestions;

@@ -30,7 +30,7 @@ define((require, exports, module) => {
   const {readTheme} = require('./theme');
   const {Main} = require('./main');
   const {Updates} = require('./update-banner');
-  const {History, Site} = require('./history');
+  const {History, Page} = require('./history');
 
   const editWith = edit => {
     if (typeof (edit) !== 'function') {
@@ -171,26 +171,26 @@ define((require, exports, module) => {
 
 
   // History API hooks
-  const history = new History({withTop: true});
+  const history = new History({trackTopPages: true});
 
   const beginVisit = ({webView, time}) => {
-    history.edit(Site.from(webView), Site.beginVisit({id: webView.id, time}));
+    history.edit(Page.from(webView), Page.beginVisit({id: webView.id, time}));
   };
 
   const endVisit = ({webView, time}) => {
-    history.edit(Site.from(webView), Site.endVisit({id: webView.id, time}));
+    history.edit(Page.from(webView), Page.endVisit({id: webView.id, time}));
   };
 
   const changeTitle = ({webView, title}) => {
-    history.edit(Site.from(webView), site => site.set('title', title));
+    history.edit(Page.from(webView), page => page.set('title', title));
   };
 
   const changeImage = ({webView, image}) => {
-    history.edit(Site.from(webView), site => site.set('image', image));
+    history.edit(Page.from(webView), page => page.set('image', image));
   };
 
   const changeIcon = ({webView, icon}) => {
-    history.edit(Site.from(webView), site => site.set('icon', icon))
+    history.edit(Page.from(webView), page => page.set('icon', icon))
   };
 
 

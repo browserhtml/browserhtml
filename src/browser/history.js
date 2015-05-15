@@ -73,14 +73,14 @@ define((require, exports, module) => {
   /*
   ## Interests API
 
-  ### Sites
+  ### Pages
 
-  Sites store contains records of sites that have being visited by a user.
-  Sites store contains records of the following schema (which could be extended
+  Pages store contains records of pages that have being visited by a user.
+  Pages store contains records of the following schema (which could be extended
   in the future).
 
   {
-    _id: "site/http://learnyouahaskell.com/introduction#about-this-tutorial",
+    _id: "page/http://learnyouahaskell.com/introduction#about-this-tutorial",
     uri: "http://learnyouahaskell.com/introduction#about-this-tutorial",
     title: "Introduction - Learn You a Haskell for Great Good!",
     backgroundColor: "rgb(255, 255, 255)",
@@ -106,10 +106,10 @@ define((require, exports, module) => {
     device: String('Desktop'),
   });
 
-  const Site = Record({
+  const Page = Record({
     [PouchDB.id]: ID,
     [PouchDB.revision]: Maybe(Revision),
-    type: Type('Site'),
+    type: Type('Page'),
     uri: URI,
     title: Maybe(String),
     visits: List(Visit),
@@ -117,17 +117,17 @@ define((require, exports, module) => {
     icon: Maybe(URI), // Would be better if it was Blob as well.
     image: Blob,
   });
-  Site.storeID = 'sites';
-  Site.frequency = ({visits}) => visits.size;
-  Site.from = ({uri, title}) => Site({[PouchDB.id]: `site/${uri}`, uri, title});
+  Page.storeID = 'pages';
+  Page.frequency = ({visits}) => visits.size;
+  Page.from = ({uri, title}) => Page({[PouchDB.id]: `page/${uri}`, uri, title});
 
-  Site.beginVisit = ({time, id, device}) => site =>
-    site.update('visits', push(Visit({start: time, id, device})));
+  Page.beginVisit = ({time, id, device}) => page =>
+    page.update('visits', push(Visit({start: time, id, device})));
 
 
-  Site.endVisit = ({id, time}) => site => {
-    const index = site.visits.findIndex(visit => visit.id === id);
-    return index < 0 ? site : site.setIn(['visits', index, 'end'], time);
+  Page.endVisit = ({id, time}) => page => {
+    const index = page.visits.findIndex(visit => visit.id === id);
+    return index < 0 ? page : page.setIn(['visits', index, 'end'], time);
   };
 
 
@@ -171,7 +171,7 @@ have a following structure.
     name: "haskell",
     items: [
       "quote/W29iamVjdCBBcnJheUJ1ZmZlcl0="
-      "site/http://learnyouahaskell.com"
+      "page/http://learnyouahaskell.com"
     ]
   }
   **/
@@ -196,20 +196,20 @@ have a following structure.
   Tag.untag = (item, tagName) => item.update('tags', exclude(tagName));
 
   const Top = Record({
-    [PouchDB.id]: ID('top/sites'),
+    [PouchDB.id]: ID('top/pages'),
     [PouchDB.revision]: Maybe(Revision),
-    sites: List(Site)
+    pages: List(Page)
   });
-  Top.storeID = Site.storeID;
-  Top.sample = (site, limit) => top => top.update('sites', sites => {
-    const index = sites.findIndex(x => x[PouchDB.id] === site[PouchDB.id])
-    return sites.set(index < 0 ? sites.size : index, site)
-                .sortBy(Site.frequency)
+  Top.storeID = Page.storeID;
+  Top.sample = (page, limit) => top => top.update('pages', pages => {
+    const index = pages.findIndex(x => x[PouchDB.id] === page[PouchDB.id])
+    return pages.set(index < 0 ? pages.size : index, page)
+                .sortBy(Page.frequency)
                 .take(limit);
   });
 
   const clear = async(function*({stores}) {
-    yield stores.sites.destroy();
+    yield stores.pages.destroy();
     yield stores.quotes.destroy();
     yield stores.tags.destroy();
   });
@@ -234,53 +234,54 @@ have a following structure.
   class History {
     static defaults() {
       return {
-        sitesStoreName: "sites",
+        pagesStoreName: "pages",
         quotesStoreName: "quotes",
         tagsStoreName: "tags",
-        topSiteLimit: 6,
+        topPageLimit: 6,
+        trackTopPages: false
       }
     }
     constructor(options={}) {
-      this.onSiteChange = this.onSiteChange.bind(this);
-      this.onTopSitesChange = this.onTopSitesChange.bind(this);
+      this.onPageChange = this.onPageChange.bind(this);
+      this.onTopPagesChange = this.onTopPagesChange.bind(this);
 
       this.options = Object.assign(History.defaults(), options);
-      const {sitesStore, quotesStore, tagsStore,
-             sitesStoreName, quotesStoreName, tagsStoreName} = this.options;
+      const {pagesStore, quotesStore, tagsStore,
+             pagesStoreName, quotesStoreName, tagsStoreName} = this.options;
 
       this.stores = {
-        sites: sitesStore || new PouchDB(sitesStoreName),
+        pages: pagesStore || new PouchDB(pagesStoreName),
         quotes: quotesStore || new PouchDB(quotesStoreName),
         tags: tagsStore || new PouchDB(tagsStoreName)
       }
 
       this.editQueue = Object.create(null);
 
-      if (options.withTop) {
+      if (options.trackTopPages) {
         this.setupChangeFeeds();
         this.setupListeners();
       }
     }
     setupChangeFeeds() {
-      const {sites} = this.stores
+      const {pages} = this.stores
 
-      this.topSiteChangeFeed = sites.changes({
+      this.topPageChangeFeed = pages.changes({
         since: "now",
         live: true,
         include_docs: true,
-        doc_ids: ["top/sites"]
+        doc_ids: ["top/pages"]
       });
 
-      this.sitesChangeFeed = sites.changes({
+      this.pagesChangeFeed = pages.changes({
         since: "now",
         live: true,
-        filter: ({[PouchDB.id]: id}) => id.startsWith("site/"),
+        filter: ({[PouchDB.id]: id}) => id.startsWith("page/"),
         include_docs: true
       });
     }
     setupListeners() {
-      this.topSiteChangeFeed.on("change", this.onTopSitesChange);
-      this.sitesChangeFeed.on("change", this.onSiteChange);
+      this.topPageChangeFeed.on("change", this.onTopPagesChange);
+      this.pagesChangeFeed.on("change", this.onPageChange);
     }
 
     // Edits per record are queued, to avoid data loss
@@ -294,26 +295,26 @@ have a following structure.
       return clear(this);
     }
 
-    onTopSitesChange({doc}) {
+    onTopPagesChange({doc}) {
       const top = Top(doc);
-      this.options.topSites = top;
-      if (this.options.onTopSitesChange) {
-        this.options.onTopSitesChange(top);
+      this.options.topPages = top;
+      if (this.options.onTopPagesChange) {
+        this.options.onTopPagesChange(top);
       }
     }
-    onSiteChange({doc}) {
-      const site = Site(doc);
-      this.edit(Top({[PouchDB.id]: "top/sites"}),
-                Top.sample(site, this.options.topSiteLimit));
+    onPageChange({doc}) {
+      const page = Page(doc);
+      this.edit(Top({[PouchDB.id]: "top/pages"}),
+                Top.sample(page, this.options.topPageLimit));
 
-      if (this.options.onSiteChange) {
-        this.options.onSiteChange(site);
+      if (this.options.onPageChange) {
+        this.options.onPageChange(page);
       }
     }
   };
 
   exports.History = History;
-  exports.Site = Site;
+  exports.Page = Page;
   exports.Tag = Tag;
   exports.Top = Top;
   exports.Quote = Quote;
