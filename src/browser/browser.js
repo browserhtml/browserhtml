@@ -30,7 +30,7 @@ define((require, exports, module) => {
   const {readTheme} = require('./theme');
   const {Main} = require('./main');
   const {Updates} = require('./update-banner');
-  const {History, Page} = require('./history');
+  const {History, Page} = require('common/history');
 
   const editWith = edit => {
     if (typeof (edit) !== 'function') {

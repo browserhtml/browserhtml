@@ -12,7 +12,7 @@ define((require, exports, module) => {
   const {Record, List} = require('typed-immutable/index');
   const Component = require('omniscient');
   const {mix} = require('common/style');
-  const {History} = require('./history');
+  const {History} = require('common/history');
   const {spawn} = require('lang/task');
 
   // CSS
