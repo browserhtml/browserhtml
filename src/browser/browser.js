@@ -21,7 +21,7 @@ define((require, exports, module) => {
   const {WebViewBox, WebView} = require('./web-view');
   const {Dashboard} = require('./dashboard');
   const {readDashboardNavigationTheme} = require('./dashboard/actions');
-  const {activate: activateStrip, readInputURL, sendEventToChrome,
+  const {activate: activateStrip, readInputURL,
          deactivate, writeSession, resetSession, resetSelected} = require('./actions');
   const {indexOfSelected, indexOfActive, isActive, active, selected,
          selectNext, selectPrevious, select, activate,
