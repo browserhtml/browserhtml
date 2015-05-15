@@ -210,7 +210,7 @@ define((require, exports, module) => {
       const count = text.length;
       const match = pattern.exec(text);
 
-      return !match ? 0 :
+      return !match ? -1 :
               base +
               length * Math.sqrt(match[0].length / count) +
               index * (1 - match.index / count);
@@ -230,20 +230,52 @@ define((require, exports, module) => {
 
   const historyService = input => spawn(function*() {
     const {rows} = yield dbHistory.allDocs({include_docs: true});
-    const query = Pattern(input)
+    // Build a query patter from all words and individual words, note that
+    // scoring will take into consideration the length of the match so if we match
+    // multiple words that gets larger score then if we matched just one.
+    const query = Pattern(input.split(/\s+/g).join('[\\s\\S]+') +
+                          '|' + input.split(/\s+/g).join('|'));
     return rows.map(row => row.doc)
                .filter(row => row.type === 'Site' && row.title)
                .map(site => {
-                  // TODO: Also include `site.visis` into a scoring.
-                  site.score = score(query, site.title) +
-                               score(query, site.uri, 0.3, 0.5)
+                  // frequency score is ranked from 0-1 not based on quality of
+                  // match but solely on how often this site has been visited in the
+                  // past.
+                  const frequencyScore = 1 - (0.7 / (1 + site.visits.length));
+                  // Title and uri are scored based of input length & match length
+                  // and match index.
+                  const titleScore = score(query, site.title);
+                  const uriScore = score(query, site.uri);
+
+                  // Store each score just for debuging purposes.
+                  site.frequencyScore = frequencyScore;
+                  site.titleScore = titleScore;
+                  site.uriScore = uriScore;
+
+                  // Total score is ranked form `-1` to `1`. Score is devided into
+                  // 15 slots and individual field get's different weight based of
+                  // portion it can contribute to of over score. No match on individual
+                  // field has a negative impact (again besed on it's weight) on actual
+                  // score. Assigned weight will likely need some tuning right now
+                  // frequencey of visits has a largest wegiht (almost half but less than
+                  // half so that no match will still exclude the result). Title has higher
+                  // weight than uri as search engines tend to add search term in terms of
+                  // query arguments (probably would make sense to score query arguments &
+                  // uri hash separately so they weight less, althouh since scoring is length
+                  // and index based match in query already get's scored less).
+                  site.score = frequencyScore * 7/15 +
+                               titleScore * 5/15 +
+                               uriScore * 3/15;
+
                   return site
                 })
                .filter(site => site.score > 0)
+                // order by score.
                .sort((a, b) =>
                   a.score > b.score ? -1 :
                   a.score < b.score ? 1 :
                   0)
+                // Only take `MAX_RESULTS` number of results.
                .slice(0, MAX_RESULTS);
   });
 
