@@ -6,41 +6,83 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const Step = (task, handler="next") => result => {
+  // Utility function that can be used to resume a generator
+  // in a given mode (`next` or `throw`). Result is a function
+  // that takes a `value` and resumes `task` in a curried `mode`
+  // with a given `value`.
+  const resume = (task, mode="next") => value => {
     try {
-      return task[handler](result);
+      return task[mode](value);
     } catch (error) {
       return {error}
     }
   }
 
 
+  // Utility function takes `routine` generator and arguments
+  // that will be start / pass to a generator. Result of calling
+  // spawn is a promise that is resolved to a return value of
+  // the give generator. spawn will pause / resume generator on
+  // `yield`. If yield value is a promise generator is resumed
+  // with a value that promise is resolved to or if promise is
+  // rejected then generator will be resumed with an exception
+  // that will be rejection reason. If exception is thrown / not
+  // handled in generator body then returned promise will be
+  // rejected with a given exception.
   const spawn = function(routine, ...params) {
     return new Promise((resolve, reject) => {
+      // start a task by passing arguments to generator, note if generator
+      // throws right away it will just reject outer promise.
       const task = routine.call(this, ...params);
-      const raise = Step(task, "throw")
-      const next = Step(task, "next");
+      // Create a task resuming functions that resume a generator to capture
+      // value it yeilds / returns or an error it throws. `raise` is used to
+      // remuse task with a exception and `next` is used to resume it with a
+      // `value`.
+      const raise = resume(task, "throw");
+      const next = resume(task, "next");
 
-      const resume = ({done, error, value}) => {
+      // step function takes result captured via one of the resumer functions
+      // and either completes result promise of the task with it (rejects if
+      // exception was captured or resolves with value if generator returned)
+      // or suspends generator until yield value is resolved / rejected and
+      // then resumes it with resolution value / rejecetion reason.
+      const step = ({done, error, value}) => {
+        // If error was captured reject promise.
         if (error) {
           reject(error);
         }
+        // If generator is done resolve with a completion value.
         else if (done) {
           resolve(value);
         }
+        // Otherwise wrap yield value with promise to wait for tick even
+        // if it was not already a promise & resume generator with either
+        // reseming funciton and caputre results which then are cycled back
+        // onto next step.
         else {
           Promise.
           resolve(value).
           then(next, raise).
-          then(resume);
+          then(step);
         }
       };
 
-      resume(next());
+      // Resume generator initially with no value and pass on to next step.
+      step(next());
     });
   };
   exports.spawn = spawn;
 
+  // Async decorator function takes let you define ES7 like async
+  // function (see http://jakearchibald.com/2014/es7-async-functions/)
+  // but desugared using generators. `async` must be invoked with a
+  // generator function & it will return back pseudo async function.
+  // Returned funciton when invoked returns promise that will be resolved
+  // to a return value of the decorated generator. Generator can yield
+  // promises in which case it's going to be resued with a result of the
+  // promise or exception will be thrown into generator if promise is
+  // rejected. If exception is throw / not caught in generator body
+  // then returned promise will be rejected with that promise.
   const async = routine => function(...params) {
     return spawn.call(this, routine, ...params);
   };
