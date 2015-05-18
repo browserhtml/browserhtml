@@ -263,7 +263,8 @@ define((require, exports, module) => {
       onDocumentKeyUp: compose(onTabStripKeyUp(editTabStrip),
                                onDeckBindingRelease(editWebViews)),
       onAppUpdateAvailable: event => editUpdates(Updates.setAppUpdateAvailable),
-      onRuntimeUpdateAvailable: event => editUpdates(Updates.setRuntimeUpdateAvailable)
+      onRuntimeUpdateAvailable: event => editUpdates(Updates.setRuntimeUpdateAvailable),
+      onOpenWindow: event => editWebViews(openTab(event.detail.url))
     }, [
       WindowBar({
         key: 'navigation',
