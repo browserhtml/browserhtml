@@ -14,7 +14,7 @@
   "scripts": {
     "start-server": "ecstatic . --port 6060",
     "start": "./.bin/start.js",
-    "deploy": "./deploy.sh"
+    "deploy": "./.bin/deploy.sh"
   },
   "devDependencies": {
     "ecstatic": "^0.7.1",
