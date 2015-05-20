@@ -13,8 +13,7 @@
   },
   "scripts": {
     "start-server": "ecstatic . --port 6060",
-    "start-app": "/Applications/B2G.app/Contents/MacOS/graphene --start-manifest=http://localhost:6060/manifest.webapp",
-    "start": "npm run start-server & npm run start-app",
+    "start": "./.bin/start.js",
     "deploy": "./deploy.sh"
   },
   "devDependencies": {
