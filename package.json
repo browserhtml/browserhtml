@@ -12,6 +12,7 @@
     "url": "http://github.com/mozilla/browser.html/issues/"
   },
   "scripts": {
+    "start-server": "ecstatic . --port 6060",
     "start": "./.bin/start.js",
     "deploy": "./deploy.sh"
   },
