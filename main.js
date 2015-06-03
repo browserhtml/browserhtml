@@ -18,6 +18,7 @@ require.config({
     omniscient: 'omniscient/dist/omniscient',
     // https://github.com/broofa/node-uuid
     uuid: 'node-uuid/uuid',
+    reflex: 'reflex/lib/index',
     pouchdb: 'pouchdb/dist/pouchdb'
   },
   shim: {
