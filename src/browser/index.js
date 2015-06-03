@@ -3,18 +3,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 define((require, exports, module) => {
-
   'use strict';
 
-  const {render} = require('common/render');
-  const {Browser} = require('./browser');
-  const {readSession, resetSession} = require('./actions');
+  const {main} = require('reflex');
+  const Model = require('./browser');
+  //const {readSession, resetSession} = require('./actions');
   const {appUpdateAvailable} = require('./github');
 
-  window.renderer = render(Browser, readSession() || resetSession(),
-                           document.body);
+  window.main = main(document.body, Model());
 
   appUpdateAvailable.then(() => {
+
     dispatchEvent(new CustomEvent('app-update-available'));
   }, () => {
     console.log('Not checking for updates');

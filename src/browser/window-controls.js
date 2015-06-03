@@ -6,7 +6,7 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {Record, Union} = require('typed-immutable/index');
+  const {Record, Maybe, Union} = require('typed-immutable/index');
   const {html} = require('reflex');
   const Embedding = require('common/embedding');
 

@@ -6,6 +6,44 @@ define((require, exports, module) => {
 
   'use strict';
 
+  const {html, node, render} = require('reflex');
+  const {Record, Union} = require('typed-immutable/index');
+
+  const Embedding = require('common/embedding');
+  const WindowControls = require('./window-controls');
+
+  // Model
+  const Browser = Record({
+    id: 'browser-window',
+    shell: WindowControls
+  });
+
+  // Actions
+
+  const {SystemAction} = Embedding;
+
+  Browser.Action = Union(SystemAction);
+
+  // Update
+
+  Browser.update = (state, action) =>
+    // System actions handling is delegated to an embedding.
+    action.constructor === SystemAction ? Embedding.update(state, action) :
+    action;
+
+
+  // View
+
+  Browser.view = ({id, shell}) => node('main', {
+
+  }, [
+    render(shell)
+  ]);
+
+
+  module.exports = Browser;
+
+  /*
   const Component = require('omniscient');
   const {DOM} = require('react');
   const {compose} = require('lang/functional');
@@ -344,5 +382,6 @@ define((require, exports, module) => {
   // Exports:
 
   exports.Browser = Browser;
+  */
 
 });
