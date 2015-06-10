@@ -9,19 +9,22 @@ define((require, exports, module) => {
 
   // Actions
 
-  function SystemAction(detail, bubbles=true, cancelable=false) {
+  const SystemAction = function(detail, bubbles=true, cancelable=false) {
     if (this instanceof SystemAction) {
       this.detail = detail
       this.type = detail.type
       this.bubbles = bubbles
       this.cancelable = cancelable
     } else {
-      return new SystemAction(detail, bubbles, cancelable)
+      return new SystemAction(detail, bubbles, cancelable);
     }
   }
 
   SystemAction.prototype = {
     constructor: SystemAction,
+    toJSON() {
+      return this.detail;
+    },
     get dispatch() {
       return () =>
         window.dispatchEvent(new CustomEvent('mozContentEvent', this));
@@ -29,12 +32,25 @@ define((require, exports, module) => {
   };
 
 
-  exports.SystemAction = SystemAction;
+  const Action = SystemAction;
+  Action.SystemAction = SystemAction;
+  Action.isTypeOf = ({constructor}) =>
+    constructor === SystemAction;
+
+  exports.Action = SystemAction;
 
   // Update
 
+  const UNSUPPORTED_TYPES = new Set([
+    'clear-cache-and-restart',
+    'restart'
+  ]);
+
   exports.update = (state, action) => {
     if (action.constructor === SystemAction) {
+      if (UNSUPPORTED_TYPES.has(action.type)) {
+        console.error(`Requested action "${action.type}" is not supported yet`);
+      }
       action.dispatch();
     }
     return state;

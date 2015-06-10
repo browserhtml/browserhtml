@@ -6,68 +6,122 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {DOM} = require('react')
-  const Component = require('omniscient');
-  const {identity} = require('lang/functional');
-  const {readDashboardTheme, getDashboardThemePatch, getWallpaperSwatches} = require('./dashboard/actions');
+  const {html, render} = require('reflex')
+  const {Record, Union, List, Maybe} = require('common/typed');
+  const WebView = require('./web-view');
 
-  const readBackground = uri => ('none' && `url(${uri})`);
 
-  const changeWallpaper = key => dashboard =>
-    dashboard.merge(getDashboardThemePatch(key));
+  // Model
 
-  const List = (Item, a2b) => Component('List', (options, handlers) =>
-    DOM.div(options, options.items.map(options =>
-      Item(a2b(options), handlers))));
+  const URI = String;
+  const Path = String;
 
-  const WallpaperSwatch = ({key, backgroundColor}, {edit}) =>
-    DOM.div({
-      key,
-      className: 'wallpaper-swatch',
-      style: {backgroundColor},
-      onClick: event => edit(changeWallpaper(key))
-    });
+  const Page = Record({
+    uri: URI,
+    image: Path,
+    title: String
+  }, 'Dashboard.Page');
+  Page.key = page => page.uri;
 
-  const WallpaperSwatches = List(WallpaperSwatch, identity);
+  const Color = String;
 
-  const DashboardTile = ({key, uri, image, title}, {onOpen}) =>
-    DOM.div({key,
-             onClick: event => onOpen(uri),
-             className: 'tile tile-large'}, [
-             DOM.div({key: 'tileThumbnail',
-                      className: 'tile-thumbnail',
-                      style: {backgroundImage: readBackground(image)}}),
-             DOM.div({key: 'tileTitle',
-                      className: 'tile-title'}, null, title)]);
+  const Wallpaper = Record({
+    backgroundColor: Maybe(Color),
+    foregroundColor: Maybe(Color),
+    posterImage: Maybe(Path)
+  }, 'Dashboard.Theme.Wallpaper')
 
-  const DashboardTiles = List(DashboardTile, item => ({
-    key: item.get('uri'),
-    uri: item.get('uri'),
-    image: item.get('image'),
-    title: item.get('title')
-  }));
+  const Theme = Record({
+    id: String ,
+    wallpaper: Wallpaper,
+    navigation: Record({
+      backgroundColor: Maybe(Color),
+      foregroundColor: Maybe(Color),
+      isDark: false
+    })
+  }, 'Dashboard.Theme');
 
-  const Dashboard = Component('Dashboard',
-    ({dashboard, hidden}, {onOpen, edit}) =>
-    DOM.div({
-      style: readDashboardTheme(dashboard),
+  const Model = Record({
+    themes: Record({
+      selected: 0,
+      entries: List(Theme)
+    }),
+    pages: List(Page)
+  }, 'Dashboard');
+
+  exports.Theme = Theme;
+  exports.Page = Page;
+  exports.Model = Model;
+
+  // Actions
+
+  const {Open} = WebView;
+  const ChangeTheme = Record({id: String}, 'Dashboard.ChangeTheme');
+
+  const Action = Union({ChangeTheme});
+
+  exports.Action = Action;
+
+  // Update
+
+  const setTheme = (themes, id) =>
+    themes.set('selected', themes.entries.findIndex(theme => id === theme.id));
+
+  const update = (state, {constructor, id}) =>
+    constructor === ChangeTheme ? state.set('themes',
+                                            setTheme(state.themes, id)) :
+    state;
+  exports.update = update;
+
+  // View
+
+  const viewTheme = ({id, wallpaper}, address) => html.div({
+    key: id,
+    className: 'wallpaper-swatch',
+    style: {backgroundColor: wallpaper.backgroundColor},
+    onClick: address.send(ChangeTheme({id}))
+  });
+
+  const viewPage = ({uri, image, title}, address) => html.div({
+    key: uri,
+    className: 'tile tile-large',
+    onClick: address.send(Open({uri})),
+  }, [
+    html.div({
+      key: 'tileThumbnail',
+      className: 'tile-thumbnail',
+      style: {backgroundImage: image && `url(${image})`}
+    }),
+    html.div({
+      key: 'tileTitle',
+      className: 'tile-title'
+    }, title)
+  ]);
+
+  const view = ({themes, pages}, isSelected, address) => {
+    const theme = themes.entries.get(themes.selected);
+    return html.div({
+      key: 'dashboard',
+      hidden: !isSelected,
       className: 'dashboard',
-      hidden
+      style: theme && {
+        backgroundColor: theme.wallpaper.backgroundColor,
+        color: theme.wallpaper.foregroundColor,
+        backgroundImage: theme.wallpaper.posterImage &&
+                         `url(${theme.wallpaper.posterImage})`
+      }
     }, [
-      DashboardTiles({
+      html.div({
         key: 'dashboard-tiles',
-        className: 'dashboard-tiles',
-        items: dashboard.get('items')
-      }, {onOpen}),
-      WallpaperSwatches({
+        className: 'dashboard-tiles'
+      }, pages.map(page => render(page.url, viewPage, page, address))),
+      html.div({
         key: 'wallpaper-swatches',
         className: 'wallpaper-swatches',
-        items: getWallpaperSwatches()
-      }, {edit})
-    ]));
-
+      }, themes.entries.map(theme => render(theme.id, viewTheme, theme, address)))
+    ]);
+  };
   // Exports:
 
-  exports.Dashboard = Dashboard;
-
+  exports.view = view;
 });

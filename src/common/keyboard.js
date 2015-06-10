@@ -57,26 +57,59 @@ define((require, exports, module) => {
       .sort()
       .join(' ');
 
+  class UnknownKeyBinding {
+    constructor({chord, metaKey, shiftKey, altKey, ctrlKey, key}) {
+      this.chord = chord
+      this.key = key
+      this.metaKey = metaKey
+      this.shiftKey = shiftKey
+      this.altKey = altKey
+      this.ctrlKey = ctrlKey
+    }
+    toJSON() {
+      const {chord, key, metaKey, shiftKey, altKey, ctrlKey} = this;
+      return {chord, key, metaKey, shiftKey, altKey, ctrlKey};
+    }
+    toString() {
+      return `UnknownKeyBinding(${JSON.stringify(this)})`
+    }
+  }
 
-  const KeyBindings = (handlers) => {
+  const KeyBindings = bindingTable => {
     const bindings = Object.create(null);
-    Object.keys(handlers).forEach(key => {
-      bindings[readChord(key)] = handlers[key];
+    Object.keys(bindingTable).forEach(key => {
+      bindings[readChord(key)] = bindingTable[key];
     });
 
-    return (...args) => event => {
-      if (event) {
-        const chord = writeChord(event);
-        const binding = bindings[chord];
+    return event => {
+      const chord = writeChord(event);
+      const read = bindings[chord] ||
+                   bindings[`${event.type}: ${chord}`]
 
-        if (binding) {
-          binding(...args);
-          event.preventDefault();
-          event.stopPropagation();
-        }
+      if (read) {
+        event.preventDefault();
+        event.stopPropagation();
+        return read(event);
+      } else {
+        const {metaKey, shiftKey, altKey, ctrlKey, key} = event;
+        return new UnknownKeyBinding({
+          chord, key, metaKey, shiftKey, altKey, ctrlKey
+        });
       }
-      return event;
     }
+  }
+  KeyBindings.Stop = read => {
+    event.stopPropagation();
+    return read(event);
+  }
+  KeyBindings.Cancel = read => {
+    event.preventDefault();
+    return read(event);
+  }
+  KeyBindings.Abort = read => {
+    event.preventDefault();
+    event.stopPropagation();
+    return read(event);
   }
 
 

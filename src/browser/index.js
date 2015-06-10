@@ -6,14 +6,21 @@ define((require, exports, module) => {
   'use strict';
 
   const {main} = require('reflex');
-  const Model = require('./browser');
-  //const {readSession, resetSession} = require('./actions');
+  const Browser = require('./browser');
   const {appUpdateAvailable} = require('./github');
+  const Session = require('./session');
 
-  window.main = main(document.body, Model());
+  console.log(Browser)
+
+  const app = main(document.body,
+                   Session.update(Browser.Model(),
+                                  Session.Action.RestoreSession),
+                   Browser.update,
+                   Browser.view);
+
+  window.app = app;
 
   appUpdateAvailable.then(() => {
-
     dispatchEvent(new CustomEvent('app-update-available'));
   }, () => {
     console.log('Not checking for updates');

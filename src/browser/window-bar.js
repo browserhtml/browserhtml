@@ -6,15 +6,21 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {DOM} = require('react')
-  const Component = require('omniscient');
+  const {Record, Union} = require('typed-immutable/index');
+  const {html, render} = require('reflex')
   const ClassSet = require('common/class-set');
   const {mix} = require('common/style');
-  const {ProgressBar} = require('./progress-bar');
-  const {WindowControls} = require('./window-controls');
-  const {LocationBar} = require('./location-bar');
 
-  const navbarStyle = {
+  const Progress = require('./progress-bar');
+  const WindowControls = require('./window-controls');
+  const LocationBar = require('./location-bar');
+
+  const Theme = require('./theme');
+  const WebView = require('./web-view');
+
+  // Model
+
+  const NavigationPanelStyle = Record({
     backgroundColor: 'inherit',
     MozWindowDragging: 'drag',
     padding: 10,
@@ -22,40 +28,44 @@ define((require, exports, module) => {
     scrollSnapCoordinate: '0 0',
     transition: 'background-color 200ms ease',
     textAlign: 'center'
-  };
-
-  const WindowBar = Component(function WindowBar(state, handlers) {
-    const {key, input, tabStrip, webView, suggestions,
-           title, rfa, theme, isDocumentFocused} = state;
-    return DOM.div({
-      key,
-      style: mix(navbarStyle, theme.navigationPanel),
-      className: ClassSet({
-        navbar: true,
-        cangoback: webView.canGoBack,
-        canreload: webView.uri,
-        loading: webView.isLoading,
-        ssl: webView.securityState == 'secure',
-        sslv: webView.securityExtendedValidation,
-      })
-    }, [
-      WindowControls({
-        key: 'WindowControls',
-        isDocumentFocused,
-        theme
-      }),
-      LocationBar.render(LocationBar({
-        key: 'navigation',
-        input, tabStrip, webView,
-        suggestions, title, theme
-      }), handlers),
-      ProgressBar({key: 'progressbar', rfa, webView, theme},
-                  {editRfa: handlers.editRfa})
-    ])
   });
 
-  // Exports:
+  const WindowBar = Record({
+    isFocused: Boolean
+  }, 'WindowBar');
 
-  exports.WindowBar = WindowBar;
+  // Action
+  const {Enter, Exit, Select, Change, Preview,
+         Submit, SuggestNext, SuggestPrevious} = LocationBar.Action;
+  const Action = Union(Enter, Exit, Select, Change);
+  Action.Preview = Preview;
+  Action.SuggestNext = SuggestNext;
+  Action.SuggestPrevious = SuggestPrevious;
+  Action.Submit = Submit;
 
+  WindowBar.Action = Action;
+  // Update
+
+
+  // view
+
+  WindowBar.view = (shell, webView, theme, address) => html.div({
+    key: 'WindowBar',
+    style: NavigationPanelStyle(theme.navigationPanel),
+    className: ClassSet({
+      navbar: true,
+      cangoback: webView.navigation.canGoBack,
+      canreload: webView.page.uri,
+      loading: webView.progress.value < 1,
+      ssl: webView.security.state == 'secure',
+      sslv: webView.security.extendedValidation,
+    })
+  }, [
+    render('WindowControls', WindowControls.view, shell, theme, address),
+    render('LocationBar', LocationBar.view, webView, theme, address),
+    render('ProgressBar', Progress.view,
+           webView.progress, webView.id, theme, address)
+  ]);
+
+  module.exports = WindowBar;
 });

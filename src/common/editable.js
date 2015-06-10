@@ -6,75 +6,93 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {isFocused, focus, blur} = require('./focusable');
-  const {Element, BeforeAppendAttribute, VirtualAttribute, Event} = require('./element');
-  const {Component, createFactory} = require('react');
-  const {Record} = require('typed-immutable/index');
+  const {Record, Union} = require('common/typed');
+  const {Element, VirtualAttribute} = require('./element');
+  const Focusable = require('./focusable');
 
   // Model
 
-  const Editable = Record({
-    isFocused: Boolean(false),
-    selectionStart: Number(0),
-    selectionEnd: Number(0),
-    selectionDirection: String('forward'),
-    value: String('')
+  const Model = Record({
+    isFocused: false,
+    value: '',
+    selectionStart: 0,
+    selectionEnd: 0,
+    selectionDirection: 'forward'
   });
+  exports.Model = Model;
 
   // Actions
 
-  Editable.select = (range={}) => editable => editable.merge({
+  const Select = Record({
+    selectionStart: 0,
+    selectionEnd: 0,
+    selectionDirection: 'forward'
+  }, 'Editable.Select');
+  Select.All = () => Select({selectionEnd: Infinity});
+
+  Select.for = ({target}) => Select({
+    selectionStart: target.selectionStart,
+    selectionEnd: target.selectionEnd,
+    selectionDirection: target.selectionDirection
+  });
+
+  const Change = Record({value: String}, 'Editable.Change');
+  Change.for = ({target}) => Change({value: target.value});
+
+  const {Focus, Blur} = Focusable;
+  const Action = Union({Change, Select});
+  exports.Action = Action;
+
+  // Update
+
+  const select = (state, range) => state.merge({
     selectionStart: range.selectionStart,
     selectionEnd: range.selectionEnd,
     selectionDirection: range.selectionDirection
   });
+  exports.select = select;
 
-  Editable.selectAll = Editable.select({selectionStart:0,
-                                        selectionEnd: Infinity});
+  const selectAll = state => state.merge({
+    selectionStart: 0,
+    selectionEnd: Infinity,
+    selectionDirection: 'forward'
+  });
+  exports.selectAll = selectAll;
 
-  Editable.focus = focus;
-  Editable.blur = blur;
+  const update = (state, action) =>
+    action instanceof Change ? state.set('value', action.value) :
+    action instanceof Select ? select(state, action) :
+    Focusable.Action.isTypeOf(action) ? Focusable.update(state, action) :
+    action;
 
-  // View
+  exports.update = update;
 
-  const updateSelection = field => (node, current, past) => {
+  // Field
+
+  const setSelection = field => (node, current, past) => {
     if (current != past) {
-      node[field] = current === Infinity ? node.value.length : current
+      node[field] = current === Infinity ? node.value.length : current;
     }
   };
 
-  const InputElement = Element('input', {
-    isFocused,
-    selectionStart: VirtualAttribute(updateSelection('selectionStart')),
-    selectionEnd: VirtualAttribute(updateSelection('selectionEnd')),
+  const Field = {
+    selectionStart: VirtualAttribute(setSelection('selectionStart')),
+    selectionEnd: VirtualAttribute(setSelection('selectionEnd')),
     selectionDirection: VirtualAttribute((node, current, past) => {
       if (current !== past) {
         node.selectionDirection = current
       }
-    }),
-  });
-
-  class InputField extends Component {
-    constructor() {
-      this.onKeyDown = this.onKeyDown.bind(this);
-    }
-    onKeyDown(event) {
-      if (this.props.onKeyDown) {
-        this.props.onKeyDown(event);
-      }
-      if (event.key == this.props.submitKey) {
-        this.props.onSubmit(event);
-      }
-    }
-    render() {
-      return InputElement(Object.assign({}, this.props, {onKeyDown: this.onKeyDown}));
-    }
+    })
   };
+  exports.Field = Field;
 
-  Editable.renderInput = InputElement
-  Editable.renderField = createFactory(InputField)
+  // View
 
-  // Exports:
-
-  exports.Editable = Editable;
+  const view = Element('input', {
+    isFocused: Focusable.Field.isFocused,
+    selectionStart: Field.selectionStart,
+    selectionEnd: Field.selectionEnd,
+    selectionDirection: Field.selectionDirection
+  });
+  exports.view = view;
 });

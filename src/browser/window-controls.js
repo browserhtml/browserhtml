@@ -9,41 +9,18 @@ define((require, exports, module) => {
   const {Record, Maybe, Union} = require('typed-immutable/index');
   const {html} = require('reflex');
   const Embedding = require('common/embedding');
+  const Theme = require('./theme');
 
   // Model
 
-  const Color = String;
-
-  const ButtonStyle = Record({
-    backgroundColor: Maybe(Color),
-    display: 'inline-block',
-    width: 12,
-    height: 12,
-    marginRight: 8,
-    borderRadius: '50%'
-  });
-
-  const WindowTheme = Record({
-    minButton: ButtonStyle({
-      backgroundColor: '#FDBC40'
-    }),
-    maxButton: ButtonStyle({
-      backgroundColor: '#33C748'
-    }),
-    closeButton: ButtonStyle({
-      backgroundColor: '#FC5753'
-    })
-  });
-
   const WindowControls = Record({
-    id: 'WindowControls',
-    theme: WindowTheme,
-    isFocused: true
-  });
+    theme: Theme,
+    isFocused: Boolean
+  }, 'WindowControls');
 
   // Actions
 
-  const {SystemAction} = Embedding;
+  const {SystemAction} = Embedding.Action;
   const Action = Union(SystemAction);
   Action.SystemAction = SystemAction;
 
@@ -59,6 +36,29 @@ define((require, exports, module) => {
 
   // View
 
+  const Color = String;
+  const ButtonStyle = Record({
+    backgroundColor: Color,
+    color: Maybe(Color),
+    display: 'inline-block',
+    width: 12,
+    height: 12,
+    marginRight: 8,
+    borderRadius: '50%'
+  }, 'ControlButtonStyle');
+  ButtonStyle.min = ButtonStyle({
+    backgroundColor: '#FDBC40'
+  });
+  ButtonStyle.max = ButtonStyle({
+    backgroundColor: '#33C748'
+  });
+  ButtonStyle.close = ButtonStyle({
+    backgroundColor: '#FC5753'
+  });
+  ButtonStyle.unfocused = ButtonStyle({
+    backgroundColor: 'hsl(0, 0%, 86%)'
+  });
+
   const containerStyle = {
     position: 'absolute',
     top: 10,
@@ -68,35 +68,33 @@ define((require, exports, module) => {
     marginLeft: 7,
   };
 
-  const unfocusedButton = ButtonStyle({
-    backgroundColor: 'hsl(0, 0%, 86%)'
-  });
 
-  // Helper functions for triggering system actions. Defined here to avoid
-  // unecessary allocations on every render.
-  const close = _ => SystemAction({type: 'shutdown-application'});
-  const minimize = _ => SystemAction({type: 'minimize-native-window'});
-  const maximize = _ => SystemAction({type: 'toggle-fullscreen-native-window'});
+  // Actions that will are send by window controls.
+  const Close = SystemAction({type: 'shutdown-application'});
+  const Minimize = SystemAction({type: 'minimize-native-window'});
+  const Maximize = SystemAction({type: 'toggle-fullscreen-native-window'});
 
-
-  WindowControls.view = ({id, isFocused, theme}) => html.div({
-    key: id,
+  WindowControls.view = ({isFocused}, theme, address) => html.div({
+    key: 'WindowControls',
     style: containerStyle
   }, [
     html.div({
       key: 'WindowCloseButton',
-      style: isFocused ? theme.closeButton : unfocusedButton,
-      onClick: close
+      style: isFocused ? ButtonStyle.close.merge(theme.windowCloseButton) :
+             ButtonStyle.unfocused,
+      onClick: address.send(Close)
     }),
     html.div({
       key: 'WindowMinButton',
-      style: isFocused ? theme.minButton : unfocusedButton,
-      onClick: minimize
+      style: isFocused ? ButtonStyle.min.merge(theme.windowMinButton) :
+             ButtonStyle.unfocused,
+      onClick: address.send(Minimize)
     }),
     html.div({
       key: 'WindowMaxButton',
-      style: isFocused ? theme.maxButton : unfocusedButton,
-      onClick: maximize
+      style: isFocused ? ButtonStyle.max.merge(theme.windowMaxButton) :
+             ButtonStyle.unfocused,
+      onClick: address.send(Maximize)
     })
   ]);
 
