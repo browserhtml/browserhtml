@@ -28,11 +28,14 @@
 
 .tabstripkillzone {
   display: block;
-  height: calc(100vh - 50px);
+  height: calc(100vh - 50px - 90px);
   width: 100vw;
   background-color: rgba(0,0,0,0.05);
   transition: background-color 200ms linear;
   z-index: 42;
+  position: absolute;
+  top: 90px;
+  left: 0;
 }
 
 .tabstripkillzone-hidden {

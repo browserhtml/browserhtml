@@ -135,13 +135,14 @@ define((require, exports, module) => {
   };
 
   const view = (state, isSelected, isPreviewed, address) => {
+    const {uri, shell, page, navigation} = state;
     // Do not render anything unless viewer has an `uri`
-    if (!state.uri) return null;
+    if (!uri) return null;
 
     console.log('update web-view')
 
     const style = mix(base, {
-      minHeight: (state.page.verflow && isSelected) ? '100vh' : null,
+      minHeight: (page.overflow && isSelected) ? '100vh' : null,
       display: isSelected ? null : 'none',
     });
 
@@ -153,17 +154,17 @@ define((require, exports, module) => {
       // Until that's fixed on platform we just hide such elements with
       // negative index and absolute position.
       style: isSelected ? style :
-             state.thumbnail ? style :
+             //page.thumbnail ? style :
              mix(style, offScreen),
       isBrowser: true,
       isRemote: true,
-      mozApp: isPrivileged(state.uri) ? getManifestURL().href : null,
+      mozApp: isPrivileged(uri) ? getManifestURL().href : null,
       allowFullScreen: true,
       isVisible: isSelected || isPreviewed,
-      zoom: state.shell.zoom,
-      isFocused: state.shell.isFocused,
-      uri: state.uri,
-      readyState: state.navigation.state,
+      zoom: shell.zoom,
+      isFocused: shell.isFocused,
+      uri: uri,
+      readyState: navigation.state,
 
       onCanGoBackChange: action,
       onCanGoForwardChange: action,

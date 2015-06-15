@@ -147,7 +147,10 @@ define((require, exports, module) => {
     const theme = Theme.read(dashboard.pallet);
 
     return Main({
-      key: 'main',
+      key: 'root',
+      windowTitle: previewed.view.page.title ||
+                   previewed.view.uri,
+      scrollGrab: true,
       onKeyDown: address.pass(Binding),
       onWindowBlur: address.pass(Blur),
       onWindowFocus: address.pass(Focus),
@@ -169,7 +172,9 @@ define((require, exports, module) => {
         scrollSnapType: 'mandatory',
         scrollSnapDestination: '0 0',
         position: 'relative',
-        overflowY: previewed.view.input.isFocused ? 'hidden' : null
+        overflowY: previewed.view.input.isFocused ? 'hidden' :
+                   state.previews.isActive ? 'hidden' :
+                   'scroll'
       }
     }, [
       render('WindowBar', WindowBar.view, shell, previewed.view, theme, address),
