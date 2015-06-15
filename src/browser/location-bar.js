@@ -222,10 +222,10 @@ define((require, exports, module) => {
       ]),
       html.div({
         key: 'reload-button',
-        style: isLoading(progress) ? reloadButton.merge({color: theme.controlButton}) :
-               !uri ? reloadButton.merge({color: theme.controlButton})
-                                  .merge(disable) :
-               reloadButton.merge({color: theme.controlButton}),
+        style: reloadButton.merge({color: theme.controlButton})
+                           .merge(isLoading(progress) ? hide :
+                                  !uri ? disable :
+                                  null),
         onClick: address.pass(Reload, webView),
       }, ReloadIcon),
       html.div({
