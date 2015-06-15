@@ -15,9 +15,9 @@ define((require, exports, module) => {
   // Model
 
   const Model = Record({
-    loadStarted: -1,
-    connected: -1,
-    loadEnded: -1,
+    loadStarted: 0,
+    connected: 0,
+    loadEnded: 0,
 
     value: 0
   });
@@ -38,7 +38,7 @@ define((require, exports, module) => {
 
   const LoadProgress = Record({
     id: String,
-    tiemStamp: Number
+    timeStamp: Number
   }, 'WebView.Progress.LoadProgress');
 
   const LoadStart = Record({
@@ -52,31 +52,27 @@ define((require, exports, module) => {
   }, 'WebView.Progress.LoadEnd');
 
 
-  const ProgressChange = Record({
-    id: String,
-    value: Number
-  }, 'WebView.Progress.ProgressChange');
-
-
   exports.LoadProgress = LoadProgress;
   exports.LoadStart = LoadStart;
   exports.LoadEnd = LoadEnd;
-  exports.ProgressChange = ProgressChange;
-  exports.Action = Union({ProgressChange, LoadProgress,
-                          LoadStart, LoadEnd});
+  exports.Action = Union({LoadProgress, LoadStart, LoadEnd});
 
 
   // Update
 
   const update = (state, action) =>
     !action ? state :
-    action.id != state.id ? state :
-    action instanceof ProgressChange ? state.set('value', action.value) :
-    action instanceof LoadStart ? state.set('loadStarted', action.timeStamp) :
+    action instanceof LoadStart ? state.clear().set('loadStarted', action.timeStamp) :
     action instanceof LoadEnd ? state.set('loadEnded', action.timeStamp) :
     // Only update `connected` if web-view is connecting.
     action instanceof LoadProgress ?
-      (isConnecting(state) ? state.set('connected', action.timeStamp) : state) :
+      (isConnecting(state) ? state.set('connected', action.timeStamp) :
+      state.set('value', computeProgress({
+        now: action.timeStamp,
+        loadStarted: state.loadStarted,
+        connected: state.connected,
+        loadEnded: state.loadEnded
+      }))) :
     state;
   exports.update = update;
 
@@ -103,26 +99,15 @@ define((require, exports, module) => {
     // approach: [time, pivot] -> [0 - 1]
     // Pivot value is more or less when the animation seriously starts to slow down
 
-    const a = loadStarted < 0 ? 0 :
+    const a = loadStarted <= 0 ? 0 :
               A * approach(now - loadStarted, APivot);
-    const b = connected < 0 ? 0 :
+    const b = connected <= 0 ? 0 :
               B * approach(now - connected, BPivot);
-    const c = loadEnded < 0 ? 0 :
+    const c = loadEnded <= 0 ? 0 :
               (1 - a - b) * (now - loadEnded) / CDuration;
 
     return Math.min(1, a + b + c);
   };
-
-  const ComputeProgressChange = (id, state, {timeStamp}) =>
-    ProgressChange({id,
-      value: computeProgress({
-        now: timeStamp,
-        loadStarted: state.loadStarted,
-        connected: state.connected,
-        loadEnded: state.loadEnded
-      })
-    });
-
 
   // View
 
@@ -131,26 +116,31 @@ define((require, exports, module) => {
     progress < startFading ? 1 :
     1 - Math.pow((progress - startFading) / (1 - startFading), 1);
 
+  const ProgressUpdate = (id, {timeStamp}) =>
+    LoadProgress({id, timeStamp});
+
   const view = (progress, id, theme, address) => {
     const node = html.div({
       key: 'ProgressBar',
-      zIndex: 99,
-      display: 'block',
-      width: '100%',
-      height: 3,
-      marginLeft: '-100%',
-      position: 'absolute',
-      top: 50,
-      left: 0,
-      backgroundColor: theme.progressbar.color,
-      opacity: computeOpacity(progress.value),
-      transform: `translateX(${100 * progress.value}%)`
+      style: {
+        zIndex: 99,
+        display: 'block',
+        width: '100%',
+        height: 3,
+        marginLeft: '-100%',
+        position: 'absolute',
+        top: 50,
+        left: 0,
+        backgroundColor: theme.progressBar,
+        opacity: computeOpacity(progress.value),
+        transform: `translateX(${100 * progress.value}%)`
+      }
     });
 
     // If `webView` is loading then animate node with `ProgressChange` actions
     // on every animatation frame.
     return !isLoading(progress) ? node :
-           animate(node, address.pass(ComputeProgressChange, id, state));
+           animate(node, address.pass(ProgressUpdate, id));
   };
   exports.view = view;
 });

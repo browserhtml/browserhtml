@@ -52,8 +52,8 @@ define((require, exports, module) => {
   // Update
 
   const update = (state, action) =>
-    state instanceof TitleChange ? state.set('title', action.title) :
-    state instanceof IconChange ? state.set('icon', action.uri) :
+    action instanceof TitleChange ? state.set('title', action.title) :
+    action instanceof IconChange ? state.set('icon', action.uri) :
     action instanceof OverflowChange ? state.set('overflow', action.overflow) :
     state;
 

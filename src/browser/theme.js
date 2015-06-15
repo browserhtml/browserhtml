@@ -35,109 +35,60 @@ define((require, exports, module) => {
 
   const Color = String;
 
-  const ThemeElement = Record({
-    backgroundColor: Maybe(Color),
-    color: Maybe(Color)
-  });
+  const Pallet = Record({
+    isDark: false,
+    foreground: Maybe(Color),
+    background: Maybe(Color)
+  }, 'Pallet');
+  exports.Pallet = Pallet;
 
   const Theme = Record({
     isDark: false,
     glyphsShowing: false,
 
-    windowCloseButton: ThemeElement({
-      backgroundColor: '#FC5753'
-    }),
-    windowMinButton: ThemeElement({
-      backgroundColor: '#FDBC40'
-    }),
-    windowMaxButton: ThemeElement({
-      backgroundColor: '#33C748'
-    }),
-    reloadButton: ThemeElement({
-      color: 'rgba(0,0,0,0.5)'
-    }),
-    stopButton: ThemeElement({
-      color: 'rgba(0,0,0,0.5)'
-    }),
-    backButton: ThemeElement({
-      color: 'rgba(0,0,0,0.5)'
-    }),
-    urlInput: ThemeElement({
-      color: 'rgba(0,0,0,0.65)'
-    }),
-    locationBar: ThemeElement({
-      backgroundColor: '#E1E9F0'
-    }),
-    locationText: ThemeElement({
-      color: 'rgba(0,0,0, 0.65)'
-    }),
-    titleText: ThemeElement({
-      color: 'rgba(0,0,0,0.5)'
-    }),
-    pageInfoText: ThemeElement({
-      color: 'rgba(0,0,0,0.5)'
-    }),
-    tabstrip: ThemeElement({
-      backgroundColor: '#fff'
-    }),
-    navigationPanel: ThemeElement({
-      backgroundColor: '#fff'
-    }),
-    progressbar: ThemeElement({
-      color: '#82D3FD'
-    }),
-    awesomebarSuggestions: ThemeElement({
-      backgroundColor: '#fff',
-      color: 'rgba(0,0,0, 0.65)'
-    })
-  });
-  Theme.default = Theme();
+    // reload, stop, back button color.
+    controlButton: Color('rgba(0,0,0,0.5)'),
 
-  // Expands `foregroundColor`, `backgroundColor` and `isDark` into a full theme
-  // object you can use in React views.
-  //
-  // `foregroundColor`: any valid CSS color string or null.
-  // `backgroundColor`: any valid CSS color string or null.
-  // `isDark`: boolean. Used to change background of location field.
-  //
-  // If either foreground or background is null, will fall back to default theme.
-  // Returns a theme object.
-  Theme.read = ({foregroundColor, backgroundColor, isDark}) => Theme({
-    isDark: isDark,
-    windowCloseButton: {backgroundColor: foregroundColor},
-    windowMinButton: {backgroundColor: foregroundColor},
-    windowMaxButton: {backgroundColor: foregroundColor},
-    reloadButton: {color: foregroundColor},
-    stopButton: {color: foregroundColor},
-    backButton: {color: foregroundColor},
-    urlInput: {color: foregroundColor},
-    locationBar: {
-      backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.07)'
-    },
-    locationText: {color: foregroundColor},
-    titleText: {color: foregroundColor},
-    pageInfoText: {color: foregroundColor},
-    tabstrip: {backgroundColor},
-    navigationPanel: {backgroundColor},
-    progressbar: {color: foregroundColor},
-    awesomebarSuggestions: {
-      backgroundColor: backgroundColor,
-      color: foregroundColor
-    }
-  });
+    closeButton: Color('#FC5753'),
+    minButton: Color('#FDBC40'),
+    maxButton: Color('#33C748'),
 
-  // Used to create a state patch for `webView`.
-  // @FIXME this is a temporary measure until we have the full color matching
-  // fallbacks in place.
-  Theme.fromURI = (uri) => {
-    const hostname = getDomainName(uri);
-    const colors = hardcodedColors[hostname];
-    if (colors) {
-      const [foregroundColor, backgroundColor, isDark] =  colors;
-      return Theme.read({foregroundColor, backgroundColor, isDark});
-    }
-    return Theme.default;
+    inputText: Color('rgba(0,0,0,0.65)'),
+    locationText: Color('rgba(0,0,0, 0.65)'),
+    titleText: Color('rgba(0,0,0,0.5)'),
+    locationBar: Color('#E1E9F0'),
+
+    shell: Color('#fff'),
+    shellText: Color('rgba(0,0,0, 0.65)'),
+
+    progressBar: Color('#82D3FD')
+  }, 'Theme');
+
+  exports.Theme = Theme;
+
+
+  exports.read = pallet => {
+    const foreground = pallet.foreground || void(0);
+    const background = pallet.background || void(0);
+    return Theme({
+      isDark: pallet.isDark,
+
+      closeButton: foreground,
+      minButton: foreground,
+      maxButton: foreground,
+
+      controlButton: foreground,
+
+      inputText: foreground,
+      locationText: foreground,
+      titleText: foreground,
+      locationBar: pallet.isDark ? 'rgba(255,255,255,0.15)' :
+                   'rgba(0,0,0,0.07)',
+
+      shell: background,
+      shellText: foreground,
+
+      progressBar: foreground
+    });
   };
-
-  module.exports = Theme;
 });

@@ -11,7 +11,6 @@ define((require, exports, module) => {
     static Frame() {
       Animation.id = null;
       Animation.frame = null;
-      return {type: 'animation-frame', }
       const event = Animation.Event || (Animation.Event = {
         type: 'animation-frame'
       });

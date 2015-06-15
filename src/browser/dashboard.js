@@ -9,6 +9,7 @@ define((require, exports, module) => {
   const {html, render} = require('reflex')
   const {Record, Union, List, Maybe} = require('common/typed');
   const WebView = require('./web-view');
+  const Theme = require('./theme');
 
 
   // Model
@@ -26,26 +27,23 @@ define((require, exports, module) => {
   const Color = String;
 
   const Wallpaper = Record({
-    backgroundColor: Maybe(Color),
-    foregroundColor: Maybe(Color),
+    background: Color('#F0F4F7'),
+    foreground: Color('#555'),
     posterImage: Maybe(Path)
-  }, 'Dashboard.Theme.Wallpaper')
+  }, 'Dashboard.Wallpaper');
 
-  const Theme = Record({
+  const DashboardTheme = Record({
     id: String ,
     wallpaper: Wallpaper,
-    navigation: Record({
-      backgroundColor: Maybe(Color),
-      foregroundColor: Maybe(Color),
-      isDark: false
-    })
+    pallet: Theme.Pallet
   }, 'Dashboard.Theme');
 
   const Model = Record({
     themes: Record({
       selected: 0,
-      entries: List(Theme)
+      entries: List(DashboardTheme)
     }),
+    pallet: Theme.Pallet,
     pages: List(Page)
   }, 'Dashboard');
 
@@ -67,10 +65,17 @@ define((require, exports, module) => {
   const setTheme = (themes, id) =>
     themes.set('selected', themes.entries.findIndex(theme => id === theme.id));
 
-  const update = (state, {constructor, id}) =>
-    constructor === ChangeTheme ? state.set('themes',
-                                            setTheme(state.themes, id)) :
-    state;
+  const update = (state, action) => {
+    if (action instanceof ChangeTheme) {
+      const index = state.themes.entries.findIndex(({id}) => id === action.id);
+      const theme = state.themes.entries.get(index);
+      return state.merge({
+        themes: state.themes.set('selected', index),
+        pallet: theme.pallet
+      });
+    }
+    return state;
+  };
   exports.update = update;
 
   // View
@@ -78,7 +83,7 @@ define((require, exports, module) => {
   const viewTheme = ({id, wallpaper}, address) => html.div({
     key: id,
     className: 'wallpaper-swatch',
-    style: {backgroundColor: wallpaper.backgroundColor},
+    style: {backgroundColor: wallpaper.background},
     onClick: address.send(ChangeTheme({id}))
   });
 
@@ -105,8 +110,8 @@ define((require, exports, module) => {
       hidden: !isSelected,
       className: 'dashboard',
       style: theme && {
-        backgroundColor: theme.wallpaper.backgroundColor,
-        color: theme.wallpaper.foregroundColor,
+        backgroundColor: theme.wallpaper.background,
+        color: theme.wallpaper.foreground,
         backgroundImage: theme.wallpaper.posterImage &&
                          `url(${theme.wallpaper.posterImage})`
       }

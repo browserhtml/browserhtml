@@ -36,10 +36,9 @@ define((require, exports, module) => {
 
   // View
 
-  const Color = String;
   const ButtonStyle = Record({
-    backgroundColor: Color,
-    color: Maybe(Color),
+    backgroundColor: '',
+    color: '',
     display: 'inline-block',
     width: 12,
     height: 12,
@@ -80,20 +79,23 @@ define((require, exports, module) => {
   }, [
     html.div({
       key: 'WindowCloseButton',
-      style: isFocused ? ButtonStyle.close.merge(theme.windowCloseButton) :
-             ButtonStyle.unfocused,
+      style: isFocused ? ButtonStyle.close.merge({
+        backgroundColor: theme.closeButton
+      }) : ButtonStyle.unfocused,
       onClick: address.send(Close)
     }),
     html.div({
       key: 'WindowMinButton',
-      style: isFocused ? ButtonStyle.min.merge(theme.windowMinButton) :
-             ButtonStyle.unfocused,
+      style: isFocused ? ButtonStyle.min.merge({
+        backgroundColor: theme.minButton
+      }) : ButtonStyle.unfocused,
       onClick: address.send(Minimize)
     }),
     html.div({
       key: 'WindowMaxButton',
-      style: isFocused ? ButtonStyle.max.merge(theme.windowMaxButton) :
-             ButtonStyle.unfocused,
+      style: isFocused ? ButtonStyle.max.merge({
+        backgroundColor: theme.maxButton
+      }) : ButtonStyle.unfocused,
       onClick: address.send(Maximize)
     })
   ]);

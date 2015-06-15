@@ -65,15 +65,22 @@ define((require, exports, module) => {
   exports.Action = Action;
 
 
-  const lastSelected = entry => entry.selected;
+  const byRecency = (a, b) =>
+    a.view.id === 'about:dashboard' ? -1 :
+    a.selected > b.selected ? -1 :
+    a.selected < b.selected ? 1 :
+    0;
+
+  const order = entries => entries.sort(byRecency);
+  exports.order = order;
 
   // Takes `entires` and a `from` entry (from with in it) and returns
   // an `entry` that is `n` positions away in an ordered `entries`. In other
   // word this function lets find nth item to the left (if n < 0) or right
   // (if n > 0) of the given entry.
   const relativeOf = (entries, from, n) => {
-    const loopLength = entries.size - 1;
-    const ordered = entries.sortBy(lastSelected);
+    const loopLength = entries.size;
+    const ordered = order(entries);
     const position = ordered.indexOf(from) + n;
     const loops = Math.trunc(position / loopLength);
     return ordered.get(position - loops * loopLength);
@@ -101,7 +108,7 @@ define((require, exports, module) => {
     let target = null
     if (index === state.selected) {
       const selected = state.entries.get(index);
-      const ordered = state.entries.sortBy(lastSelected);
+      const ordered = order(state.entries);
 
       target = selected === ordered.last() ?
                relativeOf(state.entries, selected, -1) :

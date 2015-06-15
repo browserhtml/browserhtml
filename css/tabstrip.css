@@ -28,9 +28,6 @@
 
 .tabstripkillzone {
   display: block;
-  position: absolute;
-  top: 50px;
-  left: 0;
   height: calc(100vh - 50px);
   width: 100vw;
   background-color: rgba(0,0,0,0.05);

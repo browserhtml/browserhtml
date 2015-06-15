@@ -6,7 +6,7 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {Record, Union} = require('typed-immutable/index');
+  const {Record, Union, Maybe} = require('common/typed');
   const {html, render} = require('reflex')
   const ClassSet = require('common/class-set');
   const {mix} = require('common/style');
@@ -22,6 +22,7 @@ define((require, exports, module) => {
 
   const NavigationPanelStyle = Record({
     backgroundColor: 'inherit',
+    color: 'inherit',
     MozWindowDragging: 'drag',
     padding: 10,
     position: 'relative',
@@ -51,13 +52,16 @@ define((require, exports, module) => {
 
   WindowBar.view = (shell, webView, theme, address) => html.div({
     key: 'WindowBar',
-    style: NavigationPanelStyle(theme.navigationPanel),
+    style: NavigationPanelStyle({
+      backgroundColor: theme.shell,
+      color: theme.shellText
+    }),
     className: ClassSet({
       navbar: true,
       cangoback: webView.navigation.canGoBack,
       canreload: webView.page.uri,
-      loading: webView.progress.value < 1,
-      ssl: webView.security.state == 'secure',
+      loading: Progress.isLoading(webView.progress),
+      ssl: webView.security.secure,
       sslv: webView.security.extendedValidation,
     })
   }, [

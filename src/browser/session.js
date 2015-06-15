@@ -6,33 +6,24 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {Record, Any, Union} = require('typed-immutable/index');
+  const {Record, Any, Union} = require('common/typed');
   const WebView = require('./web-view');
 
   // Action
 
   const SaveSession = Record({
     name: '@save-session'
-  }, 'Session.SaveSession')();
+  }, 'Session.SaveSession');
 
   const RestoreSession = Record({
     name: '@restore-session'
-  }, 'Session.RestoreSession')();
+  }, 'Session.RestoreSession');
 
   const ResetSession = Record({
     name: '@reset-session'
-  }, 'Session.ResetSession')();
+  }, 'Session.ResetSession');
 
-  const Action = Union(SaveSession, RestoreSession, ResetSession);
-  Action.SaveSession = SaveSession;
-  Action.RestoreSession = RestoreSession;
-  Action.ResetSession = ResetSession;
-
-  Action.isTypeOf = action =>
-    action === SaveSession ||
-    action === RestoreSession ||
-    action === ResetSession;
-
+  const Action = Union({SaveSession, RestoreSession, ResetSession});
   exports.Action = Action;
 
   const pages = [
@@ -77,73 +68,68 @@ define((require, exports, module) => {
   const themes = [
     {
       id: 'default',
-      navigation: {
-        backgroundColor: null,
-        foregroundColor: null,
-        isDark: false,
+      pallet: {
+        isDark: false
       },
       wallpaper: {
-        backgroundColor: '#F0F4F7',
-        foregroundColor: null,
-        posterImage: null
+        background: '#F0F4F7',
       }
     },
     {
       id: 'dark',
-      navigation: {
-        backgroundColor: '#2E434B',
-        foregroundColor: '#eee',
+      pallet: {
+        background: '#2E434B',
+        foreground: '#eee',
         isDark: true,
       },
       wallpaper: {
-        backgroundColor: '#25363D',
-        foregroundColor: '#eee',
-        posterImage: null
+        background: '#25363D',
+        foreground: '#eee',
       }
     },
     {
       id: 'shore',
-      navigation: {
-        backgroundColor: '#078',
-        foregroundColor: '#eee',
+      pallet: {
+        background: '#078',
+        foreground: '#eee',
         isDark: true,
       },
       wallpaper: {
-        backgroundColor: '#078',
-        foregroundColor: 'rgb(255,255,255)',
+        background: '#078',
+        foreground: 'rgb(255,255,255)',
         posterImage: 'wallpaper/shore.jpg'
       }
     },
     {
       id: 'dandilion',
-      navigation: {
-        backgroundColor: '#112935',
-        foregroundColor: '#eee',
+      pallet: {
+        background: '#112935',
+        foreground: '#eee',
         isDark: true,
       },
       wallpaper: {
-        backgroundColor: '#134',
-        foregroundColor: 'rgb(255,255,255)',
+        background: '#134',
+        foreground: 'rgb(255,255,255)',
         posterImage: 'wallpaper/dandilion.jpg'
       }
     },
     {
       id: 'dock',
-      navigation: {
-        backgroundColor: '#437',
-        foregroundColor: '#fff',
+      pallet: {
+        background: '#437',
+        foreground: '#fff',
         isDark: true,
       },
       wallpaper: {
-        backgroundColor: '#437',
-        foregroundColor: 'rgb(255,255,255)',
+        background: '#437',
+        foreground: 'rgb(255,255,255)',
         posterImage: 'wallpaper/dock.jpg'
       }
     }
   ]
 
   exports.update = (state, action) => {
-    if (action === SaveSession) {
+    if (action instanceof SaveSession) {
       const session = state
         .updateIn(['webViews', 'entries'],
                    entries => entries.map(entry =>
@@ -156,7 +142,7 @@ define((require, exports, module) => {
       return state;
     }
 
-    if (action === ResetSession) {
+    if (action instanceof ResetSession) {
       return state.clear().merge({
         shell: {isFocused: document.hasFocus()},
         dashboard: {pages, themes: {entries: themes}},
@@ -174,7 +160,7 @@ define((require, exports, module) => {
       });
     }
 
-    if (action === RestoreSession) {
+    if (action instanceof RestoreSession) {
       const session = localStorage[`session@${state.version}`];
       if (session) {
         try {
@@ -184,8 +170,9 @@ define((require, exports, module) => {
         }
       } else {
         console.error('Compatible session was not found, loading default');
-        return exports.update(state, ResetSession);
       }
+
+      return exports.update(state, ResetSession());
     }
 
     return state

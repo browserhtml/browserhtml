@@ -19,6 +19,7 @@ define((require, exports, module) => {
   const Security = require('./web-security');
   const Input = require('./web-input');
   const Page = require('./web-page');
+  const Theme = require('./theme');
 
   // Model
   const Model = Record({
@@ -29,7 +30,8 @@ define((require, exports, module) => {
     navigation: Navigation.Model,
     progress: Progress.Model,
     page: Page.Model,
-    shell: Shell.Model
+    shell: Shell.Model,
+    pallet: Theme.Pallet
   });
   exports.Model = Model;
 
@@ -67,7 +69,7 @@ define((require, exports, module) => {
 
   const Action = Union({
     Load, LocationChange,
-    Navigate: Navigation.Action,
+    Navigation: Navigation.Action,
     Security: Security.Action,
     Progress: Progress.Action,
     Page: Page.Action,
@@ -87,14 +89,23 @@ define((require, exports, module) => {
   exports.load = load;
 
   const update = (state, action) =>
-    action instanceof Load ? load(state, state.uri) :
-    action instanceof LocationChange ? load(state, state.uri) :
+    action instanceof Load ? load(state, action.uri) :
+    action instanceof LocationChange ?
+      state.merge({uri: action.uri,
+                   input: state.input.set('value', action.uri)}) :
+    action instanceof Shell.Action.Focus ?
+      state.merge({shell: Shell.update(state.shell, action),
+                   input: state.input.set('value', state.uri)}) :
     Input.Action.isTypeOf(action) ?
       state.set('input', Input.update(state.input, action)) :
     Navigation.Action.isTypeOf(action) ?
       state.set('navigation', Navigation.update(state.navigation, action)) :
     Progress.Action.isTypeOf(action) ?
-      state.set('progress', Progress.update(state.progress, action)) :
+      state.merge({
+        progress: Progress.update(state.progress, action),
+        navigation: action instanceof LoadStart ? state.navigation.clear() :
+                    state.navigation
+      }) :
     Shell.Action.isTypeOf(action) ?
       state.set('shell', Shell.update(state.shell, action)) :
     Security.Action.isTypeOf(action) ?
@@ -102,6 +113,7 @@ define((require, exports, module) => {
     Page.Action.isTypeOf(action) ?
       state.set('page', Page.update(state.page, action)) :
     state;
+
   exports.update = update;
 
 
@@ -125,6 +137,8 @@ define((require, exports, module) => {
   const view = (state, isSelected, isPreviewed, address) => {
     // Do not render anything unless viewer has an `uri`
     if (!state.uri) return null;
+
+    console.log('update web-view')
 
     const style = mix(base, {
       minHeight: (state.page.verflow && isSelected) ? '100vh' : null,
@@ -275,13 +289,13 @@ define((require, exports, module) => {
   const {LoadStart, LoadEnd, LoadProgress} = Progress.Action;
 
   Event.mozbrowserloadstart = ({id}, {timeStamp}) =>
-    LoadStart({id, timeStamp});
+    LoadStart({id, timeStamp: performance.now()});
 
   Event.mozbrowserloadend = ({id}, {timeStamp}) =>
-    LoadEnd({id, timeStamp});
+    LoadEnd({id, timeStamp: performance.now()});
 
   Event.mozbrowserloadprogresschanged = ({id}, {timeStamp}) =>
-    LoadProgress({id, timeStamp});
+    LoadProgress({id, timeStamp: performance.now()});
 
   const {TitleChange, IconChange, MetaChange, OverflowChange, Scroll} = Page.Action;
 

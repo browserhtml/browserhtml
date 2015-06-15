@@ -18,6 +18,7 @@ define((require, exports, module) => {
   const Shell = require('./web-shell');
   const Input = require('./web-input');
   const Progress = require('./progress-bar');
+  const Preview = require('./preview-box');
 
   const Theme = require('./theme');
 
@@ -114,9 +115,6 @@ define((require, exports, module) => {
   const {Enter} = Input.Action;
   const {GoBack, GoForward, Stop, Reload} = Navigation.Action;
 
-  const Preview = Record({
-    isActive: true
-  }, 'LocationBar.Action.PreviewAction');
 
   const SelectSuggestion = Record({
     offset: Number
@@ -126,7 +124,7 @@ define((require, exports, module) => {
     id: '@selected'
   }, 'LocationBar.Action.Submit');
 
-  const Action = Union({Preview, SelectSuggestion, Submit});
+  const Action = Union({SelectSuggestion, Submit});
   exports.Action = Action;
 
 
@@ -149,8 +147,7 @@ define((require, exports, module) => {
     'control n': SuggestNext,
     'enter': Submit,
     'escape': Shell.Action.Focus,
-    'accel l': Input.Enter
-  });
+  }, 'LocationBar.Keyboard.Action');
 
 
   const BackIcon = '\uf053';
@@ -163,24 +160,26 @@ define((require, exports, module) => {
 
   const view = (webView, theme, address) => {
     const {id, uri, input, page, security, progress, navigation} = webView;
+
+
     return html.div({
       key: 'LocationBar',
-      style: LocationBarStyle(theme.locationBar),
-      onMouseEnter: address.pass(Preview)
+      style: LocationBarStyle({backgroundColor: theme.locationBar}),
+      onMouseEnter: address.pass(Preview.Action.Activate)
     }, [
       html.div({
         key: 'back',
-        onClick: GoBack,
-        style: navigation.canGoBack ? backButton.merge(theme.backButton) :
-               backButton.merge(theme.backButton).merge(disable)
+        onClick: address.pass(GoBack, webView),
+        style: navigation.canGoBack ? backButton.merge({color: theme.backButton}) :
+               backButton.merge({color: theme.backButton}).merge(disable)
       }, BackIcon),
       Editable.view({
         key: 'input',
         placeholder: 'Search or enter address',
         type: 'text',
         value: input.value,
-        style: input.isFocused ? URLInputStyle(theme.urlInput) :
-               URLInputStyle(theme.urlInput).merge(collapse),
+        style: input.isFocused ? URLInputStyle({color: theme.inputText}) :
+               URLInputStyle({color: theme.inputText}).merge(collapse),
         isFocused: input.isFocused,
         selectionStart: input.selectionStart,
         selectionEnd: input.selectionEnd,
@@ -189,15 +188,15 @@ define((require, exports, module) => {
         onSelect: address.pass(Select.for),
         onChange: address.pass(Change.for),
 
-        onFocus: address.send(Input.Action.Focus({id})),
-        onBlur: address.send(Input.Action.Blur({id})),
+        onFocus: address.pass(Input.Action.Focus, webView),
+        onBlur: address.pass(Input.Action.Blur, webView),
         onKeyDown: address.pass(Binding)
       }),
       html.p({
         key: 'page-info',
-        style: !input.isFocused ? PageSummaryStyle(theme.pageSummary) :
-               PageSummaryStyle(theme.pageSummary).merge(collapse),
-        onClick: address.send(Input.Action.Enter({id}))
+        style: !input.isFocused ? PageSummaryStyle({color: theme.locationText}) :
+               PageSummaryStyle({color: theme.locationText}).merge(collapse),
+        onClick: address.pass(Input.Action.Enter, webView)
       }, [
         html.span({
           key: 'securityicon',
@@ -212,29 +211,29 @@ define((require, exports, module) => {
            ''),
         html.span({
           key: 'location',
-          style: LocationTextStyle(theme.locationText),
+          style: LocationTextStyle({color: theme.locationText}),
         }, uri ? getDomainName(uri) : ''),
         html.span({
           key: 'title',
-          style: TitleTextStyle(theme.titleText),
+          style: TitleTextStyle({color: theme.titleText}),
         }, page.title ? page.title :
            isLoading(progress) ? 'Loading...' :
            'New Tab'),
       ]),
       html.div({
         key: 'reload-button',
-        style: isLoading(progress) ? reloadButton.merge(theme.reloadButton) :
-               !uri ? reloadButton.merge(theme.reloadButton)
+        style: isLoading(progress) ? reloadButton.merge({color: theme.controlButton}) :
+               !uri ? reloadButton.merge({color: theme.controlButton})
                                   .merge(disable) :
-               reloadButton,
-        onClick: address.send(Reload({id})),
+               reloadButton.merge({color: theme.controlButton}),
+        onClick: address.pass(Reload, webView),
       }, ReloadIcon),
       html.div({
         key: 'stop-button',
-        style: isLoading(progress) ? stopButton.merge(theme.stopButton) :
-               stopButton.merge(theme.stopButton)
+        style: isLoading(progress) ? stopButton.merge({color: theme.controlButton}) :
+               stopButton.merge({color: theme.controlButton})
                          .merge(hide),
-        onClick: address.send(Stop({id}))
+        onClick: address.pass(Stop, webView)
       }, StopIcon)
     ]);
   };

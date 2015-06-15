@@ -22,7 +22,7 @@ define((require, exports, module) => {
     id: String,
     state: String,
     extendedValidation: Boolean
-  });
+  }, 'WebView.Security.Change');
 
   const Action = Union({SecurityChange});
   exports.Action = Action;

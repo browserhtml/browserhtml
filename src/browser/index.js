@@ -14,7 +14,7 @@ define((require, exports, module) => {
 
   const app = main(document.body,
                    Session.update(Browser.Model(),
-                                  Session.Action.RestoreSession),
+                                  Session.Action.RestoreSession()),
                    Browser.update,
                    Browser.view);
 

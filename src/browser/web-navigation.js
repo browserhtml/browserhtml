@@ -42,15 +42,15 @@ define((require, exports, module) => {
   }, 'WebView.Navigation.CanGoForwardChange');
 
 
-  const Action = Union({Reload, GoForward, Stop, Reload,
+  const Action = Union({GoBack, GoForward, Stop, Reload,
                         CanGoBackChange, CanGoForwardChange});
   exports.Action = Action;
 
   // Update
 
   const update = (state, action) =>
-    action instanceof GoBack ? state.set('state', 'back') :
-    action instanceof GoForward ? state.set('state', 'forward') :
+    action instanceof GoBack ? state.set('state', 'goBack') :
+    action instanceof GoForward ? state.set('state', 'goForward') :
     action instanceof Stop ? state.set('state', 'stop') :
     action instanceof Reload ? state.set('state', 'reload') :
     action instanceof CanGoBackChange ? state.set('canGoBack', action.value) :

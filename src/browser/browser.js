@@ -21,10 +21,14 @@ define((require, exports, module) => {
   const WebView = require('./web-view');
   const Session = require('./session');
   const Input = require('./web-input');
+  const Previews = require('./preview-box');
+  const ClassSet = require('common/class-set');
+  const OS = require('common/os');
 
   // Model
   const Model = Record({
     version: '0.0.7',
+    previews: Previews.Model,
     shell: Focusable.Model({isFocused: true}),
     theme: Theme,
     updates: Updates.Model,
@@ -38,12 +42,37 @@ define((require, exports, module) => {
   const {SaveSession, ResetSession, RestoreSession} = Session.Action;
   const {Focus, Blur} = Focusable.Action;
   const {ApplicationUpdate, RuntimeUpdate} = Updates.Action;
+  const {EnterInput} = WebView.Action;
+
+  const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
+  const Binding = KeyBindings({
+    'accel l': Input.Action.Enter,
+    'accel t': _ => Input.Action.Enter({id: 'about:dashboard'}),
+    'accel 0': WebView.Action.Shell.ResetZoom,
+    'accel -': WebView.Action.Shell.ZoomOut,
+    'accel =': WebView.Action.Shell.ZoomIn,
+    'accel shift =': WebView.Action.Shell.ZoomIn,
+    'accel w': WebViews.Action.Close,
+    'accel shift ]': _ => WebViews.Action.SelectByOffset({offset: 1}),
+    'accel shift [': _ => WebViews.Action.SelectByOffset({offset: -1}),
+
+    'accel shift backspace': ResetSession,
+    'accel shift s': SaveSession,
+
+    'F5': WebView.Action.Navigation.Reload,
+    'accel r': WebView.Action.Navigation.Reload,
+    'escape': WebView.Action.Navigation.Stop,
+    [`${modifier} left`]: WebView.Action.Navigation.GoBack,
+    [`${modifier} right`]: WebView.Action.Navigation.GoForward
+  }, 'Browser.Keyboard.Action');
 
   const Action = Union(Embedding.Action,
+                       Binding.Action,
                        Updates.Action,
                        WebViews.Action,
                        Focusable.Action,
                        Dashboard.Action,
+                       Previews.Action,
                        Session.Action);
   exports.Action = Action;
 
@@ -52,6 +81,20 @@ define((require, exports, module) => {
   // Update
 
   const update = (state, action) => {
+    if (action instanceof Binding.Action) {
+      return exports.update(state, action.action);
+    }
+
+    if (action instanceof Previews.Action.Deactivate) {
+      return state.merge({
+        previews: Previews.update(state.previews, action),
+        webViews: WebViews.update(state.webViews,
+                                  WebViews.Action.PreviewByID({
+                                    id: '@selected'
+                                  }))
+      });
+    }
+
     if (Focusable.Action.isTypeOf(action)) {
       return state.set('shell', Focusable.update(state.shell, action));
     }
@@ -72,6 +115,10 @@ define((require, exports, module) => {
       return state.set('dashboard', Dashboard.update(state.dashboard, action));
     }
 
+    if (Previews.Action.isTypeOf(action)) {
+      return state.set('previews', Previews.update(state.previews, action));
+    }
+
     if (Session.Action.isTypeOf(action)) {
       return Session.update(state, action);
     }
@@ -80,6 +127,7 @@ define((require, exports, module) => {
   }
   exports.update = update;
 
+
   exports.update = inspect(update, ([state, action], output) => {
     console.log('Browser.update',
                 action.toString(),
@@ -87,45 +135,36 @@ define((require, exports, module) => {
                 output && output.toJSON());
   });
 
+
   // View
-
-  const {EnterInput} = WebView.Action;
-
-
-  const KeyboardAction = KeyBindings({
-    'accel l': Input.Action.Enter,
-    'accel t': _ => Input.Action.Enter({id: 'about:dashboard'}),
-    'accel =': WebView.Action.Shell.ResetZoom,
-    'accel -': WebView.Action.Shell.ZoomOut,
-    'accel +': WebView.Action.Shell.ZoomIn,
-    'accel w': WebViews.Action.Close,
-    'accel shift ]': () => WebViews.Action.SelectByOffset({offset: 1}),
-    'accel sheft [': () => WebViews.Action.SelectByOffset({offset: -1})
-
-  });
 
   const OpenWindow = event => Open({uri: event.detail.uri});
 
   const view = (state, address) => {
-    const {shell, theme, webViews} = state;
+    const {shell, webViews, dashboard} = state;
     const selected = webViews.entries.get(webViews.selected);
     const previewed = webViews.entries.get(webViews.previewed);
-
+    const theme = Theme.read(dashboard.pallet);
 
     return Main({
       key: 'main',
-      onKeyDown: address.pass(KeyboardAction),
+      onKeyDown: address.pass(Binding),
       onWindowBlur: address.pass(Blur),
       onWindowFocus: address.pass(Focus),
-      onUnload: address.send(SaveSession),
+      onUnload: address.pass(SaveSession),
       onAppUpdateAvailable: address.pass(ApplicationUpdate),
       onRuntimeUpdateAvailable: address.pass(RuntimeUpdate),
       onOpenWindow: address.pass(OpenWindow),
       tabIndex: 1,
+      className: ClassSet({
+        'moz-noscrollbars': true,
+        showtabstrip: state.previews.isActive,
+      }),
       style: {
         height: '100vh',
         width: '100vw',
-        color: 'black',
+        color: theme.shellText,
+        backgroundColor: theme.shell,
         overflowY: 'scroll',
         scrollSnapType: 'mandatory',
         scrollSnapDestination: '0 0',
@@ -136,7 +175,7 @@ define((require, exports, module) => {
       render('WindowBar', WindowBar.view, shell, previewed.view, theme, address),
       render('Dashboard', Dashboard.view, state.dashboard,
              selected.view.id === 'about:dashboard', address),
-      // render('Previews', Previews.view, webViews, theme, address)
+      render('Previews', Previews.view, webViews, theme, address),
       render('WebViews', WebViews.view, webViews, address),
       render('Updater', Updates.view, state.updates, address)
     ])
