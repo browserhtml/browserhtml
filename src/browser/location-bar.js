@@ -120,11 +120,8 @@ define((require, exports, module) => {
     offset: Number
   }, 'LocationBar.Action.SuggestPrevious');
 
-  const Submit = Record({
-    id: '@selected'
-  }, 'LocationBar.Action.Submit');
 
-  const Action = Union({SelectSuggestion, Submit});
+  const Action = Union({SelectSuggestion});
   exports.Action = Action;
 
 
@@ -145,7 +142,7 @@ define((require, exports, module) => {
     'constrol p': SuggestPrevious,
     'down': SuggestNext,
     'control n': SuggestNext,
-    'enter': Submit,
+    'enter': event => Load({uri: event.target.value}),
     'escape': Shell.Action.Focus,
   }, 'LocationBar.Keyboard.Action');
 

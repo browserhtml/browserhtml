@@ -31,6 +31,7 @@ define((require, exports, module) => {
 
 
   const {Open, OpenInBackground, Close} = WebView;
+  const {Load} = WebView.Action;
 
 
   const SelectByOffset = Record({
@@ -122,6 +123,14 @@ define((require, exports, module) => {
     return state.merge({entries, selected, previewed: selected});
   }
 
+  const load = (state, action) => {
+    const index = indexByID(state, action.id);
+    const selected = state.entries.get(index).view;
+    return selected.uri === 'about:dashboard' ? open(state, action.uri) :
+           state.setIn(['entries', index, 'view'],
+                       WebView.update(selected, action));
+  };
+
   const open = (state, uri) => state.merge({
     nextID: state.nextID + 1,
     selected: state.entries.size,
@@ -141,9 +150,7 @@ define((require, exports, module) => {
   });
 
   const updateWebView = (state, action) => {
-    const index = action.id === '@selected' ? state.selected :
-                  action.id === '@previewed' ? state.previewed :
-                  indexByID(state, action.id);
+    const index = indexByID(state, action.id);
     const entry = state.entries.get(index);
 
 
@@ -168,6 +175,8 @@ define((require, exports, module) => {
   }
 
   const update = (state, action) =>
+    action instanceof Load ?
+      load(state, action) :
     action instanceof Open ?
       open(state, action.uri) :
     action instanceof OpenInBackground ?

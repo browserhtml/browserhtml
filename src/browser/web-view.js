@@ -81,7 +81,7 @@ define((require, exports, module) => {
 
   // Update
 
-  const load = (state, uri) => Model({
+  const load = (state, uri=state.input.value) => Model({
     uri,
     id: state.id,
     shell: state.shell
