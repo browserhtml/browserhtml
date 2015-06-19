@@ -10,6 +10,7 @@ define((require, exports, moudle) => {
   const {Record, Union, List} = require('common/typed');
   const ClassSet = require('common/class-set');
   const WebViews = require('./web-view-deck');
+  const WebView = require('./web-view');
 
   // Model
 
@@ -32,7 +33,7 @@ define((require, exports, moudle) => {
   const Action = Union({Activate, Deactivate});
   exports.Action = Action;
 
-  const {PreviewByID, SelectByID, WebView} = WebViews.Action;
+  const {PreviewByID, SelectByID} = WebViews.Action;
 
   // Update
 
@@ -47,7 +48,7 @@ define((require, exports, moudle) => {
   const Close = (context, event) => {
     if (event.button === 1) {
       event.stopPropagation();
-      return WebView.Close(context)
+      return WebView.Close(context);
     }
     // We should probably just allow retuning null
     return {}
@@ -99,7 +100,8 @@ define((require, exports, moudle) => {
 
     return html.div({
       style: {
-        backgroundColor: theme.shell
+        backgroundColor: theme.shell,
+        transition: 'background-color 300ms ease, color 300ms ease'
       },
       className: ClassSet({
         tabstripcontainer: true,
@@ -115,7 +117,7 @@ define((require, exports, moudle) => {
                  view.id,
                  index,
                  view === previewed,
-                 view.page.icon,
+                 view.page.thumbnail,
                  address))),
       html.div({
         key: 'tabstrip-kill-zone',

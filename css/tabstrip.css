@@ -38,6 +38,10 @@
   left: 0;
 }
 
+.withoutkillzone .tabstripkillzone {
+  display: none;
+}
+
 .tabstripkillzone-hidden {
   background-color: rgba(0,0,0,0);
   pointer-events: none;
@@ -57,7 +61,6 @@
 
 .tab-thumbnail {
   display: inline-block;
-  background-color: #fff;
   background-size: cover;
   background-clip: content-box;
   border: 1px solid rgba(0,0,0,0.07);
