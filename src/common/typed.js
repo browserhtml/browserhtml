@@ -38,7 +38,7 @@ define((require, exports, module) => {
       }
     }
 
-    Type.prototype = Union(variants);
+    Type.prototype = Union(...variants);
     Type.toString = Type.prototype[Type.typeName];
 
     return Type;
