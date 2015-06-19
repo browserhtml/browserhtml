@@ -8,8 +8,9 @@ define((require, exports, module) => {
 
   const {html, render} = require('reflex')
   const {Record, Union, List, Maybe} = require('common/typed');
-  const WebView = require('./web-view');
-  const Theme = require('./theme');
+  const WebView = require('browser/web-view');
+  const Theme = require('browser/theme');
+  const Pallet = require('service/pallet');
 
 
   // Model
@@ -35,7 +36,7 @@ define((require, exports, module) => {
   const DashboardTheme = Record({
     id: String ,
     wallpaper: Wallpaper,
-    pallet: Theme.Pallet
+    pallet: Pallet.Model
   }, 'Dashboard.Theme');
 
   const Model = Record({
@@ -43,7 +44,7 @@ define((require, exports, module) => {
       selected: 0,
       entries: List(DashboardTheme)
     }),
-    pallet: Theme.Pallet,
+    pallet: Pallet.Model,
     pages: List(Page)
   }, 'Dashboard');
 
@@ -87,10 +88,11 @@ define((require, exports, module) => {
     onClick: address.send(ChangeTheme({id}))
   });
 
-  const viewPage = ({uri, image, title}, address) => html.div({
+  const viewPage = ({uri, image, title}, address) => html.a({
     key: uri,
+    href: uri,
     className: 'tile tile-large',
-    onClick: address.send(Open({uri})),
+    onClick: address.send(Open({uri}))
   }, [
     html.div({
       key: 'tileThumbnail',
@@ -103,11 +105,13 @@ define((require, exports, module) => {
     }, title)
   ]);
 
-  const view = ({themes, pages}, isSelected, address) => {
+  const view = ({themes, pages}, address) => {
     const theme = themes.entries.get(themes.selected);
+    const {background, foreground} = theme.pallet;
+    const themeColors = [background||'', foreground||''].join('|');
+
     return html.div({
       key: 'dashboard',
-      hidden: !isSelected,
       className: 'dashboard',
       style: theme && {
         backgroundColor: theme.wallpaper.background,
@@ -116,6 +120,10 @@ define((require, exports, module) => {
                          `url(${theme.wallpaper.posterImage})`
       }
     }, [
+      html.meta({
+        name: 'theme-color',
+        content: themeColors
+      }),
       html.div({
         key: 'dashboard-tiles',
         className: 'dashboard-tiles'

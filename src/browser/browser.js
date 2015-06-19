@@ -30,10 +30,8 @@ define((require, exports, module) => {
     version: '0.0.7',
     previews: Previews.Model,
     shell: Focusable.Model({isFocused: true}),
-    theme: Theme,
     updates: Updates.Model,
-    webViews: WebViews.Model,
-    dashboard: Dashboard.Model
+    webViews: WebViews.Model
   });
   exports.Model = Model;
 
@@ -71,7 +69,6 @@ define((require, exports, module) => {
                        Updates.Action,
                        WebViews.Action,
                        Focusable.Action,
-                       Dashboard.Action,
                        Previews.Action,
                        Session.Action);
   exports.Action = Action;
@@ -111,10 +108,6 @@ define((require, exports, module) => {
       return state.set('updates', Updates.update(state.updates, action));
     }
 
-    if (Dashboard.Action.isTypeOf(action)) {
-      return state.set('dashboard', Dashboard.update(state.dashboard, action));
-    }
-
     if (Previews.Action.isTypeOf(action)) {
       return state.set('previews', Previews.update(state.previews, action));
     }
@@ -141,10 +134,10 @@ define((require, exports, module) => {
   const OpenWindow = event => Open({uri: event.detail.uri});
 
   const view = (state, address) => {
-    const {shell, webViews, dashboard} = state;
+    const {shell, webViews} = state;
     const selected = webViews.entries.get(webViews.selected);
     const previewed = webViews.entries.get(webViews.previewed);
-    const theme = Theme.read(dashboard.pallet);
+    const theme = Theme.read(selected.view.page.pallet);
 
     return Main({
       key: 'root',
@@ -178,8 +171,6 @@ define((require, exports, module) => {
       }
     }, [
       render('WindowBar', WindowBar.view, shell, previewed.view, theme, address),
-      render('Dashboard', Dashboard.view, state.dashboard,
-             selected.view.id === 'about:dashboard', address),
       render('Previews', Previews.view, webViews, theme, address),
       render('WebViews', WebViews.view, webViews, address),
       render('Updater', Updates.view, state.updates, address)
