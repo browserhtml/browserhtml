@@ -43,11 +43,13 @@ define((require, exports, module) => {
 
   const LoadStart = Record({
     id: String,
+    uri: String,
     timeStamp: Number
   }, 'WebView.Progress.LoadStart');
 
   const LoadEnd = Record({
     id: String,
+    uri: String,
     timeStamp: Number
   }, 'WebView.Progress.LoadEnd');
 

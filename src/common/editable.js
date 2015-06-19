@@ -30,14 +30,8 @@ define((require, exports, module) => {
   }, 'Editable.Select');
   Select.All = () => Select({selectionEnd: Infinity});
 
-  Select.for = ({target}) => Select({
-    selectionStart: target.selectionStart,
-    selectionEnd: target.selectionEnd,
-    selectionDirection: target.selectionDirection
-  });
 
   const Change = Record({value: String}, 'Editable.Change');
-  Change.for = ({target}) => Change({value: target.value});
 
   const {Focus, Blur} = Focusable;
   const Action = Union({Change, Select});

@@ -9,40 +9,9 @@ define((require, exports, module) => {
   const {getDomainName} = require('common/url-helper');
   const {Record, Maybe} = require('typed-immutable/index');
 
-  const DARK = true;
-  const hardcodedColors = {
-    // [foreground, background]
-    'youtube.com': ['#cc181e', '#fff', !DARK],
-    'yahoo.com': ['#2d1152', '#fff', !DARK],
-    'facebook.com': ['#fff', '#3A5795', DARK],
-    'biadu.com': ['#2529d8', '#fff', !DARK],
-    'amazon.com': ['#e47911', '#fff', !DARK],
-    'taobao.com': ['#ff4400', '#fff', !DARK],
-    'qq.com': ['#5da4e6', '#fff', !DARK],
-    'sina.com.cn': ['#fff', '#ff8500', DARK],
-    'instagram.com': ['#fff', '#5380a5', DARK],
-    'imgur.com': ['#fff', '#2b2b2b', DARK],
-    'cnn.com': ['#fff', '#0c0c0c', DARK],
-    'slideshare.net': ['#fff', '#313131', DARK],
-    'deviantart.com': ['#fff', '#475c4d', DARK],
-    'soundcloud.com': ['#fff', '#383838', DARK],
-    'mashable.com': ['#fff', '#00aeef', DARK],
-    'daringfireball.net': ['#fff', '#4a525a', DARK],
-    'firewatchgame.com': ['#EF4338', '#2D102B', DARK],
-    'whatliesbelow.com': ['#fff', '#74888B', DARK],
-    'supertimeforce.com': ['#2EBCEC', '#051224', DARK]
-  };
-
   const Color = String;
 
-  const Pallet = Record({
-    isDark: false,
-    foreground: Maybe(Color),
-    background: Maybe(Color)
-  }, 'Pallet');
-  exports.Pallet = Pallet;
-
-  const Theme = Record({
+  const Model = Record({
     isDark: false,
     glyphsShowing: false,
 
@@ -64,13 +33,13 @@ define((require, exports, module) => {
     progressBar: Color('#82D3FD')
   }, 'Theme');
 
-  exports.Theme = Theme;
+  exports.Model = Model;
 
 
   exports.read = pallet => {
     const foreground = pallet.foreground || void(0);
     const background = pallet.background || void(0);
-    return Theme({
+    return Model({
       isDark: pallet.isDark,
 
       closeButton: foreground,

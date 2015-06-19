@@ -44,12 +44,12 @@ define((require, exports, module) => {
     action instanceof Upgrade ? state.merge({appUpdateAvailable: true,
                                       runtimeUpdateAvailable: true}) :
     state;
-  exports.upgrade = update;
+  exports.update = update;
 
   // Style
 
   const styleContainer = {
-    position: 'absolute',
+    position: 'fixed',
     bottom: 10,
     width: 400,
     left: 'calc(50vw - 200px)',
@@ -70,6 +70,7 @@ define((require, exports, module) => {
   const styleButton = {
     padding: '8px 20px',
     backgroundColor: 'rgb(115,206,113)',
+    color: 'inherit',
     borderRadius: 4,
     float: 'right',
     cursor: 'pointer'
@@ -99,8 +100,9 @@ define((require, exports, module) => {
     }, [
       html.div({
         key: 'bannerMessage',
+        style: styleMessage
       }, 'Hey! An update just for you!'),
-      html.div({
+      html.button({
         key:  'bannerButton',
         style: styleButton,
         onClick: action && address.send(action)

@@ -12,6 +12,8 @@ define((require, exports, module) => {
   const WebView = require('./web-view');
   const Shell = require('./web-shell');
   const Input = require('./web-input');
+  const Thumbnail = require('service/thumbnail');
+  const Pallet = require('service/pallet');
 
   // Model
   const EntryModel = Record({
@@ -126,7 +128,7 @@ define((require, exports, module) => {
   const load = (state, action) => {
     const index = indexByID(state, action.id);
     const selected = state.entries.get(index).view;
-    return selected.uri === 'about:dashboard' ? open(state, action.uri) :
+    return selected.id === 'about:dashboard' ? open(state, action.uri) :
            state.setIn(['entries', index, 'view'],
                        WebView.update(selected, action));
   };
@@ -210,12 +212,16 @@ define((require, exports, module) => {
       key: 'web-views',
       style: {
         scrollSnapCoordinate: '0 0',
-        // display: isActive ? 'block' : 'none'
         display: 'block'
       },
     }, state.entries.map(({view}) =>
-      render(view.id, WebView.view,
-             view,
+      render(view.id,
+             WebView.view,
+             view.id,
+             view.uri,
+             view.shell,
+             view.page,
+             view.navigation,
              view === selected.view,
              view === previewed.view,
              address)));

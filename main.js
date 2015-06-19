@@ -6,6 +6,7 @@ require.config({
     browser: '../src/browser',
     common: '../src/common',
     lang: '../src/lang',
+    service: '../src/service',
     shims: '../src/shims',
     // http://facebook.github.io/react/
     react: 'react/dist/react',
@@ -19,9 +20,13 @@ require.config({
     // https://github.com/broofa/node-uuid
     uuid: 'node-uuid/uuid',
     reflex: 'reflex/lib/index',
-    pouchdb: 'pouchdb/dist/pouchdb'
+    pouchdb: 'pouchdb/dist/pouchdb',
+    tinycolor: 'tinycolor2/tinycolor'
   },
   shim: {
+    tinycolor: {
+      exports: 'tinycolor'
+    },
     omniscient: {
       deps: ['shims/omniscient']
     },

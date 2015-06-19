@@ -27,7 +27,7 @@ define((require, exports, module) => {
     padding: 10,
     position: 'relative',
     scrollSnapCoordinate: '0 0',
-    transition: 'background-color 200ms ease',
+    transition: 'background-color 300ms ease, color 300ms ease',
     textAlign: 'center'
   });
 
@@ -36,13 +36,12 @@ define((require, exports, module) => {
   }, 'WindowBar');
 
   // Action
-  const {Enter, Exit, Select, Change, Preview,
-         Submit, SuggestNext, SuggestPrevious} = LocationBar.Action;
-  const Action = Union(Enter, Exit, Select, Change);
-  Action.Preview = Preview;
-  Action.SuggestNext = SuggestNext;
-  Action.SuggestPrevious = SuggestPrevious;
-  Action.Submit = Submit;
+  const {SuggestNext, SuggestPrevious} = LocationBar.Action;
+  const Action = Union({
+    LocationBar: LocationBar.Action,
+    SuggestNext, SuggestPrevious,
+  });
+
 
   WindowBar.Action = Action;
   // Update

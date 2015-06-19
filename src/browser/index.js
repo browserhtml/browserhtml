@@ -5,20 +5,40 @@
 define((require, exports, module) => {
   'use strict';
 
-  const {main} = require('reflex');
+  const {Application, Address} = require('reflex');
   const Browser = require('./browser');
+  const Thumbnail = require('service/thumbnail');
+  const Pallet = require('service/pallet');
   const {appUpdateAvailable} = require('./github');
   const Session = require('./session');
 
-  console.log(Browser)
+  // Set up a address (message bus if you like) that will be used
+  // as an address for all application components / services. This
+  // address is going to receive action and then pass it on to each
+  // application component for it handle it.
+  const address = new Address({
+    receive(action) {
+      application.receive(action);
+      thumbnail(action);
+      pallet(action);
+    }
+  });
+  window.address = address;
 
-  const app = main(document.body,
-                   Session.update(Browser.Model(),
-                                  Session.Action.RestoreSession()),
-                   Browser.update,
-                   Browser.view);
+  const application = new Application({
+    target: document.body,
+    state: Browser.Model(),
+    update: Browser.update,
+    view: Browser.view,
+    address: address
+  });
+  window.application = application;
 
-  window.app = app;
+  const thumbnail = Thumbnail.service(address);
+  const pallet = Pallet.service(address);
+  // const updater = UpdateService(address);
+  // const session = Session.service(address);
+
 
   appUpdateAvailable.then(() => {
     dispatchEvent(new CustomEvent('app-update-available'));
@@ -26,4 +46,6 @@ define((require, exports, module) => {
     console.log('Not checking for updates');
   });
 
+  // Start things up.
+  address.receive(Session.Action.RestoreSession());
 });

@@ -17,13 +17,13 @@ define((require, exports, module) => {
   const Focusable = require('common/focusable');
   const {Main} = require('./main');
   const Updates = require('./update-banner');
-  const Dashboard = require('./dashboard');
   const WebView = require('./web-view');
   const Session = require('./session');
   const Input = require('./web-input');
   const Previews = require('./preview-box');
   const ClassSet = require('common/class-set');
   const OS = require('common/os');
+  const Pallet = require('service/pallet');
 
   // Model
   const Model = Record({
@@ -122,8 +122,11 @@ define((require, exports, module) => {
 
 
   exports.update = inspect(update, ([state, action], output) => {
-    console.log('Browser.update',
-                action.toString(),
+    if (action instanceof WebView.Action.Progress.LoadProgress) {
+      return null;
+    }
+
+    console.log(action.toString(),
                 state.toJSON(),
                 output && output.toJSON());
   });
@@ -131,7 +134,7 @@ define((require, exports, module) => {
 
   // View
 
-  const OpenWindow = event => Open({uri: event.detail.uri});
+  const OpenWindow = event => WebView.Open({uri: event.detail.url});
 
   const view = (state, address) => {
     const {shell, webViews} = state;
@@ -154,14 +157,15 @@ define((require, exports, module) => {
       tabIndex: 1,
       className: ClassSet({
         'moz-noscrollbars': true,
-        showtabstrip: state.previews.isActive,
+        showtabstrip: state.previews.isActive ||
+                      selected.view.id === 'about:dashboard',
+        withoutkillzone: selected.view.id === 'about:dashboard'
       }),
       style: {
         height: '100vh',
         width: '100vw',
         color: theme.shellText,
         backgroundColor: theme.shell,
-        overflowY: 'scroll',
         scrollSnapType: 'mandatory',
         scrollSnapDestination: '0 0',
         position: 'relative',

@@ -8,7 +8,7 @@ define((require, exports, module) => {
 
   const {Record, Union, Maybe} = require('common/typed');
   const {html, render} = require('reflex');
-  const {isPrivileged, getDomainName} = require('common/url-helper');
+  const URI = require('common/url-helper');
   const {mix} = require('common/style');
 
   const {KeyBindings} = require('common/keyboard');
@@ -40,13 +40,12 @@ define((require, exports, module) => {
   }, 'LocationBarStyle');
 
   const ButtonStyle = Record({
+    color: 'inherit',
     opacity: Maybe(Number),
     pointerEvents: Maybe(String),
     display: Maybe(String),
     left: Maybe(Number),
     right: Maybe(Number),
-    color: Maybe(Color),
-    backgroundColor: Maybe(Color),
 
     position: 'absolute',
     top: 0,
@@ -86,13 +85,13 @@ define((require, exports, module) => {
   }, 'PageSummaryStyle');
 
   const LocationTextStyle = Record({
-    color: Maybe(Color),
+    color: 'inherit',
     backgroundColor: Maybe(Color),
     fontWeight: 'bold'
   }, 'LocationTextStyle');
 
   const TitleTextStyle = Record({
-    color: Maybe(Color),
+    color: 'interit',
     backgroundColor: Maybe(Color),
     padding: 5
   }, 'TitleTextStyle');
@@ -110,7 +109,6 @@ define((require, exports, module) => {
   // Actions
 
   const {Focus, Blur} = Input.Action;
-  const {Select, Change} = Editable.Action;
   const {Load} = WebView.Action;
   const {Enter} = Input.Action;
   const {GoBack, GoForward, Stop, Reload} = Navigation.Action;
@@ -142,7 +140,7 @@ define((require, exports, module) => {
     'constrol p': SuggestPrevious,
     'down': SuggestNext,
     'control n': SuggestNext,
-    'enter': event => Load({uri: event.target.value}),
+    'enter': event => Load({uri: URI.read(event.target.value)}),
     'escape': Shell.Action.Focus,
   }, 'LocationBar.Keyboard.Action');
 
@@ -155,20 +153,34 @@ define((require, exports, module) => {
 
   const isLoading = Progress.isLoading;
 
+  const Select = ({id}, {target}) =>
+    Input.Action.Edit({
+      id,
+      action: Editable.Action.Select({
+        selectionStart: target.selectionStart,
+        selectionEnd: target.selectionEnd,
+        selectionDirection: target.selectionDirection
+      })
+    });
+
+  const Change = ({id}, {target: {value}}) =>
+    Input.Action.Edit({id, action: Editable.Action.Change({value})});
+
+
   const view = (webView, theme, address) => {
     const {id, uri, input, page, security, progress, navigation} = webView;
 
 
     return html.div({
       key: 'LocationBar',
-      style: LocationBarStyle({backgroundColor: theme.locationBar}),
+      style: LocationBarStyle(),
       onMouseEnter: address.pass(Preview.Action.Activate)
     }, [
-      html.div({
+      html.button({
         key: 'back',
         onClick: address.pass(GoBack, webView),
-        style: navigation.canGoBack ? backButton.merge({color: theme.backButton}) :
-               backButton.merge({color: theme.backButton}).merge(disable)
+        style: navigation.canGoBack ? backButton :
+               backButton.merge(disable)
       }, BackIcon),
       Editable.view({
         key: 'input',
@@ -182,8 +194,8 @@ define((require, exports, module) => {
         selectionEnd: input.selectionEnd,
         selectionDirection: input.selectionDirection,
 
-        onSelect: address.pass(Select.for),
-        onChange: address.pass(Change.for),
+        onSelect: address.pass(Select, webView),
+        onChange: address.pass(Change, webView),
 
         onFocus: address.pass(Input.Action.Focus, webView),
         onBlur: address.pass(Input.Action.Blur, webView),
@@ -203,13 +215,16 @@ define((require, exports, module) => {
             marginRight: 6,
             verticalAlign: 'middle'
           }
-        }, isPrivileged(uri) ? GearIcon :
+        }, id === 'about:dashboard' ? '' :
+           URI.isPrivileged(uri) ? GearIcon :
            security.secure ? LockIcon :
            ''),
         html.span({
           key: 'location',
           style: LocationTextStyle({color: theme.locationText}),
-        }, uri ? getDomainName(uri) : ''),
+        }, !uri ? '' :
+           URI.isPrivileged(uri) ? '' :
+           URI.getDomainName(uri)),
         html.span({
           key: 'title',
           style: TitleTextStyle({color: theme.titleText}),
@@ -217,19 +232,17 @@ define((require, exports, module) => {
            isLoading(progress) ? 'Loading...' :
            'New Tab'),
       ]),
-      html.div({
+      html.button({
         key: 'reload-button',
-        style: reloadButton.merge({color: theme.controlButton})
-                           .merge(isLoading(progress) ? hide :
-                                  !uri ? disable :
-                                  null),
+        style: isLoading(progress) ? reloadButton.merge(hide) :
+               !uri ? reloadButton.merge(disable) :
+               reloadButton,
         onClick: address.pass(Reload, webView),
       }, ReloadIcon),
-      html.div({
+      html.button({
         key: 'stop-button',
-        style: isLoading(progress) ? stopButton.merge({color: theme.controlButton}) :
-               stopButton.merge({color: theme.controlButton})
-                         .merge(hide),
+        style: isLoading(progress) ? stopButton :
+              stopButton.merge(hide),
         onClick: address.pass(Stop, webView)
       }, StopIcon)
     ]);

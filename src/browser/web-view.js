@@ -9,7 +9,7 @@ define((require, exports, module) => {
   const {Record, Union, List, Maybe, Any} = require('common/typed');
   const {html} = require('reflex');
   const {mix} = require('common/style');
-  const {isPrivileged, getDomainName, getManifestURL} = require('common/url-helper');
+  const URI = require('common/url-helper');
   const Editable = require('common/editable');
   const Focusable = require('common/focusable');
   const IFrame = require('./iframe');
@@ -19,7 +19,6 @@ define((require, exports, module) => {
   const Security = require('./web-security');
   const Input = require('./web-input');
   const Page = require('./web-page');
-  const Theme = require('./theme');
 
   // Model
   const Model = Record({
@@ -30,8 +29,7 @@ define((require, exports, module) => {
     navigation: Navigation.Model,
     progress: Progress.Model,
     page: Page.Model,
-    shell: Shell.Model,
-    pallet: Theme.Pallet
+    shell: Shell.Model
   });
   exports.Model = Model;
 
@@ -66,7 +64,6 @@ define((require, exports, module) => {
     uri: String
   }, 'WebView.LocationChange');
 
-
   const Action = Union({
     Load, LocationChange,
     Navigation: Navigation.Action,
@@ -92,10 +89,13 @@ define((require, exports, module) => {
     action instanceof Load ? load(state, action.uri) :
     action instanceof LocationChange ?
       state.merge({uri: action.uri,
-                   input: state.input.set('value', action.uri)}) :
+                   input: state.id === 'about:dashboard' ? state.input :
+                          state.input.set('value', action.uri)
+                  }) :
     action instanceof Shell.Action.Focus ?
       state.merge({shell: Shell.update(state.shell, action),
-                   input: state.input.set('value', state.uri)}) :
+                   input: state.id === 'about:dashboard' ? state.input :
+                          state.input.set('value', state.uri)}) :
     Input.Action.isTypeOf(action) ?
       state.set('input', Input.update(state.input, action)) :
     Navigation.Action.isTypeOf(action) ?
@@ -130,40 +130,43 @@ define((require, exports, module) => {
     zIndex: -1,
     display: 'block !important',
     position: 'absolute',
-    width: '100vw',
-    height: '100vh'
+    left: 0
   };
 
-  const view = (state, isSelected, isPreviewed, address) => {
-    const {uri, shell, page, navigation} = state;
+  const hidden = {
+    display: 'none'
+  };
+
+  const view = (id, uri, shell, page, navigation, isSelected, isPreviewed, address) => {
     // Do not render anything unless viewer has an `uri`
     if (!uri) return null;
 
-    console.log('update web-view')
+    console.log('render web-view')
 
     const style = mix(base, {
-      minHeight: (page.overflow && isSelected) ? '100vh' : null,
-      display: isSelected ? null : 'none',
+      minHeight: page.overflow ? '100vh' : null
     });
 
-    const action = address.pass(Event, state);
+    const action = address.pass(Event, {id, uri});
+    const location = URI.resolve(uri);
 
     return IFrame.view({
+      id: `web-view-${id}`,
       // This is a workaround for Bug #266 that prevents capturing
       // screenshots if iframe or it's ancesstors have `display: none`.
       // Until that's fixed on platform we just hide such elements with
       // negative index and absolute position.
       style: isSelected ? style :
-             //page.thumbnail ? style :
-             mix(style, offScreen),
+             !page.thumbnail ? mix(style, offScreen) :
+             mix(style, hidden),
       isBrowser: true,
       isRemote: true,
-      mozApp: isPrivileged(uri) ? getManifestURL().href : null,
+      mozApp: URI.isPrivileged(location) ? URI.getManifestURL().href : null,
       allowFullScreen: true,
       isVisible: isSelected || isPreviewed,
       zoom: shell.zoom,
       isFocused: shell.isFocused,
-      uri: uri,
+      uri: location,
       readyState: navigation.state,
 
       onCanGoBackChange: action,
@@ -198,7 +201,9 @@ define((require, exports, module) => {
 
 
   const Open = Record({
-    uri: String
+    uri: String,
+    name: '_blank',
+    features: ''
   }, 'WebViews.Open');
   exports.Open = Open;
 
@@ -247,7 +252,10 @@ define((require, exports, module) => {
     Close({id});
 
   Event.mozbrowseropenwindow = ({id}, {detail}) =>
-    Open({id, uri: deatil.uri});
+    Open({id,
+          uri: detail.url,
+          name: detail.name,
+          features: detail.features});
 
   Event.mozbrowseropentab = ({id}, {detail}) =>
     OpenInBackground({id, uri: detail.uri});
@@ -289,25 +297,25 @@ define((require, exports, module) => {
 
   const {LoadStart, LoadEnd, LoadProgress} = Progress.Action;
 
-  Event.mozbrowserloadstart = ({id}, {timeStamp}) =>
-    LoadStart({id, timeStamp: performance.now()});
+  Event.mozbrowserloadstart = ({id, uri}, {timeStamp}) =>
+    LoadStart({id, uri, timeStamp: performance.now()});
 
-  Event.mozbrowserloadend = ({id}, {timeStamp}) =>
-    LoadEnd({id, timeStamp: performance.now()});
+  Event.mozbrowserloadend = ({id, uri}, {timeStamp}) =>
+    LoadEnd({id, uri, timeStamp: performance.now()});
 
   Event.mozbrowserloadprogresschanged = ({id}, {timeStamp}) =>
     LoadProgress({id, timeStamp: performance.now()});
 
   const {TitleChange, IconChange, MetaChange, OverflowChange, Scroll} = Page.Action;
 
-  Event.mozbrowsertitlechange = ({id}, {detail: title}) =>
-    TitleChange({id, title});
+  Event.mozbrowsertitlechange = ({id, uri}, {detail: title}) =>
+    TitleChange({id, uri, title});
 
-  Event.mozbrowsericonchange = ({id}, {detail}) =>
-    IconChange({id, uri: detail.href});
+  Event.mozbrowsericonchange = ({id, uri}, {detail: {href: icon}}) =>
+    IconChange({id, uri, icon});
 
-  Event.mozbrowsermetachange = ({id}, {detail}) =>
-    MetaChange({id});
+  Event.mozbrowsermetachange = ({id}, {detail: {content, name}}) =>
+    MetaChange({id, content, name});
 
   // TODO: Figure out what's in detail
   Event.mozbrowserasyncscroll = ({id}, {detail}) =>

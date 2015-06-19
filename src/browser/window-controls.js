@@ -77,21 +77,21 @@ define((require, exports, module) => {
     key: 'WindowControls',
     style: containerStyle
   }, [
-    html.div({
+    html.button({
       key: 'WindowCloseButton',
       style: isFocused ? ButtonStyle.close.merge({
         backgroundColor: theme.closeButton
       }) : ButtonStyle.unfocused,
       onClick: address.send(Close)
     }),
-    html.div({
+    html.button({
       key: 'WindowMinButton',
       style: isFocused ? ButtonStyle.min.merge({
         backgroundColor: theme.minButton
       }) : ButtonStyle.unfocused,
       onClick: address.send(Minimize)
     }),
-    html.div({
+    html.button({
       key: 'WindowMaxButton',
       style: isFocused ? ButtonStyle.max.merge({
         backgroundColor: theme.maxButton
