@@ -38,4 +38,3 @@ require.config({
 
 
 require(['browser/index']);
-require(['common/embedding']);

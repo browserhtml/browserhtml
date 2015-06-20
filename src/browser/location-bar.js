@@ -19,6 +19,7 @@ define((require, exports, module) => {
   const Input = require('./web-input');
   const Progress = require('./progress-bar');
   const Preview = require('./preview-box');
+  const Suggestions = require('./suggestion-box');
 
   const Theme = require('./theme');
 
@@ -96,17 +97,13 @@ define((require, exports, module) => {
     padding: 5
   }, 'TitleTextStyle');
 
-  const Model = Record({
-    theme: Theme,
-    view: WebView.Model,
-  });
-  exports.Model = Model;
 
   const backButton = ButtonStyle({left: 0});
   const reloadButton = ButtonStyle({right: 0});
   const stopButton = ButtonStyle({right: 0});
 
-  // Actions
+
+  // Events
 
   const {Focus, Blur} = Input.Action;
   const {Load} = WebView.Action;
@@ -114,32 +111,19 @@ define((require, exports, module) => {
   const {GoBack, GoForward, Stop, Reload} = Navigation.Action;
 
 
-  const SelectSuggestion = Record({
-    offset: Number
-  }, 'LocationBar.Action.SuggestPrevious');
-
-
-  const Action = Union({SelectSuggestion});
-  exports.Action = Action;
-
-
-  // Update
+  // view
 
   const collapse = {maxWidth: 0, padding: 0};
   const disable = {opacity: 0.2, pointerEvents: 'none'};
   const hide = {display: 'none'};
 
-
-  // View
-
-  const SuggestNext = () => SelectSuggestion({offest: 1});
-  const SuggestPrevious = () => SelectSuggestion({offest: -1});
+  const {SelectNext, SelectPrevious} = Suggestions.Action;
 
   const Binding = KeyBindings({
-    'up': SuggestPrevious,
-    'constrol p': SuggestPrevious,
-    'down': SuggestNext,
-    'control n': SuggestNext,
+    'up': SelectPrevious,
+    'control p': SelectPrevious,
+    'down': SelectNext,
+    'control n': SelectNext,
     'enter': event => Load({uri: URI.read(event.target.value)}),
     'escape': Shell.Action.Focus,
   }, 'LocationBar.Keyboard.Action');
@@ -157,18 +141,20 @@ define((require, exports, module) => {
     Input.Action.Edit({
       id,
       action: Editable.Action.Select({
-        selectionStart: target.selectionStart,
-        selectionEnd: target.selectionEnd,
-        selectionDirection: target.selectionDirection
+        range: {
+          start: target.selectionStart,
+          end: target.selectionEnd,
+          direction: target.selectionDirection
+        }
       })
     });
 
   const Change = ({id}, {target: {value}}) =>
-    Input.Action.Edit({id, action: Editable.Action.Change({value})});
-
+    Input.Action.Change({id, value});
 
   const view = (webView, theme, address) => {
-    const {id, uri, input, page, security, progress, navigation} = webView;
+    const {id, uri, input, page, security, progress,
+           navigation, suggestions} = webView;
 
 
     return html.div({
@@ -186,13 +172,12 @@ define((require, exports, module) => {
         key: 'input',
         placeholder: 'Search or enter address',
         type: 'text',
-        value: input.value,
+        value: suggestions.selected < 0 ? input.value :
+               suggestions.entries.get(suggestions.selected).uri,
         style: input.isFocused ? URLInputStyle({color: theme.inputText}) :
                URLInputStyle({color: theme.inputText}).merge(collapse),
         isFocused: input.isFocused,
-        selectionStart: input.selectionStart,
-        selectionEnd: input.selectionEnd,
-        selectionDirection: input.selectionDirection,
+        selection: input.selection,
 
         onSelect: address.pass(Select, webView),
         onChange: address.pass(Change, webView),

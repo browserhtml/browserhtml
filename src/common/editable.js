@@ -12,50 +12,51 @@ define((require, exports, module) => {
 
   // Model
 
+  const Selection = Record({
+    start: 0,
+    end: 0,
+    direction: 'forward'
+  }, 'Editable.Selection');
+
   const Model = Record({
     isFocused: false,
     value: '',
-    selectionStart: 0,
-    selectionEnd: 0,
-    selectionDirection: 'forward'
-  });
+    selection: Selection
+  }, 'Editable.Model');
   exports.Model = Model;
 
   // Actions
 
   const Select = Record({
-    selectionStart: 0,
-    selectionEnd: 0,
-    selectionDirection: 'forward'
+    range: Selection
   }, 'Editable.Select');
-  Select.All = () => Select({selectionEnd: Infinity});
+  Select.All = () => Select({end: Infinity});
 
 
-  const Change = Record({value: String}, 'Editable.Change');
+  const Change = Record({
+    value: String
+  }, 'Editable.Change');
 
-  const {Focus, Blur} = Focusable;
   const Action = Union({Change, Select});
   exports.Action = Action;
 
   // Update
 
-  const select = (state, range) => state.merge({
-    selectionStart: range.selectionStart,
-    selectionEnd: range.selectionEnd,
-    selectionDirection: range.selectionDirection
-  });
+  const select = (state, range) =>
+    state.set('selection', Selection(range));
   exports.select = select;
 
-  const selectAll = state => state.merge({
-    selectionStart: 0,
-    selectionEnd: Infinity,
-    selectionDirection: 'forward'
-  });
+  const selectAll = state =>
+    state.set('selection', Selection({end: Infinity}));
   exports.selectAll = selectAll;
 
+  const change = (state, action) =>
+    state.set('value', action.value);
+  exports.change = change;
+
   const update = (state, action) =>
-    action instanceof Change ? state.set('value', action.value) :
-    action instanceof Select ? select(state, action) :
+    action instanceof Change ? change(state, action) :
+    action instanceof Select ? select(state, action.range) :
     Focusable.Action.isTypeOf(action) ? Focusable.update(state, action) :
     action;
 
@@ -63,18 +64,13 @@ define((require, exports, module) => {
 
   // Field
 
-  const setSelection = field => (node, current, past) => {
-    if (current != past) {
-      node[field] = current === Infinity ? node.value.length : current;
-    }
-  };
-
   const Field = {
-    selectionStart: VirtualAttribute(setSelection('selectionStart')),
-    selectionEnd: VirtualAttribute(setSelection('selectionEnd')),
-    selectionDirection: VirtualAttribute((node, current, past) => {
+    selection: VirtualAttribute((node, current, past) => {
       if (current !== past) {
-        node.selectionDirection = current
+        const {start, end, direction} = current;
+        node.setSelectionRange(start === Infinity ? node.value.length : start,
+                               end === Infinity ? node.value.length : end,
+                               direction);
       }
     })
   };
@@ -84,9 +80,7 @@ define((require, exports, module) => {
 
   const view = Element('input', {
     isFocused: Focusable.Field.isFocused,
-    selectionStart: Field.selectionStart,
-    selectionEnd: Field.selectionEnd,
-    selectionDirection: Field.selectionDirection
+    selection: Field.selection
   });
   exports.view = view;
 });

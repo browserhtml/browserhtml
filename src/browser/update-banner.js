@@ -9,7 +9,8 @@ define((require, exports, module) => {
   const {html} = require('reflex');
   const {mix} = require('common/style');
   const {Record, Union} = require('common/typed');
-  const Embedding = require('common/embedding');
+  const Runtime = require('common/runtime');
+  const Update = require('service/update');
 
   // Model
 
@@ -21,19 +22,11 @@ define((require, exports, module) => {
 
   // Actions
 
-  const {SystemAction} = Embedding.Action;
 
+  const {ApplicationUpdate} = Update.Action;
+  const {UpdateDownloaded: RuntimeUpdate} = Runtime.Event;
 
-  const ApplicationUpdate = Record({isApplicationUpdate: true},
-                                   'Updater.Action.ApplicationUpdate');
-  const RuntimeUpdate = Record({isRuntimeUpdate: true},
-                               'Updater.Action.RuntimeUpdate');
-  const Upgrade = Record({
-    isApplicationUpdate: true,
-    isRuntimeUpdate: true
-  }, 'Updater.Action.Upgrade');
-
-  const Action = Union({ApplicationUpdate, RuntimeUpdate, Upgrade});
+  const Action = Union({ApplicationUpdate, RuntimeUpdate});
   exports.Action = Action;
 
   // Update
@@ -41,8 +34,6 @@ define((require, exports, module) => {
   const update = (state, action) =>
     action instanceof ApplicationUpdate ? state.set('appUpdateAvailable', true) :
     action instanceof RuntimeUpdate ? state.set('runtimeUpdateAvailable', true) :
-    action instanceof Upgrade ? state.merge({appUpdateAvailable: true,
-                                      runtimeUpdateAvailable: true}) :
     state;
   exports.update = update;
 
@@ -83,16 +74,13 @@ define((require, exports, module) => {
 
   // View
 
-  // FIXME: Work around issue #339
-  const Restart = SystemAction({type: 'restart'});
-  const CleanRestart = SystemAction({type: 'clear-cache-and-restart'});
-  const CleanReload = SystemAction({type: 'clear-cache-and-reload'});
+  const {Restart, CleanRestart, CleanReload} = Runtime.Action;
 
   const view = ({runtimeUpdateAvailable, appUpdateAvailable}, address) => {
     const message = runtimeUpdateAvailable ? ' (restart required)' : '';
-    const action = runtimeUpdateAvailable && appUpdateAvailable ? CleanRestart :
-                   runtimeUpdateAvailable ? Restart :
-                   appUpdateAvailable ? CleanReload :
+    const action = runtimeUpdateAvailable && appUpdateAvailable ? CleanRestart() :
+                   runtimeUpdateAvailable ? Restart() :
+                   appUpdateAvailable ? CleanReload() :
                    null;
 
     return html.div({

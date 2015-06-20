@@ -146,6 +146,12 @@ define((require, exports, module) => {
     return read(event);
   }
 
+  const service = address => action => {
+    if (action instanceof KeyboardAction) {
+      address.receive(action.action);
+    }
+  }
+  exports.service = service;
 
   // Exports:
 

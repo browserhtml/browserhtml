@@ -28,13 +28,18 @@ define((require, exports, module) => {
     id: '@selected'
   }, 'WebView.Input.Blur');
 
+  const Change = Record({
+    id: '@selected',
+    value: String
+  }, 'WebView.Input.Change');
+
   const Edit = Record({
     id: '@selected',
     action: Editable.Action
   }, 'WebView.Input.Edit');
 
 
-  const Action = Union({Enter, Focus, Blur, Edit});
+  const Action = Union({Enter, Focus, Blur, Edit, Change});
   exports.Action = Action;
 
   // Update
@@ -45,6 +50,7 @@ define((require, exports, module) => {
   const update = (state, action) =>
     action instanceof Focus ? Focusable.focus(state) :
     action instanceof Blur ? Focusable.blur(state) :
+    action instanceof Change ? Editable.change(state, action) :
     action instanceof Enter ? Editable.selectAll(focus(state)) :
     action instanceof Edit ? Editable.update(state, action.action) :
     state;

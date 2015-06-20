@@ -117,7 +117,7 @@ define((require, exports, module) => {
                relativeOf(state.entries, selected, -1) :
                relativeOf(state.entries, selected, 1);
     } else {
-      target = entries.get(selected);
+      target = state.entries.get(state.selected);
     }
 
     const entries = state.entries.remove(index);

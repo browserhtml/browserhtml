@@ -9,7 +9,6 @@ define((require, exports, module) => {
   const {html, node, render, reframe} = require('reflex');
   const {Record, Any, Union} = require('common/typed');
   const {inspect} = require('common/debug');
-  const Embedding = require('common/embedding');
   const WindowBar = require('./window-bar');
   const WebViews = require('./web-view-deck');
   const Theme = require('./theme');
@@ -24,6 +23,7 @@ define((require, exports, module) => {
   const ClassSet = require('common/class-set');
   const OS = require('common/os');
   const Pallet = require('service/pallet');
+  const Suggestions = require('./suggestion-box');
 
   // Model
   const Model = Record({
@@ -31,7 +31,7 @@ define((require, exports, module) => {
     previews: Previews.Model,
     shell: Focusable.Model({isFocused: true}),
     updates: Updates.Model,
-    webViews: WebViews.Model
+    webViews: WebViews.Model,
   });
   exports.Model = Model;
 
@@ -64,13 +64,15 @@ define((require, exports, module) => {
     [`${modifier} right`]: WebView.Action.Navigation.GoForward
   }, 'Browser.Keyboard.Action');
 
-  const Action = Union(Embedding.Action,
-                       Binding.Action,
-                       Updates.Action,
-                       WebViews.Action,
-                       Focusable.Action,
-                       Previews.Action,
-                       Session.Action);
+  const Action = Union({
+    Binding: Binding.Action,
+    Updates: Updates.Action,
+    WebViews: WebViews.Action,
+    Focusable: Focusable.Action,
+    Previews: Previews.Action,
+    Session: Session.Action,
+    Suggestions: Suggestions.Action
+  });
   exports.Action = Action;
 
 
@@ -78,11 +80,7 @@ define((require, exports, module) => {
   // Update
 
   const update = (state, action) => {
-    if (action instanceof Binding.Action) {
-      return exports.update(state, action.action);
-    }
-
-    if (action instanceof Previews.Action.Deactivate) {
+      if (action instanceof Previews.Action.Deactivate) {
       return state.merge({
         previews: Previews.update(state.previews, action),
         webViews: WebViews.update(state.webViews,
@@ -94,10 +92,6 @@ define((require, exports, module) => {
 
     if (Focusable.Action.isTypeOf(action)) {
       return state.set('shell', Focusable.update(state.shell, action));
-    }
-
-    if (Embedding.Action.isTypeOf(action)) {
-      return Embedding.update(state, action);
     }
 
     if (WebViews.Action.isTypeOf(action)) {
@@ -176,6 +170,8 @@ define((require, exports, module) => {
     }, [
       render('WindowBar', WindowBar.view, shell, previewed.view, theme, address),
       render('Previews', Previews.view, webViews, theme, address),
+      render('Suggestions', Suggestions.view, previewed.view.suggestions,
+             previewed.view.input.isFocused, theme, address),
       render('WebViews', WebViews.view, webViews, address),
       render('Updater', Updates.view, state.updates, address)
     ])

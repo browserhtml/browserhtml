@@ -23,7 +23,7 @@ define((require, exports, module) => {
   const TypeUnion = types => {
     const variants = [];
     const Type = function(value) {
-      this[Typed.read](value);
+      return prototype[Typed.read](value);
     }
     Type.variants = variants;
     Type.isTypeOf = isTypeOf;
@@ -38,8 +38,9 @@ define((require, exports, module) => {
       }
     }
 
-    Type.prototype = Union(...variants);
-    Type.toString = Type.prototype[Type.typeName];
+    const prototype = Union(...variants);
+    Type.toString = prototype[Type.typeName];
+    Type.prototype = prototype;
 
     return Type;
   }

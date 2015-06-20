@@ -33,8 +33,8 @@
     "omniscient": "3.1.0",
     "pouchdb": "3.5.0",
     "react": "0.13.3",
-    "reflex": "0.0.20",
+    "reflex": "0.0.21",
     "requirejs": "2.1.16",
-    "typed-immutable": "0.0.3"
+    "typed-immutable": "0.0.4"
   }
 }

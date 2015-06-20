@@ -19,6 +19,8 @@ define((require, exports, module) => {
   const Security = require('./web-security');
   const Input = require('./web-input');
   const Page = require('./web-page');
+  const Suggestions = require('./suggestion-box');
+  const Loader = require('./web-loader');
 
   // Model
   const Model = Record({
@@ -29,13 +31,15 @@ define((require, exports, module) => {
     navigation: Navigation.Model,
     progress: Progress.Model,
     page: Page.Model,
-    shell: Shell.Model
+    shell: Shell.Model,
+    suggestions: Suggestions.Model
   });
   exports.Model = Model;
 
   // Returns subset of the model which can be restored acrosse sessions.
   const persistent = state =>
     state.remove('progress')
+         .removeIn(['page', 'thumbnail'])
          .remove('navigation')
          .remove('security');
   exports.persistent = persistent;
@@ -53,16 +57,7 @@ define((require, exports, module) => {
 
 
 
-  // TODO: Consider merging `Load` & `LocationChange` into one.
-  const Load = Record({
-    id: '@selected',
-    uri: String
-  }, 'WebView.Load');
-
-  const LocationChange = Record({
-    id: String,
-    uri: String
-  }, 'WebView.LocationChange');
+  const {Load, LocationChange} = Loader.Action;
 
   const Action = Union({
     Load, LocationChange,
@@ -71,7 +66,8 @@ define((require, exports, module) => {
     Progress: Progress.Action,
     Page: Page.Action,
     Shell: Shell.Action,
-    Input: Input.Action
+    Input: Input.Action,
+    Suggestions: Suggestions.Action
   });
   exports.Action = Action;
 
@@ -112,6 +108,8 @@ define((require, exports, module) => {
       state.set('security', Security.update(state.security, action)) :
     Page.Action.isTypeOf(action) ?
       state.set('page', Page.update(state.page, action)) :
+    Suggestions.Action.isTypeOf(action) ?
+      state.set('suggestions', Suggestions.update(state.suggestions, action)) :
     state;
 
   exports.update = update;

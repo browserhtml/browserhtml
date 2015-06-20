@@ -31,25 +31,10 @@ define((require, exports, module) => {
     textAlign: 'center'
   });
 
-  const WindowBar = Record({
-    isFocused: Boolean
-  }, 'WindowBar');
-
-  // Action
-  const {SuggestNext, SuggestPrevious} = LocationBar.Action;
-  const Action = Union({
-    LocationBar: LocationBar.Action,
-    SuggestNext, SuggestPrevious,
-  });
-
-
-  WindowBar.Action = Action;
-  // Update
-
 
   // view
 
-  WindowBar.view = (shell, webView, theme, address) => html.div({
+  const view = (shell, webView, theme, address) => html.div({
     key: 'WindowBar',
     style: NavigationPanelStyle({
       backgroundColor: theme.shell,
@@ -69,6 +54,5 @@ define((require, exports, module) => {
     render('ProgressBar', Progress.view,
            webView.progress, webView.id, theme, address)
   ]);
-
-  module.exports = WindowBar;
+  exports.view = view;
 });

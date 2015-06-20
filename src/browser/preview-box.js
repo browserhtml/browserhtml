@@ -68,7 +68,7 @@ define((require, exports, moudle) => {
       }),
       style: {order},
       onMouseOver: address.pass(PreviewByID, context),
-      onMouseDown: address.pass(SelectByID, context),
+      onClick: address.pass(SelectByID, context),
       onMouseUp: address.pass(Close, context)
     }, [
       html.div({

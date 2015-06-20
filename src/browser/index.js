@@ -9,8 +9,13 @@ define((require, exports, module) => {
   const Browser = require('./browser');
   const Thumbnail = require('service/thumbnail');
   const Pallet = require('service/pallet');
-  const {appUpdateAvailable} = require('./github');
+  const Update = require('service/update');
   const Session = require('./session');
+  const Runtime = require('common/runtime');
+  const History = require('service/history');
+  const Search = require('service/search');
+  const Suggestion = require('service/suggestion');
+  const Keyboard = require('common/keyboard');
 
   // Set up a address (message bus if you like) that will be used
   // as an address for all application components / services. This
@@ -21,6 +26,11 @@ define((require, exports, module) => {
       application.receive(action);
       thumbnail(action);
       pallet(action);
+      runtime(action);
+      history(action);
+      search(action);
+      suggestion(action);
+      keyboard(action);
     }
   });
   window.address = address;
@@ -36,16 +46,18 @@ define((require, exports, module) => {
 
   const thumbnail = Thumbnail.service(address);
   const pallet = Pallet.service(address);
-  // const updater = UpdateService(address);
+  const updater = Update.service(address);
+  const runtime = Runtime.service(address);
+  const history = History.service(address);
+  const search = Search.service(address);
+  const suggestion = Suggestion.service(address);
+  const keyboard = Keyboard.service(address);
   // const session = Session.service(address);
 
-
-  appUpdateAvailable.then(() => {
-    dispatchEvent(new CustomEvent('app-update-available'));
-  }, () => {
-    console.log('Not checking for updates');
-  });
-
-  // Start things up.
+  // Restore application state.
   address.receive(Session.Action.RestoreSession());
+
+  // Trigger a forced update check after 5s to not slow down startup.
+  // TODO: delay until we're online if needed.
+  window.setTimeout(address.pass(Runtime.Action.CheckUpdate), 500);
 });

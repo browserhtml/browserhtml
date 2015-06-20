@@ -6,33 +6,9 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {Record, Maybe, Union} = require('typed-immutable/index');
+  const {Record, Maybe, Union} = require('common/typed');
   const {html} = require('reflex');
-  const Embedding = require('common/embedding');
-  const Theme = require('./theme');
-
-  // Model
-
-  const WindowControls = Record({
-    theme: Theme,
-    isFocused: Boolean
-  }, 'WindowControls');
-
-  // Actions
-
-  const {SystemAction} = Embedding.Action;
-  const Action = Union(SystemAction);
-  Action.SystemAction = SystemAction;
-
-  WindowControls.Action = Action;
-
-  // Update
-
-  // WindowControls only produces `SystemActions` and handling of those
-  // are delegated to Embedding.
-  WindowControls.update = (state, action) =>
-    action.constructor === SystemAction ? Embedding.update(state, action) :
-    state;
+  const Runtime = require('common/runtime');
 
   // View
 
@@ -69,11 +45,9 @@ define((require, exports, module) => {
 
 
   // Actions that will are send by window controls.
-  const Close = SystemAction({type: 'shutdown-application'});
-  const Minimize = SystemAction({type: 'minimize-native-window'});
-  const Maximize = SystemAction({type: 'toggle-fullscreen-native-window'});
+  const {Shutdown, Minimize, Maximize} = Runtime.Action;
 
-  WindowControls.view = ({isFocused}, theme, address) => html.div({
+  const view = ({isFocused}, theme, address) => html.div({
     key: 'WindowControls',
     style: containerStyle
   }, [
@@ -82,23 +56,22 @@ define((require, exports, module) => {
       style: isFocused ? ButtonStyle.close.merge({
         backgroundColor: theme.closeButton
       }) : ButtonStyle.unfocused,
-      onClick: address.send(Close)
+      onClick: address.pass(Shutdown, void(0))
     }),
     html.button({
       key: 'WindowMinButton',
       style: isFocused ? ButtonStyle.min.merge({
         backgroundColor: theme.minButton
       }) : ButtonStyle.unfocused,
-      onClick: address.send(Minimize)
+      onClick: address.pass(Minimize, void(0))
     }),
     html.button({
       key: 'WindowMaxButton',
       style: isFocused ? ButtonStyle.max.merge({
         backgroundColor: theme.maxButton
       }) : ButtonStyle.unfocused,
-      onClick: address.send(Maximize)
+      onClick: address.pass(Maximize, void(0))
     })
   ]);
-
-  module.exports = WindowControls;
+  exports.view = view;
 });

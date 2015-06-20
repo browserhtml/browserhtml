@@ -8,9 +8,7 @@ define((require, exports, module) => {
 
   const {Record, Maybe, Union} = require('common/typed');
   const {getDomainName} = require('common/url-helper');
-  // TODO: Avoid cyrcular dependncy probably by factoring `LocationChange`
-  // definiton elsewhere.
-  const WebView = require('browser/web-view');
+  const WebLoader = require('browser/web-loader');
   const tinycolor = require('tinycolor');
 
   const DARK = true;
@@ -79,7 +77,7 @@ define((require, exports, module) => {
   const none = Object.freeze([]);
 
   const service = address => action => {
-    if (action instanceof WebView.Action.LocationChange) {
+    if (action instanceof WebLoader.Action.LocationChange) {
       const hostname = getDomainName(action.uri);
       const theme = curated[hostname];
       if (theme) {
