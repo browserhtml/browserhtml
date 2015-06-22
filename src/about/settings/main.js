@@ -5,15 +5,12 @@ require.config({
   paths: {
     common: '../src/common',
     lang: '../src/lang',
+    service: '../src/service',
     shims: '../src/shims',
     react: 'react/dist/react',
     immutable: 'immutable/dist/immutable',
-    omniscient: 'omniscient/dist/omniscient',
-  },
-  shim: {
-    omniscient: {
-      deps: ['shims/omniscient']
-    }
+    'typed-immutable': 'typed-immutable/lib/',
+    reflex: 'reflex/lib/index'
   }
 });
 
