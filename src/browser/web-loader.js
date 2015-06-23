@@ -8,6 +8,9 @@ define((require, exports, module) => {
 
   const {Record, Union, List, Maybe, Any} = require('common/typed');
 
+  // The reason this code is a separate module from web-view is to avoid
+  // circular dependencies between components.
+
   // TODO: Consider merging `Load` & `LocationChange` into one.
   const Load = Record({
     id: '@selected',

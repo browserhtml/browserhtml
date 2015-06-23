@@ -76,6 +76,7 @@ define((require, exports, module) => {
 
   const load = (state, uri=state.input.value) => Model({
     uri,
+    input: state.input.clear('value'),
     id: state.id,
     shell: state.shell
   });

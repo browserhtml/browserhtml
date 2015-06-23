@@ -8,6 +8,7 @@ define((require, exports, module) => {
   'use strict';
 
   const {Record, Union} = require('common/typed');
+  const Settings = require('./settings');
 
   const ApplicationUpdate = Record({
     commit: String
@@ -16,6 +17,12 @@ define((require, exports, module) => {
   const Action = Union({ApplicationUpdate});
   exports.Action = Action;
 
+
+  const UpdateHead = value =>
+    Settigs.Action.Update({name: 'browserhtml.HEAD_HASH', value});
+  const UnknownHead = e =>
+    Settings.Action.Update({name: 'browserhtml.HEAD_HASH',
+                            value: `Unknown (${e})`});
 
   const service = (address, user='mozilla', project='browser.html') => {
     const PROD = location.hostname == `${user}.github.io`;
@@ -86,12 +93,8 @@ define((require, exports, module) => {
     });
 
 
-    localHEAD.then(hash => {
-      navigator.mozSettings.createLock().set({'browserhtml.HEAD_HASH': hash});
-    }, e => {
-      navigator.mozSettings.createLock().set({'browserhtml.HEAD_HASH': `unknown (${e})`});
-    });
 
+    localHEAD.then(address.pass(UpdateHead), address.pass(UnknownHead));
     const update = new Promise(pull);
     update.then(address.send, error => console.warn(error));
   }

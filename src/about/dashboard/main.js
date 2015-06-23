@@ -8,7 +8,6 @@ require.config({
     common: '../src/common',
     lang: '../src/lang',
     service: '../src/service',
-    shims: '../src/shims',
     // http://facebook.github.io/react/
     react: 'react/dist/react',
     // http://facebook.github.io/immutable-js/
@@ -16,8 +15,6 @@ require.config({
     // we use forked version until it's uplifted.
     immutable: 'immutable/dist/immutable',
     'typed-immutable': 'typed-immutable/lib/',
-    // http://omniscientjs.github.io
-    omniscient: 'omniscient/dist/omniscient',
     // https://github.com/broofa/node-uuid
     uuid: 'node-uuid/uuid',
     reflex: 'reflex/lib/index',
@@ -27,9 +24,6 @@ require.config({
   shim: {
     tinycolor: {
       exports: 'tinycolor'
-    },
-    omniscient: {
-      deps: ['shims/omniscient']
     },
     pouchdb: {
       exports: 'PouchDB'

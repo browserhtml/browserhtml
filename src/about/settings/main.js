@@ -6,7 +6,6 @@ require.config({
     common: '../src/common',
     lang: '../src/lang',
     service: '../src/service',
-    shims: '../src/shims',
     react: 'react/dist/react',
     immutable: 'immutable/dist/immutable',
     'typed-immutable': 'typed-immutable/lib/',

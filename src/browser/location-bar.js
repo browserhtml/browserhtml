@@ -120,12 +120,12 @@ define((require, exports, module) => {
   const {SelectNext, SelectPrevious} = Suggestions.Action;
 
   const Binding = KeyBindings({
-    'up': SelectPrevious,
-    'control p': SelectPrevious,
-    'down': SelectNext,
-    'control n': SelectNext,
-    'enter': event => Load({uri: URI.read(event.target.value)}),
-    'escape': Shell.Action.Focus,
+    'up': id => SelectPrevious({id}),
+    'control p': id => SelectPrevious({id}),
+    'down': id => SelectNext({id}),
+    'control n': id => SelectNext({id}),
+    'enter': (id, event) => Load({id, uri: URI.read(event.target.value)}),
+    'escape': id => Shell.Action.Focus({id}),
   }, 'LocationBar.Keyboard.Action');
 
 
@@ -184,7 +184,7 @@ define((require, exports, module) => {
 
         onFocus: address.pass(Input.Action.Focus, webView),
         onBlur: address.pass(Input.Action.Blur, webView),
-        onKeyDown: address.pass(Binding)
+        onKeyDown: address.pass(Binding, id)
       }),
       html.p({
         key: 'page-info',

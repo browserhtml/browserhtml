@@ -16,6 +16,7 @@ define((require, exports, module) => {
   const Search = require('service/search');
   const Suggestion = require('service/suggestion');
   const Keyboard = require('common/keyboard');
+  const Settings = require('service/settings');
 
   // Set up a address (message bus if you like) that will be used
   // as an address for all application components / services. This
@@ -31,6 +32,7 @@ define((require, exports, module) => {
       search(action);
       suggestion(action);
       keyboard(action);
+      settings(action);
     }
   });
   window.address = address;
@@ -52,6 +54,7 @@ define((require, exports, module) => {
   const search = Search.service(address);
   const suggestion = Suggestion.service(address);
   const keyboard = Keyboard.service(address);
+  const settings = Settings.service(address);
   // const session = Session.service(address);
 
   // Restore application state.

@@ -17,7 +17,7 @@ define((require, exports, module) => {
   const {Change, Enter, Blur} = Input.Action;
   const {Query: SearchQuery} = Search.Action;
   const {PageQuery} = History.Action;
-  const {Unselect} = Suggestions.Action;
+  const {Unselect, Clear} = Suggestions.Action;
   const {Load} = Loader.Action;
 
   const MAX_RESULTS = 6;
@@ -39,6 +39,10 @@ define((require, exports, module) => {
 
     if (action instanceof Blur) {
       address.receive(Unselect({id: action.id}));
+    }
+
+    if (action instanceof Load) {
+      address.receive(Clear({id: action.id}));
     }
   };
   exports.service = service;
