@@ -48,10 +48,7 @@ define((require, exports, module) => {
           entries: [
             {
               view: {
-                id: 'about:dashboard',
-                uri: 'about:dashboard',
-                isPinned: true,
-                isFocused: true
+                id: '0'
               }
             }
           ]

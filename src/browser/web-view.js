@@ -120,7 +120,7 @@ define((require, exports, module) => {
 
   const base = {
     display: 'block',
-    height: 'calc(100vh - 50px)',
+    height: 'calc(100vh - 28px)',
     MozUserSelect: 'none',
     width: '100vw'
   };
@@ -142,9 +142,7 @@ define((require, exports, module) => {
 
     console.log('render web-view')
 
-    const style = mix(base, {
-      minHeight: page.overflow ? '100vh' : null
-    });
+    const style = base;
 
     const action = address.pass(Event, {id, uri});
     const location = URI.resolve(uri);

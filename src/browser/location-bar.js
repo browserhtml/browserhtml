@@ -21,6 +21,7 @@ define((require, exports, module) => {
   const Preview = require('./preview-box');
   const Suggestions = require('./suggestion-box');
 
+
   const Theme = require('./theme');
 
   // Model
@@ -30,14 +31,14 @@ define((require, exports, module) => {
     display: 'inline-block',
     position: 'relative',
     MozWindowDragging: 'no-drag',
-    borderRadius: 3,
-    lineHeight: '30px',
-    width: 460, // FIXME :Doesn't shrink when window is narrow
-    height: 30,
-    padding: '0 30px',
+    borderRadius: 5,
+    lineHeight: '22px',
+    width: 250, // FIXME :Doesn't shrink when window is narrow
+    height: 22,
+    padding: '0 3px',
     margin: '0 67px',
     backgroundColor: 'rgba(0,0,0,0.07)',
-    overflow: 'hidden'
+    overflow: 'hidden',
   }, 'LocationBarStyle');
 
   const ButtonStyle = Record({
@@ -65,7 +66,7 @@ define((require, exports, module) => {
     color: Maybe(Color),
     backgroundColor: Maybe(Color),
 
-    lineHeight: '30px',
+    lineHeight: '22px',
     overflow: 'hidden',
     width: '100%',
     borderRadius: 0
@@ -77,7 +78,7 @@ define((require, exports, module) => {
     color: Maybe(Color),
     backgroundColor: Maybe(Color),
 
-    lineHeight: '30px',
+    lineHeight: '22px',
     overflow: 'hidden',
     width: '100%',
     display: 'inline-block',
@@ -101,6 +102,7 @@ define((require, exports, module) => {
   const backButton = ButtonStyle({left: 0});
   const reloadButton = ButtonStyle({right: 0});
   const stopButton = ButtonStyle({right: 0});
+  const dashboardButton = ButtonStyle({right: 0});
 
 
   // Events
@@ -160,14 +162,7 @@ define((require, exports, module) => {
     return html.div({
       key: 'LocationBar',
       style: LocationBarStyle(),
-      onMouseEnter: address.pass(Preview.Action.Activate)
     }, [
-      html.button({
-        key: 'back',
-        onClick: address.pass(GoBack, webView),
-        style: navigation.canGoBack ? backButton :
-               backButton.merge(disable)
-      }, BackIcon),
       Editable.view({
         key: 'input',
         placeholder: 'Search or enter address',
@@ -205,31 +200,13 @@ define((require, exports, module) => {
            security.secure ? LockIcon :
            ''),
         html.span({
-          key: 'location',
-          style: LocationTextStyle({color: theme.locationText}),
-        }, !uri ? '' :
-           URI.isPrivileged(uri) ? '' :
-           URI.getDomainName(uri)),
-        html.span({
           key: 'title',
           style: TitleTextStyle({color: theme.titleText}),
         }, page.title ? page.title :
+           uri ? URI.getDomainName(uri) :
            isLoading(progress) ? 'Loading...' :
            'New Tab'),
-      ]),
-      html.button({
-        key: 'reload-button',
-        style: isLoading(progress) ? reloadButton.merge(hide) :
-               !uri ? reloadButton.merge(disable) :
-               reloadButton,
-        onClick: address.pass(Reload, webView),
-      }, ReloadIcon),
-      html.button({
-        key: 'stop-button',
-        style: isLoading(progress) ? stopButton :
-              stopButton.merge(hide),
-        onClick: address.pass(Stop, webView)
-      }, StopIcon)
+      ])
     ]);
   };
 

@@ -36,11 +36,9 @@ define((require, exports, module) => {
 
   const containerStyle = {
     position: 'absolute',
-    top: 10,
-    left: 10,
-    lineHeight: '30px',
-    verticalAlign: 'center',
-    marginLeft: 7,
+    top: 8,
+    left: 8,
+    verticalAlign: 'center'
   };
 
 

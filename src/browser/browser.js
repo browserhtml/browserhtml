@@ -19,7 +19,7 @@ define((require, exports, module) => {
   const WebView = require('./web-view');
   const Session = require('./session');
   const Input = require('./web-input');
-  const Previews = require('./preview-box');
+  const Preview = require('./web-preview');
   const ClassSet = require('common/class-set');
   const OS = require('common/os');
   const Pallet = require('service/pallet');
@@ -28,7 +28,7 @@ define((require, exports, module) => {
   // Model
   const Model = Record({
     version: '0.0.7',
-    previews: Previews.Model,
+    preview: Preview.Model,
     shell: Focusable.Model({isFocused: true}),
     updates: Updates.Model,
     webViews: WebViews.Model,
@@ -45,7 +45,7 @@ define((require, exports, module) => {
   const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
   const Binding = KeyBindings({
     'accel l': Input.Action.Enter,
-    'accel t': _ => Input.Action.Enter({id: 'about:dashboard'}),
+    'accel t': Preview.Action.Activate,
     'accel 0': WebView.Action.Shell.ResetZoom,
     'accel -': WebView.Action.Shell.ZoomOut,
     'accel =': WebView.Action.Shell.ZoomIn,
@@ -69,7 +69,7 @@ define((require, exports, module) => {
     Updates: Updates.Action,
     WebViews: WebViews.Action,
     Focusable: Focusable.Action,
-    Previews: Previews.Action,
+    Preview: Preview.Action,
     Session: Session.Action,
     Suggestions: Suggestions.Action
   });
@@ -80,13 +80,20 @@ define((require, exports, module) => {
   // Update
 
   const update = (state, action) => {
-      if (action instanceof Previews.Action.Deactivate) {
+      if (action instanceof Preview.Action.Deactivate) {
       return state.merge({
-        previews: Previews.update(state.previews, action),
+        preview: Preview.update(state.preview, action),
         webViews: WebViews.update(state.webViews,
                                   WebViews.Action.PreviewByID({
                                     id: '@selected'
                                   }))
+      });
+    }
+
+    if (action instanceof WebViews.Action.SelectByID) {
+      return state.merge({
+        preview: Preview.update(state.preview, action),
+        webViews: WebViews.update(state.webViews, action)
       });
     }
 
@@ -102,8 +109,8 @@ define((require, exports, module) => {
       return state.set('updates', Updates.update(state.updates, action));
     }
 
-    if (Previews.Action.isTypeOf(action)) {
-      return state.set('previews', Previews.update(state.previews, action));
+    if (Preview.Action.isTypeOf(action)) {
+      return state.set('preview', Preview.update(state.preview, action));
     }
 
     if (Session.Action.isTypeOf(action)) {
@@ -140,7 +147,6 @@ define((require, exports, module) => {
       key: 'root',
       windowTitle: previewed.view.page.title ||
                    previewed.view.uri,
-      scrollGrab: true,
       onKeyDown: address.pass(Binding),
       onWindowBlur: address.pass(Blur),
       onWindowFocus: address.pass(Focus),
@@ -150,26 +156,19 @@ define((require, exports, module) => {
       onOpenWindow: address.pass(OpenWindow),
       tabIndex: 1,
       className: ClassSet({
-        'moz-noscrollbars': true,
-        showtabstrip: state.previews.isActive ||
-                      selected.view.id === 'about:dashboard',
-        withoutkillzone: selected.view.id === 'about:dashboard'
+        'moz-noscrollbars': true
       }),
       style: {
         height: '100vh',
         width: '100vw',
         color: theme.shellText,
         backgroundColor: theme.shell,
-        scrollSnapType: 'mandatory',
-        scrollSnapDestination: '0 0',
         position: 'relative',
-        overflowY: previewed.view.input.isFocused ? 'hidden' :
-                   state.previews.isActive ? 'hidden' :
-                   'scroll'
+        overflowY: 'hidden'
       }
     }, [
       render('WindowBar', WindowBar.view, shell, previewed.view, theme, address),
-      render('Previews', Previews.view, webViews, theme, address),
+      render('Preview', Preview.view, state.preview, webViews, theme, address),
       render('Suggestions', Suggestions.view, previewed.view.suggestions,
              previewed.view.input.isFocused, theme, address),
       render('WebViews', WebViews.view, webViews, address),

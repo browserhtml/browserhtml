@@ -14,6 +14,7 @@ define((require, exports, module) => {
   const Progress = require('./progress-bar');
   const WindowControls = require('./window-controls');
   const LocationBar = require('./location-bar');
+  const Preview = require('./web-preview');
 
   const Theme = require('./theme');
   const WebView = require('./web-view');
@@ -24,11 +25,8 @@ define((require, exports, module) => {
     backgroundColor: 'inherit',
     color: 'inherit',
     MozWindowDragging: 'drag',
-    padding: 10,
-    position: 'relative',
-    scrollSnapCoordinate: '0 0',
     transition: 'background-color 300ms ease, color 300ms ease',
-    textAlign: 'center'
+    textAlign: 'center',
   });
 
 
@@ -49,8 +47,20 @@ define((require, exports, module) => {
       sslv: webView.security.extendedValidation,
     })
   }, [
-    render('WindowControls', WindowControls.view, shell, theme, address),
-    render('LocationBar', LocationBar.view, webView, theme, address),
+    html.div({
+      key: 'header',
+      style: {
+        boxShadow: '0 1px 0 rgba(0, 0, 0, 0.08)',
+        padding: '3px 0',
+        height: '28px',
+        zIndex: 100,
+        position: 'relative'
+      }
+    }, [
+      render('WindowControls', WindowControls.view, shell, theme, address),
+      render('LocationBar', LocationBar.view, webView, theme, address),
+      render('PreviewControls', Preview.viewControls, theme, address),
+    ]),
     render('ProgressBar', Progress.view,
            webView.progress, webView.id, theme, address)
   ]);

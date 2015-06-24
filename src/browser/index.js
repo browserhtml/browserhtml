@@ -28,7 +28,7 @@ define((require, exports, module) => {
       thumbnail(action);
       pallet(action);
       runtime(action);
-      history(action);
+      //history(action);
       search(action);
       suggestion(action);
       keyboard(action);
@@ -50,7 +50,7 @@ define((require, exports, module) => {
   const pallet = Pallet.service(address);
   const updater = Update.service(address);
   const runtime = Runtime.service(address);
-  const history = History.service(address);
+  // const history = History.service(address);
   const search = Search.service(address);
   const suggestion = Suggestion.service(address);
   const keyboard = Keyboard.service(address);
