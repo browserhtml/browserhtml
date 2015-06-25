@@ -173,7 +173,8 @@ define((require, exports, module) => {
         type: 'text',
         value: suggestions.selected < 0 ? input.value :
                suggestions.entries.get(suggestions.selected).uri,
-        style: URLInputStyle({color: 'inherit'}).merge(collapse),
+        style: input.isFocused ? URLInputStyle({color: 'inherit'}) :
+               URLInputStyle({color: 'inherit'}).merge(collapse),
         isFocused: input.isFocused,
         selection: input.selection,
 
