@@ -29,7 +29,7 @@ define((require, exports, module) => {
       pallet(action);
       runtime(action);
       //history(action);
-      search(action);
+      //search(action);
       suggestion(action);
       keyboard(action);
       settings(action);

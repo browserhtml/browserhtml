@@ -28,7 +28,6 @@ define((require, exports, module) => {
   // Model
   const Model = Record({
     version: '0.0.7',
-    preview: Preview.Model,
     shell: Focusable.Model({isFocused: true}),
     updates: Updates.Model,
     webViews: WebViews.Model,
@@ -45,7 +44,7 @@ define((require, exports, module) => {
   const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
   const Binding = KeyBindings({
     'accel l': Input.Action.Enter,
-    'accel t': Preview.Action.Activate,
+    'accel t': _ => Input.Action.Enter({id: 'about:dashboard'}),
     'accel 0': WebView.Action.Shell.ResetZoom,
     'accel -': WebView.Action.Shell.ZoomOut,
     'accel =': WebView.Action.Shell.ZoomIn,
@@ -69,7 +68,6 @@ define((require, exports, module) => {
     Updates: Updates.Action,
     WebViews: WebViews.Action,
     Focusable: Focusable.Action,
-    Preview: Preview.Action,
     Session: Session.Action,
     Suggestions: Suggestions.Action
   });
@@ -80,19 +78,8 @@ define((require, exports, module) => {
   // Update
 
   const update = (state, action) => {
-      if (action instanceof Preview.Action.Deactivate) {
-      return state.merge({
-        preview: Preview.update(state.preview, action),
-        webViews: WebViews.update(state.webViews,
-                                  WebViews.Action.PreviewByID({
-                                    id: '@selected'
-                                  }))
-      });
-    }
-
     if (action instanceof WebViews.Action.SelectByID) {
       return state.merge({
-        preview: Preview.update(state.preview, action),
         webViews: WebViews.update(state.webViews, action)
       });
     }
@@ -107,10 +94,6 @@ define((require, exports, module) => {
 
     if (Updates.Action.isTypeOf(action)) {
       return state.set('updates', Updates.update(state.updates, action));
-    }
-
-    if (Preview.Action.isTypeOf(action)) {
-      return state.set('preview', Preview.update(state.preview, action));
     }
 
     if (Session.Action.isTypeOf(action)) {
@@ -140,13 +123,12 @@ define((require, exports, module) => {
   const view = (state, address) => {
     const {shell, webViews} = state;
     const selected = webViews.entries.get(webViews.selected);
-    const previewed = webViews.entries.get(webViews.previewed);
     const theme = Theme.read(selected.view.page.pallet);
 
     return Main({
       key: 'root',
-      windowTitle: previewed.view.page.title ||
-                   previewed.view.uri,
+      windowTitle: selected.view.page.title ||
+                   selected.view.uri,
       onKeyDown: address.pass(Binding),
       onWindowBlur: address.pass(Blur),
       onWindowFocus: address.pass(Focus),
@@ -167,10 +149,10 @@ define((require, exports, module) => {
         overflowY: 'hidden'
       }
     }, [
-      render('WindowBar', WindowBar.view, shell, previewed.view, theme, address),
-      render('Preview', Preview.view, state.preview, webViews, theme, address),
-      render('Suggestions', Suggestions.view, previewed.view.suggestions,
-             previewed.view.input.isFocused, theme, address),
+      render('WindowBar', WindowBar.view, shell, selected.view, theme, address),
+      render('Preview', Preview.view, selected, webViews, theme, address),
+      render('Suggestions', Suggestions.view, selected.view.suggestions,
+             selected.view.input.isFocused, theme, address),
       render('WebViews', WebViews.view, webViews, address),
       render('Updater', Updates.view, state.updates, address)
     ])

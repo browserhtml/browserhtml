@@ -20,7 +20,7 @@ define((require, exports, module) => {
   const Progress = require('./progress-bar');
   const Preview = require('./preview-box');
   const Suggestions = require('./suggestion-box');
-
+  const ClassSet = require('common/class-set');
 
   const Theme = require('./theme');
 
@@ -29,7 +29,6 @@ define((require, exports, module) => {
   const Color = String;
   const LocationBarStyle = Record({
     display: 'inline-block',
-    position: 'relative',
     MozWindowDragging: 'no-drag',
     borderRadius: 5,
     lineHeight: '22px',
@@ -37,9 +36,9 @@ define((require, exports, module) => {
     height: 22,
     padding: '0 3px',
     margin: '0 67px',
-    backgroundColor: 'rgba(0,0,0,0.07)',
     overflow: 'hidden',
   }, 'LocationBarStyle');
+
 
   const ButtonStyle = Record({
     color: 'inherit',
@@ -63,7 +62,7 @@ define((require, exports, module) => {
   const URLInputStyle = Record({
     padding: Maybe(Number),
     maxWidth: Maybe(Number),
-    color: Maybe(Color),
+    color: 'inherit',
     backgroundColor: Maybe(Color),
 
     lineHeight: '22px',
@@ -161,16 +160,20 @@ define((require, exports, module) => {
 
     return html.div({
       key: 'LocationBar',
+      className: ClassSet({
+        'location-bar': true,
+        active: input.isFocused
+      }),
       style: LocationBarStyle(),
     }, [
       Editable.view({
         key: 'input',
+        className: 'location-bar-input',
         placeholder: 'Search or enter address',
         type: 'text',
         value: suggestions.selected < 0 ? input.value :
                suggestions.entries.get(suggestions.selected).uri,
-        style: input.isFocused ? URLInputStyle({color: theme.inputText}) :
-               URLInputStyle({color: theme.inputText}).merge(collapse),
+        style: URLInputStyle({color: 'inherit'}).merge(collapse),
         isFocused: input.isFocused,
         selection: input.selection,
 

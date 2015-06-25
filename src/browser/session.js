@@ -48,7 +48,8 @@ define((require, exports, module) => {
           entries: [
             {
               view: {
-                id: '0'
+                id: 'about:dashboard',
+                uri: 'data:text/html,'
               }
             }
           ]

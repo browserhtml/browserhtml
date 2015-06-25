@@ -136,7 +136,7 @@ define((require, exports, module) => {
     display: 'none'
   };
 
-  const view = (id, uri, shell, page, navigation, isSelected, isPreviewed, address) => {
+  const view = (id, uri, shell, page, navigation, isSelected, address) => {
     // Do not render anything unless viewer has an `uri`
     if (!uri) return null;
 
@@ -160,7 +160,7 @@ define((require, exports, module) => {
       isRemote: true,
       mozApp: URI.isPrivileged(location) ? URI.getManifestURL().href : null,
       allowFullScreen: true,
-      isVisible: isSelected || isPreviewed,
+      isVisible: isSelected,
       zoom: shell.zoom,
       isFocused: shell.isFocused,
       uri: location,

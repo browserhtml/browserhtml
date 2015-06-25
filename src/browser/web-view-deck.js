@@ -14,6 +14,7 @@ define((require, exports, module) => {
   const Input = require('./web-input');
   const Thumbnail = require('service/thumbnail');
   const Pallet = require('service/pallet');
+  const URI = require('common/url-helper');
 
   // Model
   const EntryModel = Record({
@@ -128,7 +129,10 @@ define((require, exports, module) => {
   const load = (state, action) => {
     const index = indexByID(state, action.id);
     const selected = state.entries.get(index).view;
-    return selected.id === 'about:dashboard' ? open(state, action.uri) :
+    return selected.id === 'about:dashboard' ?
+            open(state, action.uri) :
+           URI.getOrigin(selected.uri) !== URI.getOrigin(action.uri) ?
+            open(state, action.uri) :
            state.setIn(['entries', index, 'view'],
                        WebView.update(selected, action));
   };
@@ -206,13 +210,11 @@ define((require, exports, module) => {
 
   const view = (state, address) => {
     const selected = state.entries.get(state.selected);
-    const previewed = state.entries.get(state.previewed);
 
     return html.div({
       key: 'web-views',
       style: {
-        scrollSnapCoordinate: '0 0',
-        display: 'block'
+        transform: `scale(${selected.view.shell.isFocused ? 1 : 0})`
       },
     }, state.entries.map(({view}) =>
       render(view.id,
@@ -223,7 +225,6 @@ define((require, exports, module) => {
              view.page,
              view.navigation,
              view === selected.view,
-             view === previewed.view,
              address)));
   };
   exports.view = view;

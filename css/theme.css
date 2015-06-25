@@ -5,6 +5,23 @@
   font-style: normal;
 }
 
+.location-bar {
+  position: relative;
+}
+
+.location-bar:hover {
+  background-color: rgba(0,0,0, 0.07)
+}
+
+.location-bar.active {
+  top: 50px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dashboard-active .navbar {
+}
+
 * {
   -moz-appearance: none;
   background-color: transparent;

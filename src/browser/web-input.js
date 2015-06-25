@@ -28,6 +28,10 @@ define((require, exports, module) => {
     id: '@selected'
   }, 'WebView.Input.Blur');
 
+  const Hover = Record({
+    id: '@selected'
+  }, 'WebView.Input.Hover');
+
   const Change = Record({
     id: '@selected',
     value: String

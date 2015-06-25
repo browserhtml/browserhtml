@@ -11,37 +11,10 @@ define((require, exports, module) => {
   const ClassSet = require('common/class-set');
   const Preview = require('./preview-box');
   const WebViews = require('./web-view-deck');
-  const WebView = require('./web-view');
+  const Shell = require('./web-shell');
+  const Input = require('./web-input');
 
   // Model
-
-  const Model = Record({
-    isActive: false
-  }, 'Previews');
-  exports.Model = Model;
-
-
-  // Action
-
-  const Activate = Record({
-    isActive: true
-  }, 'Preview.Activate');
-
-  const Deactivate = Record({
-    isActive: false
-  }, 'Preview.Deactivate');
-
-  const Action = Union({Activate, Deactivate});
-  exports.Action = Action;
-
-  // Update
-
-  const update = (state, action) =>
-    action instanceof Activate ? state.set('isActive', true) :
-    action instanceof Deactivate ? state.set('isActive', false) :
-    action instanceof SelectByID ? state.set('isActive', false) :
-    state;
-  exports.update = update;
 
   const {PreviewByID, SelectByID} = WebViews.Action;
   const Close = (context, event) => {
@@ -75,7 +48,7 @@ define((require, exports, module) => {
         verticalAlign: 'middle',
         cursor: 'default'
       },
-      onClick: address.pass(Activate)
+      onClick: address.send(Input.Action.Focus({id: 'about:dashboard'}))
     }, DashboardIcon)
   ]);
   exports.viewControls = viewControls;
@@ -95,8 +68,7 @@ define((require, exports, module) => {
         display: 'inline-block',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)'
       },
-      onMouseOver: address.pass(PreviewByID, context),
-      onClick: address.pass(SelectByID, context),
+      onClick: address.pass(Shell.Action.Focus, context),
       onMouseUp: address.pass(Close, context)
     }, [
       html.header({
@@ -161,25 +133,23 @@ define((require, exports, module) => {
   };
   exports.viewPreview = viewPreview;
 
-  const view = (state, webViews, theme, address) => html.div({
+  const view = (webView, webViews, theme, address) => html.div({
     style: {
       position: 'absolute',
       width: '100vw',
-      height: 'calc(100vh - 28px)',
+      height: '100vh',
+      top: 0,
       textAlign: 'center',
-      paddingTop: 'calc(100vh / 2 - 150px - 28px)',
+      paddingTop: 'calc(100vh / 2 - 150px)',
       backgroundColor: '#273340',
-      overflowX: 'auto',
-      display: !state.isActive && 'none'
+      overflowX: 'auto'
     }
-  }, webViews.entries.map(({view}, index) =>
-      render(view.id,
-             viewPreview,
-             view.id,
-             index,
-             webViews.selected,
-             view.page,
-             address)));
+  }, webViews
+      .entries
+      .filter(({view}) => view.id !== 'about:dashboard')
+      .map(({view}, index) =>
+        render(view.id, viewPreview, view.id, index,
+                        webViews.selected, view.page, address)));
   exports.view = view;
 
 });
