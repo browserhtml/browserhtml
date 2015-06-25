@@ -76,9 +76,9 @@ define((require, exports, module) => {
 
   const load = (state, uri=state.input.value) => Model({
     uri,
-    input: state.input.clear('value'),
+    input: uri !== state.uri ? state.input.clear('value') : state.input,
     id: state.id,
-    shell: state.shell
+    shell: state.shell.set('isFocused', true)
   });
   exports.load = load;
 

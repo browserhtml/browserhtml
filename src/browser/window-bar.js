@@ -27,6 +27,8 @@ define((require, exports, module) => {
     MozWindowDragging: 'drag',
     transition: 'background-color 300ms ease, color 300ms ease',
     textAlign: 'center',
+    position: 'relative',
+    zIndex: '100'
   });
 
 

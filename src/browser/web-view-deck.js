@@ -75,7 +75,9 @@ define((require, exports, module) => {
     a.selected < b.selected ? 1 :
     0;
 
-  const order = entries => entries.sort(byRecency);
+  const order = entries =>
+    entries.filter(entry => entry.view.id !== 'about:dashboard');
+    // entries.sort(byRecency);
   exports.order = order;
 
   // Takes `entires` and a `from` entry (from with in it) and returns
@@ -85,7 +87,7 @@ define((require, exports, module) => {
   const relativeOf = (entries, from, n) => {
     const loopLength = entries.size;
     const ordered = order(entries);
-    const position = ordered.indexOf(from) + n;
+    const position = ordered.indexOf(from) + n + 1;
     const loops = Math.trunc(position / loopLength);
     return ordered.get(position - loops * loopLength);
   }
@@ -100,11 +102,20 @@ define((require, exports, module) => {
     return entries.indexOf(target);
   }
 
-  const select = (state, index) => state.merge({
-    selected: index,
-    previewed: index,
-    entries: state.entries.setIn([index, 'selected'], Date.now())
-  });
+  const select = (state, index) => {
+    const from = state.getIn(['entries', state.selected, 'view']);
+    return state.merge({
+      selected: index,
+      previewed: index,
+      entries: state
+                .entries
+                .setIn([index, 'selected'], Date.now())
+                .setIn([index, 'view', 'shell', 'isFocused'],
+                       from.shell.isFocused)
+                .setIn([index, 'view', 'input', 'isFocused'],
+                       from.input.isFocused)
+    });
+  };
 
 
   const close = (state, id) => {
@@ -137,16 +148,27 @@ define((require, exports, module) => {
                        WebView.update(selected, action));
   };
 
-  const open = (state, uri) => state.merge({
-    nextID: state.nextID + 1,
-    selected: state.entries.size,
-    previewed: state.selected === state.previewed ? state.entries.size :
-               state.previewed,
-    entries: state.entries.push(EntryModel({
-      selected: Date.now(),
-      view: WebView.Model({uri, id: String(state.nextID)})
-    }))
-  });
+  const open = (state, uri) => {
+    const {selected} = state;
+    const selectedView = state.entries.get(selected).view;
+    return state.merge({
+      nextID: state.nextID + 1,
+      selected: state.entries.size,
+      previewed: state.selected === state.previewed ? state.entries.size :
+                 state.previewed,
+      entries: state
+                .entries
+                .setIn([selected, 'view', 'input', 'isFocused'], false)
+                .setIn([selected, 'view', 'shell', 'isFocused'], false)
+                .push(EntryModel({
+                  selected: Date.now(),
+                  view: WebView.Model({
+                    uri, id: String(state.nextID),
+                    shell: Shell.Model({isFocused: true}),
+                  })
+                }))
+    });
+  };
 
   const openInBackground = (state, uri) => state.merge({
     nextID: state.nextID + 1,
@@ -214,7 +236,7 @@ define((require, exports, module) => {
     return html.div({
       key: 'web-views',
       style: {
-        transform: `scale(${selected.view.shell.isFocused ? 1 : 0})`
+        transform: `scale(${selected.view.input.isFocused ? 0 : 1})`
       },
     }, state.entries.map(({view}) =>
       render(view.id,
