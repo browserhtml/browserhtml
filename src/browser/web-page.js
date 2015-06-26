@@ -16,6 +16,8 @@ define((require, exports, module) => {
 
   const Model = Record({
     title: Maybe(String),
+
+    label: Maybe(String),
     icon: Maybe(String),
     description: Maybe(String),
     name: Maybe(String),
@@ -100,12 +102,11 @@ define((require, exports, module) => {
   };
 
   const updateCard = (state, action) =>
-    action.uri !== state.uri ? state :
     state.merge({
-      title: action.title !== '' ? action.title : '',
+      label: action.title !== '' ? action.title : '',
       name: action.name,
-      description: state.description,
-      hero: state.hero
+      description: action.description,
+      hero: action.hero
     });
 
   const update = (state, action) =>

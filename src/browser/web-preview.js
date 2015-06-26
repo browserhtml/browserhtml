@@ -55,6 +55,9 @@ define((require, exports, module) => {
 
   const viewPreview = (id, index, selected, page, address) => {
     const context = {id};
+    const image = page.hero.get(0) || page.thumbnail;
+    const title = page.label || page.title;
+    const name = page.name || page.title;
 
     return html.div({
       key: id,
@@ -65,8 +68,10 @@ define((require, exports, module) => {
         height: '300px',
         width: '240px',
         backgroundColor: '#fff',
+        color: '#555',
         display: 'inline-block',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
+        overflow: 'hidden'
       },
       onClick: address.pass(Shell.Action.Focus, context),
       onMouseUp: address.pass(Close, context)
@@ -90,7 +95,7 @@ define((require, exports, module) => {
             overflow: 'hidden',
             textOverflow: 'clip ellipsis'
           }
-        }, page.title),
+        }, page.name),
         html.span({
           key: 'icon',
           alt: '',
@@ -107,7 +112,8 @@ define((require, exports, module) => {
       ]),
       html.div({
         style: {
-          backgroundImage: `url(${page.thumbnail})`,
+          position: 'relative',
+          backgroundImage: `url(${image})`,
           backgroundSize: 'cover',
           width: '240px',
           height: '150px',
@@ -115,10 +121,11 @@ define((require, exports, module) => {
       }, [
         html.img({
           key: 'image',
-          src: page.thumbnail,
+          src: image,
           alt: '',
           style: {
             position: 'absolute',
+            left: 0,
             zIndex: -1,
             width: 'inherit',
             height: 'inherit'
@@ -126,8 +133,16 @@ define((require, exports, module) => {
           onLoad: event => URL.revokeObjectURL(event.target.src)
         })
       ]),
+      html.div({
+        key: 'title'
+      }, title),
       html.p({
-        key: 'description'
+        key: 'description',
+        style: {
+          padding: '8px',
+          textAlign: 'left',
+          whiteSpace: 'normal'
+        }
       }, page.description)
     ]);
   };
