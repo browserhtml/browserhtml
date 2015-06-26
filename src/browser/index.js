@@ -17,6 +17,7 @@ define((require, exports, module) => {
   const Suggestion = require('service/suggestion');
   const Keyboard = require('common/keyboard');
   const Settings = require('service/settings');
+  const Scraper = require('service/scraper');
 
   // Set up a address (message bus if you like) that will be used
   // as an address for all application components / services. This
@@ -33,6 +34,7 @@ define((require, exports, module) => {
       suggestion(action);
       keyboard(action);
       settings(action);
+      scraper(action);
     }
   });
   window.address = address;
@@ -55,6 +57,7 @@ define((require, exports, module) => {
   const suggestion = Suggestion.service(address);
   const keyboard = Keyboard.service(address);
   const settings = Settings.service(address);
+  const scraper = Scraper.service(address);
   // const session = Session.service(address);
 
   // Restore application state.

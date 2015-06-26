@@ -7,14 +7,20 @@ define((require, exports, module) => {
   'use strict';
 
   const {Record, Union, List, Maybe, Any} = require('common/typed');
-  const Pallet = require('service/pallet')
+  const Pallet = require('service/pallet');
 
   // Model
 
 
+  const Heros = List(String, 'Heros');
+
   const Model = Record({
     title: Maybe(String),
     icon: Maybe(String),
+    description: Maybe(String),
+    name: Maybe(String),
+    hero: Heros,
+
     thumbnail: Maybe(String),
     overflow: false,
     palletSource: Maybe(String),
@@ -57,11 +63,23 @@ define((require, exports, module) => {
     overflow: Boolean
   }, 'WebView.Page.OverflowChange');
 
+  const PageCardChange = Record({
+    id: String,
+    uri: String,
+    hero: Heros,
+    title: String,
+    description: String,
+    name: String
+  }, 'WebView.Page.CardChange');
+
+  exports.PageCardChange = PageCardChange;
+
+
   const {PalletChange} = Pallet.Action;
 
 
   const Action = Union({TitleChange, IconChange, MetaChange,
-                        PalletChange,
+                        PalletChange, PageCardChange,
                         Scroll, OverflowChange, ThumbnailChange});
   exports.Action = Action;
 
@@ -81,6 +99,15 @@ define((require, exports, module) => {
     return state
   };
 
+  const updateCard = (state, action) =>
+    action.uri !== state.uri ? state :
+    state.merge({
+      title: action.title !== '' ? action.title : '',
+      name: action.name,
+      description: state.description,
+      hero: state.hero
+    });
+
   const update = (state, action) =>
     action instanceof TitleChange ? state.set('title', action.title) :
     action instanceof IconChange ? state.set('icon', action.icon) :
@@ -91,6 +118,7 @@ define((require, exports, module) => {
       pallet: action.pallet,
       palletSource: 'curated-theme-colors'
     }) :
+    action instanceof PageCardChange ? updateCard(state, action) :
     state;
 
   exports.update = update;
