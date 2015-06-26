@@ -37,6 +37,7 @@ define((require, exports, module) => {
     padding: '0 3px',
     margin: '0 67px',
     overflow: 'hidden',
+    pointerEvents: 'all'
   }, 'LocationBarStyle');
 
 
@@ -157,59 +158,70 @@ define((require, exports, module) => {
     const {id, uri, input, page, security, progress,
            navigation, suggestions} = webView;
 
-
     return html.div({
-      key: 'LocationBar',
-      className: ClassSet({
-        'location-bar': true,
-        active: input.isFocused
-      }),
-      style: LocationBarStyle(),
+      style: {
+        position: 'absolute',
+        zIndex: 101,
+        top: 0,
+        padding: '3px',
+        width: '100vw',
+        textAlign: 'center',
+        pointerEvents: 'none'
+      }
     }, [
-      Editable.view({
-        key: 'input',
-        className: 'location-bar-input',
-        placeholder: 'Search or enter address',
-        type: 'text',
-        value: suggestions.selected < 0 ? input.value :
-               suggestions.entries.get(suggestions.selected).uri,
-        style: input.isFocused ? URLInputStyle({color: 'inherit'}) :
-               URLInputStyle({color: 'inherit'}).merge(collapse),
-        isFocused: input.isFocused,
-        selection: input.selection,
-
-        onSelect: address.pass(Select, webView),
-        onChange: address.pass(Change, webView),
-
-        onFocus: address.pass(Input.Action.Focus, webView),
-        onBlur: address.pass(Input.Action.Blur, webView),
-        onKeyDown: address.pass(Binding, id)
-      }),
-      html.p({
-        key: 'page-info',
-        style: !input.isFocused ? PageSummaryStyle({color: theme.locationText}) :
-               PageSummaryStyle({color: theme.locationText}).merge(collapse),
-        onClick: address.pass(Input.Action.Enter, webView)
+      html.div({
+        key: 'LocationBar',
+        className: ClassSet({
+          'location-bar': true,
+          active: input.isFocused
+        }),
+        style: LocationBarStyle(),
       }, [
-        html.span({
-          key: 'securityicon',
-          style: {
-            fontFamily: 'FontAwesome',
-            fontWeight: 'normal',
-            marginRight: 6,
-            verticalAlign: 'middle'
-          }
-        }, id === 'about:dashboard' ? '' :
-           URI.isPrivileged(uri) ? GearIcon :
-           security.secure ? LockIcon :
-           ''),
-        html.span({
-          key: 'title',
-          style: TitleTextStyle({color: theme.titleText}),
-        }, page.title ? page.title :
-           uri ? URI.getDomainName(uri) :
-           isLoading(progress) ? 'Loading...' :
-           'New Tab'),
+        Editable.view({
+          key: 'input',
+          className: 'location-bar-input',
+          placeholder: 'Search or enter address',
+          type: 'text',
+          value: suggestions.selected < 0 ? input.value :
+                 suggestions.entries.get(suggestions.selected).uri,
+          style: input.isFocused ? URLInputStyle({color: 'inherit'}) :
+                 URLInputStyle({color: 'inherit'}).merge(collapse),
+          isFocused: input.isFocused,
+          selection: input.selection,
+
+          onSelect: address.pass(Select, webView),
+          onChange: address.pass(Change, webView),
+
+          onFocus: address.pass(Input.Action.Focus, webView),
+          onBlur: address.pass(Input.Action.Blur, webView),
+          onKeyDown: address.pass(Binding, id)
+        }),
+        html.p({
+          key: 'page-info',
+          style: !input.isFocused ? PageSummaryStyle({color: theme.locationText}) :
+                 PageSummaryStyle({color: theme.locationText}).merge(collapse),
+          onClick: address.pass(Input.Action.Enter, webView)
+        }, [
+          html.span({
+            key: 'securityicon',
+            style: {
+              fontFamily: 'FontAwesome',
+              fontWeight: 'normal',
+              marginRight: 6,
+              verticalAlign: 'middle'
+            }
+          }, id === 'about:dashboard' ? '' :
+             URI.isPrivileged(uri) ? GearIcon :
+             security.secure ? LockIcon :
+             ''),
+          html.span({
+            key: 'title',
+            style: TitleTextStyle({color: theme.titleText}),
+          }, page.title ? page.title :
+             uri ? URI.getDomainName(uri) :
+             isLoading(progress) ? 'Loading...' :
+             'New Tab'),
+        ])
       ])
     ]);
   };

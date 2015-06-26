@@ -19,7 +19,7 @@ define((require, exports, module) => {
     width: 12,
     height: 12,
     marginRight: 8,
-    borderRadius: '50%'
+    borderRadius: '50%',
   }, 'ControlButtonStyle');
   ButtonStyle.min = ButtonStyle({
     backgroundColor: '#FDBC40'
@@ -38,7 +38,8 @@ define((require, exports, module) => {
     position: 'absolute',
     top: 8,
     left: 8,
-    verticalAlign: 'center'
+    verticalAlign: 'center',
+    zIndex: 200
   };
 
 

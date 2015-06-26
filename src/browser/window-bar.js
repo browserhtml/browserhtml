@@ -28,7 +28,8 @@ define((require, exports, module) => {
     transition: 'background-color 300ms ease, color 300ms ease',
     textAlign: 'center',
     position: 'relative',
-    zIndex: '100'
+    zIndex: '100',
+    visibility: Maybe(String)
   });
 
 
@@ -38,7 +39,8 @@ define((require, exports, module) => {
     key: 'WindowBar',
     style: NavigationPanelStyle({
       backgroundColor: theme.shell,
-      color: theme.shellText
+      color: theme.shellText,
+      visibility: webView.input.isFocused ? 'hidden' : 'visible'
     }),
     className: ClassSet({
       navbar: true,
@@ -52,15 +54,13 @@ define((require, exports, module) => {
     html.div({
       key: 'header',
       style: {
-        boxShadow: '0 1px 0 rgba(0, 0, 0, 0.08)',
+        boxShadow: shell.isFocused && '0 1px 0 rgba(0, 0, 0, 0.08)',
         padding: '3px 0',
         height: '28px',
         zIndex: 100,
         position: 'relative'
       }
     }, [
-      render('WindowControls', WindowControls.view, shell, theme, address),
-      render('LocationBar', LocationBar.view, webView, theme, address),
       render('PreviewControls', Preview.viewControls, theme, address),
     ]),
     render('ProgressBar', Progress.view,

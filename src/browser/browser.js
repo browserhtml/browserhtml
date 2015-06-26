@@ -10,6 +10,8 @@ define((require, exports, module) => {
   const {Record, Any, Union} = require('common/typed');
   const {inspect} = require('common/debug');
   const WindowBar = require('./window-bar');
+  const WindowControls = require('./window-controls');
+  const LocationBar = require('./location-bar');
   const WebViews = require('./web-view-deck');
   const Theme = require('./theme');
   const {KeyBindings} = require('common/keyboard');
@@ -149,7 +151,9 @@ define((require, exports, module) => {
         overflowY: 'hidden'
       }
     }, [
+      render('WindowControls', WindowControls.view, shell, theme, address),
       render('WindowBar', WindowBar.view, shell, selected.view, theme, address),
+      render('LocationBar', LocationBar.view, selected.view, theme, address),
       render('Preview', Preview.view, selected, webViews, theme, address),
       render('Suggestions', Suggestions.view, selected.view.suggestions,
              selected.view.input.isFocused, theme, address),

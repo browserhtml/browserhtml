@@ -122,7 +122,8 @@ define((require, exports, module) => {
     display: 'block',
     height: 'calc(100vh - 28px)',
     MozUserSelect: 'none',
-    width: '100vw'
+    width: '100vw',
+    backgroundColor: '#fff'
   };
 
   const offScreen = {

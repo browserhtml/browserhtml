@@ -29,7 +29,7 @@ define((require, exports, module) => {
 
 
   const update = (state, action) =>
-    state instanceof SecurityChange ? state.merge({
+    action instanceof SecurityChange ? state.merge({
         state: action.state,
         secure: action.state === 'secure',
         extendedValidation: action.extendedValidation
