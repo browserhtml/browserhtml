@@ -148,7 +148,7 @@ define((require, exports, module) => {
   };
   exports.viewPreview = viewPreview;
 
-  const view = (webView, webViews, theme, address) => html.div({
+  const view = (webViews, input, webView, theme, address) => html.div({
     style: {
       width: '100vw',
       height: '100vh',

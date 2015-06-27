@@ -40,6 +40,11 @@ define((require, exports, module) => {
     pointerEvents: 'all'
   }, 'LocationBarStyle');
 
+  const inactiveLocationBar = LocationBarStyle();
+  const activeLocationBar = LocationBarStyle({
+    width: 400
+  });
+
 
   const ButtonStyle = Record({
     color: 'inherit',
@@ -63,12 +68,10 @@ define((require, exports, module) => {
   const URLInputStyle = Record({
     padding: Maybe(Number),
     maxWidth: Maybe(Number),
-    color: 'inherit',
-    backgroundColor: Maybe(Color),
-
+    color: '#333',
+    width: '100%',
     lineHeight: '22px',
     overflow: 'hidden',
-    width: '100%',
     borderRadius: 0
   }, 'URLInputStyle');
 
@@ -112,6 +115,15 @@ define((require, exports, module) => {
   const {Enter} = Input.Action;
   const {GoBack, GoForward, Stop, Reload} = Navigation.Action;
 
+  // Action
+
+  const Edit = Record({
+    id: '@selected'
+  }, 'LocationBar.Action.Edit');
+
+  const Action = Union({Edit});
+
+  exports.Action = Action;
 
 
   // view
@@ -157,6 +169,8 @@ define((require, exports, module) => {
 
   const view = (webView, input, suggestions, theme, address) => {
     const context = webView || {id: '@selected'};
+    const value = (webView && input.value === null) ? (webView.uri || '') :
+                  (input.value || '');
 
     return html.div({
       style: {
@@ -175,7 +189,8 @@ define((require, exports, module) => {
           'location-bar': true,
           active: input.isFocused
         }),
-        style: LocationBarStyle(),
+        style: input.isFocused ? activeLocationBar :
+               inactiveLocationBar,
         onClick: address.pass(Input.Action.Enter, context)
       }, [
         Editable.view({
@@ -183,10 +198,10 @@ define((require, exports, module) => {
           className: 'location-bar-input',
           placeholder: 'Search or enter address',
           type: 'text',
-          value: suggestions.selected < 0 ? input.value :
+          value: suggestions.selected < 0 ? value :
                  suggestions.entries.get(suggestions.selected).uri,
-          style: input.isFocused ? URLInputStyle({color: 'inherit'}) :
-                 URLInputStyle({color: 'inherit'}).merge(collapse),
+          style: input.isFocused ? URLInputStyle() :
+                 URLInputStyle().merge(collapse),
           isFocused: input.isFocused || !webView,
           selection: input.selection,
 

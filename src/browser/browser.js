@@ -47,8 +47,8 @@ define((require, exports, module) => {
 
   const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
   const Binding = KeyBindings({
-    'accel l': _ => Input.Action.Enter({id: '@selected'}),
-    'accel t': _ => Input.Action.Enter({id: 'about:dashboard', value: ''}),
+    'accel l': _ => Input.Action.Enter(),
+    'accel t': _ => Input.Action.Enter({value: ''}),
     'accel 0': _ => WebView.Action.Shell.ResetZoom(),
     'accel -': _ => WebView.Action.Shell.ZoomOut(),
     'accel =': _ => WebView.Action.Shell.ZoomIn(),
@@ -88,6 +88,13 @@ define((require, exports, module) => {
           id: action.id,
           uri: URI.read(state.input.value)
         }))
+      });
+    }
+
+    if (action instanceof Input.Action.Enter) {
+      return state.merge({
+        input: Input.update(state.input, action),
+        webViews: WebViews.update(state.webViews, action)
       });
     }
 
@@ -169,7 +176,7 @@ define((require, exports, module) => {
       render('WindowControls', WindowControls.view, shell, theme, address),
       render('WindowBar', WindowBar.view, !input.isFocused, shell, selected, theme, address),
       render('LocationBar', LocationBar.view, selected, input, suggestions, theme, address),
-      render('Preview', Preview.view, selected, webViews, theme, address),
+      render('Preview', Preview.view, webViews, input, selected, theme, address),
       render('Suggestions', Suggestions.view, suggestions, input.isFocused, theme, address),
       render('WebViews', WebViews.view, !input.isFocused, webViews, address),
       render('Updater', Updates.view, state.updates, address)

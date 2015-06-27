@@ -14,6 +14,7 @@ define((require, exports, module) => {
   const Thumbnail = require('service/thumbnail');
   const Pallet = require('service/pallet');
   const URI = require('common/url-helper');
+  const Input = require('./web-input');
 
   // Model
   const EntryModel = Record({
@@ -33,6 +34,7 @@ define((require, exports, module) => {
 
   const {Open, OpenInBackground, Close} = WebView;
   const {Load} = WebView.Action;
+  const {Enter} = Input.Action;
 
 
   const SelectByOffset = Record({
@@ -49,7 +51,7 @@ define((require, exports, module) => {
 
 
   const Action = Union({SelectByIndex, SelectByID, SelectByOffset,
-                        Open, OpenInBackground, Close,
+                        Open, OpenInBackground, Close, Enter,
                         WebView: WebView.Action});
   exports.Action = Action;
 
@@ -73,9 +75,18 @@ define((require, exports, module) => {
   const indexByOffset = ({entries}, index, offset) =>
     relativeOf(entries, entries.get(index), offset);
 
+  const viewByID = (state, id) => {
+    const index = indexByID(state, id);
+    const entry = state.entries.get(index);
+    return entry && entry.view;
+  }
+  exports.viewByID = viewByID;
+
+
   const select = (state, index) => {
     const from = state.getIn(['entries', state.selected, 'view']);
-    return state.merge({
+    const to = state.getIn(['entries', index, 'view']);
+    return !to ? state : state.merge({
       selected: index,
       entries: state
                 .entries
@@ -84,6 +95,15 @@ define((require, exports, module) => {
                        from.shell.isFocused)
     });
   };
+  exports.select = select;
+
+  const selectByID = (state, id) =>
+    select(state, indexByID(state, id));
+  exports.selectByID = selectByID;
+
+  const unselect = state =>
+    state.remove('selected');
+  exports.unselect = unselect;
 
 
   const close = (state, id) => {
@@ -109,8 +129,8 @@ define((require, exports, module) => {
            state.setIn(path, WebView.update(selected, action));
   };
 
-  const open = (state, uri) => {
-    return state.merge({
+  const open = (state, uri) =>
+    state.merge({
       nextID: state.nextID + 1,
       selected: state.entries.size,
       entries: state
@@ -123,7 +143,6 @@ define((require, exports, module) => {
                   })
                 }))
     });
-  };
 
   const openInBackground = (state, uri) => state.merge({
     nextID: state.nextID + 1,
@@ -168,7 +187,9 @@ define((require, exports, module) => {
     action instanceof SelectByOffset ?
       select(state, indexByOffset(state, state.selected, action.offset)) :
     action instanceof SelectByID ?
-      select(state, indexByID(state, action.id)) :
+      selectByID(state, action.id) :
+    action instanceof Enter ?
+      selectByID(state, action.id) :
     action instanceof SelectByIndex ?
       select(state, action.index) :
     WebView.Action.isTypeOf(action) ?
