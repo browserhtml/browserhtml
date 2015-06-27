@@ -150,21 +150,22 @@ define((require, exports, module) => {
 
   const view = (webView, webViews, theme, address) => html.div({
     style: {
-      position: 'absolute',
       width: '100vw',
       height: '100vh',
-      top: 0,
       textAlign: 'center',
       paddingTop: 'calc(100vh / 2 - 150px)',
       backgroundColor: '#273340',
-      overflowX: 'auto'
+      overflowX: 'auto',
+      position: 'absolute',
+      top: 0,
+      zIndex: 0,
+      MozWindowDragging: "drag"
     }
   }, webViews
       .entries
       .filter(({view}) => view.id !== 'about:dashboard')
       .map(({view}, index) =>
-        render(view.id, viewPreview, view.id, index,
-                        webViews.selected, view.page, address)));
+        render(view.id, viewPreview, view.id, view.uri, view.page, address)));
   exports.view = view;
 
 });

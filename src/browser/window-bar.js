@@ -28,7 +28,7 @@ define((require, exports, module) => {
     transition: 'background-color 300ms ease, color 300ms ease',
     textAlign: 'center',
     position: 'relative',
-    zIndex: '100',
+    zIndex: 2,
     visibility: Maybe(String)
   });
 

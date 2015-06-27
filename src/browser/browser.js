@@ -148,7 +148,7 @@ define((require, exports, module) => {
         color: theme.shellText,
         backgroundColor: theme.shell,
         position: 'relative',
-        overflowY: 'hidden'
+        overflowY: 'hidden',
       }
     }, [
       render('WindowControls', WindowControls.view, shell, theme, address),

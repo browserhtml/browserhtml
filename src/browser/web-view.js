@@ -119,6 +119,7 @@ define((require, exports, module) => {
   // View
 
   const base = {
+    position: 'absoulte',
     display: 'block',
     height: 'calc(100vh - 28px)',
     MozUserSelect: 'none',
