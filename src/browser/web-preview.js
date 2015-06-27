@@ -53,11 +53,11 @@ define((require, exports, module) => {
   ]);
   exports.viewControls = viewControls;
 
-  const viewPreview = (id, index, selected, page, address) => {
+  const viewPreview = (id, uri, page, address) => {
     const context = {id};
     const image = page.hero.get(0) || page.thumbnail;
     const title = page.label || page.title;
-    const name = page.name || page.title;
+    const name = page.name || uri;
 
     return html.div({
       key: id,
@@ -93,9 +93,9 @@ define((require, exports, module) => {
             lineHeight: '24px',
             width: '200px',
             overflow: 'hidden',
-            textOverflow: 'clip ellipsis'
+            textOverflow: 'ellipsis'
           }
-        }, page.name),
+        }, name),
         html.span({
           key: 'icon',
           alt: '',
@@ -163,7 +163,6 @@ define((require, exports, module) => {
     }
   }, webViews
       .entries
-      .filter(({view}) => view.id !== 'about:dashboard')
       .map(({view}, index) =>
         render(view.id, viewPreview, view.id, view.uri, view.page, address)));
   exports.view = view;
