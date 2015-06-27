@@ -35,7 +35,7 @@ define((require, exports, module) => {
     width: 250, // FIXME :Doesn't shrink when window is narrow
     height: 22,
     padding: '0 3px',
-    margin: '0 67px',
+    margin: '0',
     overflow: 'hidden',
     pointerEvents: 'all'
   }, 'LocationBarStyle');
@@ -176,6 +176,7 @@ define((require, exports, module) => {
           active: input.isFocused
         }),
         style: LocationBarStyle(),
+        onClick: address.pass(Input.Action.Enter, webView)
       }, [
         Editable.view({
           key: 'input',
@@ -200,7 +201,6 @@ define((require, exports, module) => {
           key: 'page-info',
           style: !input.isFocused ? PageSummaryStyle({color: theme.locationText}) :
                  PageSummaryStyle({color: theme.locationText}).merge(collapse),
-          onClick: address.pass(Input.Action.Enter, webView)
         }, [
           html.span({
             key: 'securityicon',
