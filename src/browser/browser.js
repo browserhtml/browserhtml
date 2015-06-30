@@ -63,6 +63,7 @@ define((require, exports, module) => {
     'accel r': _ => WebView.Action.Navigation.Reload(),
     'escape': _ => WebView.Action.Navigation.Stop(),
     'backspace': _ => WebView.Action.Navigation.GoBack(),
+    'shift backspace': _ => WebView.Action.Navigation.GoForward(),
     [`${modifier} left`]: _ => WebView.Action.Navigation.GoBack(),
     [`${modifier} right`]: _ => WebView.Action.Navigation.GoForward()
   }, 'Browser.Keyboard.Action');
