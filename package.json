@@ -28,7 +28,7 @@
     }
   ],
   "dependencies": {
-    "immutable": "git://github.com/jcranendonk/immutable-js.git#0986651df9398187390f4638424adb532985439f",
+    "immutable": "3.7.0",
     "marionette-client": "^1.7.5",
     "graphene-marionette-runner": "^0.0.5",
     "mocha": "2.2.4",
@@ -38,6 +38,6 @@
     "reflex": "0.0.22",
     "requirejs": "2.1.16",
     "tinycolor2": "1.1.2",
-    "typed-immutable": "0.0.4"
+    "typed-immutable": "0.0.5"
   }
 }
