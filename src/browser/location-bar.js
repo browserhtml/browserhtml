@@ -168,9 +168,9 @@ define((require, exports, module) => {
   const Change = ({id}, {target: {value}}) =>
     Input.Action.Change({id, value});
 
-  const view = (webView, input, suggestions, theme, address) => {
-    const context = webView || {id: '@selected'};
-    const value = (webView && input.value === null) ? (webView.uri || '') :
+  const view = (id, uri, security, page, input, suggestions, theme, address) => {
+    const context = id ? {id} : {id: '@selected'};
+    const value = (uri && input.value === null) ? uri :
                   (input.value || '');
 
     return html.div({
@@ -210,7 +210,7 @@ define((require, exports, module) => {
                  suggestions.entries.get(suggestions.selected).uri,
           style: input.isFocused ? URLInputStyle() :
                  URLInputStyle().merge(collapse),
-          isFocused: input.isFocused || !webView,
+          isFocused: input.isFocused || !id,
           selection: input.selection,
 
           onSelect: address.pass(Select, context),
@@ -234,17 +234,16 @@ define((require, exports, module) => {
               verticalAlign: 'middle'
             }
           },
-             !webView ? '' :
-             URI.isPrivileged(webView.uri) ? GearIcon :
-             webView.security.secure ? LockIcon :
+             !id ? '' :
+             URI.isPrivileged(uri) ? GearIcon :
+             security.secure ? LockIcon :
              ''),
           html.span({
             key: 'title',
             style: TitleTextStyle({color: theme.titleText}),
-          }, !webView ? '' :
-             webView.page.title ? webView.page.title :
-             webView.uri ? URI.getDomainName(webView.uri) :
-             webView.progress && isLoading(webView.progress) ? 'Loading...' :
+          }, !id ? '' :
+             page.title ? page.title :
+             uri ? URI.getDomainName(uri) :
              'New Tab'),
         ])
       ])
