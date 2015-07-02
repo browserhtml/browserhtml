@@ -42,7 +42,7 @@ define((require, exports, module) => {
   // Actions
 
   const {SaveSession, ResetSession, RestoreSession} = Session.Action;
-  const {Focus, Blur} = Focusable.Action;
+  const {Focused, Blured} = Focusable.Action;
   const {ApplicationUpdate, RuntimeUpdate} = Updates.Action;
 
   const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
@@ -158,8 +158,8 @@ define((require, exports, module) => {
       windowTitle: !selected ? '' :
                    (selected.page.title || selected.uri),
       onKeyDown: address.pass(Binding, state),
-      onWindowBlur: address.pass(Blur),
-      onWindowFocus: address.pass(Focus),
+      onWindowBlur: address.pass(Blured),
+      onWindowFocus: address.pass(Focused),
       onUnload: address.pass(SaveSession),
       onAppUpdateAvailable: address.pass(ApplicationUpdate),
       onRuntimeUpdateAvailable: address.pass(RuntimeUpdate),
