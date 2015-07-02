@@ -126,8 +126,6 @@ define((require, exports, module) => {
     // Do not render anything unless viewer has an `uri`
     if (!uri) return null;
 
-    console.log('render web-view')
-
     const style = base;
 
     const action = address.pass(Event, {id, uri});
