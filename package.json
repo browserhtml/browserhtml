@@ -27,7 +27,7 @@
       "url": "http://mozilla.org/MPL/2.0/"
     }
   ],
-  "dependencies": {
+  "_dependencies": {
     "immutable": "3.7.0",
     "marionette-client": "^1.7.5",
     "graphene-marionette-runner": "^0.0.5",
