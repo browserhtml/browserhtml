@@ -128,6 +128,7 @@ define((require, exports, module) => {
   exports.update = update;
 
 
+  /*
   exports.update = inspect(update, ([state, action], output) => {
     if (action instanceof WebView.Action.Progress.LoadProgress) {
       return null;
@@ -137,6 +138,7 @@ define((require, exports, module) => {
                 state.toJSON(),
                 output && output.toJSON());
   });
+  */
 
 
   // View
