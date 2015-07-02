@@ -208,8 +208,8 @@ define((require, exports, module) => {
           onSelect: address.pass(Select, context),
           onChange: address.pass(Change, context),
 
-          onFocus: address.pass(Input.Action.Focus, context),
-          onBlur: address.pass(Input.Action.Blur, context),
+          onFocus: address.pass(Input.Action.Focused, context),
+          onBlur: address.pass(Input.Action.Blured, context),
           onKeyDown: address.pass(Binding, context)
         }),
         html.p({
