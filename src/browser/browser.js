@@ -12,6 +12,7 @@ define((require, exports, module) => {
   const WindowBar = require('./window-bar');
   const WindowControls = require('./window-controls');
   const LocationBar = require('./location-bar');
+  const Progress = require('./progress-bar');
   const WebViews = require('./web-view-deck');
   const Theme = require('./theme');
   const {KeyBindings} = require('common/keyboard');
@@ -178,7 +179,12 @@ define((require, exports, module) => {
       }
     }, [
       render('WindowControls', WindowControls.view, shell, theme, address),
-      render('WindowBar', WindowBar.view, !input.isFocused, shell, selected, theme, address),
+      render('WindowBar', WindowBar.view, !input.isFocused,
+                          selected && selected.id, shell, theme, address),
+      render('ProgressBar', Progress.view,
+                            selected && selected.id,
+                            selected && selected.progress,
+                            theme, address),
       render('LocationBar', LocationBar.view, selected, input, suggestions, theme, address),
       render('Preview', Preview.view, webViews, input, selected, theme, address),
       render('Suggestions', Suggestions.view, suggestions, input.isFocused, theme, address),

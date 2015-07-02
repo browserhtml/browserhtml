@@ -131,11 +131,11 @@ define((require, exports, module) => {
   const ProgressUpdate = (id, {timeStamp}) =>
     LoadProgress({id, timeStamp});
 
-  const view = (progress, id, theme, address) => {
-    const node = html.div({
+  const view = (id, progress, theme, address) => {
+    const node = progress && html.div({
       key: 'ProgressBar',
       style: {
-        zIndex: 99,
+        zIndex: 1,
         display: 'block',
         width: '100%',
         height: 4,
@@ -151,7 +151,8 @@ define((require, exports, module) => {
 
     // If `webView` is loading then animate node with `ProgressChange` actions
     // on every animatation frame.
-    return !isLoading(progress) ? node :
+    return !progress ? null :
+           !isLoading(progress) ? node :
            animate(node, address.pass(ProgressUpdate, id));
   };
   exports.view = view;

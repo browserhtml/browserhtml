@@ -11,13 +11,9 @@ define((require, exports, module) => {
   const ClassSet = require('common/class-set');
   const {mix} = require('common/style');
 
-  const Progress = require('./progress-bar');
   const WindowControls = require('./window-controls');
-  const LocationBar = require('./location-bar');
   const Preview = require('./web-preview');
-
   const Theme = require('./theme');
-  const WebView = require('./web-view');
 
   // Model
 
@@ -35,12 +31,12 @@ define((require, exports, module) => {
 
   // view
 
-  const view = (isActive, shell, webView, theme, address) => html.div({
+  const view = (isActive, id, shell, theme, address) => html.div({
     key: 'WindowBar',
     style: NavigationPanelStyle({
       backgroundColor: theme.shell,
       color: theme.shellText,
-      visibility: (webView && isActive) ? 'visible' : 'hidden'
+      visibility: (id && isActive) ? 'visible' : 'hidden'
     }),
     className: ClassSet({
       navbar: true,
@@ -58,9 +54,7 @@ define((require, exports, module) => {
       }
     }, [
       render('PreviewControls', Preview.viewControls, theme, address),
-    ]),
-    webView && render('ProgressBar', Progress.view,
-                      webView.progress, webView.id, theme, address)
+    ])
   ]);
   exports.view = view;
 });
