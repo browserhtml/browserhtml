@@ -35,7 +35,7 @@
     "node-uuid": "1.4.3",
     "pouchdb": "3.5.0",
     "react": "0.13.3",
-    "reflex": "0.0.22",
+    "reflex": "0.0.24",
     "requirejs": "2.1.16",
     "tinycolor2": "1.1.2",
     "typed-immutable": "0.0.5"
