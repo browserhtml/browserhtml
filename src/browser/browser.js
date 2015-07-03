@@ -176,7 +176,7 @@ define((require, exports, module) => {
       windowTitle: !loader ? '' :
                    !page ? loader.uri :
                    page.title || loader.uri,
-      onKeyDown: address.pass(Binding, state),
+      onKeyDown: address.pass(Binding),
       onWindowBlur: address.pass(Blured),
       onWindowFocus: address.pass(Focused),
       onUnload: address.pass(SaveSession),
