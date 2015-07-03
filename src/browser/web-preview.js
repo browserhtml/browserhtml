@@ -142,7 +142,9 @@ define((require, exports, module) => {
         })
       ]),
       html.div({
-        style: stylePreview.image,
+        style: Style(stylePreview.image, {
+          backgroundImage: `url(${image})`
+        })
       }, [
         html.img({
           key: 'image',
