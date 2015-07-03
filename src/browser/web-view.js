@@ -263,7 +263,7 @@ define((require, exports, module) => {
       onClose: action,
       onOpenWindow: action,
       onOpenTab: action,
-      onContextMenu: action,
+      onMenu: action,
       onError: action,
       onLoadStart: action,
       onLoadEnd: action,
