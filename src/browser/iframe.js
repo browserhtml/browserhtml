@@ -42,7 +42,7 @@ define((require, exports, module) => {
     onClose: Event('mozbrowserclose'),
     onOpenWindow: Event('mozbrowseropenwindow'),
     onOpenTab: Event('mozbrowseropentab'),
-    onContextMenu: Event('mozbrowsercontextmenu'),
+    onMenu: Event('mozbrowsercontextmenu'),
     onError: Event('mozbrowsererror'),
     onLoadStart: Event('mozbrowserloadstart'),
     onLoadEnd: Event('mozbrowserloadend'),
