@@ -71,6 +71,9 @@ define((require, exports, module) => {
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
       overflow: 'hidden'
     },
+    selected: {
+      boxShadow: '0 0 0 6px rgb(73, 135, 205)'
+    },
     header: {
       textAlign: 'left',
       height: '24px',
@@ -121,7 +124,8 @@ define((require, exports, module) => {
 
     return html.div({
       className: 'card',
-      style: stylePreview.card,
+      style: Style(stylePreview.card,
+                   isSelected && stylePreview.selected),
       onClick: address.pass(Shell.Action.Focus, loader),
       onMouseUp: address.pass(Close, loader)
     }, [
