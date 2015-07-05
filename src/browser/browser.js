@@ -60,7 +60,8 @@ define((require, exports, module) => {
     'accel w': _ => WebView.Action.Close(),
     'accel shift ]': _ => WebView.Action.SelectByOffset({offset: 1}),
     'accel shift [': _ => WebView.Action.SelectByOffset({offset: -1}),
-
+    'control tab': _ => WebView.Action.SelectByOffset({offset: 1}),
+    'control shift tab': _ => WebView.Action.SelectByOffset({offset: -1}),
     'accel shift backspace': _ => ResetSession(),
     'accel shift s': _ => SaveSession(),
 
