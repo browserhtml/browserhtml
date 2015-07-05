@@ -182,22 +182,19 @@ define((require, exports, module) => {
 
   const isLoading = Progress.isLoading;
 
-  const Select = ({id}, {target}) =>
-    Input.Action.Edit({
+  const Change = ({id}, {target}) =>
+    Input.Action.Change({
       id,
-      action: Editable.Action.Select({
-        range: {
-          start: target.selectionStart,
-          end: target.selectionEnd,
-          direction: target.selectionDirection
-        }
+      value: target.value,
+      selection: Editable.Selection({
+        start: target.selectionStart,
+        end: target.selectionEnd,
+        direction: target.selectionDirection
       })
     });
 
-  const Change = ({id}, {target: {value}}) =>
-    Input.Action.Change({id, value});
-
   const view = (loader, security, page, input, suggestions, theme, address) => {
+
     const context = loader ? loader : {id: '@selected'};
     const value = (loader && input.value === null) ? (loader.uri || '') :
                   (input.value || '');
@@ -231,8 +228,6 @@ define((require, exports, module) => {
                        !input.isFocused && style.collapsed),
           isFocused: input.isFocused || !loader,
           selection: input.selection,
-
-          onSelect: address.pass(Select, context),
           onChange: address.pass(Change, context),
 
           onFocus: address.pass(Input.Action.Focused, context),
