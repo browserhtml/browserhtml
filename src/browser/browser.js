@@ -197,7 +197,7 @@ define((require, exports, module) => {
         shell,
         theme,
         address),
-      render('ProgressBar', Progress.view,
+      !input.isFocused && render('ProgressBar', Progress.view,
         loader && loader.id,
         progress,
         theme, address),
