@@ -12,7 +12,9 @@
     "url": "http://github.com/mozilla/browser.html/issues/"
   },
   "scripts": {
-    "start-server": "ecstatic . --port 6060",
+    "start-server": "npm run server",
+    "server": "ecstatic . --port 6060",
+    "client": "/Applications/B2G.app/Contents/MacOS/graphene --profile ./.profile --start-manifest=http://localhost:6060/manifest.webapp",
     "start": "./.bin/start.js",
     "deploy": "./.bin/deploy.sh"
   },
