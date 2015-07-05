@@ -170,7 +170,9 @@ define((require, exports, module) => {
     const {loader, page, progress, security} = WebView.get(webViews,
                                                            webViews.selected);
 
-    const theme = page ? cache(Theme.read, page.pallet) : defaultTheme;
+    const theme = input.isFocused ? defaultTheme :
+                  page ? cache(Theme.read, page.pallet) :
+                  defaultTheme;
 
     return Main({
       key: 'root',
