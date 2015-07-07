@@ -12,15 +12,6 @@ define((require, exports, module) => {
   const {LoadEnd} = Progress.Action;
   const {PageCardChange} = Page.Action;
 
-  /*
-   * This is a JavaScript Scratchpad.
-   *
-   * Enter some JavaScript, then Right Click or choose from the Execute Menu:
-   * 1. Run to evaluate the selected text (Cmd-R),
-   * 2. Inspect to bring up an Object Inspector on the result (Cmd-I), or,
-   * 3. Display to insert the result in a comment after the selection. (Cmd-L)
-   */
-
   const scrape = () => {
     /* This Source Code Form is subject to the terms of the Mozilla Public
      * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -254,7 +245,7 @@ define((require, exports, module) => {
 
     // Scrape microformats `.entry-title`.
     const scrapeMicroformatsTitle = (pageEl) => {
-      const titles = pageEl.querySelectorAll('.entry-title, .p-name');
+      const titles = pageEl.querySelectorAll('.entry-title, .h-entry .p-name');
       // If we found more than one .entry-title, return null. We'll assume that this
       // is a blog listing page.
       return (titles.length === 1) ? getText(titles.length[0]) : null;
@@ -275,7 +266,7 @@ define((require, exports, module) => {
 
     // @TODO look at http://microformats.org/wiki/hatom .entry-summary
     const scrapeMicroformatsDescription = (pageEl) => {
-      const summaries = pageEl.querySelectorAll('.entry-summary, .p-summary');
+      const summaries = pageEl.querySelectorAll('.entry-summary, .h-entry .p-summary');
       // If we found more than one .entry-summary, return null. We'll assume that
       // this is a blog listing page.
       return (summaries.length === 1) ? getText(summaries.length[0]) : null;
