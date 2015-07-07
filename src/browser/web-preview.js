@@ -12,6 +12,7 @@ define((require, exports, module) => {
   const Shell = require('./web-shell');
   const Input = require('./web-input');
   const {Style, StyleSheet} = require('common/style');
+  const {getDomainName} = require('common/url-helper');
 
   // Model
 
@@ -120,7 +121,7 @@ define((require, exports, module) => {
   const viewPreview = (loader, page, isSelected, address) => {
     const image = page.hero.get(0) || page.thumbnail;
     const title = page.label || page.title;
-    const name = page.name || loader.uri;
+    const name = page.name || getDomainName(loader.uri);
 
     return html.div({
       className: 'card',
