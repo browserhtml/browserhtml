@@ -243,34 +243,19 @@ define((require, exports, module) => {
     // Content scrapers
     // -----------------------------------------------------------------------------
 
-    // Scrape microformats `.entry-title`.
-    const scrapeMicroformatsTitle = (pageEl) => {
-      const titles = pageEl.querySelectorAll('.entry-title, .h-entry .p-name');
-      // If we found more than one .entry-title, return null. We'll assume that this
-      // is a blog listing page.
-      return (titles.length === 1) ? getText(titles.length[0]) : null;
-    }
-
     // Find a good title within page.
     // Usage: `scrapeTitle(htmlEl, 'Untitled')`.
     const scrapeTitle = any(
-      queries(
-        'meta[property="og:title"], meta[name="twitter:title"]',
-        getContent
-      ),
-      scrapeMicroformatsTitle,
+      queries('meta[property="og:title"], meta[name="twitter:title"]', getContent),
+      // Query hentry Microformats. Note that we just grab the blog title,
+      // even on a blog listing page. You're going to associate the first title
+      // with the identity of the page because it's the first thing you see on
+      // the page when it loads.
+      queries('.entry-title, .h-entry .p-name', getText),
       // @TODO look at http://schema.org/Article `[itemprop=headline]`
       queries('h1, h2, h3', getText),
       queries('title', comp(cleanTitle, getText))
     );
-
-    // @TODO look at http://microformats.org/wiki/hatom .entry-summary
-    const scrapeMicroformatsDescription = (pageEl) => {
-      const summaries = pageEl.querySelectorAll('.entry-summary, .h-entry .p-summary');
-      // If we found more than one .entry-summary, return null. We'll assume that
-      // this is a blog listing page.
-      return (summaries.length === 1) ? getText(summaries.length[0]) : null;
-    }
 
     const scrapeDescriptionFromContent = (pageEl) => {
       // Query for all paragraphs on the page.
@@ -299,9 +284,10 @@ define((require, exports, module) => {
         'meta[property="og:description"], meta[name="twitter:description"]',
         getContent
       ),
+      // Scrape hentry Microformat description.
+      queries('.entry-summary, .h-entry .p-summary', getText),
       // @TODO process description to remove garbage from descriptions.
       queries('meta[name=description]', getContent),
-      scrapeMicroformatsDescription,
       // @TODO look at http://schema.org/Article `[itemprop=description]`
       scrapeDescriptionFromContent
     );
@@ -318,7 +304,7 @@ define((require, exports, module) => {
     const isImgSizeAtLeast = (imgEl, w, h) =>
       imgEl.naturalWidth > w && imgEl.naturalHeight > h;
 
-    const isImgHeroSize = (imgEl) => isImgSizeAtLeast(imgEl, 600, 300);
+    const isImgHeroSize = (imgEl) => isImgSizeAtLeast(imgEl, 480, 300);
 
     // Collect Twitter image urls from meta tags.
     // Returns an array of 1 or more Twitter img urls, or null.
