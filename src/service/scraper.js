@@ -272,9 +272,6 @@ define((require, exports, module) => {
       return (summaries.length === 1) ? getText(summaries.length[0]) : null;
     }
 
-    const _concatToDescription =  (summary, s) =>
-      summary.length > 250 ? reduced(summary) : summary + ' ' + s;
-
     const scrapeDescriptionFromContent = (pageEl) => {
       // Query for all paragraphs on the page.
       // Trim down paragraphs to the ones we deem likely to be content.
@@ -289,13 +286,8 @@ define((require, exports, module) => {
         map(getText)
       ), pageEl.querySelectorAll('p'));
 
-      // Return early if we haven't found anything good.
-      if (texts.length === 0) return null;
-
-      // Concat paragraph text together until we get more than 250 letters.
-      const summary = reduce(texts, _concatToDescription, '');
-
-      return summary;
+      // Return first match, which may be undefined.
+      return texts[0];
     }
 
     // Find a good description for the page.
