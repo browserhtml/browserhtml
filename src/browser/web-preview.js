@@ -71,7 +71,8 @@ define((require, exports, module) => {
       display: 'inline-block',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
       overflow: 'hidden',
-      position: 'relative'
+      position: 'relative',
+      textAlign: 'left'
     },
     selected: {
       boxShadow: '0 0 0 6px rgb(73, 135, 205)'
@@ -109,7 +110,9 @@ define((require, exports, module) => {
     image: {
       position: 'relative',
       backgroundImage: null,
+      backgroundPosition: 'center center',
       backgroundSize: 'cover',
+      marginBottom: '14px',
       width: '240px',
       height: '150px',
     },
@@ -121,8 +124,12 @@ define((require, exports, module) => {
       height: 'inherit'
     },
     description: {
-      padding: '8px',
-      textAlign: 'left',
+      fontSize: '12px',
+      lineHeight: '18px',
+      height: '72px',
+      margin: '0px 10px',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
       whiteSpace: 'normal'
     }
   });
