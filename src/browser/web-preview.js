@@ -67,10 +67,11 @@ define((require, exports, module) => {
       height: '300px',
       width: '240px',
       backgroundColor: '#fff',
-      color: '#555',
+      color: '#444',
       display: 'inline-block',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      position: 'relative'
     },
     selected: {
       boxShadow: '0 0 0 6px rgb(73, 135, 205)'
@@ -78,21 +79,29 @@ define((require, exports, module) => {
     header: {
       textAlign: 'left',
       height: '24px',
-      padding: '0 10px',
-      position: 'relative'
+      lineHeight: '24px',
+      margin: '0px 24px 0px 10px',
+      overflow: 'hidden',
+      position: 'relative',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
     },
     title: {
       display: 'block',
-      fontSize: '12px',
-      lineHeight: '24px',
+      fontSize: '14px',
+      fontWeight: 'bold',
+      lineHeight: '18px',
+      margin: '0 10px 8px 10px',
       width: '200px',
       overflow: 'hidden',
-      textOverflow: 'ellipsis'
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
     },
     icon: {
+      borderRadius: '3px',
       position: 'absolute',
-      right: '5px',
-      top: '5px',
+      right: '4px',
+      top: '4px',
       width: '16px',
       height: '16px',
       MozForceBrokenImageIcon: 0
@@ -133,19 +142,14 @@ define((require, exports, module) => {
       html.header({
         key: 'header',
         style: stylePreview.header,
-      }, [
-        html.span({
-          key: 'name',
-          style: stylePreview.title,
-        }, name),
-        html.span({
-          key: 'icon',
-          alt: '',
-          style: Style(stylePreview.icon, {
-            backgroundImage: `url(${page.icon})`
-          })
+      }, name),
+      html.span({
+        key: 'icon',
+        alt: '',
+        style: Style(stylePreview.icon, {
+          backgroundImage: `url(${page.icon})`
         })
-      ]),
+      }),
       html.div({
         style: Style(stylePreview.image, {
           backgroundImage: `url(${image})`
@@ -160,7 +164,8 @@ define((require, exports, module) => {
         })
       ]),
       html.div({
-        key: 'title'
+        key: 'title',
+        style: stylePreview.title
       }, title),
       html.p({
         key: 'description',
