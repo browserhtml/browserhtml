@@ -21,23 +21,6 @@ define((require, exports, module) => {
     // screenshot on the content.
     fromDOMRequest(iframe.getScreenshot(960, 552, 'image/png'));
 
-  // This is temporary workraound once we've get a history database
-  // we will be queyring it instead (see #153)
-  const fetchThumbnail = uri => new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.open('GET', `src/about/dashboard/tiles/${URI.getDomainName(uri)}.png`);
-    request.responseType = 'blob';
-    request.send();
-    request.onload = event => {
-      if (request.status === 200) {
-        resolve(request.response);
-      } else {
-        reject(request.statusText);
-      }
-    }
-    request.onerror = event => reject();
-  });
-
   const requestThumbnail = iframe => {
     // Create a promise that is rejected when iframe location is changes,
     // in order to abort task if this happens before we have a response.
@@ -48,13 +31,11 @@ define((require, exports, module) => {
     // be used to defer a screenshot request.
     const loaded = fromEvent(iframe, 'mozbrowserloadend');
 
-    // Request a thumbnail from DB.
-    const thumbnail = fetchThumbnail(iframe.getAttribute('location'))
-    // If thumbnail isn't in database then we race `loaded` against `abort`
-    // and if `loaded` wins we fetch a screenshot that will be our thumbnail.
-    .catch(_ => Promise
-          .race([abort, loaded])
-          .then(_ => fetchScreenshot(iframe)));
+    // We race `loaded` against `abort` and if `loaded` wins we fetch a
+    // screenshot that will be our thumbnail.
+    const thumbnail = Promise
+      .race([abort, loaded])
+      .then(_ => fetchScreenshot(iframe))
 
     // Finally we return promise that rejects if `abort` wins and resolves to a
     // `thumbnail` if we get it before `abort`.
