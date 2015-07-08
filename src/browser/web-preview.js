@@ -62,23 +62,21 @@ define((require, exports, module) => {
 
   const stylePreview = StyleSheet.create({
     card: {
-      margin: '6px',
-      borderRadius: '4px',
-      height: '300px',
-      width: '240px',
       backgroundColor: '#fff',
+      borderRadius: '4px',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
       color: '#444',
       display: 'inline-block',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
+      height: '300px',
+      margin: '0 10px',
       overflow: 'hidden',
       position: 'relative',
-      textAlign: 'left'
+      width: '240px'
     },
     selected: {
       boxShadow: '0 0 0 6px rgb(73, 135, 205)'
     },
     header: {
-      textAlign: 'left',
       height: '24px',
       lineHeight: '24px',
       margin: '0px 24px 0px 10px',
@@ -108,13 +106,14 @@ define((require, exports, module) => {
       MozForceBrokenImageIcon: 0
     },
     image: {
-      position: 'relative',
+      backgroundColor: '#DDD',
       backgroundImage: null,
       backgroundPosition: 'center center',
       backgroundSize: 'cover',
-      marginBottom: '14px',
-      width: '240px',
       height: '150px',
+      marginBottom: '14px',
+      position: 'relative',
+      width: '240px',
     },
     imageLoader: {
       position: 'absolute',
@@ -129,7 +128,6 @@ define((require, exports, module) => {
       height: '72px',
       margin: '0px 10px',
       overflow: 'hidden',
-      textOverflow: 'ellipsis',
       whiteSpace: 'normal'
     }
   });
@@ -186,7 +184,6 @@ define((require, exports, module) => {
     preview: {
       width: '100vw',
       height: '100vh',
-      textAlign: 'center',
       paddingTop: 'calc(100vh / 2 - 150px)',
       backgroundColor: '#273340',
       overflowX: 'auto',
