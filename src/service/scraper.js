@@ -389,7 +389,7 @@ define((require, exports, module) => {
     if (action instanceof LoadEnd && action.id !== 'about:dashboard') {
       const iframe = document.getElementById(`web-view-${action.id}`);
       if (iframe && iframe.executeScript) {
-        iframe.executeScript(script)
+        iframe.executeScript(script, {url: iframe.location})
               .then(address.pass(readCard, action));
       }
     }
