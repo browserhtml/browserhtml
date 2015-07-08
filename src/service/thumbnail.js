@@ -16,9 +16,10 @@ define((require, exports, module) => {
   const {ThumbnailChange} = Page.Action;
 
   const fetchScreenshot = iframe =>
-    fromDOMRequest(iframe.getScreenshot(240 * devicePixelRatio,
-                                        276 * devicePixelRatio,
-                                        'image/png'));
+    // 960 is a guestimate... we're going to guess that within that space there
+    // will be content to show in the screenshot. In future, we need to center
+    // screenshot on the content.
+    fromDOMRequest(iframe.getScreenshot(960, 552, 'image/png'));
 
   // This is temporary workraound once we've get a history database
   // we will be queyring it instead (see #153)

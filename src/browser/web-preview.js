@@ -118,7 +118,7 @@ define((require, exports, module) => {
     screenshot: {
       backgroundColor: '#DDD',
       backgroundImage: null,
-      backgroundPosition: 'left top',
+      backgroundPosition: 'center top',
       backgroundSize: 'cover',
       height: '276px',
       width: '240px'
