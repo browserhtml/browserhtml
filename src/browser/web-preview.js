@@ -115,6 +115,14 @@ define((require, exports, module) => {
       position: 'relative',
       width: '240px',
     },
+    screenshot: {
+      backgroundColor: '#DDD',
+      backgroundImage: null,
+      backgroundPosition: 'center center',
+      backgroundSize: 'cover',
+      height: '276px',
+      width: '240px'
+    },
     imageLoader: {
       position: 'absolute',
       left: 0,
@@ -132,10 +140,77 @@ define((require, exports, module) => {
     }
   });
 
+  const viewContentsHeroTitleDescription = (name, icon, hero, title, description) => [
+    html.header({
+        key: 'header',
+        style: stylePreview.header,
+      }, name),
+    html.span({
+      key: 'icon',
+      alt: '',
+      style: Style(stylePreview.icon, {
+        backgroundImage: `url(${icon})`
+      })
+    }),
+    html.div({
+      style: Style(stylePreview.image, {
+        backgroundImage: `url(${hero})`
+      })
+    }, [
+      html.img({
+        key: 'image',
+        src: hero,
+        alt: '',
+        style: stylePreview.imageLoader,
+        onLoad: event => URL.revokeObjectURL(event.target.src)
+      })
+    ]),
+    html.div({
+      key: 'title',
+      style: stylePreview.title
+    }, title),
+    html.p({
+      key: 'description',
+      style: stylePreview.description
+    }, description)
+  ];
+
+  const viewContentsScreenshot = (name, icon, screenshot) => [
+    html.header({
+        key: 'header',
+        style: stylePreview.header,
+      }, name),
+    html.span({
+      key: 'icon',
+      alt: '',
+      style: Style(stylePreview.icon, {
+        backgroundImage: `url(${icon})`
+      })
+    }),
+    html.div({
+      style: Style(stylePreview.screenshot, {
+        backgroundImage: `url(${screenshot})`
+      })
+    }, [
+      html.img({
+        key: 'image',
+        src: screenshot,
+        alt: '',
+        style: stylePreview.imageLoader,
+        onLoad: event => URL.revokeObjectURL(event.target.src)
+      })
+    ])
+  ];
+
   const viewPreview = (loader, page, isSelected, address) => {
-    const image = page.hero.get(0) || page.thumbnail;
+    const hero = page.hero.get(0);
     const title = page.label || page.title;
     const name = page.name || getDomainName(loader.uri);
+
+    const previewContents =
+      hero && title && page.description ?
+        viewContentsHeroTitleDescription(name, page.icon, hero, title, page.description) :
+        viewContentsScreenshot(name, page.icon, page.thumbnail);
 
     return html.div({
       className: 'card',
@@ -143,40 +218,7 @@ define((require, exports, module) => {
                    isSelected && stylePreview.selected),
       onClick: address.pass(Shell.Action.Focus, loader),
       onMouseUp: address.pass(Close, loader)
-    }, [
-      html.header({
-        key: 'header',
-        style: stylePreview.header,
-      }, name),
-      html.span({
-        key: 'icon',
-        alt: '',
-        style: Style(stylePreview.icon, {
-          backgroundImage: `url(${page.icon})`
-        })
-      }),
-      html.div({
-        style: Style(stylePreview.image, {
-          backgroundImage: `url(${image})`
-        })
-      }, [
-        html.img({
-          key: 'image',
-          src: image,
-          alt: '',
-          style: stylePreview.imageLoader,
-          onLoad: event => URL.revokeObjectURL(event.target.src)
-        })
-      ]),
-      html.div({
-        key: 'title',
-        style: stylePreview.title
-      }, title),
-      html.p({
-        key: 'description',
-        style: stylePreview.description
-      }, page.description)
-    ]);
+    }, previewContents);
   };
   exports.viewPreview = viewPreview;
 
