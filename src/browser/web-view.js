@@ -111,6 +111,8 @@ define((require, exports, module) => {
   // Utils
 
   const indexByID = (state, id) =>
+    id === null ? state.selected :
+    id === void(0) ? state.selected :
     id === '@selected' ? state.selected :
     state.loader.findIndex(loader => loader.id === id);
 
@@ -120,6 +122,14 @@ define((require, exports, module) => {
     return loop ? position - Math.trunc(position / count) * count :
            Math.min(count - 1, Math.max(0, position));
   }
+
+  const selectByOffset = (state, offset) =>
+    state.set('selected', indexByOffset(state, offset));
+  exports.selectByOffset = selectByOffset;
+
+  const selectByID = (state, id) =>
+    state.set('selected', indexByID(state, id));
+  exports.selectByID = selectByID;
 
   const select = (state, action) =>
     action instanceof SelectByOffset ?
@@ -160,6 +170,7 @@ define((require, exports, module) => {
       navigation: state.navigation.remove(index),
       security: state.security.remove(index)
     });
+  exports.close = close;
 
    const modify = (state, action) => {
      const index = indexByID(state, action.id);
@@ -298,7 +309,8 @@ define((require, exports, module) => {
     }
   });
 
-  const view = (loader, shell, page, address, selected, isActive) => {
+  const view = (mode, loader, shell, page, address, selected) => {
+    const isActive = mode === 'show-web-view';
     return html.div({
       key: 'web-views',
       style: Style(webviewsStyle.base,

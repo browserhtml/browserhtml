@@ -164,12 +164,12 @@ define((require, exports, module) => {
   const {SelectNext, SelectPrevious} = Suggestions.Action;
 
   const Binding = KeyBindings({
-    'up': ({id}) => SelectPrevious({id}),
-    'control p': ({id}) => SelectPrevious({id}),
-    'down': ({id}) => SelectNext({id}),
-    'control n': ({id}) => SelectNext({id}),
-    'enter': ({id}) => Submit({id}),
-    'escape': ({id}) => Shell.Action.Focus({id}),
+    'up': _ => SelectPrevious({id: '@selected'}),
+    'control p': _ => SelectPrevious({id: '@selected'}),
+    'down': _ => SelectNext({id: '@selected'}),
+    'control n': _ => SelectNext({id: '@selected'}),
+    'enter': _ => Submit({id: '@selected'}),
+    'escape': _ => Shell.Action.Focus({id: '@selected'}),
   }, 'LocationBar.Keyboard.Action');
 
 
@@ -182,9 +182,9 @@ define((require, exports, module) => {
 
   const isLoading = Progress.isLoading;
 
-  const Change = ({id}, {target}) =>
+  const Change = ({target}) =>
     Input.Action.Change({
-      id,
+      id: '@selected',
       value: target.value,
       selection: Editable.Selection({
         start: target.selectionStart,
@@ -193,74 +193,80 @@ define((require, exports, module) => {
       })
     });
 
-  const view = (loader, security, page, input, suggestions, theme, address) => {
+  const viewBar = isActive => children => html.div({
+    style: style.container,
+  }, [
+    html.div({
+      key: 'LocationBar',
+      className: ClassSet({
+        'location-bar': true,
+        active: isActive
+      }),
+      style: Style(style.bar,
+                   isActive ? style.active : style.inactive),
+      onClick: address.pass(Input.Action.Enter)
+    }, children)
+  ]);
 
-    const context = loader ? loader : {id: '@selected'};
-    const value = (loader && input.value === null) ? (loader.uri || '') :
-                  (input.value || '');
+  const viewActiveBar = viewBar(true);
+  const viewInactiveBar = viewBar(false);
 
-    return html.div({
-      style: style.container,
-    }, [
-      html.div({
-        key: 'LocationBar',
-        className: ClassSet({
-          'location-bar': true,
-          active: input.isFocused
-        }),
-        style: Style(style.bar,
-                     input.isFocused ? style.active : style.inactive),
-        onClick: address.pass(Input.Action.Enter, context)
+  const viewInDashboard = (loader, security, page, input, suggestions, theme, address) =>
+    viewActiveBar([
+      html.span({
+        key: 'icon',
+        style: Style(style.icon, style.visible)
+      }, SEARCH_ICON),
+      Editable.view({
+        key: 'input',
+        className: 'location-bar-input',
+        placeholder: 'Search or enter address',
+        type: 'text',
+        value:
+          suggestions.selected >= 0 ?
+            suggestions.entries.get(suggestions.selected).uri :
+            (input.value || ''),
+        style: style.input,
+        isFocused: input.isFocused,
+        selection: input.selection,
+        onChange: address.pass(Change),
+        onFocus: address.pass(Input.Action.Focused),
+        onBlur: address.pass(Input.Action.Blured),
+        onKeyDown: address.pass(Binding)
+      })
+    ]);
+
+  const viewInWebView = (loader, security, page, input, suggestions, theme, address) =>
+    viewInactiveBar([
+      html.p({
+        key: 'page-info',
+        style: Style(style.summary, {color: theme.locationText})
       }, [
         html.span({
-          key: 'icon',
-          style: Style(style.icon,
-                       input.isFocused ? style.visible : style.invisible)
-        }, SEARCH_ICON),
-        Editable.view({
-          key: 'input',
-          className: 'location-bar-input',
-          placeholder: 'Search or enter address',
-          type: 'text',
-          value: suggestions.selected < 0 ? value :
-                 suggestions.entries.get(suggestions.selected).uri,
-          style: Style(style.input,
-                       !input.isFocused && style.collapsed),
-          isFocused: input.isFocused || !loader,
-          selection: input.selection,
-          onChange: address.pass(Change, context),
-
-          onFocus: address.pass(Input.Action.Focused, context),
-          onBlur: address.pass(Input.Action.Blured, context),
-          onKeyDown: address.pass(Binding, context)
-        }),
-        html.p({
-          key: 'page-info',
-          style: Style(style.summary,
-                       input.isFocused ? style.collapsed :
-                       {color: theme.locationText})
-        }, [
-          html.span({
-            key: 'securityicon',
-            style: style.security
-          },
-             !loader ? '' :
-             URI.isPrivileged(loader.uri) ? GearIcon :
-             security.secure ? LockIcon :
-             ''),
-          html.span({
-            key: 'title',
-            style: Style(style.titleText, {
-              color: theme.titleText
-            })
-          }, !loader ? '' :
-             page.title ? page.title :
-             loader.uri ? URI.getDomainName(loader.uri) :
-             'New Tab'),
-        ])
+          key: 'securityicon',
+          style: style.security
+        },
+           !loader ? '' :
+           URI.isPrivileged(loader.uri) ? GearIcon :
+           security.secure ? LockIcon :
+           ''),
+        html.span({
+          key: 'title',
+          style: Style(style.titleText, {
+            color: theme.titleText
+          })
+        }, !loader ? '' :
+           page.title ? page.title :
+           loader.uri ? URI.getDomainName(loader.uri) :
+           'New Tab'),
       ])
     ]);
-  };
+
+  const view = (mode, ...rest) =>
+    mode === 'show-web-view' ? viewInWebView(...rest) :
+    viewInDashboard(...rest);
+
+  // TODO: Consider seperating location input field from the location bar.
 
   exports.view = view;
 });

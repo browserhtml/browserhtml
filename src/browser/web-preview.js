@@ -73,6 +73,11 @@ define((require, exports, module) => {
       position: 'relative',
       width: '240px'
     },
+    ghost: {
+      backgroundColor: 'transparent',
+      border: '3px dashed rgba(255, 255, 255, 0.2)',
+      boxShadow: 'none'
+    },
     selected: {
       boxShadow: '0 0 0 6px rgb(73, 135, 205)'
     },
@@ -222,6 +227,11 @@ define((require, exports, module) => {
   };
   exports.viewPreview = viewPreview;
 
+  const ghostPreview = html.div({
+    className: 'card',
+    style: Style(stylePreview.card, stylePreview.ghost)
+  });
+
   const style = StyleSheet.create({
     preview: {
       width: '100vw',
@@ -236,13 +246,28 @@ define((require, exports, module) => {
     }
   });
 
-  const view = (loaders, pages, input, selected, theme, address) =>
-    html.div({style: style.preview},
-      loaders
-        .map((loader, index) =>
-          render(`Preview@${loader.id}`, viewPreview,
-                 loader, pages.get(index),
-                 index === selected, address)));
+
+  const viewPreviews = (loaders, pages, selected, address) =>
+    loaders
+      .map((loader, index) =>
+        render(`Preview@${loader.id}`, viewPreview,
+               loader, pages.get(index),
+               index === selected, address));
+
+  const viewContainer = (theme, children) =>
+    html.div({style: style.preview}, children);
+
+  const viewInEditMode = (loaders, pages, selected, theme, address) =>
+    viewContainer(theme, viewPreviews(loaders, pages, selected, address));
+
+  const viewInCreateMode = (loaders, pages, selected, theme, address) =>
+    // Pass selected as `-1` so none is highlighted.
+    viewContainer(theme, viewPreviews(loaders, pages, -1, address)
+                          .unshift(ghostPreview));
+
+  const view = (mode, ...etc) =>
+    mode === 'create-web-view' ? viewInCreateMode(...etc) :
+    viewInEditMode(...etc);
   exports.view = view;
 
 });

@@ -30,11 +30,12 @@ define((require, exports, module) => {
   const Suggestions = require('./suggestion-box');
   const URI = require('common/url-helper');
   const Navigation = require('service/navigation');
+  const SynthesisUI = require('./synthesis-ui');
 
   // Model
   const Model = Record({
     version: '0.0.7',
-    mode: 'page',
+    mode: 'create-web-view', // or show-web-view, edit-web-view, choose-web-view
     shell: Focusable.Model({isFocused: true}),
     updates: Updates.Model,
     webViews: WebView.Model,
@@ -51,8 +52,8 @@ define((require, exports, module) => {
 
   const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
   const Binding = KeyBindings({
-    'accel l': _ => Input.Action.Enter(),
-    'accel t': _ => Input.Action.Enter({value: ''}),
+    'accel l': _ => SynthesisUI.Action.EditWebView(),
+    'accel t': _ => SynthesisUI.Action.CreateWebView(),
     'accel 0': _ => WebView.Action.Shell.ResetZoom(),
     'accel -': _ => WebView.Action.Shell.ZoomOut(),
     'accel =': _ => WebView.Action.Shell.ZoomIn(),
@@ -66,7 +67,7 @@ define((require, exports, module) => {
     'accel shift s': _ => SaveSession(),
 
     'accel r': _ => Navigation.Action.Reload(),
-    'escape': _ => Navigation.Action.Stop(),
+    'escape': _ => SynthesisUI.Action.Escape(),
     [`${modifier} left`]: _ => Navigation.Action.GoBack(),
     [`${modifier} right`]: _ => Navigation.Action.GoForward()
   }, 'Browser.Keyboard.Action');
@@ -128,6 +129,10 @@ define((require, exports, module) => {
                        Suggestions.update(state.suggestions, action));
     }
 
+    if (SynthesisUI.Action.isTypeOf(action)) {
+      return SynthesisUI.update(state, action)
+    }
+
     return state
   }
   exports.update = update;
@@ -169,7 +174,7 @@ define((require, exports, module) => {
     const {shell, webViews, input, suggestions} = state;
     const {loader, page, progress, security} = WebView.get(webViews,
                                                            webViews.selected);
-
+    const id = loader && loader.id;
     const theme = input.isFocused ? defaultTheme :
                   page ? cache(Theme.read, page.pallet) :
                   defaultTheme;
@@ -192,33 +197,22 @@ define((require, exports, module) => {
     }, [
       render('WindowControls', WindowControls.view, shell, theme, address),
       render('WindowBar', WindowBar.view,
-        !input.isFocused,
-        loader && loader.id,
-        shell,
-        theme,
-        address),
-      !input.isFocused && render('ProgressBar', Progress.view,
-        loader && loader.id,
-        progress,
-        theme, address),
+        state.mode, id, shell, theme, address),
+      render('ProgressBar', Progress.view,
+        state.mode, id, progress, theme, address),
       render('LocationBar', LocationBar.view,
-        loader, security, page,
-        input, suggestions, theme, address),
+        state.mode, loader, security, page, input, suggestions, theme, address),
       render('Preview', Preview.view,
-        webViews.loader,
-        webViews.page,
-        input,
-        webViews.selected,
-        theme,
-        address),
-      render('Suggestions', Suggestions.view, suggestions, input.isFocused, theme, address),
+        state.mode, webViews.loader, webViews.page, webViews.selected, theme, address),
+      render('Suggestions', Suggestions.view,
+        state.mode, suggestions, input, theme, address),
       render('WebViews', WebView.view,
+        state.mode,
         webViews.loader,
         webViews.shell,
         webViews.page,
         address,
-        webViews.selected,
-        !input.isFocused),
+        webViews.selected),
       render('Updater', Updates.view, state.updates, address)
     ])
   };

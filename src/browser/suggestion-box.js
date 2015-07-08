@@ -137,7 +137,7 @@ define((require, exports, module) => {
       height: 260,
       pointerEvents: 'none'
     },
-    collapse: {
+    collapsed: {
       visibility: 'collapse'
     },
     suggestions: {
@@ -215,7 +215,12 @@ define((require, exports, module) => {
   };
   exports.viewSuggestion = viewSuggestion;
 
-  const view = (state, isActive, theme, address) => {
+  const view = (mode, state, input, theme, address) => {
+    const isActive = mode != 'show-web-view' &&
+                     input.isFocused &&
+                     input.value !== '' &&
+                     input.value;
+
     return html.div({
       key: 'suggestionscontainer',
       style: Style(style.container,

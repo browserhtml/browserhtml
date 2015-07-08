@@ -149,7 +149,11 @@ define((require, exports, module) => {
   const ProgressUpdate = (id, {timeStamp}) =>
     LoadProgress({id, timeStamp});
 
-  const view = (id, progress, theme, address) => {
+  const view = (mode, id, progress, theme, address) => {
+    if (mode !== 'show-web-view') {
+      return null;
+    }
+
     const node = progress && html.div({
       key: 'ProgressBar',
       style: Style(style.base, {
