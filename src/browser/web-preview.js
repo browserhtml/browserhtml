@@ -252,7 +252,7 @@ define((require, exports, module) => {
     html.div({style: style.scroller}, [
       // Set the width of the previews element to match the width of each card
       // plus padding.
-      html.div({style: Style(style.previews, {width: loaders.length * 260})},
+      html.div({style: Style(style.previews, {width: loaders.size * 260})},
         loaders
           .map((loader, index) =>
             render(`Preview@${loader.id}`, viewPreview,
