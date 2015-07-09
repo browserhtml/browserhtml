@@ -87,14 +87,8 @@ define((require, exports, module) => {
   // Update
 
   const update = (state, action) => {
-    if (action instanceof Input.Action.Submit) {
-      return state.merge({
-        input: Input.update(state.input, action),
-        webViews: WebView.update(state.webViews, Loader.Action.Load({
-          id: action.id,
-          uri: URI.read(state.input.value)
-        }))
-      });
+    if (SynthesisUI.Action.isTypeOf(action)) {
+      return SynthesisUI.update(state, action)
     }
 
     if (action instanceof Input.Action.Enter) {
@@ -127,10 +121,6 @@ define((require, exports, module) => {
     if (Suggestions.Action.isTypeOf(action)) {
       return state.set('suggestions',
                        Suggestions.update(state.suggestions, action));
-    }
-
-    if (SynthesisUI.Action.isTypeOf(action)) {
-      return SynthesisUI.update(state, action)
     }
 
     return state

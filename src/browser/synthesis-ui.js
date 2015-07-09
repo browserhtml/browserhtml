@@ -9,7 +9,8 @@ define((require, exports, module) => {
   const {Record, Any, Union} = require('common/typed');
   const {compose} = require('lang/functional');
   const WebView = require('./web-view');
-
+  const Input = require('./web-input');
+  const URI = require('common/url-helper');
 
   // Actions
 
@@ -46,6 +47,8 @@ define((require, exports, module) => {
     description: 'Close current web view & edit following web view'
   });
 
+  const {Submit} = Input.Action;
+
   const Action = Union({
     ShowWebView,
     ShowWebViewByID,
@@ -54,7 +57,8 @@ define((require, exports, module) => {
     ChooseNextWebView,
     ChoosePreviousWebView,
     Escape,
-    CloseWebView
+    CloseWebView,
+    Submit
   });
   exports.Action = Action;
 
@@ -118,7 +122,21 @@ define((require, exports, module) => {
     blurInput,
     clearInput);
 
+  const navigate = state => {
+    const uri = URI.read(state.input.value);
+    return state.set('webViews', state.mode === 'edit-web-view' ?
+                                  WebView.load(state.webViews, {uri}) :
+                                  WebView.open(state.webViews, uri));
+  };
+
+  const submit = compose(
+    switchMode('show-web-view'),
+    clearInput,
+    navigate);
+
   const update = (state, action) =>
+    action instanceof Submit ?
+      submit(state) :
     action instanceof ShowWebView ?
       showWebViewByID(state) :
     action instanceof ShowWebViewByID ?

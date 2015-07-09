@@ -54,7 +54,7 @@ define((require, exports, module) => {
 
   const Submit = Record({
     id: '@selected',
-  }, 'WebView.Input.Sumbmit');
+  }, 'WebView.Input.Submit');
 
 
   const Action = Union({Enter, Focused, Blured,

@@ -157,6 +157,7 @@ define((require, exports, module) => {
     navigation: state.navigation.push(Navigation.Model()),
     security: state.security.push(Security.Model())
   });
+  exports.open = open;
 
   const close = (state, id, index=indexByID(state, id)) =>
     index === null ? state :
@@ -195,6 +196,7 @@ define((require, exports, module) => {
             open(state, action.uri) :
            modify(state, action)
   };
+  exports.load = load;
 
   // Update
 
