@@ -229,7 +229,7 @@ define((require, exports, module) => {
       backgroundColor: '#273340',
       height: '100vh',
       width: '100vw',
-      overflowY: 'hidden',
+      overflowX: 'auto',
       position: 'absolute',
       top: 0,
       zIndex: 0,
