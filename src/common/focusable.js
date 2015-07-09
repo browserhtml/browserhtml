@@ -47,10 +47,12 @@ define((require, exports, module) => {
 
   const Field = {
     isFocused: new VirtualAttribute((node, current, past) => {
-      if (current) {
-        node.focus();
-      } else {
-        node.blur();
+      if (current != past) {
+        if (current) {
+          node.focus();
+        } else {
+          node.blur();
+        }
       }
     })
   };
