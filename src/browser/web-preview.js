@@ -262,8 +262,7 @@ define((require, exports, module) => {
 
   const viewInCreateMode = (loaders, pages, selected, theme, address) =>
     // Pass selected as `-1` so none is highlighted.
-    viewContainer(theme, viewPreviews(loaders, pages, -1, address)
-                          .unshift(ghostPreview));
+    viewContainer(theme, [ghostPreview, viewPreviews(loaders, pages, -1, address)]);
 
   const view = (mode, ...etc) =>
     mode === 'create-web-view' ? viewInCreateMode(...etc) :
