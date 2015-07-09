@@ -243,7 +243,7 @@ define((require, exports, module) => {
       width: '100vw',
       // Fixed height to contain floats.
       height: '300px',
-      padding: 'calc(100vh / 2 - 150px) 100px 0 100px',
+      padding: 'calc(50vh - 150px) 100px 0 100px',
       position: 'absolute',
     }
   });
