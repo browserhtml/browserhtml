@@ -66,7 +66,7 @@ define((require, exports, module) => {
       borderRadius: '4px',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
       color: '#444',
-      display: 'inline-block',
+      float: 'left',
       height: '300px',
       margin: '0 10px',
       overflow: 'hidden',
@@ -225,26 +225,40 @@ define((require, exports, module) => {
   exports.viewPreview = viewPreview;
 
   const style = StyleSheet.create({
-    preview: {
-      width: '100vw',
-      height: '100vh',
-      paddingTop: 'calc(100vh / 2 - 150px)',
+    scroller: {
       backgroundColor: '#273340',
-      overflowX: 'auto',
+      height: '100vh',
+      width: '100vw',
+      overflowY: 'hidden',
       position: 'absolute',
       top: 0,
       zIndex: 0,
-      MozWindowDragging: "drag"
+      MozWindowDragging: 'drag',
+    },
+    previews: {
+      // This is important. We need previews to make space around itself.
+      // Margin doesn't play well with scroll -- the right-hand edge will get
+      // cut off, so we turn on the traditional CSS box model and use padding.
+      boxSizing: 'content-box',
+      width: '100vw',
+      // Fixed height to contain floats.
+      height: '300px',
+      padding: 'calc(100vh / 2 - 150px) 100px 0 100px',
+      position: 'absolute',
     }
   });
 
   const view = (loaders, pages, input, selected, theme, address) =>
-    html.div({style: style.preview},
-      loaders
-        .map((loader, index) =>
-          render(`Preview@${loader.id}`, viewPreview,
-                 loader, pages.get(index),
-                 index === selected, address)));
+    html.div({style: style.scroller}, [
+      // Set the width of the previews element to match the width of each card
+      // plus padding.
+      html.div({style: Style(style.previews, {width: loaders.length * 260})},
+        loaders
+          .map((loader, index) =>
+            render(`Preview@${loader.id}`, viewPreview,
+                   loader, pages.get(index),
+                   index === selected, address)))
+    ]);
   exports.view = view;
 
 });

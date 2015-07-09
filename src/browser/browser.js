@@ -152,11 +152,9 @@ define((require, exports, module) => {
     shell: {
       color: null,
       backgroundColor: null,
-
       height: '100vh',
       width: '100vw',
       position: 'relative',
-      overflowY: 'hidden',
     }
   });
 
