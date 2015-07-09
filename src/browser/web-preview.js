@@ -97,13 +97,15 @@ define((require, exports, module) => {
       whiteSpace: 'nowrap'
     },
     icon: {
+      backgroundSize: 'cover',
+      backgroundPosition: 'center center',
+      backgroundRepeat: 'no-repeat',
       borderRadius: '3px',
       position: 'absolute',
       right: '4px',
       top: '4px',
       width: '16px',
       height: '16px',
-      MozForceBrokenImageIcon: 0
     },
     image: {
       backgroundColor: '#DDD',
