@@ -133,19 +133,6 @@ define((require, exports, module) => {
   exports.update = update;
 
 
-  /*
-  exports.update = inspect(update, ([state, action], output) => {
-    if (action instanceof WebView.Action.Progress.LoadProgress) {
-      return null;
-    }
-
-    console.log(action.toString(),
-                state.toJSON(),
-                output && output.toJSON());
-  });
-  */
-
-
   // Style
 
   const style = StyleSheet.create({
@@ -165,8 +152,7 @@ define((require, exports, module) => {
 
   const view = (state, address) => {
     const {shell, webViews, input, suggestions} = state;
-    const {loader, page, progress, security} = WebView.get(webViews,
-                                                           webViews.selected);
+    const {loader, page, security} = WebView.get(webViews, webViews.selected);
 
     const theme = input.isFocused ? defaultTheme :
                   page ? cache(Theme.read, page.pallet) :
@@ -195,10 +181,6 @@ define((require, exports, module) => {
         shell,
         theme,
         address),
-      !input.isFocused && render('ProgressBar', Progress.view,
-        loader && loader.id,
-        progress,
-        theme, address),
       render('LocationBar', LocationBar.view,
         loader, security, page,
         input, suggestions, theme, address),
@@ -217,6 +199,11 @@ define((require, exports, module) => {
         address,
         webViews.selected,
         !input.isFocused),
+      render('ProgressBars', Progress.view,
+        webViews.loader,
+        webViews.progress,
+        webViews.selected,
+        theme),
       render('Updater', Updates.view, state.updates, address)
     ])
   };

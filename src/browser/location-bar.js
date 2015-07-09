@@ -17,7 +17,6 @@ define((require, exports, module) => {
   const Navigation = require('./web-navigation');
   const Shell = require('./web-shell');
   const Input = require('./web-input');
-  const Progress = require('./progress-bar');
   const Suggestions = require('./suggestion-box');
   const ClassSet = require('common/class-set');
 
@@ -179,8 +178,6 @@ define((require, exports, module) => {
   const ReloadIcon = '\uf01e';
   const StopIcon = '\uf00d';
   const SEARCH_ICON = '\uf002';
-
-  const isLoading = Progress.isLoading;
 
   const Change = ({id}, {target}) =>
     Input.Action.Change({
