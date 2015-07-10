@@ -128,30 +128,15 @@ define((require, exports, module) => {
   exports.update = update;
 
 
-  /*
-  exports.update = inspect(update, ([state, action], output) => {
-    if (action instanceof WebView.Action.Progress.LoadProgress) {
-      return null;
-    }
-
-    console.log(action.toString(),
-                state.toJSON(),
-                output && output.toJSON());
-  });
-  */
-
-
   // Style
 
   const style = StyleSheet.create({
     shell: {
       color: null,
       backgroundColor: null,
-
       height: '100vh',
       width: '100vw',
       position: 'relative',
-      overflowY: 'hidden',
     }
   });
 
@@ -162,9 +147,8 @@ define((require, exports, module) => {
 
   const view = (state, address) => {
     const {shell, webViews, input, suggestions} = state;
-    const {loader, page, progress, security} = WebView.get(webViews,
-                                                           webViews.selected);
-    const id = loader && loader.id;
+    const {loader, page, security} = WebView.get(webViews, webViews.selected);
+	const id = loader && loader.id;
     const theme = input.isFocused ? defaultTheme :
                   page ? cache(Theme.read, page.pallet) :
                   defaultTheme;
@@ -188,8 +172,6 @@ define((require, exports, module) => {
       render('WindowControls', WindowControls.view, shell, theme, address),
       render('WindowBar', WindowBar.view,
         state.mode, id, shell, theme, address),
-      render('ProgressBar', Progress.view,
-        state.mode, id, progress, theme, address),
       render('LocationBar', LocationBar.view,
         state.mode, loader, security, page, input, suggestions, theme, address),
       render('Preview', Preview.view,
@@ -203,6 +185,11 @@ define((require, exports, module) => {
         webViews.page,
         address,
         webViews.selected),
+      render('ProgressBars', Progress.view,
+        webViews.loader,
+        webViews.progress,
+        webViews.selected,
+        theme),
       render('Updater', Updates.view, state.updates, address)
     ])
   };

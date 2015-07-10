@@ -294,7 +294,6 @@ define((require, exports, module) => {
       onPrompt: action,
       onAuthentificate: action,
       onScrollAreaChange: action,
-      onLoadProgressChange: action
     });
   };
   exports.viewWebView = viewWebView;
@@ -414,16 +413,13 @@ define((require, exports, module) => {
     CanGoForwardChange({id, value});
 
 
-  const {LoadStart, LoadEnd, LoadProgress} = Progress.Action;
+  const {LoadStart, LoadEnd} = Progress.Action;
 
   Event.mozbrowserloadstart = ({id, uri}, {timeStamp}) =>
-    LoadStart({id, uri, timeStamp: performance.now()});
+    LoadStart({id, uri});
 
   Event.mozbrowserloadend = ({id, uri}, {timeStamp}) =>
-    LoadEnd({id, uri, timeStamp: performance.now()});
-
-  Event.mozbrowserloadprogresschanged = ({id}, {timeStamp}) =>
-    LoadProgress({id, timeStamp: performance.now()});
+    LoadEnd({id, uri});
 
   const {TitleChange, IconChange, MetaChange, OverflowChange, Scroll} = Page.Action;
 

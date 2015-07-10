@@ -253,8 +253,9 @@ define((require, exports, module) => {
       // the page when it loads.
       queries('.entry-title, .h-entry .p-name', getText),
       // @TODO look at http://schema.org/Article `[itemprop=headline]`
-      queries('h1, h2, h3', getText),
-      queries('title', comp(cleanTitle, getText))
+      queries('title', comp(cleanTitle, getText)),
+      // If worst comes to worst, fall back on headings.
+      queries('h1, h2, h3', getText)
     );
 
     const scrapeDescriptionFromContent = (pageEl) => {
