@@ -74,7 +74,7 @@ define((require, exports, module) => {
       width: '240px'
     },
     selected: {
-      boxShadow: '0 0 0 6px rgb(73, 135, 205)'
+      boxShadow: '0 0 0 6px #4A90E2'
     },
     header: {
       height: '24px',

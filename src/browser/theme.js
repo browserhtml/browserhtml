@@ -30,7 +30,7 @@ define((require, exports, module) => {
     shell: Color('#fff'),
     shellText: Color('rgba(0,0,0, 0.65)'),
 
-    progressBar: Color('#82D3FD')
+    progressBar: Color('#4A90E2')
   }, 'Theme');
 
   exports.Model = Model;
