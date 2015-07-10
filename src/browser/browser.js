@@ -91,13 +91,6 @@ define((require, exports, module) => {
       return SynthesisUI.update(state, action)
     }
 
-    if (action instanceof Input.Action.Enter) {
-      return state.merge({
-        input: Input.update(state.input, action),
-        webViews: WebView.update(state.webViews, action)
-      });
-    }
-
     if (Focusable.Action.isTypeOf(action)) {
       return state.set('shell', Focusable.update(state.shell, action));
     }

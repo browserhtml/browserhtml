@@ -46,7 +46,7 @@ define((require, exports, module) => {
     description: 'Close current web view & edit following web view'
   });
 
-  const {Submit} = Input.Action;
+  const {Submit, Enter} = Input.Action;
   const {ZoomIn, ZoomOut} = Gesture.Action;
   const {CreateWebView} = Preview.Action;
 
@@ -59,7 +59,7 @@ define((require, exports, module) => {
     ChoosePreviousWebView,
     Escape,
     CloseWebView,
-    Submit,
+    Submit, Enter,
     ZoomIn, ZoomOut
   });
   exports.Action = Action;
@@ -164,6 +164,8 @@ define((require, exports, module) => {
     action instanceof CreateWebView ?
       createWebView(state) :
     action instanceof EditWebView ?
+      editWebView(state) :
+    action instanceof Enter ?
       editWebView(state) :
     action instanceof ChooseNextWebView ?
       choosNextWebView(state) :

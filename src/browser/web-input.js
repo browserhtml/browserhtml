@@ -17,8 +17,7 @@ define((require, exports, module) => {
   // Action
 
   const Enter = Record({
-    id: '@selected',
-    value: Maybe(String)
+    description: 'Enter a input field'
   }, 'WebView.Input.Enter');
 
   const Focus = Record({
