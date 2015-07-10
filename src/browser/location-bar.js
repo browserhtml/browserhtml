@@ -43,6 +43,9 @@ define((require, exports, module) => {
       lineHeight: '22px',
       height: 22,
       overflow: 'hidden',
+      padding: '0 22px',
+      // Contains absolute elements
+      position: 'relative',
       pointerEvents: 'all',
       width: null
     },
@@ -91,9 +94,7 @@ define((require, exports, module) => {
       color: null,
       backgroundColor: null,
 
-      lineHeight: '22px',
       overflow: 'hidden',
-      padding: '0 22px',
       // This allows us to stay centered when text is short, but expand into the
       // empty space to the right when text overflows, but not so far that we
       // cut off the elipsis.
@@ -110,8 +111,10 @@ define((require, exports, module) => {
       visibility: 'hidden'
     },
     icon: {
-      fontSize: '16px',
-      fontFamily: 'FontAwesome'
+      fontSize: '13px',
+      fontFamily: 'FontAwesome',
+      left: '5px',
+      position: 'absolute'
     },
 
     collapsed: {maxWidth: 0, padding: 0},
@@ -247,10 +250,16 @@ define((require, exports, module) => {
 
     children.push(title);
 
-    return viewInactiveBar([html.div({
-      key: 'page-summary',
-      style: style.summary
-    }, children)]);
+    return viewInactiveBar([
+      html.span({
+        key: 'icon',
+        style: Style(style.icon, style.visible)
+      }, SEARCH_ICON),
+      html.div({
+        key: 'page-summary',
+        style: style.summary
+      }, children)
+    ]);
   };
 
   const view = (mode, ...rest) =>
