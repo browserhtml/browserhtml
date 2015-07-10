@@ -266,19 +266,21 @@ define((require, exports, module) => {
                loader, pages.get(index),
                index === selected, address));
 
-  const viewContainer = (theme, children) =>
+  const viewContainer = (theme, ...children) =>
     // Set the width of the previews element to match the width of each card
     // plus padding.
     html.div({key: 'preview-container', style: style.scroller}, [
-      html.div({style: Style(style.previews, {width: children.length * 260})}, children)
+      html.div({style: Style(style.previews, {
+        width: children.length * 260
+      })}, children)
     ]);
 
   const viewInEditMode = (loaders, pages, selected, theme, address) =>
-    viewContainer(theme, viewPreviews(loaders, pages, selected, address));
+    viewContainer(theme, ...viewPreviews(loaders, pages, selected, address));
 
   const viewInCreateMode = (loaders, pages, selected, theme, address) =>
     // Pass selected as `-1` so none is highlighted.
-    viewContainer(theme, [ghostPreview, ...viewPreviews(loaders, pages, -1, address)]);
+    viewContainer(theme, ghostPreview, ...viewPreviews(loaders, pages, -1, address));
 
   const view = (mode, ...etc) =>
     mode === 'create-web-view' ? viewInCreateMode(...etc) :
