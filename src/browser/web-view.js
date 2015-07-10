@@ -166,7 +166,7 @@ define((require, exports, module) => {
   const close = (state, id, index=indexByID(state, id)) =>
     index === null ? state :
     state.merge({
-      selected: null,
+      selected: state.loader.size === index + 1 ? index - 1 : index,
 
       loader: state.loader.remove(index),
       shell: state.shell.remove(index),
