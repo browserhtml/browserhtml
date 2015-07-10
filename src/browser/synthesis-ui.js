@@ -99,6 +99,7 @@ define((require, exports, module) => {
 
   const editWebView = compose(
     switchMode('edit-web-view'),
+    selectInput,
     focusInput,
     state => state.mode === 'edit-web-view' ? state :
              setInputToURI(state));
@@ -118,6 +119,7 @@ define((require, exports, module) => {
 
   const closeWebView = compose(
     switchMode('edit-web-view'),
+    selectInput,
     focusInput,
     state => state.set('webViews', WebView.close(state.webViews)));
 
