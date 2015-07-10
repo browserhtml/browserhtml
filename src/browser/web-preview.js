@@ -26,6 +26,13 @@ define((require, exports, module) => {
     return {}
   }
 
+  // Actions
+
+  const CreateWebView = Record({
+    description: 'Create a new web view'
+  });
+  exports.Action = Union({CreateWebView});
+
 
   // View
 
@@ -55,7 +62,7 @@ define((require, exports, module) => {
     html.button({
       key: 'dashboard-button',
       style: styleControls.button,
-      onClick: address.send(Input.Action.Focus({id: 'about:dashboard'}))
+      onClick: address.pass(CreateWebView)
     }, DashboardIcon)
   ]);
   exports.viewControls = viewControls;
