@@ -9,6 +9,7 @@ define((require, exports, module) => {
   const {Record, Any, Union} = require('common/typed');
   const {compose} = require('lang/functional');
   const WebView = require('./web-view');
+  const Preview = require('./web-preview');
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
   const Gesture = require('service/gesture');
@@ -23,10 +24,6 @@ define((require, exports, module) => {
   const ShowWebViewByID = Record({
     description: 'select & focus web view by ID',
     id: String
-  });
-
-  const CreateWebView = Record({
-    description: 'Create a new web view'
   });
 
   const EditWebView = Record({
@@ -51,6 +48,7 @@ define((require, exports, module) => {
 
   const {Submit} = Input.Action;
   const {ZoomIn, ZoomOut} = Gesture.Action;
+  const {CreateWebView} = Preview.Action;
 
   const Action = Union({
     ShowWebView,
