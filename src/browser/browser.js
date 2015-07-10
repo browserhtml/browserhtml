@@ -58,7 +58,7 @@ define((require, exports, module) => {
     'accel -': _ => WebView.Action.Shell.ZoomOut(),
     'accel =': _ => WebView.Action.Shell.ZoomIn(),
     'accel shift =': _ => WebView.Action.Shell.ZoomIn(),
-    'accel w': _ => WebView.Action.Close(),
+    'accel w': _ => SynthesisUI.Action.CloseWebView(),
     'accel shift ]': _ => WebView.Action.SelectByOffset({offset: 1}),
     'accel shift [': _ => WebView.Action.SelectByOffset({offset: -1}),
     'control tab': _ => WebView.Action.SelectByOffset({offset: 1}),
