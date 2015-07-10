@@ -10,6 +10,7 @@ define((require, exports, module) => {
   const {compose} = require('lang/functional');
   const WebView = require('./web-view');
   const Input = require('./web-input');
+  const Suggestions = require('./suggestion-box');
   const URI = require('common/url-helper');
 
   // Actions
@@ -117,6 +118,9 @@ define((require, exports, module) => {
   const clearInput = state =>
     state.setIn(['input', 'value'], null);
 
+  const clearSuggestions = state =>
+    state.set('suggestions', Suggestions.clear(state.suggestions));
+
   const escape = compose(
     showWebView,
     blurInput,
@@ -131,6 +135,7 @@ define((require, exports, module) => {
 
   const submit = compose(
     switchMode('show-web-view'),
+    clearSuggestions,
     clearInput,
     navigate);
 

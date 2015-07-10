@@ -112,6 +112,8 @@ define((require, exports, module) => {
     });
   };
 
+  const clear = state => state.clear();
+  exports.clear = clear;
 
   const update = (state, action) =>
     action instanceof SelectRelative ? selectRelative(state, action.offset) :
