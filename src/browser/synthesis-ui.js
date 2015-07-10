@@ -69,11 +69,16 @@ define((require, exports, module) => {
   const switchMode = mode => state =>
     state.set('mode', mode);
 
-  const focusInput = state =>
-    state.setIn(['input', 'isFocused'], true);
 
-  const blurInput = state =>
-    state.setIn(['input', 'isFocused'], false);
+  const edit = (field, update) =>
+    state => state.update(field, update);
+
+  const focusInput = edit('input', Input.focus);
+  const selectInput = edit('input', Input.selectAll);
+  const blurInput = edit('input', Input.blur);
+  const clearInput = edit('input', Input.clear);
+
+
 
   const selectViewByID = (state, action) =>
     state.set('webViews', WebView.selectByID(state.webViews, action.id));
@@ -116,11 +121,7 @@ define((require, exports, module) => {
     focusInput,
     state => state.set('webViews', WebView.close(state.webViews)));
 
-  const clearInput = state =>
-    state.setIn(['input', 'value'], null);
-
-  const clearSuggestions = state =>
-    state.set('suggestions', Suggestions.clear(state.suggestions));
+  const clearSuggestions = edit('suggestions', Suggestions.clear);
 
   const escape = compose(
     showWebView,
