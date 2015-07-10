@@ -31,7 +31,6 @@ define((require, exports, module) => {
       position: 'absolute',
       zIndex: 101,
       top: 0,
-      padding: '3px',
       width: '100vw',
       textAlign: 'center',
       pointerEvents: 'none'
@@ -50,13 +49,17 @@ define((require, exports, module) => {
       height: 22,
       lineHeight: '22px',
       padding: '0 22px',
+      top: 3,
       width: 250,
     },
     active: {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      color: 'rgba(255, 255, 255, 1)',
       height: 30,
       lineHeight: '30px',
       padding: '0 30px',
       width: 400,
+      top: 40,
     },
     button: {
       opacity: null,
@@ -195,8 +198,7 @@ define((require, exports, module) => {
     html.div({
       key: 'LocationBar',
       className: ClassSet({
-        'location-bar': true,
-        active: isActive
+        'location-bar': true
       }),
       style: Style(style.bar,
                    isActive ? style.active : style.inactive),
