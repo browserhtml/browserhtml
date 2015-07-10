@@ -43,6 +43,7 @@ define((require, exports, module) => {
       lineHeight: '22px',
       height: 22,
       overflow: 'hidden',
+      padding: '0 22px',
       pointerEvents: 'all',
       width: null
     },
