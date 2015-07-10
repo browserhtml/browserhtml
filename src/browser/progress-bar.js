@@ -113,7 +113,7 @@ define((require, exports, module) => {
     }
   });
 
-  const view = (loaders, progress, selected, theme) => {
+  const view = (mode, loaders, progress, selected, theme) => {
     return html.div({
       key: 'progressbars',
       style: containerStyle.base
@@ -121,7 +121,8 @@ define((require, exports, module) => {
       render(`progressbar@${loader.id}`, progressbarView,
              loader.id,
              progress.get(index),
-             index === selected,
+             // If not in show-web-view pass -1 to hide all progressbars.
+             mode === 'show-web-view' && index === selected,
              theme)));
   };
 

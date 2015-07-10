@@ -186,6 +186,7 @@ define((require, exports, module) => {
         address,
         webViews.selected),
       render('ProgressBars', Progress.view,
+        state.mode,
         webViews.loader,
         webViews.progress,
         webViews.selected,
