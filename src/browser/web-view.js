@@ -119,8 +119,12 @@ define((require, exports, module) => {
   const indexByOffset = (state, offset, loop=true) => {
     const position = state.selected + offset;
     const count = state.loader.size;
-    return loop ? position - Math.trunc(position / count) * count :
-           Math.min(count - 1, Math.max(0, position));
+    if (loop) {
+      const index = position - Math.trunc(position / count) * count
+      return index < 0 ? index + count :  index
+    } else {
+      return Math.min(count - 1, Math.max(0, position))
+    }
   }
 
   const selectByOffset = (state, offset) =>
