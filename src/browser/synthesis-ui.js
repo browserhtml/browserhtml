@@ -98,10 +98,13 @@ define((require, exports, module) => {
                              state.webViews.selected, 'uri']));
 
   const editWebView = compose(
-    switchMode('edit-web-view'),
+    state => state.mode === 'edit-web-view' ? state :
+             state.mode === 'create-web-view' ? state :
+             state.set('mode', 'edit-web-view'),
     selectInput,
     focusInput,
     state => state.mode === 'edit-web-view' ? state :
+             state.mode === 'create-web-view' ? state :
              setInputToURI(state));
 
   const selectByOffset = offest => state =>
