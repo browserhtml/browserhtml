@@ -43,7 +43,6 @@ define((require, exports, module) => {
       lineHeight: '22px',
       height: 22,
       overflow: 'hidden',
-      padding: '0 22px',
       pointerEvents: 'all',
       width: null
     },
@@ -89,14 +88,16 @@ define((require, exports, module) => {
     },
 
     summary: {
-      maxWidth: null,
-      padding: null,
       color: null,
       backgroundColor: null,
 
       lineHeight: '22px',
       overflow: 'hidden',
-      width: '100%',
+      padding: '0 22px',
+      // This allows us to stay centered when text is short, but expand into the
+      // empty space to the right when text overflows, but not so far that we
+      // cut off the elipsis.
+      maxWidth: 'calc(100% + 20px)',
       display: 'inline-block',
       textOverflow: 'ellipsis',
       textAlign: 'center'
@@ -244,11 +245,12 @@ define((require, exports, module) => {
       }, LockIcon));
     }
 
-    children.push(html.span({
-      key: 'title'
-    }, title));
+    children.push(title);
 
-    return viewInactiveBar(children);
+    return viewInactiveBar([html.div({
+      key: 'page-summary',
+      style: style.summary
+    }, children)]);
   };
 
   const view = (mode, ...rest) =>
