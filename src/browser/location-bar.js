@@ -110,8 +110,18 @@ define((require, exports, module) => {
     invisible: {
       visibility: 'hidden'
     },
-    icon: {
+
+    // The icon we show in the collapsed location box
+    searchIconSmall: {
       fontSize: '13px',
+      fontFamily: 'FontAwesome',
+      left: '5px',
+      position: 'absolute'
+    },
+
+    // The icon we show in the collapsed location box
+    searchIconLarge: {
+      fontSize: '15px',
       fontFamily: 'FontAwesome',
       left: '5px',
       position: 'absolute'
@@ -203,7 +213,7 @@ define((require, exports, module) => {
     viewActiveBar([
       html.span({
         key: 'icon',
-        style: Style(style.icon, style.visible)
+        style: Style(style.searchIconLarge, style.visible)
       }, SEARCH_ICON),
       Editable.view({
         key: 'input',
@@ -254,7 +264,7 @@ define((require, exports, module) => {
       html.span({
         key: 'icon',
         className: 'location-search-icon',
-        style: style.icon
+        style: style.searchIconSmall
       }, SEARCH_ICON),
       html.div({
         key: 'page-summary',
