@@ -40,20 +40,23 @@ define((require, exports, module) => {
       display: 'inline-block',
       MozWindowDragging: 'no-drag',
       borderRadius: 5,
-      lineHeight: '22px',
-      height: 22,
       overflow: 'hidden',
-      padding: '0 22px',
       // Contains absolute elements
       position: 'relative',
       pointerEvents: 'all',
       width: null
     },
     inactive: {
-      width: 250, // FIXME :Doesn't shrink when window is narrow
+      height: 22,
+      lineHeight: '22px',
+      padding: '0 22px',
+      width: 250,
     },
     active: {
-      width: 400
+      height: 30,
+      lineHeight: '30px',
+      padding: '0 30px',
+      width: 400,
     },
     button: {
       opacity: null,
@@ -118,9 +121,9 @@ define((require, exports, module) => {
 
     // The icon we show in the collapsed location box
     searchIconLarge: {
-      fontSize: '15px',
+      fontSize: '16px',
       fontFamily: 'FontAwesome',
-      left: '5px',
+      left: '9px',
       position: 'absolute'
     },
 
@@ -129,7 +132,6 @@ define((require, exports, module) => {
 
     security: {
       fontFamily: 'FontAwesome',
-      fontWeight: 'normal',
       marginRight: 6,
       verticalAlign: 'middle'
     }
