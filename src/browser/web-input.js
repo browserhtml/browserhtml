@@ -65,6 +65,12 @@ define((require, exports, module) => {
 
   const {focus, blur} = Focusable;
   const {selectAll} = Editable;
+  const clear = state => state.remove('value');
+
+  exports.clear = clear;
+  exports.selectAll = selectAll;
+  exports.focus = focus;
+  exports.blur = blur;
 
   const update = (state, action) =>
     action instanceof Focus ? Focusable.focus(state) :
@@ -74,7 +80,7 @@ define((require, exports, module) => {
     action instanceof Change ? Editable.change(state, action) :
     action instanceof Enter ? Editable.selectAll(focus(state.set('value', action.value))) :
     action instanceof Edit ? Editable.update(state, action.action) :
-    action instanceof Submit ? state.remove('value') :
+    action instanceof Submit ? clear(state) :
     state;
 
   exports.update = update;
