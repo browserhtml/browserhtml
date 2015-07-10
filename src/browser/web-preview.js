@@ -244,7 +244,7 @@ define((require, exports, module) => {
       // Fixed height to contain floats.
       height: '300px',
       padding: 'calc(50vh - 150px) 100px 0 100px',
-      position: 'absolute',
+      margin: '0 auto',
     }
   });
 
