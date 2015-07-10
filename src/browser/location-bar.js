@@ -80,9 +80,6 @@ define((require, exports, module) => {
     dashboard: {right: 0},
 
     input: {
-      padding: null,
-      maxWidth: null,
-
       color: '#333',
       width: '100%',
       lineHeight: '22px',
@@ -127,7 +124,6 @@ define((require, exports, module) => {
       position: 'absolute'
     },
 
-    collapsed: {maxWidth: 0, padding: 0},
     disabled: {opacity: 0.2, pointerEvents: 'none'},
     hidden: {display: 'none'},
 
