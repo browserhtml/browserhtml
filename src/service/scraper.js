@@ -6,10 +6,10 @@ define((require, exports, module) => {
   'use strict';
 
   const {Record, Union, List} = require('common/typed');
-  const Progress = require('browser/progress-bar');
+  const Loader = require('browser/web-loader');
   const Page = require('browser/web-page');
 
-  const {LoadEnd} = Progress.Action;
+  const {LocationChange} = Loader.Action;
   const {PageCardChange} = Page.Action;
 
   const scrape = () => {
@@ -387,7 +387,7 @@ define((require, exports, module) => {
     PageCardChange({id, uri, hero, title, description, name});
 
   const service = address => action => {
-    if (action instanceof LoadEnd && action.id !== 'about:dashboard') {
+    if (action instanceof LocationChange && action.id !== 'about:dashboard') {
       const iframe = document.getElementById(`web-view-${action.id}`);
       if (iframe && iframe.executeScript) {
         iframe.executeScript(script, {url: iframe.location})

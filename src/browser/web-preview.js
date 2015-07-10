@@ -73,6 +73,11 @@ define((require, exports, module) => {
       position: 'relative',
       width: '240px'
     },
+    ghost: {
+      backgroundColor: 'transparent',
+      border: '3px dashed rgba(255, 255, 255, 0.2)',
+      boxShadow: 'none'
+    },
     selected: {
       boxShadow: '0 0 0 6px #4A90E2'
     },
@@ -224,6 +229,11 @@ define((require, exports, module) => {
   };
   exports.viewPreview = viewPreview;
 
+  const ghostPreview = html.div({
+    className: 'card',
+    style: Style(stylePreview.card, stylePreview.ghost)
+  });
+
   const style = StyleSheet.create({
     scroller: {
       backgroundColor: '#273340',
@@ -248,17 +258,33 @@ define((require, exports, module) => {
     }
   });
 
-  const view = (loaders, pages, input, selected, theme, address) =>
-    html.div({style: style.scroller}, [
-      // Set the width of the previews element to match the width of each card
-      // plus padding.
-      html.div({style: Style(style.previews, {width: loaders.size * 260})},
-        loaders
-          .map((loader, index) =>
-            render(`Preview@${loader.id}`, viewPreview,
-                   loader, pages.get(index),
-                   index === selected, address)))
+
+  const viewPreviews = (loaders, pages, selected, address) =>
+    loaders
+      .map((loader, index) =>
+        render(`Preview@${loader.id}`, viewPreview,
+               loader, pages.get(index),
+               index === selected, address));
+
+  const viewContainer = (theme, ...children) =>
+    // Set the width of the previews element to match the width of each card
+    // plus padding.
+    html.div({key: 'preview-container', style: style.scroller}, [
+      html.div({style: Style(style.previews, {
+        width: children.length * 260
+      })}, children)
     ]);
+
+  const viewInEditMode = (loaders, pages, selected, theme, address) =>
+    viewContainer(theme, ...viewPreviews(loaders, pages, selected, address));
+
+  const viewInCreateMode = (loaders, pages, selected, theme, address) =>
+    // Pass selected as `-1` so none is highlighted.
+    viewContainer(theme, ghostPreview, ...viewPreviews(loaders, pages, -1, address));
+
+  const view = (mode, ...etc) =>
+    mode === 'create-web-view' ? viewInCreateMode(...etc) :
+    viewInEditMode(...etc);
   exports.view = view;
 
 });

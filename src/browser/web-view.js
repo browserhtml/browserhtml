@@ -111,15 +111,29 @@ define((require, exports, module) => {
   // Utils
 
   const indexByID = (state, id) =>
+    id === null ? state.selected :
+    id === void(0) ? state.selected :
     id === '@selected' ? state.selected :
     state.loader.findIndex(loader => loader.id === id);
 
   const indexByOffset = (state, offset, loop=true) => {
     const position = state.selected + offset;
     const count = state.loader.size;
-    return loop ? position - Math.trunc(position / count) * count :
-           Math.min(count - 1, Math.max(0, position));
+    if (loop) {
+      const index = position - Math.trunc(position / count) * count
+      return index < 0 ? index + count :  index
+    } else {
+      return Math.min(count - 1, Math.max(0, position))
+    }
   }
+
+  const selectByOffset = (state, offset) =>
+    state.set('selected', indexByOffset(state, offset));
+  exports.selectByOffset = selectByOffset;
+
+  const selectByID = (state, id) =>
+    state.set('selected', indexByID(state, id));
+  exports.selectByID = selectByID;
 
   const select = (state, action) =>
     action instanceof SelectByOffset ?
@@ -147,11 +161,12 @@ define((require, exports, module) => {
     navigation: state.navigation.push(Navigation.Model()),
     security: state.security.push(Security.Model())
   });
+  exports.open = open;
 
   const close = (state, id, index=indexByID(state, id)) =>
     index === null ? state :
     state.merge({
-      selected: null,
+      selected: state.loader.size === index + 1 ? index - 1 : index,
 
       loader: state.loader.remove(index),
       shell: state.shell.remove(index),
@@ -160,6 +175,7 @@ define((require, exports, module) => {
       navigation: state.navigation.remove(index),
       security: state.security.remove(index)
     });
+  exports.close = close;
 
    const modify = (state, action) => {
      const index = indexByID(state, action.id);
@@ -184,6 +200,7 @@ define((require, exports, module) => {
             open(state, action.uri) :
            modify(state, action)
   };
+  exports.load = load;
 
   // Update
 
@@ -297,7 +314,8 @@ define((require, exports, module) => {
     }
   });
 
-  const view = (loader, shell, page, address, selected, isActive) => {
+  const view = (mode, loader, shell, page, address, selected) => {
+    const isActive = mode === 'show-web-view';
     return html.div({
       key: 'web-views',
       style: Style(webviewsStyle.base,
