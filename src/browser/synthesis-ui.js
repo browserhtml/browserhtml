@@ -11,6 +11,7 @@ define((require, exports, module) => {
   const WebView = require('./web-view');
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
+  const Gesture = require('service/gesture');
   const URI = require('common/url-helper');
 
   // Actions
@@ -49,6 +50,7 @@ define((require, exports, module) => {
   });
 
   const {Submit} = Input.Action;
+  const {ZoomIn, ZoomOut} = Gesture.Action;
 
   const Action = Union({
     ShowWebView,
@@ -59,7 +61,8 @@ define((require, exports, module) => {
     ChoosePreviousWebView,
     Escape,
     CloseWebView,
-    Submit
+    Submit,
+    ZoomIn, ZoomOut
   });
   exports.Action = Action;
 
@@ -139,6 +142,14 @@ define((require, exports, module) => {
     clearInput,
     navigate);
 
+  const zoomOut = state =>
+    state.mode === 'show-web-view' ? editWebView(state) :
+    state;
+
+  const zoomIn = state =>
+    state.mode !== 'show-web-view' ? showWebView(state) :
+    state;
+
   const update = (state, action) =>
     action instanceof Submit ?
       submit(state) :
@@ -158,6 +169,10 @@ define((require, exports, module) => {
       closeWebView(state) :
     action instanceof Escape ?
       escape(state) :
+    action instanceof ZoomIn ?
+      zoomIn(state) :
+    action instanceof ZoomOut ?
+      zoomOut(state) :
     state;
 
   exports.update = update;
