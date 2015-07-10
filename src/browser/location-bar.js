@@ -42,8 +42,6 @@ define((require, exports, module) => {
       borderRadius: 5,
       lineHeight: '22px',
       height: 22,
-      padding: '0 3px',
-      margin: '0',
       overflow: 'hidden',
       pointerEvents: 'all',
       width: null
@@ -101,18 +99,6 @@ define((require, exports, module) => {
       display: 'inline-block',
       textOverflow: 'ellipsis',
       textAlign: 'center'
-    },
-
-    locationText: {
-      backgroundColor: null,
-      color: 'inherit',
-      fontWeight: 'bold'
-    },
-
-    titleText: {
-      color: 'interit',
-      backgroundColor: null,
-      padding: 5
     },
 
     visible: {
@@ -233,31 +219,36 @@ define((require, exports, module) => {
       })
     ]);
 
-  const viewInWebView = (loader, security, page, input, suggestions, theme, address) =>
-    viewInactiveBar([
-      html.p({
-        key: 'page-info',
-        style: Style(style.summary, {color: theme.locationText})
-      }, [
-        html.span({
-          key: 'securityicon',
-          style: style.security
-        },
-           !loader ? '' :
-           URI.isPrivileged(loader.uri) ? GearIcon :
-           security.secure ? LockIcon :
-           ''),
-        html.span({
-          key: 'title',
-          style: Style(style.titleText, {
-            color: theme.titleText
-          })
-        }, !loader ? '' :
-           page.title ? page.title :
-           loader.uri ? URI.getDomainName(loader.uri) :
-           'New Tab'),
-      ])
-    ]);
+  const viewInWebView = (loader, security, page, input, suggestions, theme, address) => {
+    const isSecure = security && security.secure;
+    const isPrivileged = loader && URI.isPrivileged(loader.uri);
+    const title =
+      !loader ? '' :
+      page.title ? page.title :
+      loader.uri ? URI.getDomainName(loader.uri) :
+      'New Tab';
+
+    const children = [];
+
+    // Append security icon if needed
+    if (isPrivileged) {
+      children.push(html.span({
+        key: 'securityicon',
+        style: style.security
+      }, GearIcon));
+    } else if (isSecure) {
+      children.push(html.span({
+        key: 'securityicon',
+        style: style.security
+      }, LockIcon));
+    }
+
+    children.push(html.span({
+      key: 'title'
+    }, title));
+
+    return viewInactiveBar(children);
+  };
 
   const view = (mode, ...rest) =>
     mode === 'show-web-view' ? viewInWebView(...rest) :
