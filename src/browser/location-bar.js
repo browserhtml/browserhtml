@@ -253,7 +253,8 @@ define((require, exports, module) => {
     return viewInactiveBar([
       html.span({
         key: 'icon',
-        style: Style(style.icon, style.visible)
+        className: 'location-search-icon',
+        style: style.icon
       }, SEARCH_ICON),
       html.div({
         key: 'page-summary',

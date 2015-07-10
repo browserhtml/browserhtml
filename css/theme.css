@@ -13,6 +13,14 @@
   background-color: rgba(0,0,0, 0.07)
 }
 
+.location-search-icon {
+  visibility: hidden;
+}
+
+.location-bar:hover > .location-search-icon {
+  visibility: visible;
+}
+
 .location-bar.active {
   top: 40px;
   background-color: rgba(255, 255, 255, 0.2);
