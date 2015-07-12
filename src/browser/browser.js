@@ -13,17 +13,18 @@ define((require, exports, module) => {
   const WindowBar = require('./window-bar');
   const WindowControls = require('./window-controls');
   const LocationBar = require('./location-bar');
-  const Progress = require('./progress-bar');
+  const Progress = require('./web-progress');
   const Theme = require('./theme');
   const {KeyBindings} = require('common/keyboard');
   const Focusable = require('common/focusable');
   const {Main} = require('./main');
   const Updates = require('./update-banner');
   const WebView = require('./web-view');
-  const Session = require('./session');
+  const Shell = require('./web-shell');
   const Input = require('./web-input');
   const Loader = require('./web-loader');
   const Preview = require('./web-preview');
+  const Session = require('./session');
   const ClassSet = require('common/class-set');
   const OS = require('common/os');
   const Pallet = require('service/pallet');
@@ -46,78 +47,67 @@ define((require, exports, module) => {
 
   // Actions
 
-  const {SaveSession, ResetSession, RestoreSession} = Session.Action;
-  const {Focused, Blured} = Focusable.Action;
-  const {ApplicationUpdate, RuntimeUpdate} = Updates.Action;
-
   const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
-  const Binding = KeyBindings({
-    'accel l': _ => SynthesisUI.Action.EditWebView(),
-    'accel t': _ => SynthesisUI.Action.CreateWebView(),
-    'accel 0': _ => WebView.Action.Shell.ResetZoom(),
-    'accel -': _ => WebView.Action.Shell.ZoomOut(),
-    'accel =': _ => WebView.Action.Shell.ZoomIn(),
-    'accel shift =': _ => WebView.Action.Shell.ZoomIn(),
-    'accel w': _ => SynthesisUI.Action.CloseWebView(),
-    'accel shift ]': _ => WebView.Action.SelectByOffset({offset: 1}),
-    'accel shift [': _ => WebView.Action.SelectByOffset({offset: -1}),
-    'control tab': _ => WebView.Action.SelectByOffset({offset: 1}),
-    'control shift tab': _ => WebView.Action.SelectByOffset({offset: -1}),
-    'accel shift backspace': _ => ResetSession(),
-    'accel shift s': _ => SaveSession(),
+  const KeyDown = KeyBindings({
+    'accel l': _ => Input.Action({action: Focusable.Focus()}),
+    'accel t': _ => WebView.Action({action: WebView.Open()}),
+    'accel 0': _ => Shell.ResetZoom(),
+    'accel -': _ => Shell.ZoomOut(),
+    'accel =': _ => Shell.ZoomIn(),
+    'accel shift =': _ => Shell.ZoomIn(),
+    'accel w': _ => WebView.Action({action: WebView.Close()}),
+    'accel shift ]': _ => WebView.SelectNext(),
+    'accel shift [': _ => WebView.SelectPrevious(),
+    'control tab': _ => WebView.SelectNext(),
+    'control shift tab': _ => WebView.SelectPrevious(),
+    'accel shift backspace': _ => Session.ResetSession(),
+    'accel shift s': _ => Session.SaveSession(),
+    'accel r': _ => Navigation.Reload(),
+    'escape': _ => WebView.Action({action: Focusable.Focus()}),
+    [`${modifier} left`]: _ => Navigation.GoBack(),
+    [`${modifier} right`]: _ => Navigation.GoForward()
+  }, 'Browser.KeyDown.Action');
 
-    'accel r': _ => Navigation.Action.Reload(),
-    'escape': _ => SynthesisUI.Action.Escape(),
-    [`${modifier} left`]: _ => Navigation.Action.GoBack(),
-    [`${modifier} right`]: _ => Navigation.Action.GoForward()
-  }, 'Browser.Keyboard.Action');
-
-  const Action = Union({
-    Binding: Binding.Action,
-    Updates: Updates.Action,
-    WebView: WebView.Action,
-    Focusable: Focusable.Action,
-    Session: Session.Action,
-    Suggestions: Suggestions.Action
-  });
-  exports.Action = Action;
-
+  const KeyUp = KeyBindings({
+    'control': _ => SynthesisUI.Select(),
+    'accel': _ => SynthesisUI.Select(),
+  }, 'Browser.KeyUp.Action');
 
 
   // Update
 
-  const update = (state, action) => {
-    if (SynthesisUI.Action.isTypeOf(action)) {
-      return SynthesisUI.update(state, action)
-    }
 
-    if (Focusable.Action.isTypeOf(action)) {
-      return state.set('shell', Focusable.update(state.shell, action));
-    }
+  // Utility function takes `update` functions and attepts to handle action
+  // with each one in the order they were passed until one of them returns
+  // updated state in which case it returns that state and no longer calls
+  // any further update functions.
+  const pipeline = updaters => {
+    const count = updaters.length
+    return (state, action) => {
+      var index = 0
+      var before = state
+      while (index < count) {
+        const after = updaters[index](before, action)
+        index = index + 1
 
-    if (Input.Action.isTypeOf(action)) {
-      return state.set('input', Input.update(state.input, action));
+        if (before !== after) {
+          return after
+        }
+      }
+      return state
     }
+  };
 
-    if (WebView.Action.isTypeOf(action)) {
-      return state.set('webViews', WebView.update(state.webViews, action));
-    }
-
-    if (Updates.Action.isTypeOf(action)) {
-      return state.set('updates', Updates.update(state.updates, action));
-    }
-
-    if (Session.Action.isTypeOf(action)) {
-      return Session.update(state, action);
-    }
-
-    if (Suggestions.Action.isTypeOf(action)) {
-      return state.set('suggestions',
-                       Suggestions.update(state.suggestions, action));
-    }
-
-    return state
-  }
+  const update = pipeline([
+    SynthesisUI.update,
+    (state, action) =>
+      state.set('webViews', WebView.update(state.webViews, action)),
+    (state, action) =>
+      state.set('input', Input.update(state.input, action)),
+    Session.update,
+    (state, action) =>
+      state.set('suggestions', Suggestions.update(state.suggestions, action))
+  ]);
   exports.update = update;
 
 
@@ -135,7 +125,8 @@ define((require, exports, module) => {
 
   // View
 
-  const OpenWindow = event => WebView.Open({uri: event.detail.url});
+  const OpenWindow = event =>
+    WebView.Action({action: WebView.Open({uri: event.detail.url}) });
   const defaultTheme = Theme.read({});
 
   const view = (state, address) => {
@@ -151,10 +142,11 @@ define((require, exports, module) => {
       windowTitle: !loader ? '' :
                    !page ? loader.uri :
                    page.title || loader.uri,
-      onKeyDown: address.pass(Binding),
-      onWindowBlur: address.pass(Blured),
-      onWindowFocus: address.pass(Focused),
-      onUnload: address.pass(SaveSession),
+      onKeyDown: address.pass(KeyDown),
+      onKeyUp: address.pass(KeyUp),
+      onWindowBlur: address.pass(Focusable.Blured),
+      onWindowFocus: address.pass(Focusable.Focused),
+      onUnload: address.pass(Session.SaveSession),
       onOpenWindow: address.pass(OpenWindow),
       tabIndex: 1,
       style: Style(style.shell, {

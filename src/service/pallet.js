@@ -7,8 +7,9 @@ define((require, exports, module) => {
   'use strict';
 
   const {Record, Maybe, Union} = require('common/typed');
-  const {getDomainName} = require('common/url-helper');
-  const WebLoader = require('browser/web-loader');
+  const URI = require('common/url-helper');
+  const WebView = require('browser/web-view');
+  const Loader = require('browser/web-loader');
   const tinycolor = require('tinycolor');
 
   const DARK = true;
@@ -66,19 +67,18 @@ define((require, exports, module) => {
 
   // Action
 
-  const PalletChange = Record({
+  const PalletChanged = Record({
     id: String,
     pallet: Model
   }, 'Pallet.Action.Change');
-
-  const Action = Union({PalletChange});
-  exports.Action = Action;
+  exports.PalletChanged = PalletChanged;
 
   const none = Object.freeze([]);
 
   const service = address => action => {
-    if (action instanceof WebLoader.Action.LocationChange) {
-      const hostname = getDomainName(action.uri);
+    if (action instanceof WebView.Action &&
+        action.action instanceof Loader.LocationChanged) {
+      const hostname = URI.getDomainName(action.action.uri);
       const theme = curated[hostname];
       if (theme) {
         const [foreground, background, isDark] = theme;
@@ -86,7 +86,7 @@ define((require, exports, module) => {
         // Use promise so behavior is going to be closer to what it will be
         // when we stop faking.
         Promise.resolve()
-               .then(address.send(PalletChange({id: action.id, pallet})));
+               .then(address.send(PalletChanged({id: action.id, pallet})));
       }
     }
     return action

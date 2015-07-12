@@ -13,7 +13,7 @@ define((require, exports, module) => {
   const Editable = require('common/editable');
   const Focusable = require('common/focusable');
   const IFrame = require('./iframe');
-  const Progress = require('./progress-bar');
+  const Progress = require('./web-progress');
   const Shell = require('./web-shell');
   const Navigation = require('./web-navigation');
   const Security = require('./web-security');
@@ -55,68 +55,130 @@ define((require, exports, module) => {
 
   // Actions
 
-  // All actions that `WebView.update` handles have a an `id` field that refers
-  // to the `id` of the `WebView`. As a matter of fact those actions are routed
-  // by `WebViews` which is what `id` field needed for. Default `id` is set to
-  // `@selected` that and `@previewed` which refer to currently selected /
-  // previewed WebView. These actions in fact would have being defined on the
-  // `WebViews` instead but that would coused cyrcular dependncy there for we
-  // define them here and use them from `WebViews` instead.
+  const Failure = Record({
+    description: 'WebView failure',
+    detail: Any
+  }, 'WebView.Failure');
+  exports.Failure = Failure;
+
+  const ContextMenu = Record({
+    description: 'WebView requested a context menu',
+  }, 'WebView.ContextMenu');
+  exports.ContextMenu = ContextMenu;
+
+  const ModalPrompt = Record({
+    description: 'WebView requested a modal prompt'
+  }, 'WebView.ModalPrompt');
+  exports.ModalPrompt = ModalPrompt;
+
+  const Authentificate = Record({
+    description: 'WebView requested an authentification'
+  }, 'WebView.Authentificate');
+  exports.Authentificate = Authentificate;
 
   const Open = Record({
-    uri: String,
+    uri: Maybe(String),
     name: '_blank',
     features: ''
   }, 'WebViews.Open');
   exports.Open = Open;
 
   const OpenInBackground = Record({
-    uri: String
+    uri: String,
+    inBackground: true
   }, 'WebView.OpenInBackground');
   exports.OpenInBackground = OpenInBackground;
 
   const Close = Record({
-    id: '@selected'
+    description: 'close selected web view'
   }, 'WebView.Close');
   exports.Close = Close;
 
   const SelectByOffset = Record({
+    description: 'Select web-view by an offset',
     offset: Number,
     loop: true
   }, 'WebViews.SelectByOffset');
+  exports.SelectByOffset = SelectByOffset;
 
   const SelectByID = Record({
+    description: 'Select web-view by an id',
     id: String
   }, 'WebViews.SelectByID');
+  exports.SelectByID = SelectByID;
 
   const SelectByIndex = Record({
+    description: 'Select web-view by an index',
     index: Number
   }, 'WebViews.SelectByIndex');
+  exports.SelectByIndex = SelectByIndex;
+
+  const SelectNext = Record({
+    description: 'Select web view following selected one'
+  }, 'WebViews.SelectNext');
+  exports.SelectNext = SelectNext;
+
+  const SelectPrevious = Record({
+    description: 'Select web view preceeding selected one'
+  }, 'WebView.SelectPrevious');
+  exports.SelectPrevious = SelectPrevious;
+
+  const {Load, LocationChanged} = Loader;
+  const {CanGoBackChanged, CanGoForwardChanged} = Navigation;
+  const {LoadStarted, LoadEnded} = Progress;
+  const {MetaChanged, ThumbnailChanged, TitleChanged,
+         IconChanged, Scrolled, OverflowChanged,
+         PageCardChanged, PalletChanged} = Page;
+  const {SecurityChanged} = Security;
+  const {VisibilityChanged} = Shell;
+  const {Focus, Blur, Focused, Blured} = Focusable;
 
 
-  const Action = Union({
-    Open, OpenInBackground, Close,
-    SelectByIndex, SelectByID, SelectByOffset,
-    Loader: Loader.Action,
-    Navigation: Navigation.Action,
-    Security: Security.Action,
-    Progress: Progress.Action,
-    Page: Page.Action,
-    Shell: Shell.Action
+  // Just a union type for all possible actions that are targeted at specific
+  // web view.
+  const WebViewAction = Union({
+    Close, Open, OpenInBackground,
+    // Loader
+    Load, LocationChanged,
+    // Progress
+    LoadStarted, LoadEnded,
+    // Navigation
+    CanGoBackChanged, CanGoForwardChanged,
+    // Page
+    MetaChanged, ThumbnailChanged, TitleChanged, IconChanged, Scrolled,
+    OverflowChanged, PageCardChanged, PalletChanged,
+    // Security
+    SecurityChanged,
+    // Shell
+    VisibilityChanged,
+    Focus, Blur, Focused, Blured,
+    // Other
+    Failure, ContextMenu, ModalPrompt, Authentificate
   });
+  exports.WebViewAction = WebViewAction;
+
+  // Type contains `id` of the web-view and an `action` that is targeted
+  // the web-view that has matching `id`. If `id` is `null` targets currently
+  // selected web-view.
+  const Action = Record({
+    id: Maybe(String),
+    action: WebViewAction
+  }, 'WebView.Action');
   exports.Action = Action;
 
 
 
-  // Utils
+  // Update
+
 
   const indexByID = (state, id) =>
     id === null ? state.selected :
     id === void(0) ? state.selected :
     id === '@selected' ? state.selected :
     state.loader.findIndex(loader => loader.id === id);
+  exports.indexByID = indexByID;
 
-  const indexByOffset = (state, offset, loop=true) => {
+  const indexByOffset = (state, offset, loop) => {
     const position = state.selected + offset;
     const count = state.loader.size;
     if (loop) {
@@ -126,36 +188,27 @@ define((require, exports, module) => {
       return Math.min(count - 1, Math.max(0, position))
     }
   }
+  exports.indexByOffset = indexByOffset;
 
-  const selectByOffset = (state, offset) =>
-    state.set('selected', indexByOffset(state, offset));
+  const selectByOffset = (state, offset, loop=false) =>
+    state.set('selected', indexByOffset(state, offset, loop));
   exports.selectByOffset = selectByOffset;
 
   const selectByID = (state, id) =>
     state.set('selected', indexByID(state, id));
   exports.selectByID = selectByID;
 
-  const select = (state, action) =>
-    action instanceof SelectByOffset ?
-      indexByOffset(state, action.offset) :
-    action instanceof SelectByID ?
-      indexByID(state, action.id) :
-    action instanceof SelectByIndex ?
-      action.index :
-    action instanceof Shell.Action.Focus ?
-      indexByID(state, action.id) :
-    action instanceof Shell.Action.Focused ?
-      indexByID(state, action.id) :
-    state.selected;
+  const selectByIndex = (state, index) =>
+    state.set('selected', index);
+  exports.selectByIndex = selectByIndex;
 
   // Transformers
 
-  const open = (state, uri, isFocused=true) => state.merge({
+  const open = (state, {uri, inBackground}) => state.merge({
     nextID: state.nextID + 1,
-    selected: isFocused ? state.entries.size : state.selected,
-
+    selected: inBackground ? state.selected : state.loader.size,
     loader: state.loader.push(Loader.Model({uri, id: String(state.nextID)})),
-    shell: state.shell.push(Shell.Model({isFocused})),
+    shell: state.shell.push(Shell.Model({isFocused: !inBackground})),
     page: state.page.push(Page.Model()),
     progress: state.progress.push(Progress.Model()),
     navigation: state.navigation.push(Navigation.Model()),
@@ -163,9 +216,16 @@ define((require, exports, module) => {
   });
   exports.open = open;
 
-  const close = (state, id, index=indexByID(state, id)) =>
-    index === null ? state :
-    state.merge({
+  const close = state =>
+    closeByIndex(state, state.selected);
+  exports.close = close;
+
+  const closeByID = (state, id) =>
+    closeByIndex(state, indexByID(state, id));
+  exports.closeByID = closeByID;
+
+  const closeByIndex = (state, index) =>
+    index === null ? state : state.merge({
       selected: state.loader.size === index + 1 ? index - 1 : index,
 
       loader: state.loader.remove(index),
@@ -175,48 +235,70 @@ define((require, exports, module) => {
       navigation: state.navigation.remove(index),
       security: state.security.remove(index)
     });
-  exports.close = close;
+  exports.closeByIndex = closeByIndex;
 
-   const modify = (state, action) => {
-     const index = indexByID(state, action.id);
-     const {loader, shell, page, progress, navigation, security} = state;
-     return index === null ? state : state.merge({
-      selected: select(state, action),
 
-      loader: loader.set(index, Loader.update(loader.get(index), action)),
-      shell: shell.set(index, Shell.update(shell.get(index), action)),
-      page: page.set(index, Page.update(page.get(index), action)),
-      progress: progress.set(index, Progress.update(progress.get(index), action)),
-      navigation: navigation.set(index, Navigation.update(navigation.get(index), action)),
-      security: security.set(index, Security.update(security.get(index), action))
-    });
-  };
-
-  const load = (state, action) => {
-    const index = indexByID(state, action.id);
-    const loader = state.loader.get(index);
-    return !loader ? open(state, action.uri) :
-           URI.getOrigin(loader.uri) !== URI.getOrigin(action.uri) ?
-            open(state, action.uri) :
-           modify(state, action)
-  };
+  const load = (state, action) =>
+    loadByIndex(state, state.selected, action);
   exports.load = load;
 
-  // Update
+  const loadByID = (state, id, action) =>
+    loadByIndex(state, indexByID(id), action);
+  exports.loadByID = loadByID;
 
-  const {Load} = Loader.Action;
+  const loadByIndex = (state, index, action) => {
+    const loader = state.loader.get(index);
+    return !loader ?
+            open(state, action) :
+           URI.getOrigin(loader.uri) !== URI.getOrigin(action.uri) ?
+            open(state, action) :
+            updateByIndex(state, index, Loader.Load(action));
+  };
+  exports.loadByIndex = loadByIndex;
+
+
+  const updateByID = (state, id, action) =>
+    action instanceof Load ? loadByID(state, id, action) :
+    action instanceof Close ? closeByID(state, id) :
+    updateByIndex(state, indexByID(state, id), action);
+  exports.updateByID = updateByID;
+
+  const updateByIndex = (state, n, action) => {
+    const {loader, shell, page, progress, navigation, security} = state;
+    return n === null ? state : state.merge({
+     selected: action instanceof Focus ? n :
+               action instanceof Focused ? n :
+               state.selected,
+     loader: loader.set(n, Loader.update(loader.get(n), action)),
+     shell: shell.set(n, Shell.update(shell.get(n), action)),
+     page: page.set(n, Page.update(page.get(n), action)),
+     progress: progress.set(n, Progress.update(progress.get(n), action)),
+     security: security.set(n, Security.update(security.get(n), action)),
+     navigation: navigation.set(n, Navigation.update(navigation.get(n), action))
+   });
+ };
 
   const update = (state, action) =>
     action instanceof Load ?
       load(state, action) :
     action instanceof Open ?
-      open(state, action.uri) :
+      open(state, action) :
     action instanceof OpenInBackground ?
-      open(state, action.uri, false) :
+      open(state, action) :
     action instanceof Close ?
-      close(state, action.id) :
-    Action.isTypeOf(action) ?
-      modify(state, action) :
+      close(state) :
+    action instanceof SelectByIndex ?
+      selectByIndex(state, action.index) :
+    action instanceof SelectByID ?
+      selectByID(state, action.id) :
+    action instanceof SelectByOffset ?
+      selectByOffset(state, action.offset, action.loop) :
+    action instanceof SelectNext ?
+      selectByOffset(state, 1) :
+    action instanceof SelectPrevious ?
+      selectByOffset(state, -1) :
+    action instanceof Action ?
+      updateByID(state, action.id, action.action) :
     state;
   exports.update = update;
 
@@ -237,10 +319,7 @@ define((require, exports, module) => {
       display: 'none'
     },
     passive: {
-      zIndex: -1,
-      display: 'block !important',
-      position: 'absolute',
-      left: 0
+      visibility: 'collapsed'
     }
   });
 
@@ -248,7 +327,7 @@ define((require, exports, module) => {
     // Do not render anything unless viewer has an `uri`
     if (!loader.uri) return null;
 
-    const action = address.pass(Event, loader);
+    const action = address.pass(Event);
     const location = URI.resolve(loader.uri);
 
     return IFrame.view({
@@ -267,13 +346,13 @@ define((require, exports, module) => {
       remote: true,
       mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : null,
       mozallowfullscreen: true,
-      isVisible: isSelected,
+      isVisible: isSelected || !thumbnail,
       zoom: shell.zoom,
 
       isFocused: shell.isFocused,
 
-      onCanGoBackChange: action,
-      onCanGoForwardChange: action,
+      onCanGoBackChanged: action,
+      onCanGoForwardChanged: action,
       onBlur: action,
       onFocus: action,
       // onAsyncScroll: action
@@ -282,15 +361,15 @@ define((require, exports, module) => {
       onOpenTab: action,
       onMenu: action,
       onError: action,
-      onLoadStart: action,
-      onLoadEnd: action,
+      onLoadStarted: action,
+      onLoadEnded: action,
       onLoadProgressChange: action,
-      onLocationChange: action,
-      onMetaChange: action,
-      onIconChange: action,
-      onLocationChange: action,
-      onSecurityChange: action,
-      onTitleChange: action,
+      onLocationChanged: action,
+      onMetaChanged: action,
+      onIconChanged: action,
+      onLocationChanged: action,
+      onSecurityChanged: action,
+      onTitleChanged: action,
       onPrompt: action,
       onAuthentificate: action,
       onScrollAreaChange: action,
@@ -328,74 +407,48 @@ define((require, exports, module) => {
              shell.get(index),
              page.get(index).thumbnail,
              index === selected,
-             address)));
+             address.forward(action => Action({id: loader.id, action})))));
   };
   exports.view = view;
 
   // Actions that web-view produces but `update` does not handles.
 
-  const Failure = Record({
-    id: String,
-    detail: Any
-  }, 'WebView.Failure');
-  exports.Failure = Failure;
-
-  const ContextMenu = Record({
-    id: String,
-  }, 'WebView.ContextMenu');
-  exports.ContextMenu = ContextMenu;
-
-  const ModalPrompt = Record({
-    id: String
-  }, 'WebView.ModalPrompt');
-  exports.ModalPrompt = ModalPrompt;
-
-  const Authentificate = Record({
-    id: String,
-  }, 'WebView.Authentificate');
-  exports.Authentificate = Authentificate;
 
 
-  const Event = (...args) => {
-    const event = args[args.length -1];
-    return Event[event.type](...args);
-  };
+  const Event = event =>
+    Event[event.type](event);
 
-  const {LocationChange} = Loader.Action;
-  Event.mozbrowserlocationchange = ({id}, {detail: uri}) =>
-    LocationChange({id, uri});
+  Event.mozbrowserlocationchange = ({detail: uri}) =>
+    LocationChanged({uri});
 
   // TODO: Figure out what's in detail
-  Event.mozbrowserclose = ({id}, {detail}) =>
-    Close({id});
+  Event.mozbrowserclose = ({detail}) =>
+    Close();
 
-  Event.mozbrowseropenwindow = ({id}, {detail}) =>
-    Open({id,
-          uri: detail.url,
+  Event.mozbrowseropenwindow = ({detail}) =>
+    Open({uri: detail.url,
           name: detail.name,
           features: detail.features});
 
-  Event.mozbrowseropentab = ({id}, {detail}) =>
-    OpenInBackground({id, uri: detail.uri});
+  Event.mozbrowseropentab = ({detail}) =>
+    OpenInBackground({uri: detail.uri});
 
   // TODO: Figure out what's in detail
-  Event.mozbrowsercontextmenu = ({id}, {detail}) =>
-    ContextMenu({id});
+  Event.mozbrowsercontextmenu = ({detail}) =>
+    ContextMenu();
 
   // TODO: Figure out what's in detail
-  Event.mozbrowsershowmodalprompt = ({id}, {detail}) =>
-    ModalPrompt({id});
+  Event.mozbrowsershowmodalprompt = ({detail}) =>
+    ModalPrompt();
 
   // TODO: Figure out what's in detail
-  Event.mozbrowserusernameandpasswordrequired = ({id}, {detail}) =>
-    Athentificate({id});
+  Event.mozbrowserusernameandpasswordrequired = ({detail}) =>
+    Athentificate();
 
   // TODO: Figure out what's in detail
-  Event.mozbrowsererror = ({id}, {detail}) =>
-    Failure({id, detail});
+  Event.mozbrowsererror = ({detail}) =>
+    Failure({detail});
 
-
-  const {Focused, Blured} = Shell.Action;
 
   Event.focus = ({id}) =>
     Focused({id});
@@ -404,50 +457,39 @@ define((require, exports, module) => {
     Blured({id});
 
 
-  const {CanGoBackChange, CanGoForwardChange} = Navigation.Action;
+  Event.mozbrowsergobackchanged = ({detail: value}) =>
+    CanGoBackChanged({value});
 
-  Event.mozbrowsergobackchanged = ({id}, {detail: value}) =>
-    CanGoBackChange({id, value});
-
-  Event.mozbrowsergoforwardchanged = ({id}, {detail: value}) =>
-    CanGoForwardChange({id, value});
+  Event.mozbrowsergoforwardchanged = ({detail: value}) =>
+    CanGoForwardChanged({value});
 
 
-  const {LoadStart, LoadEnd} = Progress.Action;
+  Event.mozbrowserloadstart = ({target, timeStamp}) =>
+    LoadStarted({uri: target.location});
 
-  Event.mozbrowserloadstart = ({id, uri}, {timeStamp}) =>
-    LoadStart({id, uri});
+  Event.mozbrowserloadend = ({target, timeStamp}) =>
+    LoadEnded({uri: target.location});
 
-  Event.mozbrowserloadend = ({id, uri}, {timeStamp}) =>
-    LoadEnd({id, uri});
+  Event.mozbrowsertitlechange = ({target, detail: title}) =>
+    TitleChanged({uri: target.location, title});
 
-  const {TitleChange, IconChange, MetaChange, OverflowChange, Scroll} = Page.Action;
+  Event.mozbrowsericonchange = ({target, detail: {href: icon}}) =>
+    IconChanged({uri: target.location, icon});
 
-  Event.mozbrowsertitlechange = ({id, uri}, {detail: title}) =>
-    TitleChange({id, uri, title});
-
-  Event.mozbrowsericonchange = ({id, uri}, {detail: {href: icon}}) =>
-    IconChange({id, uri, icon});
-
-  Event.mozbrowsermetachange = ({id}, {detail: {content, name}}) =>
-    MetaChange({id, content, name});
+  Event.mozbrowsermetachange = ({detail: {content, name}}) =>
+    MetaChanged({content, name});
 
   // TODO: Figure out what's in detail
-  Event.mozbrowserasyncscroll = ({id}, {detail}) =>
-    Scroll({id});
+  Event.mozbrowserasyncscroll = ({detail}) =>
+    Scrolled();
 
-  Event.mozbrowserscrollareachanged = ({id}, {target, detail}) =>
-    OverflowChange({
-      id,
+  Event.mozbrowserscrollareachanged = ({target, detail}) =>
+    OverflowChanged({
       overflow: detail.height > target.parentNode.clientHeight
     });
 
-
-  const {SecurityChange} = Security.Action;
-
-  Event.mozbrowsersecuritychange = ({id}, {detail}) =>
-    SecurityChange({
-      id,
+  Event.mozbrowsersecuritychange = ({detail}) =>
+    SecurityChanged({
       state: detail.state,
       extendedValidation: detail.extendedValidation
     });

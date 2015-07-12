@@ -9,6 +9,7 @@ define((require, exports, module) => {
   const {Record, Union} = require('common/typed');
   const {StyleSheet, Style} = require('common/style');
   const {html, render} = require('reflex');
+  const Loader = require('./web-loader');
 
   // Model
   const Model = Record({
@@ -19,26 +20,26 @@ define((require, exports, module) => {
 
   // Action
 
-  const LoadStart = Record({
-    id: String,
+  const LoadStarted = Record({
     uri: String,
-  }, 'Progress.LoadStart');
+  }, 'Progress.LoadStarted');
+  exports.LoadStarted = LoadStarted;
 
-  const LoadEnd = Record({
-    id: String,
+  const LoadEnded = Record({
     uri: String,
-  }, 'Progress.LoadEnd');
+  }, 'Progress.LoadEnded');
+  exports.LoadEnded = LoadEnded;
 
-  const Action = Union({LoadStart, LoadEnd});
-  exports.Action = Action;
+  // Update
 
   const update = (state, action) =>
-    action instanceof LoadStart ?
-      state.merge({loadStarted: true, loadEnded: false}) :
-    action instanceof LoadEnd ?
-      state.merge({loadEnded: true}) :
+    action instanceof Loader.Load ?
+      state.clear() :
+    action instanceof LoadStarted ?
+      Model({loadStarted: true, loadEnded: false}) :
+    action instanceof LoadEnded ?
+      Model({loadStarted: true, loadEnded: true}) :
     state;
-
   exports.update = update;
 
   // View

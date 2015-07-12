@@ -9,30 +9,18 @@ define((require, exports, module) => {
   const {Record, Union, List, Maybe, Any} = require('common/typed');
   const {html, render} = require('reflex');
   const WebView = require('./web-view');
-  const Shell = require('./web-shell');
-  const Input = require('./web-input');
+  const Focusable = require('common/focusable');
   const {Style, StyleSheet} = require('common/style');
   const {getDomainName} = require('common/url-helper');
 
-  // Model
 
-  const {PreviewByID, SelectByID} = WebView.Action;
-  const Close = (context, event) => {
+  const Close = event => {
     if (event.button === 1) {
       event.stopPropagation();
-      return WebView.Close(context);
+      return WebView.Close();
     }
-    // We should probably just allow retuning null
-    return {}
+    return null;
   }
-
-  // Actions
-
-  const CreateWebView = Record({
-    description: 'Create a new web view'
-  });
-  exports.Action = Union({CreateWebView});
-
 
   // View
 
@@ -56,13 +44,15 @@ define((require, exports, module) => {
 
   const DashboardIcon = '\uf067';
 
+  const OpenWebView = () => WebView.Action({action: WebView.Open()});
+
   const viewControls = (theme, address) => html.div({
     style: styleControls.panel
   }, [
     html.button({
       key: 'dashboard-button',
       style: styleControls.button,
-      onClick: address.pass(CreateWebView)
+      onClick: address.pass(OpenWebView)
     }, DashboardIcon)
   ]);
   exports.viewControls = viewControls;
@@ -230,8 +220,8 @@ define((require, exports, module) => {
       className: 'card',
       style: Style(stylePreview.card,
                    isSelected && stylePreview.selected),
-      onClick: address.pass(Shell.Action.Focus, loader),
-      onMouseUp: address.pass(Close, loader)
+      onClick: address.pass(Focusable.Focus),
+      onMouseUp: address.pass(Close)
     }, previewContents);
   };
   exports.viewPreview = viewPreview;
@@ -271,7 +261,9 @@ define((require, exports, module) => {
       .map((loader, index) =>
         render(`Preview@${loader.id}`, viewPreview,
                loader, pages.get(index),
-               index === selected, address));
+               index === selected,
+               address.forward(action =>
+                                WebView.Action({id: loader.id, action}))));
 
   const viewContainer = (theme, ...children) =>
     // Set the width of the previews element to match the width of each card

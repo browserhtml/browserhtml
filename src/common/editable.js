@@ -32,15 +32,15 @@ define((require, exports, module) => {
     range: Selection
   }, 'Editable.Select');
   Select.All = () => Select({end: Infinity});
+  exports.Select = Select;
 
 
   const Change = Record({
+    description: 'Input value / selection has changed',
     value: String,
     selection: Selection
   }, 'Editable.Change');
-
-  const Action = Union({Change, Select});
-  exports.Action = Action;
+  exports.Change = Change;
 
   // Update
 
@@ -57,10 +57,13 @@ define((require, exports, module) => {
                  selection: action.selection});
   exports.change = change;
 
+  const clear = state =>
+    state.remove('value');
+  exports.clear = clear;
+
   const update = (state, action) =>
     action instanceof Change ? change(state, action) :
     action instanceof Select ? select(state, action.range) :
-    Focusable.Action.isTypeOf(action) ? Focusable.update(state, action) :
     action;
 
   exports.update = update;
