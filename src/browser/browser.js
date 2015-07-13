@@ -32,6 +32,7 @@ define((require, exports, module) => {
   const URI = require('common/url-helper');
   const Navigation = require('service/navigation');
   const SynthesisUI = require('./synthesis-ui');
+  const DevtoolsHUD = require('./devtools-hud');
 
   // Model
   const Model = Record({
@@ -41,7 +42,8 @@ define((require, exports, module) => {
     updates: Updates.Model,
     webViews: WebView.Model,
     input: Input.Model,
-    suggestions: Suggestions.Model
+    suggestions: Suggestions.Model,
+    devtoolsHUD: DevtoolsHUD.Model,
   });
   exports.Model = Model;
 
@@ -64,6 +66,7 @@ define((require, exports, module) => {
     'accel shift s': _ => Session.SaveSession(),
     'accel r': _ => Navigation.Reload(),
     'escape': _ => WebView.Action({action: Focusable.Focus()}),
+    'F12': _ => DevtoolsHUD.ToggleDevtoolsHUD(),
     [`${modifier} left`]: _ => Navigation.GoBack(),
     [`${modifier} right`]: _ => Navigation.GoForward()
   }, 'Browser.KeyDown.Action');
@@ -105,6 +108,8 @@ define((require, exports, module) => {
     (state, action) =>
       state.set('input', Input.update(state.input, action)),
     Session.update,
+    (state, action) =>
+      state.set('devtoolsHUD', DevtoolsHUD.update(state.devtoolsHUD, action)),
     (state, action) =>
       state.set('suggestions', Suggestions.update(state.suggestions, action))
   ]);
@@ -176,6 +181,7 @@ define((require, exports, module) => {
         webViews.progress,
         webViews.selected,
         theme),
+      render('DevtoolsHUD', DevtoolsHUD.view, state.devtoolsHUD, address),
       render('Updater', Updates.view, state.updates, address)
     ])
   };
