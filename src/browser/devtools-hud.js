@@ -7,7 +7,7 @@ define((require, exports, module) => {
   'use strict';
 
   const {html} = require('reflex');
-  const {Style} = require('common/style');
+  const {Style, StyleSheet} = require('common/style');
   const {Record} = require('common/typed');
   const Settings = require('service/settings');
 
@@ -104,6 +104,36 @@ define((require, exports, module) => {
       query: name}));
   }
 
+  const style = StyleSheet.create({
+    checkbox: {
+      marginRight: 6,
+      MozAppearance: 'checkbox',
+    },
+    label: {
+      padding: 6,
+      MozUserSelect: 'none',
+      display: 'block',
+    },
+    container: {
+      padding: 10,
+      position: 'absolute',
+      bottom: 10,
+      left: 10,
+      width: '300px',
+      height: '350px',
+      color: 'black',
+      backgroundColor: 'white',
+      border: '2px solid #F06',
+      overflow: 'scroll',
+    },
+    containerHidden: {
+      display: 'none',
+    },
+    containerVisible: {
+      display: 'block',
+    },
+  });
+
   const view = (state, address) => {
 
     fetchInitialValuesIfNeeded(state, address);
@@ -111,19 +141,12 @@ define((require, exports, module) => {
     const settingsCheckboxes =
       [...state.get('settings').keys()].map(settingName => html.label({
         key: settingName,
-        style: {
-          padding: 6,
-          MozUserSelect: 'none',
-          display: 'block',
-        },
+        style: style.label,
       }, [
         html.input({
           type: 'checkbox',
           checked: state.getIn(['settings', settingName]),
-          style: {
-            marginRight: 6,
-            MozAppearance: 'checkbox'
-          },
+          style: style.checkbox,
           onChange: e => {
             var setting = {};
             setting[settingName] = e.target.checked;
@@ -134,39 +157,17 @@ define((require, exports, module) => {
 
     return html.div({
       key: 'devtools-toolbox',
-      style: {
-        display: state.enableHUD ? 'block' : 'none',
-        padding: 10,
-        position: 'absolute',
-        bottom: 10,
-        left: 10,
-        width: '300px',
-        height: '350px',
-        backgroundColor: 'white',
-        border: '2px solid #F06',
-        overflow: 'scroll',
-      }
+      style: Style(style.container,
+          state.enableHUD ? style.containerVisible : style.containerHidden),
     }, [
-      html.h1({
-        style: {
-          margin: 10
-        }
-      }, 'F12 to toggle DevTools'),
       html.label({
         key: 'enableRemoteDevtools',
-        style: {
-          padding: 6,
-          MozUserSelect: 'none',
-          display: 'block'
-        }
+        style: style.label,
       }, [
         html.input({
           type: 'checkbox',
           checked: state.get('enableRemoteDevtools'),
-          style: {
-            marginRight: 6,
-            MozAppearance: 'checkbox'
-          },
+          style: style.checkbox,
           onChange: e => {
             navigator.mozSettings.createLock().set({
               'debugger.remote-mode': e.target.checked ? 'adb-devtools' : 'disabled'
