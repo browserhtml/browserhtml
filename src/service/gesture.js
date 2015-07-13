@@ -11,13 +11,12 @@ define((require, exports, module) => {
   const ZoomOut = Record({
     description: 'Zoom out gesture'
   });
+  exports.ZoomOut = ZoomOut;
 
   const ZoomIn = Record({
     description: 'Zoom in gesture'
   });
-
-  const Action = Union({ZoomIn, ZoomOut});
-  exports.Action = Action;
+  exports.ZoomIn = ZoomIn;
 
   const service = address => {
 

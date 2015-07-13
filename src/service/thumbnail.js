@@ -6,14 +6,12 @@ define((require, exports, module) => {
 
   'use strict';
 
+  const WebView = require('browser/web-view');
   const Loader = require('browser/web-loader');
   const Page = require('browser/web-page');
   const {Record, Union} = require('common/typed');
   const {fromDOMRequest, fromEvent} = require('lang/promise');
   const URI = require('common/url-helper');
-
-  const {LocationChange} = Loader.Action;
-  const {ThumbnailChange} = Page.Action;
 
   const fetchScreenshot = iframe =>
     // 960 is a guestimate... we're going to guess that within that space there
@@ -36,6 +34,7 @@ define((require, exports, module) => {
     const thumbnail = Promise
       .race([abort, loaded])
       .then(_ => fetchScreenshot(iframe))
+      fetchScreenshot(iframe);
 
     // Finally we return promise that rejects if `abort` wins and resolves to a
     // `thumbnail` if we get it before `abort`.
@@ -44,15 +43,19 @@ define((require, exports, module) => {
 
   // service
 
-  const Thumbnail = ({id, uri}, thumbnail) =>
-    ThumbnailChange({id, uri, image: URL.createObjectURL(thumbnail)});
-
   const service = address => action => {
-    if (action instanceof LocationChange && action.id !== 'about:dashboard') {
+    if (action instanceof WebView.Action &&
+        action.action instanceof Loader.LocationChanged) {
       const iframe = document.getElementById(`web-view-${action.id}`);
+      const uri = iframe.location;
+      const id = action.id;
       if (iframe) {
-        requestThumbnail(iframe).
-          then(address.pass(Thumbnail, action));
+        fetchScreenshot(iframe).then(address.pass(blob => WebView.Action({
+          id,
+          action: Page.ThumbnailChanged({
+            uri, image: URL.createObjectURL(blob)
+          })
+        })));
       }
     }
 

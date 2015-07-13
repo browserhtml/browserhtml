@@ -8,15 +8,9 @@ define((require, exports, module) => {
   const {Record, Union, List} = require('common/typed');
   const Loader = require('browser/web-loader');
   const Page = require('browser/web-page');
-
-  const {LocationChange} = Loader.Action;
-  const {PageCardChange} = Page.Action;
+  const WebView = require('browser/web-view');
 
   const scrape = () => {
-    /* This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
     /*
     Pull structured content out of the DOM.
 
@@ -383,15 +377,20 @@ define((require, exports, module) => {
 
   const script = `(${scrape})()`;
 
-  const readCard = ({id, uri}, {hero, title, description, name}) =>
-    PageCardChange({id, uri, hero, title, description, name});
+  const readCard = (id, uri, {hero, title, description, name}) =>
+    WebView.Action({
+      id,
+      action: Page.PageCardChanged({uri, hero, title, description, name})
+    });
 
   const service = address => action => {
-    if (action instanceof LocationChange && action.id !== 'about:dashboard') {
+    if (action instanceof WebView.Action &&
+        action.action instanceof Loader.LocationChanged)
+    {
       const iframe = document.getElementById(`web-view-${action.id}`);
       if (iframe && iframe.executeScript) {
         iframe.executeScript(script, {url: iframe.location})
-              .then(address.pass(readCard, action));
+              .then(address.pass(readCard, action.id, action.action.uri));
       }
     }
 

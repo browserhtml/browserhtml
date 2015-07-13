@@ -14,55 +14,15 @@ define((require, exports, module) => {
   const Suggestions = require('./suggestion-box');
   const Gesture = require('service/gesture');
   const URI = require('common/url-helper');
+  const Focusable = require('common/focusable');
+  const Editable = require('common/editable');
 
-  // Actions
+  // Action
 
-  const ShowWebView = Record({
-    description: 'focus selected web view'
-  });
-
-  const ShowWebViewByID = Record({
-    description: 'select & focus web view by ID',
-    id: String
-  });
-
-  const EditWebView = Record({
-    description: 'Edit selected web view'
-  });
-
-  const ChooseNextWebView = Record({
-    description: 'Select next web view & activate view chooser'
-  });
-
-  const ChoosePreviousWebView = Record({
-    description: 'Select previous web view & activate view chooser'
-  });
-
-  const Escape = Record({
-    description: 'Escape'
-  });
-
-  const CloseWebView = Record({
-    description: 'Close current web view & edit following web view'
-  });
-
-  const {Submit} = Input.Action;
-  const {ZoomIn, ZoomOut} = Gesture.Action;
-  const {CreateWebView} = Preview.Action;
-
-  const Action = Union({
-    ShowWebView,
-    ShowWebViewByID,
-    CreateWebView,
-    EditWebView,
-    ChooseNextWebView,
-    ChoosePreviousWebView,
-    Escape,
-    CloseWebView,
-    Submit,
-    ZoomIn, ZoomOut
-  });
-  exports.Action = Action;
+  const Select = Record({
+    description: 'Complete web-view selection'
+  }, 'SynthesisUI.Select');
+  exports.Select = Select;
 
   // Update
 
@@ -73,15 +33,15 @@ define((require, exports, module) => {
   const edit = (field, update) =>
     state => state.update(field, update);
 
-  const focusInput = edit('input', Input.focus);
-  const selectInput = edit('input', Input.selectAll);
-  const blurInput = edit('input', Input.blur);
-  const clearInput = edit('input', Input.clear);
+  const focusInput = edit('input', Focusable.focus);
+  const selectInput = edit('input', Editable.selectAll);
+  const blurInput = edit('input', Focusable.blur);
+  const clearInput = edit('input', Editable.clear);
 
 
 
-  const selectViewByID = (state, action) =>
-    state.set('webViews', WebView.selectByID(state.webViews, action.id));
+  const selectViewByID = (state, id) =>
+    state.set('webViews', WebView.selectByID(state.webViews, id));
 
   const showWebView = switchMode('show-web-view');
   const showWebViewByID = compose(showWebView, selectViewByID);
@@ -92,39 +52,42 @@ define((require, exports, module) => {
     state => state.mode === 'create-web-view' ? state :
              state.setIn(['input', 'value'], null));
 
-  const setInputToURI = state =>
-    state.setIn(['input', 'value'],
-                state.getIn(['webViews', 'loader',
-                             state.webViews.selected, 'uri']));
+  const setInputToURIByID = (state, id) => {
+    const index = WebView.indexByID(state.webViews, id);
+    return state.setIn(['input', 'value'],
+                       state.getIn(['webViews', 'loader', index, 'uri']));
+  };
 
-  const editWebView = compose(
+  const editWebViewByID = compose(
     state => state.mode === 'edit-web-view' ? state :
              state.mode === 'create-web-view' ? state :
              state.set('mode', 'edit-web-view'),
     selectInput,
     focusInput,
-    state => state.mode === 'edit-web-view' ? state :
-             state.mode === 'create-web-view' ? state :
-             setInputToURI(state));
+    (state, id) =>
+      state.mode === 'edit-web-view' ? state :
+      state.mode === 'create-web-view' ? state :
+      setInputToURIByID(state, id));
 
-  const selectByOffset = offest => state =>
+  const selectByOffset = offset => state =>
     state.set('webViews', WebView.selectByOffset(state.webViews, offset));
 
-  const choosNextWebView = compose(
-    switchMode('choose-web-view'),
+  const selectNext = compose(
+    switchMode('select-web-view'),
     blurInput,
     selectByOffset(1));
 
-  const choosePreviousWebView = compose(
-    switchMode('choose-web-view'),
+  const selectPrevious = compose(
+    switchMode('select-web-view'),
     blurInput,
     selectByOffset(-1));
 
-  const closeWebView = compose(
+  const closeWebViewByID = compose(
     switchMode('edit-web-view'),
     selectInput,
     focusInput,
-    state => state.set('webViews', WebView.close(state.webViews)));
+    (state, id) =>
+      state.set('webViews', WebView.closeByID(state.webViews, id)));
 
   const clearSuggestions = edit('suggestions', Suggestions.clear);
 
@@ -133,11 +96,13 @@ define((require, exports, module) => {
     blurInput,
     clearInput);
 
-  const navigate = state => {
-    const uri = URI.read(state.input.value);
-    return state.set('webViews', state.mode === 'edit-web-view' ?
-                                  WebView.load(state.webViews, {uri}) :
-                                  WebView.open(state.webViews, uri));
+  const navigate = (state, value) => {
+    const uri = URI.read(value);
+    const webViews = state.mode === 'edit-web-view' ?
+      WebView.load(state.webViews, {uri}) :
+      WebView.open(state.webViews, {uri});
+
+    return state.set('webViews', webViews);
   };
 
   const submit = compose(
@@ -147,36 +112,53 @@ define((require, exports, module) => {
     navigate);
 
   const zoomOut = state =>
-    state.mode === 'show-web-view' ? editWebView(state) :
+    state.mode === 'show-web-view' ? editWebViewByID(state, null) :
     state;
 
   const zoomIn = state =>
-    state.mode !== 'show-web-view' ? showWebView(state) :
+    state.mode !== 'show-web-view' ? showWebViewByID(state, null) :
+    state;
+
+  const updateByWebViewAction = (state, id, action) =>
+    action instanceof Focusable.Focus ? showWebViewByID(state, id) :
+    action instanceof Focusable.Focused ? showWebViewByID(state, id) :
+    action instanceof WebView.Close ? closeWebViewByID(state, id) :
+    (action instanceof WebView.Open && !action.uri) ? createWebView(state) :
+    action instanceof WebView.SelectNext ? selectNext(state) :
+    action instanceof WebView.SelectPrevious ? selectPrevious(state) :
+    state;
+
+  const updateByInputAction = (state, action) =>
+    action instanceof Input.Submit ? submit(state, action.value) :
+    action instanceof Focusable.Focus ? editWebViewByID(state, null) :
+    action instanceof Focusable.Focused ? editWebViewByID(state, null) :
+    state;
+
+  const completeSelection = state =>
+    state.mode === 'select-web-view' ? state.set('mode', 'show-web-view') :
     state;
 
   const update = (state, action) =>
-    action instanceof Submit ?
-      submit(state) :
-    action instanceof ShowWebView ?
-      showWebViewByID(state) :
-    action instanceof ShowWebViewByID ?
-      showWebViewByID(state, action) :
-    action instanceof CreateWebView ?
-      createWebView(state) :
-    action instanceof EditWebView ?
-      editWebView(state) :
-    action instanceof ChooseNextWebView ?
-      choosNextWebView(state) :
-    action instanceof ChoosePreviousWebView ?
-      choosePreviousWebView(state) :
-    action instanceof CloseWebView ?
-      closeWebView(state) :
-    action instanceof Escape ?
-      escape(state) :
-    action instanceof ZoomIn ?
+    action instanceof WebView.Action ?
+      updateByWebViewAction(state, action.id, action.action) :
+    action instanceof WebView.Open ?
+      updateByWebViewAction(state, null, action) :
+    action instanceof WebView.Close ?
+      updateByWebViewAction(state, null, action) :
+    action instanceof WebView.SelectNext ?
+      updateByWebViewAction(state, null, action) :
+    action instanceof WebView.SelectPrevious ?
+      updateByWebViewAction(state, null, action) :
+    action instanceof Input.Action ?
+      updateByInputAction(state, action.action) :
+    action instanceof Input.Submit ?
+      updateByInputAction(state, action) :
+    action instanceof Gesture.ZoomIn ?
       zoomIn(state) :
-    action instanceof ZoomOut ?
+    action instanceof Gesture.ZoomOut ?
       zoomOut(state) :
+    action instanceof Select ?
+      completeSelection(state) :
     state;
 
   exports.update = update;

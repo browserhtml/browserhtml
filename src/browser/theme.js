@@ -25,7 +25,7 @@ define((require, exports, module) => {
     inputText: Color('rgba(0,0,0,0.65)'),
     locationText: Color('rgba(0,0,0, 0.65)'),
     titleText: Color('rgba(0,0,0,0.5)'),
-    locationBar: Color('#E1E9F0'),
+    locationBar: Color('rgba(0,0,0,0.07)'),
 
     shell: Color('#fff'),
     shellText: Color('rgba(0,0,0, 0.65)'),
@@ -35,11 +35,10 @@ define((require, exports, module) => {
 
   exports.Model = Model;
 
-
-  exports.read = (pallet={}) => {
-    const foreground = pallet.foreground || void(0);
-    const background = pallet.background || void(0);
-    return Model({
+  exports.read = (pallet) => {
+    const foreground = pallet && pallet.foreground || void(0);
+    const background = pallet && pallet.background || void(0);
+    return !pallet ? Model() : Model({
       isDark: pallet.isDark,
 
       closeButton: foreground,
@@ -59,5 +58,5 @@ define((require, exports, module) => {
 
       progressBar: foreground
     });
-  };
+  }
 });

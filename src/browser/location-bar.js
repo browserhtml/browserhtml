@@ -13,8 +13,10 @@ define((require, exports, module) => {
 
   const {KeyBindings} = require('common/keyboard');
   const Editable = require('common/editable');
+  const Focusable = require('common/focusable');
   const WebView = require('./web-view');
   const Navigation = require('./web-navigation');
+
   const Shell = require('./web-shell');
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
@@ -139,36 +141,18 @@ define((require, exports, module) => {
   });
 
 
-  // Events
-
-  const {Focus, Blur, Submit} = Input.Action;
-  const {Load} = WebView.Action;
-  const {Enter} = Input.Action;
-  const {GoBack, GoForward, Stop, Reload} = Navigation.Action;
-
-  // Action
-
-  const Edit = Record({
-    id: '@selected'
-  }, 'LocationBar.Action.Edit');
-
-  const Action = Union({Edit});
-
-  exports.Action = Action;
-
 
   // view
 
-
-  const {SelectNext, SelectPrevious} = Suggestions.Action;
-
   const Binding = KeyBindings({
-    'up': _ => SelectPrevious({id: '@selected'}),
-    'control p': _ => SelectPrevious({id: '@selected'}),
-    'down': _ => SelectNext({id: '@selected'}),
-    'control n': _ => SelectNext({id: '@selected'}),
-    'enter': _ => Submit({id: '@selected'}),
-    'escape': _ => Shell.Action.Focus({id: '@selected'}),
+    'up': _ => Suggestions.SelectPrevious(),
+    'control p': _ => Suggestions.SelectPrevious(),
+    'down': _ => Suggestions.SelectNext(),
+    'control n': _ => Suggestions.SelectNext(),
+    'enter': event => Input.Action({
+      action: Input.Submit({value: event.target.value})
+    }),
+    'escape': _ => Input.Action({action: Focusable.Blur()}),
   }, 'LocationBar.Keyboard.Action');
 
 
@@ -180,7 +164,7 @@ define((require, exports, module) => {
   const SEARCH_ICON = '\uf002';
 
   const Change = ({target}) =>
-    Input.Action.Change({
+    Editable.Change({
       id: '@selected',
       value: target.value,
       selection: Editable.Selection({
@@ -190,7 +174,7 @@ define((require, exports, module) => {
       })
     });
 
-  const viewBar = isActive => children => html.div({
+  const viewBar = isActive => (address, children) => html.div({
     style: style.container,
   }, [
     html.div({
@@ -201,15 +185,19 @@ define((require, exports, module) => {
       }),
       style: Style(style.bar,
                    isActive ? style.active : style.inactive),
-      onClick: address.pass(Input.Action.Enter)
+      onClick: address.pass(Focusable.Focus)
     }, children)
   ]);
 
   const viewActiveBar = viewBar(true);
   const viewInactiveBar = viewBar(false);
 
-  const viewInDashboard = (loader, security, page, input, suggestions, theme, address) =>
-    viewActiveBar([
+  const InputAction = action => Input.Action({action});
+
+  const viewInDashboard = (loader, security, page, input, suggestions, theme, address) => {
+    // Make forwarding addres that wraps actions into `Input.Action`.
+    const inputAddress = address.forward(InputAction);
+    return viewActiveBar(inputAddress, [
       html.span({
         key: 'icon',
         style: Style(style.icon, style.visible)
@@ -226,15 +214,16 @@ define((require, exports, module) => {
         style: style.input,
         isFocused: input.isFocused,
         selection: input.selection,
-        onChange: address.pass(Change),
-        onFocus: address.pass(Input.Action.Focused),
-        onBlur: address.pass(Input.Action.Blured),
+        onChange: inputAddress.pass(Change),
+        onFocus: inputAddress.pass(Focusable.Focused),
+        onBlur: inputAddress.pass(Focusable.Blured),
         onKeyDown: address.pass(Binding)
       })
     ]);
+  }
 
   const viewInWebView = (loader, security, page, input, suggestions, theme, address) =>
-    viewInactiveBar([
+    viewInactiveBar(address.forward(InputAction), [
       html.p({
         key: 'page-info',
         style: Style(style.summary, {color: theme.locationText})
