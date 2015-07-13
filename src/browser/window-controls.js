@@ -74,21 +74,21 @@ define((require, exports, module) => {
       style: Style(styleButton.button,
                    styleButton.close,
                    theme.isDark ? styleButton.dark : styleButton.light),
-      onClick: address.pass(Runtime.Shutdown)
+      onClick: address.send(Runtime.Shutdown())
     }),
     html.button({
       key: 'WindowMinButton',
       style: Style(styleButton.button,
                    styleButton.min,
                    theme.isDark ? styleButton.dark : styleButton.light),
-      onClick: address.pass(Runtime.Minimize)
+      onClick: address.send(Runtime.Minimize())
     }),
     html.button({
       key: 'WindowMaxButton',
       style: Style(styleButton.button,
                    styleButton.max,
                    theme.isDark ? styleButton.dark : styleButton.light),
-      onClick: address.pass(Runtime.Maximize)
+      onClick: address.send(Runtime.Maximize())
     })
   ]);
   exports.view = view;
