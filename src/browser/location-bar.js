@@ -33,7 +33,6 @@ define((require, exports, module) => {
       position: 'absolute',
       zIndex: 101,
       top: 0,
-      padding: '3px',
       width: '100vw',
       textAlign: 'center',
       pointerEvents: 'none'
@@ -42,19 +41,27 @@ define((require, exports, module) => {
       display: 'inline-block',
       MozWindowDragging: 'no-drag',
       borderRadius: 5,
-      lineHeight: '22px',
-      height: 22,
-      padding: '0 3px',
-      margin: '0',
       overflow: 'hidden',
+      // Contains absolute elements
+      position: 'relative',
       pointerEvents: 'all',
       width: null
     },
     inactive: {
-      width: 250, // FIXME :Doesn't shrink when window is narrow
+      height: 22,
+      lineHeight: '22px',
+      padding: '0 22px',
+      top: 3,
+      width: 250,
     },
     active: {
-      width: 400
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      color: 'rgba(255, 255, 255, 1)',
+      height: 30,
+      lineHeight: '30px',
+      padding: '0 30px',
+      width: 400,
+      top: 40,
     },
     button: {
       opacity: null,
@@ -81,9 +88,6 @@ define((require, exports, module) => {
     dashboard: {right: 0},
 
     input: {
-      padding: null,
-      maxWidth: null,
-
       color: '#333',
       width: '100%',
       lineHeight: '22px',
@@ -92,29 +96,17 @@ define((require, exports, module) => {
     },
 
     summary: {
-      maxWidth: null,
-      padding: null,
       color: null,
       backgroundColor: null,
 
-      lineHeight: '22px',
       overflow: 'hidden',
-      width: '100%',
+      // This allows us to stay centered when text is short, but expand into the
+      // empty space to the right when text overflows, but not so far that we
+      // cut off the elipsis.
+      maxWidth: 'calc(100% + 20px)',
       display: 'inline-block',
       textOverflow: 'ellipsis',
       textAlign: 'center'
-    },
-
-    locationText: {
-      backgroundColor: null,
-      color: 'inherit',
-      fontWeight: 'bold'
-    },
-
-    titleText: {
-      color: 'interit',
-      backgroundColor: null,
-      padding: 5
     },
 
     visible: {
@@ -123,18 +115,28 @@ define((require, exports, module) => {
     invisible: {
       visibility: 'hidden'
     },
-    icon: {
-      fontSize: '16px',
-      fontFamily: 'FontAwesome'
+
+    // The icon we show in the collapsed location box
+    searchIconSmall: {
+      fontSize: '13px',
+      fontFamily: 'FontAwesome',
+      left: '5px',
+      position: 'absolute'
     },
 
-    collapsed: {maxWidth: 0, padding: 0},
+    // The icon we show in the collapsed location box
+    searchIconLarge: {
+      fontSize: '16px',
+      fontFamily: 'FontAwesome',
+      left: '9px',
+      position: 'absolute'
+    },
+
     disabled: {opacity: 0.2, pointerEvents: 'none'},
     hidden: {display: 'none'},
 
     security: {
       fontFamily: 'FontAwesome',
-      fontWeight: 'normal',
       marginRight: 6,
       verticalAlign: 'middle'
     }
@@ -180,8 +182,7 @@ define((require, exports, module) => {
     html.div({
       key: 'LocationBar',
       className: ClassSet({
-        'location-bar': true,
-        active: isActive
+        'location-bar': true
       }),
       style: Style(style.bar,
                    isActive ? style.active : style.inactive),
@@ -200,7 +201,7 @@ define((require, exports, module) => {
     return viewActiveBar(inputAddress, [
       html.span({
         key: 'icon',
-        style: Style(style.icon, style.visible)
+        style: Style(style.searchIconLarge, style.visible)
       }, SEARCH_ICON),
       Editable.view({
         key: 'input',
@@ -222,31 +223,44 @@ define((require, exports, module) => {
     ]);
   }
 
-  const viewInWebView = (loader, security, page, input, suggestions, theme, address) =>
-    viewInactiveBar(address.forward(InputAction), [
-      html.p({
-        key: 'page-info',
-        style: Style(style.summary, {color: theme.locationText})
-      }, [
-        html.span({
-          key: 'securityicon',
-          style: style.security
-        },
-           !loader ? '' :
-           URI.isPrivileged(loader.uri) ? GearIcon :
-           security.secure ? LockIcon :
-           ''),
-        html.span({
-          key: 'title',
-          style: Style(style.titleText, {
-            color: theme.titleText
-          })
-        }, !loader ? '' :
-           page.title ? page.title :
-           loader.uri ? URI.getDomainName(loader.uri) :
-           'New Tab'),
-      ])
+  const viewInWebView = (loader, security, page, input, suggestions, theme, address) => {
+    const isSecure = security && security.secure;
+    const isPrivileged = loader && URI.isPrivileged(loader.uri);
+    const title =
+      !loader ? '' :
+      page.title ? page.title :
+      loader.uri ? URI.getDomainName(loader.uri) :
+      'New Tab';
+
+    const children = [];
+
+    // Append security icon if needed
+    if (isPrivileged) {
+      children.push(html.span({
+        key: 'securityicon',
+        style: style.security
+      }, GearIcon));
+    } else if (isSecure) {
+      children.push(html.span({
+        key: 'securityicon',
+        style: style.security
+      }, LockIcon));
+    }
+
+    children.push(title);
+
+    return viewInactiveBar(address.forward(InputAction), [
+      html.span({
+        key: 'icon',
+        className: 'location-search-icon',
+        style: style.searchIconSmall
+      }, SEARCH_ICON),
+      html.div({
+        key: 'page-summary',
+        style: style.summary
+      }, children)
     ]);
+  };
 
   const view = (mode, ...rest) =>
     mode === 'show-web-view' ? viewInWebView(...rest) :
