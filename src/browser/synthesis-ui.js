@@ -16,6 +16,7 @@ define((require, exports, module) => {
   const URI = require('common/url-helper');
   const Focusable = require('common/focusable');
   const Editable = require('common/editable');
+  const Navigation = require('service/navigation');
 
   // Action
 
@@ -23,6 +24,11 @@ define((require, exports, module) => {
     description: 'Complete web-view selection'
   }, 'SynthesisUI.Select');
   exports.Select = Select;
+
+  const Escape = Record({
+    description: 'Escape'
+  }, 'SynthesisUI.Escape');
+  exports.Escape = Escape;
 
   // Update
 
@@ -91,11 +97,6 @@ define((require, exports, module) => {
 
   const clearSuggestions = edit('suggestions', Suggestions.clear);
 
-  const escape = compose(
-    showWebView,
-    blurInput,
-    clearInput);
-
   const navigate = (state, value) => {
     const uri = URI.read(value);
     const webViews = state.mode === 'edit-web-view' ?
@@ -138,7 +139,13 @@ define((require, exports, module) => {
     state.mode === 'select-web-view' ? state.set('mode', 'show-web-view') :
     state;
 
+  const escape = state =>
+    state.made === 'show-web-view' ? state :
+    showWebViewByID(state);
+
   const update = (state, action) =>
+    action instanceof Navigation.Stop ?
+      escape(state) :
     action instanceof WebView.Action ?
       updateByWebViewAction(state, action.id, action.action) :
     action instanceof WebView.Open ?
