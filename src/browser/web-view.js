@@ -391,7 +391,7 @@ define((require, exports, module) => {
       height: 'calc(100vh - 28px)',
     },
     active: {
-      transition: 'transform 90ms linear, opacity 150ms linear',
+      transition: 'opacity 150ms linear',
     },
     inactive: {
       transition: 'transform 300ms linear, opacity 150ms linear',
@@ -406,9 +406,7 @@ define((require, exports, module) => {
     return html.div({
       key: 'web-views',
       style: Style(webviewsStyle.base,
-                   isActive ? webviewsStyle.active : webviewsStyle.inactive, {
-                     transformOrigin: `${selected * 260 + 130}px 50%` // Center of the selected card
-                   }),
+                   isActive ? webviewsStyle.active : webviewsStyle.inactive),
     }, loader.map((loader, index) =>
       render(`web-view@${loader.id}`, viewWebView,
              loader,
