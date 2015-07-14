@@ -388,7 +388,7 @@ define((require, exports, module) => {
   const webviewsStyle = StyleSheet.create({
     base: {
       width: '100vw',
-      height: '100vh',
+      height: 'calc(100vh - 28px)',
     },
     active: {
       transition: 'transform 90ms linear, opacity 150ms linear',
