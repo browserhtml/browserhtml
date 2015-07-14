@@ -451,7 +451,7 @@ define((require, exports, module) => {
 
   // TODO: Figure out what's in detail
   Event.mozbrowserusernameandpasswordrequired = ({detail}) =>
-    Athentificate();
+    Authentificate();
 
   // TODO: Figure out what's in detail
   Event.mozbrowsererror = ({detail}) =>
