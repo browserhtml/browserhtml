@@ -297,6 +297,12 @@ define((require, exports, module) => {
       selectByOffset(state, 1) :
     action instanceof SelectPrevious ?
       selectByOffset(state, -1) :
+    // @TODO we explicitly tie ZoomIn/ZoomOut actions to selected webview.
+    // It may make more sense in future to include an ID with the action model.
+    action instanceof Shell.ZoomIn ?
+      updateByID(state, '@selected', action) :
+    action instanceof Shell.ZoomOut ?
+      updateByID(state, '@selected', action) :
     action instanceof Action ?
       updateByID(state, action.id, action.action) :
     state;
