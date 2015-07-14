@@ -8,15 +8,10 @@ define((require, exports, module) => {
 
   const {Record, Union} = require('common/typed');
 
-  const ZoomOut = Record({
-    description: 'Zoom out gesture'
+  const Pinch = Record({
+    description: 'Pinch gesture'
   });
-  exports.ZoomOut = ZoomOut;
-
-  const ZoomIn = Record({
-    description: 'Zoom in gesture'
-  });
-  exports.ZoomIn = ZoomIn;
+  exports.Pinch = Pinch;
 
   const service = address => {
 
@@ -26,10 +21,7 @@ define((require, exports, module) => {
     const checkScale = () => {
       const scale = (refSize + delta) / refSize;
       if (delta < 0 && scale < 0.5) {
-        address.receive(ZoomOut());
-      }
-      if (delta > 0) {
-        address.receive(ZoomIn());
+        address.receive(Pinch());
       }
     }
 

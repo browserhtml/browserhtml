@@ -111,13 +111,13 @@ define((require, exports, module) => {
     clearInput,
     navigate);
 
-  const zoomOut = state =>
-    state.mode === 'show-web-view' ? editWebViewByID(state, null) :
-    state;
+  const showPreview = compose(
+    state =>
+      state.mode != 'show-web-view' ? state :
+      state.set('mode', 'edit-web-view'),
+    state =>
+      setInputToURIByID(state, '@selected'));
 
-  const zoomIn = state =>
-    state.mode !== 'show-web-view' ? showWebViewByID(state, null) :
-    state;
 
   const updateByWebViewAction = (state, id, action) =>
     action instanceof Focusable.Focus ? showWebViewByID(state, id) :
@@ -153,10 +153,8 @@ define((require, exports, module) => {
       updateByInputAction(state, action.action) :
     action instanceof Input.Submit ?
       updateByInputAction(state, action) :
-    action instanceof Gesture.ZoomIn ?
-      zoomIn(state) :
-    action instanceof Gesture.ZoomOut ?
-      zoomOut(state) :
+    action instanceof Gesture.Pinch ?
+      showPreview(state) :
     action instanceof Select ?
       completeSelection(state) :
     state;
