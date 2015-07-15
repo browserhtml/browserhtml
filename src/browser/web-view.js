@@ -206,13 +206,13 @@ define((require, exports, module) => {
 
   const open = (state, {uri, inBackground}) => state.merge({
     nextID: state.nextID + 1,
-    selected: inBackground ? state.selected : state.loader.size,
-    loader: state.loader.push(Loader.Model({uri, id: String(state.nextID)})),
-    shell: state.shell.push(Shell.Model({isFocused: !inBackground})),
-    page: state.page.push(Page.Model()),
-    progress: state.progress.push(Progress.Model()),
-    navigation: state.navigation.push(Navigation.Model()),
-    security: state.security.push(Security.Model())
+    selected: inBackground ? state.selected : 0,
+    loader: state.loader.unshift(Loader.Model({uri, id: String(state.nextID)})),
+    shell: state.shell.unshift(Shell.Model({isFocused: !inBackground})),
+    page: state.page.unshift(Page.Model()),
+    progress: state.progress.unshift(Progress.Model()),
+    navigation: state.navigation.unshift(Navigation.Model()),
+    security: state.security.unshift(Security.Model())
   });
   exports.open = open;
 
