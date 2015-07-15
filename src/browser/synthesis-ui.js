@@ -140,7 +140,7 @@ define((require, exports, module) => {
     state;
 
   const escape = state =>
-    state.made === 'show-web-view' ? state :
+    state.mode === 'show-web-view' ? state :
     showWebViewByID(state);
 
   const update = (state, action) =>
