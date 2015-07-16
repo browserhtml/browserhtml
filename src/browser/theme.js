@@ -13,7 +13,6 @@ define((require, exports, module) => {
 
   const Model = Record({
     isDark: false,
-    glyphsShowing: false,
 
     inputText: Color('rgba(0,0,0,0.65)'),
     locationText: Color('rgba(0,0,0, 0.65)'),
