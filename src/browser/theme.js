@@ -15,9 +15,6 @@ define((require, exports, module) => {
     isDark: false,
     glyphsShowing: false,
 
-    // reload, stop, back button color.
-    controlButton: Color('rgba(0,0,0,0.5)'),
-
     inputText: Color('rgba(0,0,0,0.65)'),
     locationText: Color('rgba(0,0,0, 0.65)'),
     titleText: Color('rgba(0,0,0,0.5)'),
@@ -36,8 +33,6 @@ define((require, exports, module) => {
     const background = pallet && pallet.background || void(0);
     return !pallet ? Model() : Model({
       isDark: pallet.isDark,
-
-      controlButton: foreground,
 
       inputText: foreground,
       locationText: foreground,
