@@ -18,10 +18,6 @@ define((require, exports, module) => {
     // reload, stop, back button color.
     controlButton: Color('rgba(0,0,0,0.5)'),
 
-    closeButton: Color('#FC5753'),
-    minButton: Color('#FDBC40'),
-    maxButton: Color('#33C748'),
-
     inputText: Color('rgba(0,0,0,0.65)'),
     locationText: Color('rgba(0,0,0, 0.65)'),
     titleText: Color('rgba(0,0,0,0.5)'),
@@ -40,10 +36,6 @@ define((require, exports, module) => {
     const background = pallet && pallet.background || void(0);
     return !pallet ? Model() : Model({
       isDark: pallet.isDark,
-
-      closeButton: foreground,
-      minButton: foreground,
-      maxButton: foreground,
 
       controlButton: foreground,
 
