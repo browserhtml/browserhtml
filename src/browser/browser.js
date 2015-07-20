@@ -137,8 +137,7 @@ define((require, exports, module) => {
     const {shell, webViews, input, suggestions} = state;
     const {loader, page, security} = WebView.get(webViews, webViews.selected);
     const id = loader && loader.id;
-    const theme = input.isFocused ? defaultTheme :
-                  page ? cache(Theme.read, page.pallet) :
+    const theme = page ? cache(Theme.read, page.pallet) :
                   defaultTheme;
 
     return Main({

@@ -68,8 +68,8 @@ define((require, exports, module) => {
   // Action
 
   const PalletChanged = Record({
-    id: String,
-    pallet: Model
+    pallet: Model,
+    description: 'Color pallet of page changed'
   }, 'Pallet.Action.Change');
   exports.PalletChanged = PalletChanged;
 
@@ -84,7 +84,10 @@ define((require, exports, module) => {
         // Use promise so behavior is going to be closer to what it will be
         // when we stop faking.
         Promise.resolve()
-               .then(address.send(PalletChanged({id: action.id, pallet})));
+          .then(address.send(WebView.Action({
+            id: action.id,
+            action: PalletChanged({pallet})
+          })));
       }
     }
     return action
