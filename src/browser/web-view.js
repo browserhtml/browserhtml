@@ -307,6 +307,8 @@ define((require, exports, module) => {
       updateByID(state, '@selected', action) :
     action instanceof Shell.ZoomOut ?
       updateByID(state, '@selected', action) :
+    action instanceof PalletChanged ?
+      updateByID(state, action.id, action) :
     action instanceof Action ?
       updateByID(state, action.id, action.action) :
     state;

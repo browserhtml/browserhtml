@@ -69,7 +69,8 @@ define((require, exports, module) => {
 
   const PalletChanged = Record({
     id: String,
-    pallet: Model
+    pallet: Model,
+    description: 'Color pallet of page changed'
   }, 'Pallet.Action.Change');
   exports.PalletChanged = PalletChanged;
 
