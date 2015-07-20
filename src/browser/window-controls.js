@@ -50,7 +50,6 @@ define((require, exports, module) => {
       width: 50,
       top: 8,
       left: 8,
-      verticalAlign: 'center',
       zIndex: 200
     },
     light: {
