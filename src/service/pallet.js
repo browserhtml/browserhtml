@@ -74,8 +74,6 @@ define((require, exports, module) => {
   }, 'Pallet.Action.Change');
   exports.PalletChanged = PalletChanged;
 
-  const none = Object.freeze([]);
-
   const service = address => action => {
     if (action instanceof WebView.Action &&
         action.action instanceof Loader.LocationChanged) {

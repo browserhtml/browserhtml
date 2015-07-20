@@ -27,7 +27,6 @@ define((require, exports, module) => {
   const Session = require('./session');
   const ClassSet = require('common/class-set');
   const OS = require('common/os');
-  const Pallet = require('service/pallet');
   const Suggestions = require('./suggestion-box');
   const URI = require('common/url-helper');
   const Navigation = require('service/navigation');
@@ -138,7 +137,6 @@ define((require, exports, module) => {
     const {shell, webViews, input, suggestions} = state;
     const {loader, page, security} = WebView.get(webViews, webViews.selected);
     const id = loader && loader.id;
-
     const theme = page ? cache(Theme.read, page.pallet) :
                   defaultTheme;
 

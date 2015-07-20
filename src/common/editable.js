@@ -49,7 +49,7 @@ define((require, exports, module) => {
   exports.select = select;
 
   const selectAll = state =>
-    state.set('selection', Selection({end: Infinity}));
+    state.set('selection', Selection({end: Infinity, direction: 'backward'}));
   exports.selectAll = selectAll;
 
   const change = (state, action) =>
