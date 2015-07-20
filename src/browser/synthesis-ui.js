@@ -53,10 +53,15 @@ define((require, exports, module) => {
   const showWebViewByID = compose(showWebView, selectViewByID);
 
   const createWebView = compose(
-    switchMode('create-web-view'),
     focusInput,
-    state => state.mode === 'create-web-view' ? state :
-             state.setIn(['input', 'value'], null));
+    (state, transition) =>
+      state.mode === 'create-web-view' ?
+      state :
+      state.mergeDeep({
+        mode: 'create-web-view',
+        input: {value: null},
+        transition
+      }));
 
   const setInputToURIByID = (state, id) => {
     const index = WebView.indexByID(state.webViews, id);
@@ -120,11 +125,14 @@ define((require, exports, module) => {
       setInputToURIByID(state, '@selected'));
 
 
-  const updateByWebViewAction = (state, id, action) =>
+  const updateByWebViewAction = (state, id, source, action) =>
     action instanceof Focusable.Focus ? showWebViewByID(state, id) :
     action instanceof Focusable.Focused ? showWebViewByID(state, id) :
     action instanceof WebView.Close ? closeWebViewByID(state, id) :
-    (action instanceof WebView.Open && !action.uri) ? createWebView(state) :
+    (action instanceof WebView.Open && source === 'keyboard') ?
+      createWebView(state, 'quick') :
+    (action instanceof WebView.Open && !action.uri) ?
+      createWebView(state, 'normal') :
     action instanceof WebView.SelectNext ? selectNext(state) :
     action instanceof WebView.SelectPrevious ? selectPrevious(state) :
     state;
@@ -147,15 +155,15 @@ define((require, exports, module) => {
     action instanceof Navigation.Stop ?
       escape(state) :
     action instanceof WebView.Action ?
-      updateByWebViewAction(state, action.id, action.action) :
+      updateByWebViewAction(state, action.id, action.source, action.action) :
     action instanceof WebView.Open ?
-      updateByWebViewAction(state, null, action) :
+      updateByWebViewAction(state, null, null, action) :
     action instanceof WebView.Close ?
-      updateByWebViewAction(state, null, action) :
+      updateByWebViewAction(state, null, null, action) :
     action instanceof WebView.SelectNext ?
-      updateByWebViewAction(state, null, action) :
+      updateByWebViewAction(state, null, null, action) :
     action instanceof WebView.SelectPrevious ?
-      updateByWebViewAction(state, null, action) :
+      updateByWebViewAction(state, null, null, action) :
     action instanceof Input.Action ?
       updateByInputAction(state, action.action) :
     action instanceof Input.Submit ?
