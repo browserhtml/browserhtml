@@ -226,7 +226,8 @@ define((require, exports, module) => {
 
   const closeByIndex = (state, index) =>
     index === null ? state : state.merge({
-      selected: state.loader.size === index + 1 ? index - 1 : index,
+      selected: state.loader.size === 1 ?  null :
+                state.loader.size === index + 1 ? index - 1 : index,
 
       loader: state.loader.remove(index),
       shell: state.shell.remove(index),
