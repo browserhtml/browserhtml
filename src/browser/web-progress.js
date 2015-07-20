@@ -13,8 +13,7 @@ define((require, exports, module) => {
 
   // Model
   const Model = Record({
-    loadStarted: false,
-    loadEnded: false,
+    loading: false
   });
   exports.Model = Model;
 
@@ -36,9 +35,9 @@ define((require, exports, module) => {
     action instanceof Loader.Load ?
       state.clear() :
     action instanceof LoadStarted ?
-      Model({loadStarted: true, loadEnded: false}) :
+      Model({loading: true}) :
     action instanceof LoadEnded ?
-      Model({loadStarted: true, loadEnded: true}) :
+      Model({loading: false}) :
     state;
   exports.update = update;
 
@@ -91,7 +90,7 @@ define((require, exports, module) => {
       key: `progressbar-${id}`,
       style: Style(barStyle.base,
                    !isSelected ? barStyle.hidden : barStyle.visible,
-                   progress.loadEnded ? barStyle.loaded : barStyle.loading, {
+                   !progress.loading ? barStyle.loaded : barStyle.loading, {
                      backgroundColor: theme.progressBar
                    }),
     }, [html.div({
