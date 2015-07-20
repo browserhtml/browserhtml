@@ -32,8 +32,8 @@ define((require, exports, module) => {
 
   // Update
 
-  const switchMode = mode => state =>
-    state.set('mode', mode);
+  const switchMode = (mode, transition) => state =>
+    state.merge({mode, transition});
 
 
   const edit = (field, update) =>
@@ -49,8 +49,15 @@ define((require, exports, module) => {
   const selectViewByID = (state, id) =>
     state.set('webViews', WebView.selectByID(state.webViews, id));
 
-  const showWebView = switchMode('show-web-view');
-  const showWebViewByID = compose(showWebView, selectViewByID);
+  const showWebViewByID = compose(
+    switchMode('show-web-view', 'normal'),
+    selectViewByID
+  );
+
+  const showWebViewByIDQuick = compose(
+    switchMode('show-web-view', 'quick'),
+    selectViewByID
+  );
 
   const createWebView = compose(
     focusInput,
@@ -69,10 +76,12 @@ define((require, exports, module) => {
                        state.getIn(['webViews', 'loader', index, 'uri']));
   };
 
+  const editWebView = switchMode('edit-web-view', 'quick');
+
   const editWebViewByID = compose(
     state => state.mode === 'edit-web-view' ? state :
              state.mode === 'create-web-view' ? state :
-             state.set('mode', 'edit-web-view'),
+             editWebView(state),
     selectInput,
     focusInput,
     (state, id) =>
@@ -84,17 +93,17 @@ define((require, exports, module) => {
     state.set('webViews', WebView.selectByOffset(state.webViews, offset));
 
   const selectNext = compose(
-    switchMode('select-web-view'),
+    switchMode('select-web-view', 'quick'),
     blurInput,
     selectByOffset(1));
 
   const selectPrevious = compose(
-    switchMode('select-web-view'),
+    switchMode('select-web-view', 'quick'),
     blurInput,
     selectByOffset(-1));
 
   const closeWebViewByID = compose(
-    switchMode('edit-web-view'),
+    switchMode('edit-web-view', 'normal'),
     selectInput,
     focusInput,
     (state, id) =>
@@ -112,7 +121,7 @@ define((require, exports, module) => {
   };
 
   const submit = compose(
-    switchMode('show-web-view'),
+    switchMode('show-web-view', 'quick'),
     clearSuggestions,
     clearInput,
     navigate);
@@ -137,7 +146,7 @@ define((require, exports, module) => {
     action instanceof WebView.SelectPrevious ? selectPrevious(state) :
     state;
 
-  const updateByInputAction = (state, action) =>
+  const updateByInputAction = (state, source, action) =>
     action instanceof Input.Submit ? submit(state, action.value) :
     action instanceof Focusable.Focus ? editWebViewByID(state, null) :
     action instanceof Focusable.Focused ? editWebViewByID(state, null) :
@@ -149,7 +158,7 @@ define((require, exports, module) => {
 
   const escape = state =>
     state.mode === 'show-web-view' ? state :
-    showWebViewByID(state);
+    showWebViewByIDQuick(state);
 
   const update = (state, action) =>
     action instanceof Navigation.Stop ?
@@ -165,9 +174,9 @@ define((require, exports, module) => {
     action instanceof WebView.SelectPrevious ?
       updateByWebViewAction(state, null, null, action) :
     action instanceof Input.Action ?
-      updateByInputAction(state, action.action) :
+      updateByInputAction(state, action.source, action.action) :
     action instanceof Input.Submit ?
-      updateByInputAction(state, action) :
+      updateByInputAction(state, null, action) :
     action instanceof Gesture.Pinch ?
       showPreview(state) :
     action instanceof Select ?

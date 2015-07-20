@@ -420,9 +420,13 @@ define((require, exports, module) => {
 
   const view = (mode, transition, loader, shell, page, address, selected) => {
     const additionalStyles =
-      mode === 'show-web-view' ?
+      (mode === 'show-web-view' && transition === 'quick') ?
+        webviewsStyle.fadeIn :
+      (mode === 'show-web-view' && transition === 'normal') ?
         webviewsStyle.grow :
       (mode === 'create-web-view' && transition === 'quick') ?
+        webviewsStyle.fadeOut :
+      (mode === 'edit-web-view' && transition === 'quick') ?
         webviewsStyle.fadeOut :
       webviewsStyle.shrink;
 
