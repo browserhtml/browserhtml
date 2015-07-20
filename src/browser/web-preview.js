@@ -275,7 +275,7 @@ define((require, exports, module) => {
     ]);
 
   const viewInEditMode = (loaders, pages, selected, theme, address) =>
-    viewContainer(theme, ...viewPreviews(loaders, pages, selected, address));
+    viewContainer(theme, ghostPreview, ...viewPreviews(loaders, pages, selected, address));
 
   const viewInCreateMode = (loaders, pages, selected, theme, address) =>
     // Pass selected as `-1` so none is highlighted.
