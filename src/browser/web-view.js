@@ -83,6 +83,11 @@ define((require, exports, module) => {
   }, 'WebViews.Open');
   exports.Open = Open;
 
+  const TransitionToOpenWithFade = Record({
+    description: 'Transition to open-web-view mode with fade animation'
+  }, 'WebViews.TransitionToOpenWithFade');
+  exports.TransitionToOpenWithFade = TransitionToOpenWithFade;
+
   const OpenInBackground = Record({
     uri: String,
     inBackground: true
@@ -162,7 +167,6 @@ define((require, exports, module) => {
   // selected web-view.
   const Action = Record({
     id: Maybe(String),
-    source: Maybe(String),
     action: WebViewAction
   }, 'WebView.Action');
   exports.Action = Action;
@@ -420,15 +424,15 @@ define((require, exports, module) => {
 
   const view = (mode, transition, loader, shell, page, address, selected) => {
     const additionalStyles =
-      (mode === 'show-web-view' && transition === 'quick') ?
+      (mode === 'show-web-view' && transition === 'fade') ?
         webviewsStyle.fadeIn :
-      (mode === 'show-web-view' && transition === 'normal') ?
+      (mode === 'show-web-view' && transition === 'zoom') ?
         webviewsStyle.grow :
-      (mode === 'create-web-view' && transition === 'quick') ?
+      (mode === 'create-web-view' && transition === 'fade') ?
         webviewsStyle.fadeOut :
       mode === 'select-web-view' ?
         webviewsStyle.fadeOut :
-      (mode === 'edit-web-view' && transition === 'quick') ?
+      (mode === 'edit-web-view' && transition === 'fade') ?
         webviewsStyle.fadeOut :
       webviewsStyle.shrink;
 

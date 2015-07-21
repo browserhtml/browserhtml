@@ -37,7 +37,7 @@ define((require, exports, module) => {
   const Model = Record({
     version: '0.0.7',
     mode: 'create-web-view', // or show-web-view, edit-web-view, choose-web-view
-    transition: 'normal', // or quick
+    transition: 'zoom', // or fade
     shell: Focusable.Model({isFocused: true}),
     updates: Updates.Model,
     webViews: WebView.Model,
@@ -51,14 +51,8 @@ define((require, exports, module) => {
 
   const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
   const KeyDown = KeyBindings({
-    'accel l': _ => Input.Action({
-      action: Focusable.Focus(),
-      source: 'keyboard'
-    }),
-    'accel t': _ => WebView.Action({
-      action: WebView.Open(),
-      source: 'keyboard'
-    }),
+    'accel l': _ => Input.Action({action: Focusable.Focus()}),
+    'accel t': _ => WebView.TransitionToOpenWithFade(),
     'accel 0': _ => Shell.ResetZoom(),
     'accel -': _ => Shell.ZoomOut(),
     'accel =': _ => Shell.ZoomIn(),

@@ -50,12 +50,12 @@ define((require, exports, module) => {
     state.set('webViews', WebView.selectByID(state.webViews, id));
 
   const showWebViewByID = compose(
-    switchMode('show-web-view', 'normal'),
+    switchMode('show-web-view', 'zoom'),
     selectViewByID
   );
 
-  const showWebViewByIDQuick = compose(
-    switchMode('show-web-view', 'quick'),
+  const showWebViewByIDFade = compose(
+    switchMode('show-web-view', 'fade'),
     selectViewByID
   );
 
@@ -76,7 +76,7 @@ define((require, exports, module) => {
                        state.getIn(['webViews', 'loader', index, 'uri']));
   };
 
-  const editWebView = switchMode('edit-web-view', 'quick');
+  const editWebView = switchMode('edit-web-view', 'fade');
 
   const editWebViewByID = compose(
     state => state.mode === 'edit-web-view' ? state :
@@ -93,17 +93,17 @@ define((require, exports, module) => {
     state.set('webViews', WebView.selectByOffset(state.webViews, offset));
 
   const selectNext = compose(
-    switchMode('select-web-view', 'quick'),
+    switchMode('select-web-view', 'fade'),
     blurInput,
     selectByOffset(1));
 
   const selectPrevious = compose(
-    switchMode('select-web-view', 'quick'),
+    switchMode('select-web-view', 'fade'),
     blurInput,
     selectByOffset(-1));
 
   const closeWebViewByID = compose(
-    switchMode('edit-web-view', 'normal'),
+    switchMode('edit-web-view', 'fade'),
     selectInput,
     focusInput,
     (state, id) =>
@@ -121,7 +121,7 @@ define((require, exports, module) => {
   };
 
   const submit = compose(
-    switchMode('show-web-view', 'quick'),
+    switchMode('show-web-view', 'fade'),
     clearSuggestions,
     clearInput,
     navigate);
@@ -134,24 +134,24 @@ define((require, exports, module) => {
       setInputToURIByID(state, '@selected'));
 
 
-  const updateByWebViewAction = (state, id, source, action) =>
+  const updateByWebViewAction = (state, id, action) =>
     action instanceof Focusable.Focus ?
       showWebViewByID(state, id) :
     action instanceof Focusable.Focused ?
       showWebViewByID(state, id) :
     action instanceof WebView.Close ?
       closeWebViewByID(state, id) :
-    (action instanceof WebView.Open && source === 'keyboard') ?
-      createWebView(state, 'quick') :
     (action instanceof WebView.Open && !action.uri) ?
-      createWebView(state, 'normal') :
+      createWebView(state, 'zoom') :
+    action instanceof WebView.TransitionToOpenWithFade ?
+      createWebView(state, 'fade') :
     action instanceof WebView.SelectNext ?
       selectNext(state) :
     action instanceof WebView.SelectPrevious ?
       selectPrevious(state) :
     state;
 
-  const updateByInputAction = (state, source, action) =>
+  const updateByInputAction = (state, action) =>
     action instanceof Input.Submit ? submit(state, action.value) :
     action instanceof Focusable.Focus ? editWebViewByID(state, null) :
     action instanceof Focusable.Focused ? editWebViewByID(state, null) :
@@ -163,25 +163,27 @@ define((require, exports, module) => {
 
   const escape = state =>
     state.mode === 'show-web-view' ? state :
-    showWebViewByIDQuick(state);
+    showWebViewByIDFade(state);
 
   const update = (state, action) =>
     action instanceof Navigation.Stop ?
       escape(state) :
     action instanceof WebView.Action ?
-      updateByWebViewAction(state, action.id, action.source, action.action) :
+      updateByWebViewAction(state, action.id, action.action) :
     action instanceof WebView.Open ?
-      updateByWebViewAction(state, null, null, action) :
+      updateByWebViewAction(state, null, action) :
+    action instanceof WebView.TransitionToOpenWithFade ?
+      updateByWebViewAction(state, null, action) :
     action instanceof WebView.Close ?
-      updateByWebViewAction(state, null, null, action) :
+      updateByWebViewAction(state, null, action) :
     action instanceof WebView.SelectNext ?
-      updateByWebViewAction(state, null, null, action) :
+      updateByWebViewAction(state, null, action) :
     action instanceof WebView.SelectPrevious ?
-      updateByWebViewAction(state, null, null, action) :
+      updateByWebViewAction(state, null, action) :
     action instanceof Input.Action ?
-      updateByInputAction(state, action.source, action.action) :
+      updateByInputAction(state, action.action) :
     action instanceof Input.Submit ?
-      updateByInputAction(state, null, action) :
+      updateByInputAction(state, action) :
     action instanceof Gesture.Pinch ?
       showPreview(state) :
     action instanceof Select ?

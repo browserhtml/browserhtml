@@ -44,7 +44,8 @@ define((require, exports, module) => {
 
   const DashboardIcon = '\uf067';
 
-  const OpenWebView = () => WebView.Action({action: WebView.Open()});
+  const OpenWebView = () =>
+    WebView.Action({action: WebView.Open()});
 
   const viewControls = (theme, address) => html.div({
     style: styleControls.panel
