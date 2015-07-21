@@ -37,7 +37,7 @@ define((require, exports, module) => {
   const Model = Record({
     version: '0.0.7',
     mode: 'create-web-view', // or show-web-view, edit-web-view, choose-web-view
-    transition: 'zoom', // or fade
+    transition: 'zoom', // or fade, none
     shell: Focusable.Model({isFocused: true}),
     updates: Updates.Model,
     webViews: WebView.Model,

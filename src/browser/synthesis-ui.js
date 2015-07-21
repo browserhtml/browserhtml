@@ -103,7 +103,7 @@ define((require, exports, module) => {
     selectByOffset(-1));
 
   const closeWebViewByID = compose(
-    switchMode('edit-web-view', 'fade'),
+    switchMode('edit-web-view', 'none'),
     selectInput,
     focusInput,
     (state, id) =>

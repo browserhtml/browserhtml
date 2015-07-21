@@ -432,6 +432,8 @@ define((require, exports, module) => {
         webviewsStyle.fadeOut :
       mode === 'select-web-view' ?
         webviewsStyle.fadeOut :
+      (mode === 'edit-web-view' && transition === 'none') ?
+        null :
       (mode === 'edit-web-view' && transition === 'fade') ?
         webviewsStyle.fadeOut :
       webviewsStyle.shrink;
