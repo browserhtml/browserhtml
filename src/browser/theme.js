@@ -15,17 +15,32 @@ define((require, exports, module) => {
     isDark: false,
 
     inputText: Color('rgba(0,0,0,0.65)'),
-    locationText: Color('rgba(0,0,0, 0.65)'),
+    locationText: Color('rgba(0,0,0,0.65)'),
     titleText: Color('rgba(0,0,0,0.5)'),
     locationBar: Color('rgba(0,0,0,0.07)'),
 
     shell: Color('#fff'),
-    shellText: Color('rgba(0,0,0, 0.65)'),
+    shellText: Color('rgba(0,0,0,0.65)'),
 
     progressBar: Color('#4A90E2')
   }, 'Theme');
-
   exports.Model = Model;
+
+  exports.dashboard = Model({
+    isDark: true,
+
+    inputText: Color('rgba(255,255,255,0.65)'),
+    locationText: Color('rgba(255,255,255,0.65)'),
+    titleText: Color('rgba(255,255,255,0.5)'),
+    locationBar: 'rgba(255,255,255,0.15)',
+
+    shell: Color('#273340'),
+    shellText: Color('rgba(255,255,255,0.65)'),
+
+    progressBar: Color('#4A90E2')
+  });
+
+  exports.default = Model();
 
   exports.read = (pallet) => {
     const foreground = pallet && pallet.foreground || void(0);

@@ -131,14 +131,17 @@ define((require, exports, module) => {
 
   const OpenWindow = event =>
     WebView.Action({action: WebView.Open({uri: event.detail.url}) });
-  const defaultTheme = Theme.read({});
 
   const view = (state, address) => {
-    const {shell, webViews, input, suggestions} = state;
+    const {shell, webViews, input, suggestions, mode} = state;
     const {loader, page, security} = WebView.get(webViews, webViews.selected);
     const id = loader && loader.id;
-    const theme = page ? cache(Theme.read, page.pallet) :
-                  defaultTheme;
+    const theme =
+      (mode === 'show-web-view' && page) ?
+        cache(Theme.read, page.pallet) :
+      mode === 'show-web-view' ?
+        Theme.default :
+      Theme.dashboard;
 
     return Main({
       key: 'root',
