@@ -135,15 +135,20 @@ define((require, exports, module) => {
 
 
   const updateByWebViewAction = (state, id, source, action) =>
-    action instanceof Focusable.Focus ? showWebViewByID(state, id) :
-    action instanceof Focusable.Focused ? showWebViewByID(state, id) :
-    action instanceof WebView.Close ? closeWebViewByID(state, id) :
+    action instanceof Focusable.Focus ?
+      showWebViewByID(state, id) :
+    action instanceof Focusable.Focused ?
+      showWebViewByID(state, id) :
+    action instanceof WebView.Close ?
+      closeWebViewByID(state, id) :
     (action instanceof WebView.Open && source === 'keyboard') ?
       createWebView(state, 'quick') :
     (action instanceof WebView.Open && !action.uri) ?
       createWebView(state, 'normal') :
-    action instanceof WebView.SelectNext ? selectNext(state) :
-    action instanceof WebView.SelectPrevious ? selectPrevious(state) :
+    action instanceof WebView.SelectNext ?
+      selectNext(state) :
+    action instanceof WebView.SelectPrevious ?
+      selectPrevious(state) :
     state;
 
   const updateByInputAction = (state, source, action) =>
