@@ -422,25 +422,26 @@ define((require, exports, module) => {
     }
   });
 
-  const view = (mode, transition, loader, shell, page, address, selected) => {
-    const additionalStyles =
-      (mode === 'show-web-view' && transition === 'fade') ?
-        webviewsStyle.fadeIn :
-      (mode === 'show-web-view' && transition === 'zoom') ?
-        webviewsStyle.grow :
-      (mode === 'create-web-view' && transition === 'fade') ?
-        webviewsStyle.fadeOut :
-      mode === 'select-web-view' ?
-        webviewsStyle.fadeOut :
-      (mode === 'edit-web-view' && transition === 'none') ?
-        null :
-      (mode === 'edit-web-view' && transition === 'fade') ?
-        webviewsStyle.fadeOut :
-      webviewsStyle.shrink;
+  // Given a mode and transition, returns appropriate style object.
+  const getModeStyle = (mode, transition) =>
+    (mode === 'show-web-view' && transition === 'fade') ?
+      webviewsStyle.fadeIn :
+    (mode === 'show-web-view' && transition === 'zoom') ?
+      webviewsStyle.grow :
+    (mode === 'create-web-view' && transition === 'fade') ?
+      webviewsStyle.fadeOut :
+    mode === 'select-web-view' ?
+      webviewsStyle.fadeOut :
+    (mode === 'edit-web-view' && transition === 'none') ?
+      null :
+    (mode === 'edit-web-view' && transition === 'fade') ?
+      webviewsStyle.fadeOut :
+    webviewsStyle.shrink;
 
-    return html.div({
+  const view = (mode, transition, loader, shell, page, address, selected) =>
+    html.div({
       key: 'web-views',
-      style: Style(webviewsStyle.base, additionalStyles),
+      style: Style(webviewsStyle.base, getModeStyle(mode, transition)),
     }, loader.map((loader, index) =>
       render(`web-view@${loader.id}`, viewWebView,
              loader,
@@ -448,7 +449,6 @@ define((require, exports, module) => {
              page.get(index).thumbnail,
              index === selected,
              address.forward(action => Action({id: loader.id, action})))));
-  };
   exports.view = view;
 
   // Actions that web-view produces but `update` does not handles.
