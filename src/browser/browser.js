@@ -7,7 +7,7 @@ define((require, exports, module) => {
   'use strict';
 
   const {html, node, render, cache} = require('reflex');
-  const {Record, Any, Union} = require('common/typed');
+  const {Record, Any, Union, Maybe} = require('common/typed');
   const {inspect} = require('common/debug');
   const {StyleSheet, Style} = require('common/style');
   const WindowBar = require('./window-bar');
@@ -37,7 +37,7 @@ define((require, exports, module) => {
   const Model = Record({
     version: '0.0.7',
     mode: 'create-web-view', // or show-web-view, edit-web-view, choose-web-view
-    transition: 'zoom', // or fade, none
+    transition: Maybe(String), // zoom, fade, or null (no transition)
     shell: Focusable.Model({isFocused: true}),
     updates: Updates.Model,
     webViews: WebView.Model,

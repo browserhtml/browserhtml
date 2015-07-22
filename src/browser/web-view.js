@@ -419,11 +419,16 @@ define((require, exports, module) => {
       transform: 'scale(0)',
       opacity: 0,
       pointerEvents: 'none',
+    },
+    hide: {
+      transform: 'scale(0)',
+      opacity: 0,
+      pointerEvents: 'none'
     }
   });
 
   // Given a mode and transition, returns appropriate style object.
-  const getModeStyle = (mode, transition) =>
+  const getModeStyle =  (mode, transition) =>
     (mode === 'show-web-view' && transition === 'fade') ?
       webviewsStyle.fadeIn :
     (mode === 'show-web-view' && transition === 'zoom') ?
@@ -432,8 +437,8 @@ define((require, exports, module) => {
       webviewsStyle.fadeOut :
     mode === 'select-web-view' ?
       webviewsStyle.fadeOut :
-    (mode === 'edit-web-view' && transition === 'none') ?
-      null :
+    (mode === 'edit-web-view' && !transition) ?
+      webviewsStyle.hide :
     (mode === 'edit-web-view' && transition === 'fade') ?
       webviewsStyle.fadeOut :
     webviewsStyle.shrink;
