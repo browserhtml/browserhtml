@@ -83,6 +83,11 @@ define((require, exports, module) => {
   }, 'WebViews.Open');
   exports.Open = Open;
 
+  const FadeToOpen = Record({
+    description: 'Transition to open-web-view mode with fade animation'
+  }, 'WebViews.FadeToOpen');
+  exports.FadeToOpen = FadeToOpen;
+
   const OpenInBackground = Record({
     uri: String,
     inBackground: true
@@ -393,23 +398,55 @@ define((require, exports, module) => {
       width: '100vw',
       height: 'calc(100vh - 28px)',
     },
-    active: {
-      transition: 'opacity 150ms linear',
+    fadeIn: {
+      transition: 'opacity 100ms linear',
+      transform: 'scale(1)',
+      opacity: 1,
     },
-    inactive: {
-      transition: 'transform 300ms linear, opacity 150ms linear',
+    fadeOut: {
+      transition: 'transform 0ms linear 100ms, opacity 100ms linear',
       transform: 'scale(0)',
       opacity: 0,
       pointerEvents: 'none',
+    },
+    grow: {
+      transition: 'transform 200ms linear, opacity 200ms linear',
+      transform: 'scale(1)',
+      opacity: 1,
+    },
+    shrink: {
+      transition: 'transform 200ms linear, opacity 150ms linear',
+      transform: 'scale(0)',
+      opacity: 0,
+      pointerEvents: 'none',
+    },
+    hide: {
+      transform: 'scale(0)',
+      opacity: 0,
+      pointerEvents: 'none'
     }
   });
 
-  const view = (mode, loader, shell, page, address, selected) => {
-    const isActive = mode === 'show-web-view';
-    return html.div({
+  // Given a mode and transition, returns appropriate style object.
+  const getModeStyle =  (mode, transition) =>
+    (mode === 'show-web-view' && transition === 'fade') ?
+      webviewsStyle.fadeIn :
+    (mode === 'show-web-view' && transition === 'zoom') ?
+      webviewsStyle.grow :
+    (mode === 'create-web-view' && transition === 'fade') ?
+      webviewsStyle.fadeOut :
+    mode === 'select-web-view' ?
+      webviewsStyle.fadeOut :
+    (mode === 'edit-web-view' && !transition) ?
+      webviewsStyle.hide :
+    (mode === 'edit-web-view' && transition === 'fade') ?
+      webviewsStyle.fadeOut :
+    webviewsStyle.shrink;
+
+  const view = (mode, transition, loader, shell, page, address, selected) =>
+    html.div({
       key: 'web-views',
-      style: Style(webviewsStyle.base,
-                   isActive ? webviewsStyle.active : webviewsStyle.inactive),
+      style: Style(webviewsStyle.base, getModeStyle(mode, transition)),
     }, loader.map((loader, index) =>
       render(`web-view@${loader.id}`, viewWebView,
              loader,
@@ -417,7 +454,6 @@ define((require, exports, module) => {
              page.get(index).thumbnail,
              index === selected,
              address.forward(action => Action({id: loader.id, action})))));
-  };
   exports.view = view;
 
   // Actions that web-view produces but `update` does not handles.

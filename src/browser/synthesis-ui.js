@@ -32,9 +32,13 @@ define((require, exports, module) => {
 
   // Update
 
-  const switchMode = mode => state =>
-    state.set('mode', mode);
+  const switchMode = (mode, transition) => state =>
+    state.merge({mode, transition});
 
+  const fadeToEditMode = switchMode('edit-web-view', 'fade');
+  const zoomToEditMode = switchMode('edit-web-view', 'zoom');
+  const fadeToSelectMode = switchMode('select-web-view', 'fade');
+  const fadeToShowMode = switchMode('show-web-view', 'fade');
 
   const edit = (field, update) =>
     state => state.update(field, update);
@@ -49,14 +53,26 @@ define((require, exports, module) => {
   const selectViewByID = (state, id) =>
     state.set('webViews', WebView.selectByID(state.webViews, id));
 
-  const showWebView = switchMode('show-web-view');
-  const showWebViewByID = compose(showWebView, selectViewByID);
+  const showWebViewByID = compose(
+    switchMode('show-web-view', 'zoom'),
+    selectViewByID
+  );
+
+  const fadeToWebViewByID = compose(
+    fadeToShowMode,
+    selectViewByID
+  );
 
   const createWebView = compose(
-    switchMode('create-web-view'),
     focusInput,
-    state => state.mode === 'create-web-view' ? state :
-             state.setIn(['input', 'value'], null));
+    (state, transition) =>
+      state.mode === 'create-web-view' ?
+      state :
+      state.mergeDeep({
+        mode: 'create-web-view',
+        input: {value: null},
+        transition
+      }));
 
   const setInputToURIByID = (state, id) => {
     const index = WebView.indexByID(state.webViews, id);
@@ -67,7 +83,7 @@ define((require, exports, module) => {
   const editWebViewByID = compose(
     state => state.mode === 'edit-web-view' ? state :
              state.mode === 'create-web-view' ? state :
-             state.set('mode', 'edit-web-view'),
+             fadeToEditMode(state),
     selectInput,
     focusInput,
     (state, id) =>
@@ -79,17 +95,17 @@ define((require, exports, module) => {
     state.set('webViews', WebView.selectByOffset(state.webViews, offset));
 
   const selectNext = compose(
-    switchMode('select-web-view'),
+    fadeToSelectMode,
     blurInput,
     selectByOffset(1));
 
   const selectPrevious = compose(
-    switchMode('select-web-view'),
+    fadeToSelectMode,
     blurInput,
     selectByOffset(-1));
 
   const closeWebViewByID = compose(
-    switchMode('edit-web-view'),
+    switchMode('edit-web-view', null),
     selectInput,
     focusInput,
     (state, id) =>
@@ -107,7 +123,7 @@ define((require, exports, module) => {
   };
 
   const submit = compose(
-    switchMode('show-web-view'),
+    fadeToShowMode,
     clearSuggestions,
     clearInput,
     navigate);
@@ -115,18 +131,26 @@ define((require, exports, module) => {
   const showPreview = compose(
     state =>
       state.mode != 'show-web-view' ? state :
-      state.set('mode', 'edit-web-view'),
+      zoomToEditMode(state),
     state =>
       setInputToURIByID(state, '@selected'));
 
 
   const updateByWebViewAction = (state, id, action) =>
-    action instanceof Focusable.Focus ? showWebViewByID(state, id) :
-    action instanceof Focusable.Focused ? showWebViewByID(state, id) :
-    action instanceof WebView.Close ? closeWebViewByID(state, id) :
-    (action instanceof WebView.Open && !action.uri) ? createWebView(state) :
-    action instanceof WebView.SelectNext ? selectNext(state) :
-    action instanceof WebView.SelectPrevious ? selectPrevious(state) :
+    action instanceof Focusable.Focus ?
+      showWebViewByID(state, id) :
+    action instanceof Focusable.Focused ?
+      showWebViewByID(state, id) :
+    action instanceof WebView.Close ?
+      closeWebViewByID(state, id) :
+    (action instanceof WebView.Open && !action.uri) ?
+      createWebView(state, 'zoom') :
+    action instanceof WebView.FadeToOpen ?
+      createWebView(state, 'fade') :
+    action instanceof WebView.SelectNext ?
+      selectNext(state) :
+    action instanceof WebView.SelectPrevious ?
+      selectPrevious(state) :
     state;
 
   const updateByInputAction = (state, action) =>
@@ -136,12 +160,12 @@ define((require, exports, module) => {
     state;
 
   const completeSelection = state =>
-    state.mode === 'select-web-view' ? state.set('mode', 'show-web-view') :
+    state.mode === 'select-web-view' ? fadeToShowMode(state) :
     state;
 
   const escape = state =>
     state.mode === 'show-web-view' ? state :
-    showWebViewByID(state);
+    fadeToWebViewByID(state);
 
   const update = (state, action) =>
     action instanceof Navigation.Stop ?
@@ -149,6 +173,8 @@ define((require, exports, module) => {
     action instanceof WebView.Action ?
       updateByWebViewAction(state, action.id, action.action) :
     action instanceof WebView.Open ?
+      updateByWebViewAction(state, null, action) :
+    action instanceof WebView.FadeToOpen ?
       updateByWebViewAction(state, null, action) :
     action instanceof WebView.Close ?
       updateByWebViewAction(state, null, action) :
