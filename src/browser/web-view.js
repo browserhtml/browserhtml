@@ -83,10 +83,10 @@ define((require, exports, module) => {
   }, 'WebViews.Open');
   exports.Open = Open;
 
-  const TransitionToOpenWithFade = Record({
+  const FadeToOpen = Record({
     description: 'Transition to open-web-view mode with fade animation'
-  }, 'WebViews.TransitionToOpenWithFade');
-  exports.TransitionToOpenWithFade = TransitionToOpenWithFade;
+  }, 'WebViews.FadeToOpen');
+  exports.FadeToOpen = FadeToOpen;
 
   const OpenInBackground = Record({
     uri: String,

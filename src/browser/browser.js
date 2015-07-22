@@ -52,7 +52,7 @@ define((require, exports, module) => {
   const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
   const KeyDown = KeyBindings({
     'accel l': _ => Input.Action({action: Focusable.Focus()}),
-    'accel t': _ => WebView.TransitionToOpenWithFade(),
+    'accel t': _ => WebView.FadeToOpen(),
     'accel 0': _ => Shell.ResetZoom(),
     'accel -': _ => Shell.ZoomOut(),
     'accel =': _ => Shell.ZoomIn(),

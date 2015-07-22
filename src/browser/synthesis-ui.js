@@ -143,7 +143,7 @@ define((require, exports, module) => {
       closeWebViewByID(state, id) :
     (action instanceof WebView.Open && !action.uri) ?
       createWebView(state, 'zoom') :
-    action instanceof WebView.TransitionToOpenWithFade ?
+    action instanceof WebView.FadeToOpen ?
       createWebView(state, 'fade') :
     action instanceof WebView.SelectNext ?
       selectNext(state) :
@@ -172,7 +172,7 @@ define((require, exports, module) => {
       updateByWebViewAction(state, action.id, action.action) :
     action instanceof WebView.Open ?
       updateByWebViewAction(state, null, action) :
-    action instanceof WebView.TransitionToOpenWithFade ?
+    action instanceof WebView.FadeToOpen ?
       updateByWebViewAction(state, null, action) :
     action instanceof WebView.Close ?
       updateByWebViewAction(state, null, action) :
