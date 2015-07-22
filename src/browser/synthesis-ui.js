@@ -58,7 +58,7 @@ define((require, exports, module) => {
     selectViewByID
   );
 
-  const showWebViewByIDFade = compose(
+  const fadeToWebViewByID = compose(
     fadeToShowMode,
     selectViewByID
   );
@@ -165,7 +165,7 @@ define((require, exports, module) => {
 
   const escape = state =>
     state.mode === 'show-web-view' ? state :
-    showWebViewByIDFade(state);
+    fadeToWebViewByID(state);
 
   const update = (state, action) =>
     action instanceof Navigation.Stop ?
