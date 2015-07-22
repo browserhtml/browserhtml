@@ -35,6 +35,10 @@ define((require, exports, module) => {
   const switchMode = (mode, transition) => state =>
     state.merge({mode, transition});
 
+  const fadeToEditMode = switchMode('edit-web-view', 'fade');
+  const zoomToEditMode = switchMode('edit-web-view', 'zoom');
+  const fadeToSelectMode = switchMode('select-web-view', 'fade');
+  const fadeToShowMode = switchMode('show-web-view', 'fade');
 
   const edit = (field, update) =>
     state => state.update(field, update);
@@ -55,7 +59,7 @@ define((require, exports, module) => {
   );
 
   const showWebViewByIDFade = compose(
-    switchMode('show-web-view', 'fade'),
+    fadeToShowMode,
     selectViewByID
   );
 
@@ -76,12 +80,10 @@ define((require, exports, module) => {
                        state.getIn(['webViews', 'loader', index, 'uri']));
   };
 
-  const editWebView = switchMode('edit-web-view', 'fade');
-
   const editWebViewByID = compose(
     state => state.mode === 'edit-web-view' ? state :
              state.mode === 'create-web-view' ? state :
-             editWebView(state),
+             fadeToEditMode(state),
     selectInput,
     focusInput,
     (state, id) =>
@@ -93,12 +95,12 @@ define((require, exports, module) => {
     state.set('webViews', WebView.selectByOffset(state.webViews, offset));
 
   const selectNext = compose(
-    switchMode('select-web-view', 'fade'),
+    fadeToSelectMode,
     blurInput,
     selectByOffset(1));
 
   const selectPrevious = compose(
-    switchMode('select-web-view', 'fade'),
+    fadeToSelectMode,
     blurInput,
     selectByOffset(-1));
 
@@ -121,7 +123,7 @@ define((require, exports, module) => {
   };
 
   const submit = compose(
-    switchMode('show-web-view', 'fade'),
+    fadeToShowMode,
     clearSuggestions,
     clearInput,
     navigate);
@@ -129,7 +131,7 @@ define((require, exports, module) => {
   const showPreview = compose(
     state =>
       state.mode != 'show-web-view' ? state :
-      state.set('mode', 'edit-web-view'),
+      zoomToEditMode(state),
     state =>
       setInputToURIByID(state, '@selected'));
 
@@ -158,7 +160,7 @@ define((require, exports, module) => {
     state;
 
   const completeSelection = state =>
-    state.mode === 'select-web-view' ? state.set('mode', 'show-web-view') :
+    state.mode === 'select-web-view' ? fadeToShowMode(state) :
     state;
 
   const escape = state =>
