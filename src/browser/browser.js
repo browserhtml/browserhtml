@@ -125,7 +125,10 @@ define((require, exports, module) => {
       height: '100vh',
       width: '100vw',
       position: 'relative',
-    }
+    },
+    webviewsContainer: {
+      height: 'calc(100vh - 28px)',
+    },
   });
 
   // View
@@ -176,14 +179,20 @@ define((require, exports, module) => {
         state.mode, webViews.loader, webViews.page, webViews.selected, theme, address),
       render('Suggestions', Suggestions.view,
         state.mode, suggestions, input, theme, address),
-      render('WebViews', WebView.view,
-        state.mode,
-        state.transition,
-        webViews.loader,
-        webViews.shell,
-        webViews.page,
-        address,
-        webViews.selected),
+      html.div({
+        // The webviews should not require knowing the layout of external components.
+        // Its size is always height:100%,width:100%.
+        // We use this container to position it properly.
+        style: style.webviewsContainer
+      },
+        render('WebViews', WebView.view,
+          state.mode,
+          state.transition,
+          webViews.loader,
+          webViews.shell,
+          webViews.page,
+          address,
+          webViews.selected)),
       render('DevtoolsHUD', DevtoolsHUD.view, state.devtoolsHUD, address),
       render('Updater', Updates.view, state.updates, address)
     ])
