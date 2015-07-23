@@ -232,7 +232,7 @@ define((require, exports, module) => {
   const closeByIndex = (state, index) =>
     index === null ? state : state.merge({
       selected: state.loader.size === 1 ?  null :
-                state.loader.size === index + 1 ? index - 1 : index,
+                index === 0 ? 0 : index - 1,
 
       loader: state.loader.remove(index),
       shell: state.shell.remove(index),
