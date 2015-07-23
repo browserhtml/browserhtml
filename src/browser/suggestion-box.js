@@ -150,7 +150,9 @@ define((require, exports, module) => {
       lineHeight: '40px',
       verticalAlign: 'middle',
       borderTop: '1px solid rgba(0,0,0,0.05)',
-      cursor: 'pointer'
+      cursor: 'pointer',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
     },
     selected: {
       backgroundClip: 'content-box',
@@ -187,6 +189,8 @@ define((require, exports, module) => {
                  state instanceof Search.Match ? 'search' :
                  null;
 
+    const text = type == 'search' ? state.title : `${state.title} - ${state.uri}`;
+
     return html.p({
       style: Style(
         style.suggestion,
@@ -202,7 +206,7 @@ define((require, exports, module) => {
       }, Icon[type] || ''),
       html.span({
         key: 'suggestion'
-      }, state.title)
+      }, text)
     ]);
   };
   exports.viewSuggestion = viewSuggestion;
