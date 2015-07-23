@@ -183,7 +183,8 @@ define((require, exports, module) => {
         // The webviews should not require knowing the layout of external components.
         // Its size is always height:100%,width:100%.
         // We use this container to position it properly.
-        style: style.webviewsContainer
+        style: style.webviewsContainer,
+        key: 'web-views-container',
       },
         render('WebViews', WebView.view,
           state.mode,
