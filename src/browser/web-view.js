@@ -256,7 +256,7 @@ define((require, exports, module) => {
     const loader = state.loader.get(index);
     return !loader ?
             open(state, action) :
-           URI.getOrigin(loader.uri) !== URI.getOrigin(action.uri) ?
+           loader.uri && (URI.getOrigin(loader.uri) !== URI.getOrigin(action.uri)) ?
             open(state, action) :
             updateByIndex(state, index, Loader.Load(action));
   };
