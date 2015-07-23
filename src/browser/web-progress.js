@@ -43,12 +43,23 @@ define((require, exports, module) => {
 
   // View
 
-  const barStyle = StyleSheet.create({
-    base: {
+  const style = StyleSheet.create({
+
+    container: {
+      width: '100%',
       height: 4,
+      minHeight: 4,
+      marginBottom: -4,
+      position: 'relative',
+      overflowX: 'hidden',
+      pointerEvents: 'none',
+      zIndex: 1,
+    },
+
+    bar: {
       position: 'absolute',
       top: 0,
-      left: 0,
+      height: 4,
       width: '100%',
       transitionProperty: 'transform, opacity',
       transitionDuration: '300ms, 200ms',
@@ -58,7 +69,7 @@ define((require, exports, module) => {
       animationDuration: '10s',
       animationTimingFunction: 'cubic-bezier(0, 0.5, 0, 0.5)',
 
-      transform: 'translateX(-100vw)',
+      transform: 'translateX(-100%)',
       opacity: 0,
     },
     hidden: {
@@ -71,52 +82,39 @@ define((require, exports, module) => {
       animationName: 'progressBarLoading'
     },
     loaded: {
-      transform: 'translateX(0vw)',
+      transform: 'translateX(0px)',
       opacity: 0
-    }
-  });
+    },
 
-  const arrowStyle = StyleSheet.create({
-    base: {
+    arrow: {
       width: 4,
       height: 4,
       float: 'right',
-      marginRight: -4
-    }
+      marginRight: -4,
+    },
+
   });
 
   const progressbarView = (id, progress, isSelected, theme) => {
     return html.div({
       key: `progressbar-${id}`,
-      style: Style(barStyle.base,
-                   !isSelected ? barStyle.hidden : barStyle.visible,
-                   !progress.loading ? barStyle.loaded : barStyle.loading, {
+      style: Style(style.bar,
+                   !isSelected ? style.hidden : style.visible,
+                   !progress.loading ? style.loaded : style.loading, {
                      backgroundColor: theme.progressBar
                    }),
     }, [html.div({
       key: `progressbar-arrow-${id}`,
-      style: Style(arrowStyle.base, {
+      style: Style(style.arrow, {
         backgroundImage: `linear-gradient(135deg, ${theme.progressBar} 50%, transparent 50%)`,
       })
     })]);
   };
 
-  const containerStyle = StyleSheet.create({
-    base: {
-      position: 'absolute',
-      top: 28,
-      left: 0,
-      width: '100vw',
-      height: 4,
-      overflow: 'hidden',
-      pointerEvents: 'none',
-    }
-  });
-
   const view = (mode, loaders, progress, selected, theme) => {
     return html.div({
       key: 'progressbars',
-      style: containerStyle.base
+      style: style.container
     }, loaders.map((loader, index) =>
       render(`progressbar@${loader.id}`, progressbarView,
              loader.id,
