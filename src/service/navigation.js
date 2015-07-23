@@ -6,7 +6,7 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const {Record, Union} = require('common/typed');
+  const {Record} = require('common/typed');
 
   const GoBack = Record({
     id: '@selected'
