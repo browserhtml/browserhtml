@@ -211,7 +211,7 @@ define((require, exports, module) => {
 
   const open = (state, {uri, inBackground}) => state.merge({
     nextID: state.nextID + 1,
-    selected: inBackground ? state.selected : 0,
+    selected: inBackground ? state.selected + 1: 0,
     loader: state.loader.unshift(Loader.Model({uri, id: String(state.nextID)})),
     shell: state.shell.unshift(Shell.Model({isFocused: !inBackground})),
     page: state.page.unshift(Page.Model()),
