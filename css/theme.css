@@ -49,3 +49,14 @@ body {
   height: 100vh;
   overflow: hidden;
 }
+
+@keyframes progressBarLoading {
+  from {
+    transform: translateX(-100vw);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-40vw);
+    opacity: 1;
+  }
+}
