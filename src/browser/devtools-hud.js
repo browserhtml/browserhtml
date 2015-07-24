@@ -71,7 +71,8 @@ define((require, exports, module) => {
     }
 
     if (action instanceof Settings.Fetched) {
-      for (var [name, value] of action.settings) {
+      for (var setting of action.settings) {
+        var [name, value] = setting;
         updateSettingIfNeeded(name, value);
       }
     }
