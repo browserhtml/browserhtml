@@ -29,7 +29,7 @@ define((require, exports, module) => {
       search(Search.Query({id: action.value,
                            input: action.value,
                            limit: MAX_RESULTS}));
-    }, 4000);
+    }, 300);
 
     return action => {
       history(action);
