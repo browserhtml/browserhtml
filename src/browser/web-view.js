@@ -195,7 +195,7 @@ define((require, exports, module) => {
   }
   exports.indexByOffset = indexByOffset;
 
-  const selectByOffset = (state, offset, loop=false) =>
+  const selectByOffset = (state, offset, loop=true) =>
     state.set('selected', indexByOffset(state, offset, loop));
   exports.selectByOffset = selectByOffset;
 
