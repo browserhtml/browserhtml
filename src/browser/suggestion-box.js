@@ -150,13 +150,15 @@ define((require, exports, module) => {
     },
     suggestion: {
       lineHeight: '30px',
+      paddingLeft: 30,
       verticalAlign: 'middle',
       cursor: 'pointer',
       overflow: 'hidden',
+      // Contains absolute elements
+      position: 'relative',
       textOverflow: 'ellipsis',
     },
     selected: {
-      backgroundClip: 'content-box',
       backgroundColor: '#4A90E2',
       color: '#fff'
     },
@@ -167,11 +169,10 @@ define((require, exports, module) => {
       backgroundColor: 'rgba(255,255,255,0.15)'
     },
     prefix: {
-      display: 'inline-block',
       fontSize: '16px',
       fontFamily: 'FontAwesome',
-      width: 30,
-      textAlign: 'center'
+      position: 'absolute',
+      left: 9
     }
   });
 
