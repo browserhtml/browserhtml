@@ -126,7 +126,7 @@ define((require, exports, module) => {
       textAlign: 'center',
       width: '100vw',
       position: 'absolute',
-      top: 44,
+      top: 40,
       zIndex: 43,
       height: 260,
       pointerEvents: 'none'
@@ -139,10 +139,11 @@ define((require, exports, module) => {
       display: 'inline-block',
       textAlign: 'left',
       width: 400,
+      overflow: 'hidden',
       pointerEvents: 'all',
       backgroundColor: '#fff',
       borderRadius: 5,
-      paddingTop: 20
+      paddingTop: 30
     },
     first: {
       borderTop: 0
