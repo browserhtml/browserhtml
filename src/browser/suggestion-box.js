@@ -152,6 +152,7 @@ define((require, exports, module) => {
     suggestion: {
       lineHeight: '30px',
       paddingLeft: 30,
+      paddingRight: 10,
       verticalAlign: 'middle',
       cursor: 'pointer',
       overflow: 'hidden',
