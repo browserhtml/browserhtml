@@ -15,7 +15,7 @@ define((require, exports, module) => {
   const {throttle} = require('lang/functional');
   const Suggestions = require('browser/suggestion-box');
 
-  const MAX_RESULTS = 6;
+  const MAX_RESULTS = 5;
 
   const service = address => {
     const search = Search.service(address)

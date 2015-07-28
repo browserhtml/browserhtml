@@ -6,7 +6,7 @@ define((require, exports, module) => {
 
   'use strict';
 
-  const MAX_RESULTS = 6;
+  const MAX_RESULTS = 5;
 
   const {getDomainName} = require('common/url-helper');
   const {html, render} = require('reflex');
