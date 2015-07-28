@@ -126,7 +126,7 @@ define((require, exports, module) => {
   const update = (state, action) =>
     action instanceof TitleChanged ? state.set('title', action.title) :
     action instanceof IconChanged ? updateIcon(state, action.icon) :
-    action instanceof OverflowChanged && !state.overflow ? state.set('overflow', true) : // we don't want overflow to be set back to false
+    action instanceof OverflowChanged && !state.overflow ? state.set('overflow', action.overflow) : // we don't want overflow to be set back to false
     action instanceof ThumbnailChanged ? state.set('thumbnail', action.image) :
     action instanceof MetaChanged ? updateMeta(state, action) :
     action instanceof PalletChanged ? state.merge({
