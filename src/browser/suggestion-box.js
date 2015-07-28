@@ -143,7 +143,7 @@ define((require, exports, module) => {
       pointerEvents: 'all',
       backgroundColor: '#fff',
       borderRadius: 5,
-      paddingTop: 30
+      padding: '30px 0 5px'
     },
     first: {
       borderTop: 0
