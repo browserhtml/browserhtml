@@ -521,7 +521,7 @@ define((require, exports, module) => {
   Event.mozbrowsertitlechange = ({target, detail: title}) =>
     TitleChanged({uri: target.location, title});
 
-  Event.mozbrowsericonchange = ({target, detail: {href: icon}}) =>
+  Event.mozbrowsericonchange = ({target, detail: icon}) =>
     IconChanged({uri: target.location, icon});
 
   Event.mozbrowsermetachange = ({detail: {content, name}}) =>
