@@ -8,6 +8,7 @@ define((require, exports, module) => {
 
   const MAX_RESULTS = 6;
 
+  const {getDomainName} = require('common/url-helper');
   const {html, render} = require('reflex');
   const {Record, List, Union} = require('common/typed');
   const {StyleSheet, Style} = require('common/style');
@@ -192,7 +193,8 @@ define((require, exports, module) => {
                  state instanceof Search.Match ? 'search' :
                  null;
 
-    const text = type == 'search' ? state.title : `${state.title} - ${state.uri}`;
+    const text = type == 'search' ?
+      state.title : `${state.title} — ${getDomainName(state.uri)}`;
 
     return html.p({
       style: Style(style.suggestion, index == selected && style.selected),
