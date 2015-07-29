@@ -166,7 +166,7 @@ define((require, exports, module) => {
   const escape = state =>
     // If we're already showing a webview, or we can't show a webview because
     // none exist yet, do nothing. Otherwise, fade to the selected web view.
-    state.mode === 'show-web-view' || state.webViews.size() === 0 ? state :
+    state.mode === 'show-web-view' || state.webViews.selected === null ? state :
     fadeToWebViewByID(state);
 
   const update = (state, action) =>
