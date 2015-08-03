@@ -111,6 +111,7 @@ define((require, exports, module) => {
     switchMode('edit-web-view', null),
     selectInput,
     focusInput,
+    clearInput,
     (state, id) =>
       state.set('webViews', WebView.closeByID(state.webViews, id)));
 
