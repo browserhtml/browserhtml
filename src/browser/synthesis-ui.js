@@ -134,6 +134,9 @@ define((require, exports, module) => {
     state =>
       state.mode != 'show-web-view' ? state :
       zoomToEditMode(state),
+    selectInput,
+    focusInput,
+    clearSuggestions,
     state =>
       setInputToURIByID(state, '@selected'));
 
