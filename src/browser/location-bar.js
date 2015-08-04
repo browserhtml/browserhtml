@@ -207,7 +207,6 @@ define((require, exports, module) => {
     // Make forwarding addres that wraps actions into `Input.Action`.
     const inputAddress = address.forward(InputAction);
 
-    // If we have suggestions and the input isn't empty
     const view = Suggestions.isSuggesting(input, suggestions) ?
       viewSuggestingBar : viewActiveBar;
 
