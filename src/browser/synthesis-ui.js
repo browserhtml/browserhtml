@@ -80,12 +80,15 @@ define((require, exports, module) => {
                        state.getIn(['webViews', 'loader', index, 'uri']));
   };
 
+  const clearSuggestions = edit('suggestions', Suggestions.clear);
+
   const editWebViewByID = compose(
     state => state.mode === 'edit-web-view' ? state :
              state.mode === 'create-web-view' ? state :
              fadeToEditMode(state),
     selectInput,
     focusInput,
+    clearSuggestions,
     (state, id) =>
       state.mode === 'edit-web-view' ? state :
       state.mode === 'create-web-view' ? state :
@@ -108,10 +111,9 @@ define((require, exports, module) => {
     switchMode('edit-web-view', null),
     selectInput,
     focusInput,
+    (state) => setInputToURIByID(state, '@selected'),
     (state, id) =>
       state.set('webViews', WebView.closeByID(state.webViews, id)));
-
-  const clearSuggestions = edit('suggestions', Suggestions.clear);
 
   const navigate = (state, value) => {
     const uri = URI.read(value);
@@ -132,6 +134,9 @@ define((require, exports, module) => {
     state =>
       state.mode != 'show-web-view' ? state :
       zoomToEditMode(state),
+    selectInput,
+    focusInput,
+    clearSuggestions,
     state =>
       setInputToURIByID(state, '@selected'));
 

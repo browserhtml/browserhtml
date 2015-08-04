@@ -54,7 +54,7 @@ define((require, exports, module) => {
     },
     active: {
       backgroundColor: 'rgba(255,255,255,0.2)',
-      color: 'rgba(255,255,255,1)',
+      color: 'rgba(255,255,255,0.7)',
       height: 30,
       lineHeight: '30px',
       padding: '0 30px',
@@ -96,7 +96,7 @@ define((require, exports, module) => {
     dashboard: {right: 0},
 
     input: {
-      color: '#333',
+      color: 'inherit',
       width: '100%',
       lineHeight: '22px',
       overflow: 'hidden',
@@ -207,8 +207,7 @@ define((require, exports, module) => {
     // Make forwarding addres that wraps actions into `Input.Action`.
     const inputAddress = address.forward(InputAction);
 
-    // If we have suggestions and the input isn't empty
-    const view = (input.value && input.isFocused) ?
+    const view = Suggestions.isSuggesting(input, suggestions) ?
       viewSuggestingBar : viewActiveBar;
 
     return view(inputAddress, [
