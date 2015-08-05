@@ -228,6 +228,7 @@ define((require, exports, module) => {
         isFocused: input.isFocused,
         selection: input.selection,
         onChange: inputAddress.pass(Change),
+        onSelect: inputAddress.pass(Change),
         onFocus: inputAddress.pass(Focusable.Focused),
         onBlur: inputAddress.pass(Focusable.Blured),
         onKeyDown: address.pass(Binding)
