@@ -1,26 +1,23 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-define((require, exports, module) => {
-
   'use strict';
 
-  const {Record, Union, Maybe} = require('common/typed');
+  const {Record, Union, Maybe} = require('../common/typed');
   const {html, render} = require('reflex');
-  const URI = require('common/url-helper');
-  const {StyleSheet, Style} = require('common/style');
+  const URI = require('../common/url-helper');
+  const {StyleSheet, Style} = require('../common/style');
 
-  const {KeyBindings} = require('common/keyboard');
-  const Editable = require('common/editable');
-  const Focusable = require('common/focusable');
+  const {KeyBindings} = require('../common/keyboard');
+  const Editable = require('../common/editable');
+  const Focusable = require('../common/focusable');
   const WebView = require('./web-view');
   const Navigation = require('./web-navigation');
 
   const Shell = require('./web-shell');
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
-  const ClassSet = require('common/class-set');
+  const ClassSet = require('../common/class-set');
 
   // Model
 
@@ -282,4 +279,3 @@ define((require, exports, module) => {
   // TODO: Consider seperating location input field from the location bar.
 
   exports.view = view;
-});

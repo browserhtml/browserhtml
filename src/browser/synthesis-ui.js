@@ -1,22 +1,19 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-define((require, exports, module) => {
-
   'use strict';
 
-  const {Record, Any, Union} = require('common/typed');
-  const {compose} = require('lang/functional');
+  const {Record, Any, Union} = require('../common/typed');
+  const {compose} = require('../lang/functional');
   const WebView = require('./web-view');
   const Preview = require('./web-preview');
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
-  const Gesture = require('service/gesture');
-  const URI = require('common/url-helper');
-  const Focusable = require('common/focusable');
-  const Editable = require('common/editable');
-  const Navigation = require('service/navigation');
+  const Gesture = require('../service/gesture');
+  const URI = require('../common/url-helper');
+  const Focusable = require('../common/focusable');
+  const Editable = require('../common/editable');
+  const Navigation = require('../service/navigation');
 
   // Action
 
@@ -200,4 +197,3 @@ define((require, exports, module) => {
     state;
 
   exports.update = update;
-});
