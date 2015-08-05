@@ -1,16 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-define((require, exports, module) => {
-
   'use strict';
 
   const {html} = require('reflex');
-  const {Style, StyleSheet} = require('common/style');
-  const {Record} = require('common/typed');
-  const Runtime = require('common/runtime');
-  const Settings = require('service/settings');
+  const {Style, StyleSheet} = require('../common/style');
+  const {Record} = require('../common/typed');
+  const Settings = require('../service/settings');
+  const Runtime = require('../common/runtime');
 
   // Model
 
@@ -202,4 +199,3 @@ define((require, exports, module) => {
   };
 
   exports.view = view;
-});
