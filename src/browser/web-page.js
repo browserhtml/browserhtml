@@ -23,7 +23,6 @@
   });
 
   const Model = Record({
-    uri: Maybe(String),
     title: Maybe(String),
 
     label: Maybe(String),
@@ -122,12 +121,9 @@
     return state.set('icon', bestIcon).set('faviconURL', faviconURL);
   }
 
-  const updateLocation = (state, {uri}) =>
-    !state.uri ? state.set('uri', uri) :
-    state.uri === uri ? state :
-    URI.getOrigin(state.uri) === URI.getOrigin(uri) ?
-      Model({uri, pallet: state.pallet, palletSource: 'inherit'}) :
-    Model({uri});
+  const ensurePallet = state =>
+    state.palletSource ? state :
+    state.remove('pallet');
 
   const update = (state, action) =>
     action instanceof TitleChanged ? state.set('title', action.title) :
@@ -140,7 +136,9 @@
       palletSource: 'curated-theme-colors'
     }) :
     action instanceof PageCardChanged ? updateCard(state, action) :
-    action instanceof Loader.LocationChanged ? updateLocation(state, action) :
+    action instanceof Progress.LoadStarted ? state.remove('palletSource') :
+    action instanceof Progress.LoadEnded ? ensurePallet(state) :
+    action instanceof Loader.LocationChanged ? Model({pallet: state.pallet}) :
     state;
 
   exports.update = update;
