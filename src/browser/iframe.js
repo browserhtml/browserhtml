@@ -4,9 +4,54 @@
   'use strict';
 
   const Focusable = require('../common/focusable');
-  const {Element, BeforeAppendAttribute, VirtualAttribute, Event, VirtualEvent} = require('../common/element');
+  const {ElementView, BeforeAppendAttribute, VirtualAttribute, Event, VirtualEvent} = require('../common/element');
+  const React = require('react');
+  const {html} = require('reflex');
 
-  const view = Element('iframe', {
+  /*
+  const DOMProperty = require('react/lib/ReactInjection').DOMProperty;
+
+  // Configure react to make it understand custom mozbrowser attributes.
+  DOMProperty.injectDOMPropertyConfig({
+    Properties: {
+      'remote': DOMProperty.MUST_USE_ATTRIBUTE,
+      'mozbrowser': DOMProperty.MUST_USE_ATTRIBUTE,
+      'mozapp': DOMProperty.MUST_USE_ATTRIBUTE,
+      'mozallowfullscreen': DOMProperty.MUST_USE_ATTRIBUTE,
+    }
+  });
+  */
+
+
+  class IFrameView extends ElementView {
+    componentDidMount() {
+      super.componentDidMount();
+      this.setState({swapped: true});
+    }
+    render() {
+      return React.createElement(this.props.type, this.props.model,
+                                 this.props.children);
+    }
+  }
+
+  const view = IFrameView.create('iframe', {
+    opener: new VirtualAttribute((node, current) => {
+      const element = current instanceof String &&
+                      current.unbox &&
+                      current.unbox();
+
+      if (element && node !== element) {
+        for (let {name, value} of node.attributes) {
+          element.setAttribute(name, value);
+        }
+
+        for (let name of node.properties.names) {
+          element[name] = node.name;
+        }
+
+        node.parentNode.replaceChild(element, node);
+      }
+    }),
     isFocused: Focusable.Field.isFocused,
     remote: new BeforeAppendAttribute('remote'),
     mozbrowser: new BeforeAppendAttribute('mozbrowser'),
@@ -23,14 +68,14 @@
     }),
     isVisible: VirtualAttribute((node, current, past) => {
       if (current != past) {
-        if (node.setVisible) {
+        if (node.setVisible && !node.isSetVisibleBroken) {
           node.setVisible(current);
         }
       }
     }),
     zoom: VirtualAttribute((node, current, past) => {
       if (current != past) {
-        if (node.zoom) {
+        if (node.zoom && !node.isZoomBroken) {
           node.zoom(current);
         }
       }
@@ -92,7 +137,22 @@
       });
     })
   });
-
-  // Exports:
-
   exports.view = view;
+
+  // Gecko API for handling `window.open` has very unfortunate design
+  // (see #566, #565, #564). To workaround it and present more desirable
+  // API that also works with react we employ a hack to generate `opener`
+  // `String` instance (not a primitive value) that holds a reference to
+  // an iframe. It is used to box / unbox actual iframe that is then used
+  // by an IFrame to replace nodes.
+  const Opener = iframe => {
+    // See: https://github.com/mozilla/browser.html/issues/568
+    iframe.isSetVisibleBroken = true;
+    // See: https://github.com/mozilla/browser.html/issues/567
+    iframe.isZoomBroken = true;
+    const opener = new String(++Opener.lastID);
+    opener.unbox = () => iframe;
+    return opener;
+  }
+  Opener.lastID = 0;
+  exports.Opener = Opener;
