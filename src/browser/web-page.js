@@ -9,6 +9,7 @@
   const Progress = require('./web-progress');
   const WebView = require('./web-view');
   const Favicon = require('../common/favicon');
+  const URI = require('../common/url-helper');
 
   // Model
 
@@ -22,6 +23,7 @@
   });
 
   const Model = Record({
+    uri: Maybe(String),
     title: Maybe(String),
 
     label: Maybe(String),
@@ -120,6 +122,13 @@
     return state.set('icon', bestIcon).set('faviconURL', faviconURL);
   }
 
+  const updateLocation = (state, {uri}) =>
+    !state.uri ? state.set('uri', uri) :
+    state.uri === uri ? state :
+    URI.getOrigin(state.uri) === URI.getOrigin(uri) ?
+      Model({uri, pallet: state.pallet, palletSource: 'inherit'}) :
+    Model({uri});
+
   const update = (state, action) =>
     action instanceof TitleChanged ? state.set('title', action.title) :
     action instanceof IconChanged ? updateIcon(state, action.icon) :
@@ -131,7 +140,7 @@
       palletSource: 'curated-theme-colors'
     }) :
     action instanceof PageCardChanged ? updateCard(state, action) :
-    action instanceof Progress.LoadStarted ? state.clear() :
+    action instanceof Loader.LocationChanged ? updateLocation(state, action) :
     state;
 
   exports.update = update;
