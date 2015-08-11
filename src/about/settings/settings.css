@@ -9,10 +9,17 @@ body {
   white-space: nowrap;
 }
 
+.name {
+  min-width: 300px;
+}
+
+.value {
+  max-width: calc(100% - 300px);
+}
+
 .name, .value {
   display: inline-block;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  width: 300px;
 }
