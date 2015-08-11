@@ -27,6 +27,10 @@
   }, 'SynthesisUI.Escape');
   exports.Escape = Escape;
 
+  const ShowPreview = Record({
+    description: 'Display previews'
+  }, 'SynthesisUI.ShowPreview');
+
   // Update
 
   const switchMode = (mode, transition) => state =>
@@ -95,12 +99,10 @@
     state.set('webViews', WebView.selectByOffset(state.webViews, offset));
 
   const selectNext = compose(
-    fadeToSelectMode,
     blurInput,
     selectByOffset(1));
 
   const selectPrevious = compose(
-    fadeToSelectMode,
     blurInput,
     selectByOffset(-1));
 
@@ -127,7 +129,7 @@
     clearInput,
     navigate);
 
-  const showPreview = compose(
+  const editActiveWebView = compose(
     state =>
       state.mode != 'show-web-view' ? state :
       zoomToEditMode(state),
@@ -137,6 +139,11 @@
     state =>
       setInputToURIByID(state, '@selected'));
 
+    const showPreview = compose(
+      state =>
+        state.mode != 'show-web-view' ? state :
+        fadeToSelectMode(state),
+      blurInput);
 
   const updateByWebViewAction = (state, id, action) =>
     action instanceof Focusable.Focus ?
@@ -191,9 +198,29 @@
     action instanceof Input.Submit ?
       updateByInputAction(state, action) :
     action instanceof Gesture.Pinch ?
+      editActiveWebView(state) :
+    action instanceof ShowPreview ?
       showPreview(state) :
     action instanceof Select ?
       completeSelection(state) :
     state;
 
   exports.update = update;
+
+
+  const service = address => {
+    let id = -1;
+    const showPreview = address.pass(ShowPreview)
+
+    return action => {
+      if (action instanceof WebView.SelectNext ||
+          action instanceof WebView.SelectPrevious) {
+        id = setTimeout(showPreview, 100);
+      }
+
+      if (action instanceof Select) {
+        clearTimeout(id);
+      }
+    }
+  }
+  exports.service = service
