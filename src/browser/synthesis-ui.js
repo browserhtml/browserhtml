@@ -57,7 +57,8 @@
 
 
   const selectViewByIndex = (state, index) =>
-    WebView.activate(state.setIn(['webViews', 'previewed'], index));
+    state.set('webViews',
+              WebView.activate(state.webViews.set('previewed', index)));
 
   const showWebViewByIndex = compose(
     switchMode('show-web-view', 'zoom'),
