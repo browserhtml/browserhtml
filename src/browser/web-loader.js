@@ -8,6 +8,7 @@
   // Model
   const Model = Record({
     id: String,
+    opener: Any,
     uri: Maybe(String)
   }, 'WebLoader');
   exports.Model = Model;
