@@ -14,13 +14,19 @@
   const Focusable = require('../common/focusable');
   const Editable = require('../common/editable');
   const Navigation = require('../service/navigation');
+  const Selector = require('../common/selector');
 
   // Action
 
-  const Select = Record({
-    description: 'Complete web-view selection'
+  const OpenNew = Record({
+    description: 'Start a new web-view'
+  }, 'WebView.OpenNew');
+  exports.OpenNew = OpenNew;
+
+  const ShowSelected = Record({
+    description: 'Activate selected web-view'
   }, 'SynthesisUI.Select');
-  exports.Select = Select;
+  exports.ShowSelected = ShowSelected;
 
   const Escape = Record({
     description: 'Escape'
@@ -50,18 +56,12 @@
   const clearInput = edit('input', Editable.clear);
 
 
+  const selectViewByIndex = (state, index) =>
+    WebView.activate(state.setIn(['webViews', 'previewed'], index));
 
-  const selectViewByID = (state, id) =>
-    state.set('webViews', WebView.selectByID(state.webViews, id));
-
-  const showWebViewByID = compose(
+  const showWebViewByIndex = compose(
     switchMode('show-web-view', 'zoom'),
-    selectViewByID
-  );
-
-  const fadeToWebViewByID = compose(
-    fadeToShowMode,
-    selectViewByID
+    selectViewByIndex
   );
 
   const createWebView = compose(
@@ -75,44 +75,38 @@
         transition
       }));
 
-  const setInputToURIByID = (state, id) => {
-    const index = WebView.indexByID(state.webViews, id);
-    return state.setIn(['input', 'value'],
-                       state.getIn(['webViews', 'loader', index, 'uri']));
-  };
+  const setInputToURIBySelected = state =>
+    state.setIn(['input', 'value'],
+                state.getIn(['webViews',
+                             'loader',
+                             state.webViews.selected,
+                             'uri']));
 
   const clearSuggestions = edit('suggestions', Suggestions.clear);
 
-  const editWebViewByID = compose(
-    state => state.mode === 'edit-web-view' ? state :
-             state.mode === 'create-web-view' ? state :
-             fadeToEditMode(state),
+  const fadeToEdit = state =>
+    state.mode === 'edit-web-view' ? state :
+    state.mode === 'create-web-view' ? state :
+    fadeToEditMode(state);
+
+
+  const editSelectedWebView = compose(
+    fadeToEdit,
     selectInput,
     focusInput,
     clearSuggestions,
-    (state, id) =>
+    state =>
       state.mode === 'edit-web-view' ? state :
       state.mode === 'create-web-view' ? state :
-      setInputToURIByID(state, id));
+      setInputToURIBySelected(state));
 
-  const selectByOffset = offset => state =>
-    state.set('webViews', WebView.selectByOffset(state.webViews, offset));
-
-  const selectNext = compose(
-    blurInput,
-    selectByOffset(1));
-
-  const selectPrevious = compose(
-    blurInput,
-    selectByOffset(-1));
-
-  const closeWebViewByID = compose(
+  const closeWebViewByIndex = compose(
     switchMode('edit-web-view', null),
     selectInput,
     focusInput,
-    (state) => setInputToURIByID(state, '@selected'),
-    (state, id) =>
-      state.set('webViews', WebView.closeByID(state.webViews, id)));
+    setInputToURIBySelected,
+    (state, n) =>
+      state.set('webViews', WebView.closeByIndex(state.webViews, n)));
 
   const navigate = (state, value) => {
     const uri = URI.read(value);
@@ -129,82 +123,86 @@
     clearInput,
     navigate);
 
-  const editActiveWebView = compose(
-    state =>
-      state.mode != 'show-web-view' ? state :
-      zoomToEditMode(state),
+  const zoomToEditModeFromShowMode = state =>
+    state.mode !== 'show-web-view' ? state :
+    zoomToEditMode(state);
+
+  const zoomEditSelectedWebView = compose(
+    zoomToEditModeFromShowMode,
     selectInput,
     focusInput,
     clearSuggestions,
-    state =>
-      setInputToURIByID(state, '@selected'));
+    setInputToURIBySelected);
 
-    const showPreview = compose(
-      state =>
-        state.mode != 'show-web-view' ? state :
-        fadeToSelectMode(state),
-      blurInput);
 
-  const updateByWebViewAction = (state, id, action) =>
+  const fadeToSelectModefromShowMode = state =>
+    state.mode !== 'show-web-view' ? state :
+    fadeToSelectMode(state);
+
+  const showPreview = compose(fadeToSelectMode, blurInput);
+
+  const updateByWebViewIndex = (state, n, action) =>
     action instanceof Focusable.Focus ?
-      showWebViewByID(state, id) :
+      showWebViewByIndex(state, n) :
     action instanceof Focusable.Focused ?
-      showWebViewByID(state, id) :
+      showWebViewByIndex(state, n) :
     action instanceof WebView.Close ?
-      closeWebViewByID(state, id) :
-    (action instanceof WebView.Open && !action.uri) ?
-      createWebView(state, 'zoom') :
-    action instanceof WebView.FadeToOpen ?
-      createWebView(state, 'fade') :
-    action instanceof WebView.SelectNext ?
-      selectNext(state) :
-    action instanceof WebView.SelectPrevious ?
-      selectPrevious(state) :
+      closeWebViewByIndex(state, n) :
     state;
+
+  const updateByWebViewID = (state, id, action) =>
+    updateByWebViewIndex(state, WebView.indexByID(state.webViews, id), action);
+
+  const updateBySelectedWebView = (state, action) =>
+    updateByWebViewIndex(state, state.webViews.selected, action);
 
   const updateByInputAction = (state, action) =>
     action instanceof Input.Submit ? submit(state, action.value) :
-    action instanceof Focusable.Focus ? editWebViewByID(state, null) :
-    action instanceof Focusable.Focused ? editWebViewByID(state, null) :
+    action instanceof Focusable.Focus ? editSelectedWebView(state) :
+    action instanceof Focusable.Focused ? editSelectedWebView(state) :
     state;
 
-  const completeSelection = state =>
+  const fadeToShowModeFromSelectMode = state =>
     state.mode === 'select-web-view' ? fadeToShowMode(state) :
     state;
+
+  const activateSelectedWebView = state =>
+    state.update('webViews', WebView.activate);
+
+  const completeSelection = compose(
+    fadeToShowModeFromSelectMode,
+    activateSelectedWebView);
 
   const escape = state =>
     // If we're already showing a webview, or we can't show a webview because
     // none exist yet, do nothing. Otherwise, fade to the selected web view.
     state.mode === 'show-web-view' || state.webViews.selected === null ? state :
-    fadeToWebViewByID(state);
+    fadeToShowMode(state);
 
   const update = (state, action) =>
     action instanceof Navigation.Stop ?
       escape(state) :
-    action instanceof WebView.Action ?
-      updateByWebViewAction(state, action.id, action.action) :
-    action instanceof WebView.Open ?
-      updateByWebViewAction(state, null, action) :
-    action instanceof WebView.FadeToOpen ?
-      updateByWebViewAction(state, null, action) :
-    action instanceof WebView.Close ?
-      updateByWebViewAction(state, null, action) :
-    action instanceof WebView.SelectNext ?
-      updateByWebViewAction(state, null, action) :
-    action instanceof WebView.SelectPrevious ?
-      updateByWebViewAction(state, null, action) :
     action instanceof Input.Action ?
       updateByInputAction(state, action.action) :
     action instanceof Input.Submit ?
       updateByInputAction(state, action) :
+    action instanceof Preview.Create ?
+      createWebView(state, 'zoom') :
+    action instanceof OpenNew ?
+      createWebView(state, 'fade') :
+
+    action instanceof WebView.ByID ?
+      updateByWebViewID(state, action.id, action.action) :
+    action instanceof WebView.BySelected ?
+      updateBySelectedWebView(state, action.action) :
+
     action instanceof Gesture.Pinch ?
-      editActiveWebView(state) :
+      zoomEditSelectedWebView(state) :
+    action instanceof ShowSelected ?
+      completeSelection(state) :
     action instanceof ShowPreview ?
       showPreview(state) :
-    action instanceof Select ?
-      completeSelection(state) :
     state;
-
   exports.update = update;
 
 
@@ -213,12 +211,11 @@
     const showPreview = address.pass(ShowPreview)
 
     return action => {
-      if (action instanceof WebView.SelectNext ||
-          action instanceof WebView.SelectPrevious) {
-        id = setTimeout(showPreview, 100);
+      if (action instanceof WebView.Preview) {
+        id = setTimeout(showPreview, 70);
       }
 
-      if (action instanceof Select) {
+      if (action instanceof ShowSelected) {
         clearTimeout(id);
       }
     }
