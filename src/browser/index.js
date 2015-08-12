@@ -18,6 +18,7 @@
   const Scraper = require('../service/scraper');
   const Navigation = require('../service/navigation');
   const Gesture = require('../service/gesture');
+  const SynthesisUI = require('./synthesis-ui');
   const Force = require('../service/force');
 
   // Set up a address (message bus if you like) that will be used
@@ -45,6 +46,7 @@
       settings(action);
       scraper(action);
       navigation(action);
+      synthesis(action);
 
       // We cancel scheduled render on next animation frame as we are
       // forceing render to happen right away.
@@ -75,6 +77,7 @@
   const scraper = Scraper.service(address);
   const navigation = Navigation.service(address);
   const gesture = Gesture.service(address);
+  const synthesis = SynthesisUI.service(address);
 
   // Restore application state.
   address.receive(Session.RestoreSession());

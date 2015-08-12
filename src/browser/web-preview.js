@@ -10,7 +10,12 @@
   const {Style, StyleSheet} = require('../common/style');
   const {getDomainName} = require('../common/url-helper');
   const Favicon = require('../common/favicon');
+  const Selector = require('../common/selector');
 
+  const Create = Record({
+    description: 'Create a new web view'
+  }, 'Preview.Create');
+  exports.Create = Create;
 
   const Close = event => {
     if (event.button === 1) {
@@ -19,6 +24,7 @@
     }
     return null;
   }
+
 
   // View
 
@@ -42,16 +48,13 @@
 
   const DashboardIcon = '\uf067';
 
-  const OpenWebView = () =>
-    WebView.Action({action: WebView.Open()});
-
   const viewControls = (theme, address) => html.div({
     style: styleControls.panel
   }, [
     html.button({
       key: 'dashboard-button',
       style: styleControls.button,
-      onClick: address.pass(OpenWebView)
+      onClick: address.pass(Create)
     }, DashboardIcon)
   ]);
   exports.viewControls = viewControls;
@@ -67,6 +70,7 @@
       margin: '0 10px',
       overflow: 'hidden',
       position: 'relative',
+      'scroll-snap-coordinate': '50% 50%',
       width: '240px'
     },
     ghost: {
@@ -237,6 +241,8 @@
       backgroundColor: '#273340',
       height: '100vh',
       width: '100vw',
+      scrollSnapType: 'proximity',
+      scrollSnapDestination: '50% 50%',
       overflowX: 'auto',
       position: 'absolute',
       top: 0,
@@ -251,7 +257,7 @@
       width: '100vw',
       // Fixed height to contain floats.
       height: '300px',
-      padding: 'calc(50vh - 150px) 100px 0 100px',
+      padding: 'calc(50vh - 150px) 200px 0 200px',
       margin: '0 auto',
     }
   });
@@ -264,7 +270,7 @@
                loader, pages.get(index),
                index === selected,
                address.forward(action =>
-                                WebView.Action({id: loader.id, action}))));
+                                WebView.ByID({id: loader.id, action}))));
 
   const viewContainer = (theme, ...children) =>
     // Set the width of the previews element to match the width of each card
