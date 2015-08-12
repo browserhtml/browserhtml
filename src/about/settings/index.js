@@ -6,6 +6,8 @@
 
   const {render, html, Address, Application} = require('reflex');
   const {Record, Any} = require('../../common/typed');
+  const {StyleSheet, Style} = require('../../common/style');
+  const ClassSet = require('../../common/class-set');
   const {Map} = require('immutable');
   const Settings = require('../../service/settings');
   const React = require('react');
@@ -45,7 +47,15 @@
 
   // Update
 
+  const Edit = Record({
+    edit: true,
+    name: String,
+    input: String
+  }, 'Edit');
+
   const update = (state, action) =>
+    action instanceof Edit ?
+      state.setIn(['settings', action.name], action) :
     action instanceof Settings.Changed ?
       state.setIn(['settings', action.name], action.value) :
     action instanceof Settings.Fetched ?
@@ -55,41 +65,64 @@
 
   // View
 
+  const fieldStyle = StyleSheet.create({
+    // input field is wrapped in a box so that input field itself
+    // will resize to match it's container & subsequently typed text.
+    // input field is positioned absolute so it's size won't affect
+    // container & it's styles are blanked out as container is supposed
+    // to be styled instead.
+    input: {
+      padding: 0,
+      margin: 0,
+      background: 'transparent',
+      border: 'none',
+      font: 'inherit',
+      color: 'inherit',
+      position: 'absolute',
+      zIndex: 2,
+      left: 0,
+      width: '100%'
+    },
+    // Container box is positioned relative so that contaned input that
+    // is positioned absolute will be relative to this container. Overflow is
+    // also hidden so that input with in it will get clipped if it is too large.
+    box: {
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    // Container box content element is used to only to resize a container
+    // based on the text of the input field that is also a text for the
+    // content element.
+    content: {
+      font: 'inherit',
+      left: 0,
+      podding: 0,
+      margin: 0,
+      whiteSpace: 'pre',
+      opacity: 0,
+    },
+    number: {
+      background: 'transparent',
+      border: 'none',
+      color: 'inherit'
+    }
+  });
+
   const viewField = props => {
-    return html.span({
+    return html.span(Object.assign({}, props, {
       key: 'field',
-      style: {
-        position: 'relative',
-        overflow: 'hidden'
-      }
-    },[
+      style: fieldStyle.box,
+    }),[
       html.span({
         key: 'sizer',
-        style: {
-          left: 0,
-          color: 'red',
-          whiteSpace: 'pre',
-          opacity: 0,
-        }
+        style: fieldStyle.content,
       }, props.value),
-      input({
-        style: {
-          padding: 0,
-          margin: 0,
-          background: 'transparent',
-          border: 'none',
-          font: 'inherit',
-          margin: 0,
-          padding: 0,
-          position: 'absolute',
-          zIndex: 2,
-          left: 0,
-          width: '100%'
-        },
+      input(Object.assign({}, props, {
+        style: fieldStyle.input,
         type: 'text',
         text: props.value,
         onChange: props.onChange
-      })
+      }))
     ]);
   };
 
@@ -97,19 +130,15 @@
     const type = value == null ? 'null' :
           typeof(value);
 
-    return type === 'string' ? viewString(name, value, address) :
-           type === 'number' ? viewNumber(name, value, address) :
-           type === 'boolean' ? viewBoolean(name, value, address) :
+    return type === 'number' ? viewNumber(name, value, address) :
+           //type === 'boolean' ? viewBoolean(name, value, address) :
            viewJSON(name, value, address);
   }
 
   const viewNumber = (name, value, address) =>
     html.input({
       type: 'number',
-      style: {
-        border: 'none',
-        width: 'auto'
-      },
+      style: fieldStyle.number,
       value,
       onChange: event => address.receive(Settings.Update({
         name, value: event.target.valueAsNumber
@@ -123,29 +152,36 @@
         name, value: event.target.checked
       }))});
 
-  const viewString = (name, value, address) =>
-    html.code(null, [
-      '"',
-      viewField({
-        value,
-        onChange: event => address.receive(Settings.Update({
-          name,
-          value: event.target.value
-        }))}),
-      '"'
-    ]);
+  const parseInput = input => {
+    try {
+      return JSON.parse(input)
+    } catch(error) {
+      return error
+    }
+  }
 
   const viewJSON = (name, value, address) =>
     viewField({
-      value,
-      onChange: event => address.receive(Settings.Update({
-        name,
-        value: event.target.value === 'true' ? true :
-               event.target.value === 'false' ? false :
-               event.target.value === 'null' ? null :
-               !Number.isNaN(Number(event.target.value)) ? Number(event.target.value) :
-               event.target.value
-      }))});
+      value: (value && value.edit) ? value.input :
+             JSON.stringify(value),
+      onClick: event => {
+        if (value === true) {
+          address.receive(Settings.Update({name, value: false}));
+        }
+
+        if (value === false) {
+          address.receive(Settings.Update({name, value: true}));
+        }
+      },
+      onChange: event => {
+        const value = parseInput(event.target.value);
+        if (value instanceof Error) {
+          address.receive(Edit({name, input: event.target.value}));
+        } else {
+          address.receive(Settings.Update({name, value}));
+        }
+      }
+    });
 
   const viewSetting = (name, value, address) => html.div({
     className: 'row'
@@ -157,7 +193,16 @@
     }, name),
     html.span({
       key: 'value',
-      className: 'value',
+      className: ClassSet({
+        'value': true,
+        'cm-number': typeof(value) === 'number',
+        'cm-string': typeof(value) === 'string',
+        'cm-boolean': typeof(value) === 'boolean',
+        'cm-atom': value == null ||
+                   value === true ||
+                   value === false,
+        'cm-error': value && value.edit
+      }),
       title: value,
     }, [ viewValue(name, value, address)])
   ]);
@@ -165,9 +210,15 @@
   const view = (state, address) => html.div({
     key: 'table',
     className: 'table'
-  }, state.settings.map((value, key) => {
-    return render(key, viewSetting, key, value, address);
-  }).values());
+  }, [
+    html.meta({
+      name: 'theme-color',
+      content: '002b36|839496',
+    }),
+    ...state.settings.map((value, key) => {
+      return render(key, viewSetting, key, value, address);
+    }).values()
+  ]);
   exports.view = view;
 
   const address = new Address({
