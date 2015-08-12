@@ -8,21 +8,6 @@
   const React = require('react');
   const {html} = require('reflex');
 
-  /*
-  const DOMProperty = require('react/lib/ReactInjection').DOMProperty;
-
-  // Configure react to make it understand custom mozbrowser attributes.
-  DOMProperty.injectDOMPropertyConfig({
-    Properties: {
-      'remote': DOMProperty.MUST_USE_ATTRIBUTE,
-      'mozbrowser': DOMProperty.MUST_USE_ATTRIBUTE,
-      'mozapp': DOMProperty.MUST_USE_ATTRIBUTE,
-      'mozallowfullscreen': DOMProperty.MUST_USE_ATTRIBUTE,
-    }
-  });
-  */
-
-
   class IFrameView extends ElementView {
     componentDidMount() {
       super.componentDidMount();
