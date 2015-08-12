@@ -68,15 +68,27 @@
     }),
     isVisible: VirtualAttribute((node, current, past) => {
       if (current != past) {
-        if (node.setVisible && !node.isSetVisibleBroken) {
-          node.setVisible(current);
+        if (node.setVisible) {
+          try {
+            node.setVisible(current);
+          } catch (error) {
+            if (!node.isSetVisibleBroken) {
+              throw(error);
+            }
+          }
         }
       }
     }),
     zoom: VirtualAttribute((node, current, past) => {
       if (current != past) {
-        if (node.zoom && !node.isZoomBroken) {
-          node.zoom(current);
+        if (node.zoom) {
+          try {
+            node.zoom(current);
+          } catch (error) {
+            if (!node.isZoomBroken) {
+              throw(error);
+            }
+          }
         }
       }
     }),
