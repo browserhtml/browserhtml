@@ -70,7 +70,7 @@
       margin: '0 10px',
       overflow: 'hidden',
       position: 'relative',
-      'scroll-snap-coordinate': '50% 50%',
+      'scrollSnapCoordinate': '50% 50%',
       width: '240px'
     },
     ghost: {
