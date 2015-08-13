@@ -11,6 +11,7 @@
   const {StyleSheet, Style} = require('../common/style');
   const ClassSet = require('../common/class-set');
   const Loader = require('./web-loader');
+  const WebView = require('./web-view');
   const History = require('../service/history');
   const Search = require('../service/search');
 
@@ -188,6 +189,10 @@
     'history': HISTORY_ICON
   };
 
+  const Load = state => WebView.BySelected({
+    action: Loader.Load(state)
+  });
+
   const viewSuggestion = (state, selected, index, address) => {
     const type = state instanceof History.PageMatch ? 'history' :
                  state instanceof Search.Match ? 'search' :
@@ -198,7 +203,7 @@
 
     return html.p({
       style: Style(style.suggestion, index == selected && style.selected),
-      onMouseDown: address.pass(Loader.Load, state)
+      onMouseDown: address.pass(Load, state)
     }, [
       html.span({
         key: 'suggestionprefix',
