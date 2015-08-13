@@ -113,7 +113,7 @@ Pattern.escape = input => input.replace(/[\.\?\*\+\^\$\|\(\)\{\[\]\\]/g, '\\$&')
 
     if (type === 'IconChanged') {
       history.edit(Page.from({uri: action.uri}),
-                   page => page.set('icon', action.icon));
+                   page => page.set('icon', action.icon.href));
     }
 
     if (type === 'PageQuery') {

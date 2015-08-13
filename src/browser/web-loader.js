@@ -23,7 +23,8 @@
 
   const LocationChanged = Record({
     description: 'Location of the web view changed to enclosed uri',
-    uri: String
+    uri: String,
+    timeStamp: Number
   }, 'WebView.LocationChanged');
   exports.LocationChanged = LocationChanged;
 

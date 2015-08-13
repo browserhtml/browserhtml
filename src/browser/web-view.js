@@ -433,8 +433,8 @@
   Event.mozbrowserfirstpaint = event =>
     FirstPaint();
 
-  Event.mozbrowserlocationchange = ({detail: uri}) =>
-    LocationChanged({uri});
+  Event.mozbrowserlocationchange = ({detail: uri, timeStamp}) =>
+    LocationChanged({uri, timeStamp});
 
   // TODO: Figure out what's in detail
   Event.mozbrowserclose = ({detail}) =>
@@ -490,10 +490,10 @@
 
 
   Event.mozbrowserloadstart = ({target, timeStamp}) =>
-    LoadStarted({uri: target.location});
+    LoadStarted({uri: target.location, timeStamp});
 
   Event.mozbrowserloadend = ({target, timeStamp}) =>
-    LoadEnded({uri: target.location});
+    LoadEnded({uri: target.location, timeStamp});
 
   Event.mozbrowsertitlechange = ({target, detail: title}) =>
     TitleChanged({uri: target.location, title});
