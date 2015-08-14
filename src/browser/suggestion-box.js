@@ -195,7 +195,7 @@
       backgroundRepeat: 'no-repeat',
       borderRadius: 3,
       height: 16,
-      left: 7,
+      left: 8,
       position: 'absolute',
       top: 11,
       width: 16,
