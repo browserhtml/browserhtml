@@ -167,7 +167,7 @@
     },
     suggestion: {
       lineHeight: '30px',
-      paddingLeft: 30,
+      paddingLeft: 10,
       paddingRight: 10,
       verticalAlign: 'middle',
       cursor: 'pointer',
@@ -175,6 +175,9 @@
       // Contains absolute elements
       position: 'relative',
       textOverflow: 'ellipsis',
+    },
+    hasIcon: {
+      paddingLeft: 30,
     },
     selected: {
       backgroundColor: '#4A90E2',
@@ -238,6 +241,7 @@
       key: 'suggestion',
       style: Style(style.suggestion,
                    index == selected && style.selected,
+                   (Icon[type] || state.icon) && style.hasIcon,
                    style[type]),
       onMouseDown: address.pass(Load, state)
     }, [
