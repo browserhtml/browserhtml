@@ -180,8 +180,8 @@
       color: '#fff'
     },
     topHit: {
-      lineHeight: '40px',
-      fontSize: '110%'
+      lineHeight: '50px',
+      fontSize: '14px'
     },
     icon: {
       fontSize: '16px',
@@ -189,10 +189,16 @@
       position: 'absolute',
       left: 9,
     },
-    iconSymbol: {
-      fontSize: '16px',
-      fontFamily: 'FontAwesome',
-      whiteSpace: 'pre'
+    favicon: {
+      backgroundSize: 'cover',
+      backgroundPosition: 'center center',
+      backgroundRepeat: 'no-repeat',
+      borderRadius: 3,
+      height: 16,
+      left: 7,
+      position: 'absolute',
+      top: 17,
+      width: 16,
     },
     text: {
       fontSize: 'inherit',
@@ -211,8 +217,7 @@
 
   const Icon = {
     'search': SEARCH_ICON,
-    'history': HISTORY_ICON,
-    'topHit': ' '
+    'history': HISTORY_ICON
   };
 
   const Load = state => WebView.BySelected({
@@ -229,21 +234,18 @@
       state.title : `${state.title} — ${getDomainName(state.uri)}`;
 
     return html.li({
-      key: 'sugession',
+      key: 'suggestion',
       style: Style(style.suggestion,
                    index == selected && style.selected,
                    style[type]),
       onMouseDown: address.pass(Load, state)
     }, [
-      html.figure({
-        key: 'icon',
-        style: Style(style.icon,
-                     state.icon && {backgroundImage: `url(${state.icon})`})
-      }, [
-        html.figcaption({
-          style: style.iconSymbol
-        }, Icon[type])
-      ]),
+      (Icon[type] ?
+        html.div({key: 'icon', style: style.icon}, Icon[type]) :
+        html.div({
+          key: 'favicon',
+          style: Style(style.favicon,
+                       state.icon && {backgroundImage: `url(${state.icon})`})})),
       html.p({
         key: 'text',
         style: style.text
