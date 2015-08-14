@@ -207,7 +207,7 @@
             open(state, action) :
            loader.uri && (URI.getOrigin(loader.uri) !== URI.getOrigin(action.uri)) ?
             open(state, action) :
-            updateByIndex(state, index, Loader.Load(action));
+            changeByIndex(state, index, action);
   };
   exports.loadByIndex = loadByIndex;
 
