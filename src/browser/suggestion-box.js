@@ -180,8 +180,8 @@
       color: '#fff'
     },
     topHit: {
-      lineHeight: '50px',
-      fontSize: '14px'
+      lineHeight: '40px',
+      fontSize: '13px'
     },
     icon: {
       fontSize: '16px',
@@ -197,7 +197,7 @@
       height: 16,
       left: 7,
       position: 'absolute',
-      top: 17,
+      top: 11,
       width: 16,
     },
     text: {
