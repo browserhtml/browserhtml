@@ -166,28 +166,28 @@
     },
     suggestion: {
       lineHeight: '30px',
-      cursor: 'pointer'
+      paddingLeft: 30,
+      paddingRight: 10,
+      verticalAlign: 'middle',
+      cursor: 'pointer',
+      overflow: 'hidden',
+      // Contains absolute elements
+      position: 'relative',
+      textOverflow: 'ellipsis',
     },
     selected: {
       backgroundColor: '#4A90E2',
       color: '#fff'
-    },
-    dark: {
-      borderTopColor: 'rgba(255,255,255,0.15)'
-    },
-    selectedDark: {
-      backgroundColor: 'rgba(255,255,255,0.15)'
     },
     topHit: {
       lineHeight: '40px',
       fontSize: '110%'
     },
     icon: {
-      float: 'left',
-      width: '32px',
-      textAlign: 'center',
-      margin: '0 5px',
-      background: 'no-repeat 50% 50% none'
+      fontSize: '16px',
+      fontFamily: 'FontAwesome',
+      position: 'absolute',
+      left: 9,
     },
     iconSymbol: {
       fontSize: '16px',
