@@ -143,10 +143,12 @@
   // an iframe. It is used to box / unbox actual iframe that is then used
   // by an IFrame to replace nodes.
   const Opener = iframe => {
-    // See: https://github.com/mozilla/browser.html/issues/568
-    iframe.isSetVisibleBroken = true;
-    // See: https://github.com/mozilla/browser.html/issues/567
-    iframe.isZoomBroken = true;
+    if (iframe) {
+      // See: https://github.com/mozilla/browser.html/issues/568
+      iframe.isSetVisibleBroken = true;
+      // See: https://github.com/mozilla/browser.html/issues/567
+      iframe.isZoomBroken = true;
+    }
     const opener = new String(++Opener.lastID);
     opener.unbox = () => iframe;
     return opener;
