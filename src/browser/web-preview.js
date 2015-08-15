@@ -130,7 +130,7 @@
     description: {
       fontSize: '12px',
       lineHeight: '18px',
-      height: '72px',
+      height: '90px',
       margin: '0px 10px',
       overflow: 'hidden',
       whiteSpace: 'normal'
