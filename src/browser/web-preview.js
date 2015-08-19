@@ -6,12 +6,14 @@
   const {Record, Union, List, Maybe, Any} = require('../common/typed');
   const {html, render} = require('reflex');
   const WebView = require('./web-view');
+  const Page = require('./web-page');
   const Focusable = require('../common/focusable');
   const {Style, StyleSheet} = require('../common/style');
   const {getDomainName} = require('../common/url-helper');
   const Favicon = require('../common/favicon');
   const Selector = require('../common/selector');
   const Theme = require('./theme');
+  const {Element, Event, CapturedEvent} = require('../common/element');
 
   const Create = Record({
     description: 'Create a new web view'
@@ -25,7 +27,6 @@
     }
     return null;
   }
-
 
   // View
 
@@ -66,13 +67,14 @@
       borderRadius: '4px',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
       color: '#444',
-      float: 'left',
       height: '300px',
       margin: '0 10px',
       overflow: 'hidden',
       position: 'relative',
-      'scrollSnapCoordinate': '50% 50%',
-      width: '240px'
+      scrollSnapCoordinate: '50% 50%',
+      width: '240px',
+      top: '50%',
+      marginTop: '-50%'
     },
     ghost: {
       backgroundColor: 'transparent',
@@ -164,6 +166,7 @@
       })
     }),
     html.div({
+      key: 'hero',
       style: Style(stylePreview.image, {
         backgroundImage: `url(${hero})`
       })
@@ -202,6 +205,7 @@
       })
     }),
     html.div({
+      key: 'screenshot',
       style: Style(stylePreview.screenshot, {
         backgroundImage: `url(${screenshot})`
       })
@@ -216,6 +220,17 @@
     ])
   ];
 
+  const swipingDiv = Element('div', {
+    onMozSwipeGestureStart: Event('MozSwipeGestureStart'),
+    onMozSwipeGestureStartCapture: CapturedEvent('MozSwipeGestureStart'),
+    onMozSwipeGestureUpdate: Event('MozSwipeGestureUpdate'),
+    onMozSwipeGestureUpdateCapture: CapturedEvent('MozSwipeGestureUpdate'),
+    onMozSwipeGestureEnd: Event('MozSwipeGestureEnd'),
+    onMozSwipeGestureEndCapture: CapturedEvent('MozSwipeGestureEnd')
+  });
+
+  const DIRECTION_UP = 2;
+
   const viewPreview = (loader, page, isSelected, address) => {
     const hero = page.hero.get(0);
     const title = page.label || page.title;
@@ -228,22 +243,45 @@
         viewContentsHeroTitleDescription(name, icon, hero, title, page.description, theme) :
         viewContentsScreenshot(name, icon, page.thumbnail, theme);
 
-    return html.div({
+    return swipingDiv({
+      style: style.cardholder,
+      onMozSwipeGestureStart: (event) => {
+        if (event.direction === 1 || event.direction === 2) {
+          event.direction === 1 & 2;
+          event.preventDefault();
+        }
+      },
+      onMozSwipeGestureUpdate: (event) => {
+        if (Math.abs(event.delta) > 0.1) {
+          console.log(event);
+          address.receive(WebView.Close());
+        } else {
+          address.receive(Page.Swipe({delta: event.delta}));
+        }
+      },
+      onMozSwipeGestureEnd: (event) => {
+        address.receive(Page.Swipe({delta: event.delta}));
+      }
+    }, html.div({
       className: 'card',
       style: Style(stylePreview.card,
-                   isSelected && stylePreview.selected),
+                   isSelected && stylePreview.selected,
+                   page.swipeDelta !== null && {
+                     transform: `translateY(${-1000 * page.swipeDelta}px)`
+                   }),
       onClick: address.pass(Focusable.Focus),
-      onMouseUp: address.pass(Close)
-    }, previewContents);
+      onMouseUp: address.pass(Close),
+    }, previewContents));
   };
   exports.viewPreview = viewPreview;
 
-  const ghostPreview = html.div({
-    className: 'card',
-    style: Style(stylePreview.card, stylePreview.ghost)
-  });
-
   const style = StyleSheet.create({
+    cardholder: {
+      height: '100%',
+      float: 'left',
+      overflow: 'hidden',
+      width: 280
+    },
     scroller: {
       backgroundColor: '#273340',
       height: '100vh',
@@ -261,13 +299,20 @@
       // Margin doesn't play well with scroll -- the right-hand edge will get
       // cut off, so we turn on the traditional CSS box model and use padding.
       boxSizing: 'content-box',
-      width: '100vw',
+      height: '100%',
       // Fixed height to contain floats.
-      height: '300px',
-      padding: 'calc(50vh - 150px) 200px 0 200px',
+      //padding: 'calc(50vh - 150px) 200px 0 200px',
       margin: '0 auto',
     }
   });
+
+  const ghostPreview = html.div({
+    style: style.cardholder
+  }, html.div({
+    key: 'ghost',
+    className: 'card',
+    style: Style(stylePreview.card, stylePreview.ghost)
+  }));
 
 
   const viewPreviews = (loaders, pages, selected, address) =>
@@ -282,10 +327,16 @@
   const viewContainer = (theme, ...children) =>
     // Set the width of the previews element to match the width of each card
     // plus padding.
-    html.div({key: 'preview-container', style: style.scroller}, [
-      html.div({style: Style(style.previews, {
-        width: children.length * 260
-      })}, children)
+    html.div({
+      key: 'preview-container',
+      style: style.scroller
+    }, [
+      html.div({
+        key: 'preview-content',
+        style: Style(style.previews, {
+          width: children.length * 280
+        })
+      }, children)
     ]);
 
   const viewInEditMode = (loaders, pages, selected, theme, address) =>

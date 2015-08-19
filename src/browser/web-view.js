@@ -107,7 +107,8 @@
   const {MetaChanged, ThumbnailChanged, TitleChanged,
          IconChanged, Scrolled, OverflowChanged,
          FirstPaint, DocumentFirstPaint,
-         AnnounceCuratedColor, PageCardChanged} = Page;
+         AnnounceCuratedColor, PageCardChanged,
+         Swipe} = Page;
   const {SecurityChanged} = Security;
   const {VisibilityChanged, ZoomIn, ZoomOut, ResetZoom} = Shell;
   const {Focus, Blur, Focused, Blured} = Focusable;
@@ -126,7 +127,7 @@
     // Page
     MetaChanged, ThumbnailChanged, TitleChanged, IconChanged, Scrolled,
     OverflowChanged, PageCardChanged, FirstPaint, DocumentFirstPaint,
-    PageCardChanged, AnnounceCuratedColor,
+    PageCardChanged, AnnounceCuratedColor, Swipe,
     // Security
     SecurityChanged,
     // Shell

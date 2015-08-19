@@ -37,7 +37,9 @@
 
     themeColor: Maybe(String),
     curatedColor: Maybe(String),
-    pallet: Pallet.Model
+    pallet: Pallet.Model,
+
+    swipeDelta: Maybe(Number)
   });
   exports.Model = Model;
 
@@ -104,6 +106,12 @@
   const AnnounceCuratedColor = Pallet.AnnounceCuratedColor;
   exports.AnnounceCuratedColor = AnnounceCuratedColor;
 
+  const Swipe = Record({
+    description: 'Swipe',
+    delta: Number
+  }, 'Preview.Swipe');
+  exports.Swipe = Swipe;
+
 
   // Update
 
@@ -146,5 +154,6 @@
     // If you goBack `DocumentFirstPaint` does not seem to fire there for
     // we updatePallet again on LoadEnded to cover that as well.
     action instanceof Progress.LoadEnded ? updatePallet(state) :
+    action instanceof Swipe ? state.set('swipeDelta', action.delta) :
     state;
   exports.update = update;
