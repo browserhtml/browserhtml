@@ -102,21 +102,18 @@
 
   const noTop = [];
   const updatePage = (state, {matches, topHit}) => {
-    const entries = state.entries.filter(isntPage);
+    const search = state.entries.filter(isntPage);
     const half = Math.floor(MAX_RESULTS / 2);
-    const count = Math.min(matches.count(),
-                           MAX_RESULTS - Math.min(half, entries.count()));
-    const pages = matches.take(count);
+    const limit = Math.min(matches.count(),
+                           Math.max(MAX_RESULTS - search.count(), half));
+
+    const pages = matches.take(limit);
+    const entries = search.take(MAX_RESULTS - limit)
+                          .push(...pages);
 
     return state.merge({
       selected: -1,
-      entries: topHit ? entries.take(count)
-                               .unshift(topHit)
-                               .push(...pages)
-                               .take(MAX_RESULTS + 1) :
-               entries.take(count)
-                      .push(...pages)
-                      .take(MAX_RESULTS)
+      entries: topHit ? entries.unshift(topHit) : entries
     });
   };
 
