@@ -35,7 +35,8 @@
 
     const respond = ({id}, {response}) => {
       request = null;
-      const entries = response[1] &&
+      const entries = response &&
+                      response[1] &&
                       response[1].map(Match.read);
 
       return Result({id, results: entries});
