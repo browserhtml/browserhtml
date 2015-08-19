@@ -93,17 +93,6 @@
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap'
     },
-    title: {
-      display: 'block',
-      fontSize: '14px',
-      fontWeight: 'bold',
-      lineHeight: '18px',
-      margin: '0 10px 8px 10px',
-      width: '200px',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap'
-    },
     icon: {
       backgroundSize: 'cover',
       backgroundPosition: 'center center',
@@ -143,21 +132,21 @@
     description: {
       fontSize: '12px',
       lineHeight: '18px',
-      height: '72px',
+      height: '90px',
       margin: '0px 10px',
       overflow: 'hidden',
       whiteSpace: 'normal'
     }
   });
 
-  const viewContentsHeroTitleDescription = (name, icon, hero, title, description, theme) => [
+  const viewContentsHeroTitleDescription = (title, icon, hero, description, theme) => [
     html.header({
         key: 'header',
         style: Style(stylePreview.header, {
           backgroundColor: theme.shell,
           color: theme.shellText
         }),
-      }, name),
+      }, title),
     html.span({
       key: 'icon',
       alt: '',
@@ -179,24 +168,20 @@
         onLoad: event => URL.revokeObjectURL(event.target.src)
       })
     ]),
-    html.div({
-      key: 'title',
-      style: stylePreview.title
-    }, title),
     html.p({
       key: 'description',
       style: stylePreview.description
     }, description)
   ];
 
-  const viewContentsScreenshot = (name, icon, screenshot, theme) => [
+  const viewContentsScreenshot = (title, icon, screenshot, theme) => [
     html.header({
         key: 'header',
         style: Style(stylePreview.header, {
           backgroundColor: theme.shell,
           color: theme.shellText
         }),
-      }, name),
+      }, title),
     html.span({
       key: 'icon',
       alt: '',
@@ -240,8 +225,8 @@
 
     const previewContents =
       hero && title && page.description ?
-        viewContentsHeroTitleDescription(name, icon, hero, title, page.description, theme) :
-        viewContentsScreenshot(name, icon, page.thumbnail, theme);
+        viewContentsHeroTitleDescription(title, icon, hero, page.description, theme) :
+        viewContentsScreenshot(title, icon, page.thumbnail, theme);
 
     return swipingDiv({
       style: style.cardholder,

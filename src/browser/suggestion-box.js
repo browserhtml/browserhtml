@@ -102,21 +102,18 @@
 
   const noTop = [];
   const updatePage = (state, {matches, topHit}) => {
-    const entries = state.entries.filter(isntPage);
+    const search = state.entries.filter(isntPage);
     const half = Math.floor(MAX_RESULTS / 2);
-    const count = Math.min(matches.count(),
-                           MAX_RESULTS - Math.min(half, entries.count()));
-    const pages = matches.take(count);
+    const limit = Math.min(matches.count(),
+                           Math.max(MAX_RESULTS - search.count(), half));
+
+    const pages = matches.take(limit);
+    const entries = search.take(MAX_RESULTS - limit)
+                          .push(...pages);
 
     return state.merge({
       selected: -1,
-      entries: topHit ? entries.take(count)
-                               .unshift(topHit)
-                               .push(...pages)
-                               .take(MAX_RESULTS + 1) :
-               entries.take(count)
-                      .push(...pages)
-                      .take(MAX_RESULTS)
+      entries: topHit ? entries.unshift(topHit) : entries
     });
   };
 
@@ -151,6 +148,7 @@
       display: 'none'
     },
     suggestions: {
+      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
       color: 'rgba(0,0,0,0.7)',
       display: 'inline-block',
       textAlign: 'left',
@@ -166,33 +164,42 @@
     },
     suggestion: {
       lineHeight: '30px',
-      cursor: 'pointer'
+      paddingLeft: 10,
+      paddingRight: 10,
+      verticalAlign: 'middle',
+      cursor: 'pointer',
+      overflow: 'hidden',
+      // Contains absolute elements
+      position: 'relative',
+      textOverflow: 'ellipsis',
+    },
+    hasIcon: {
+      paddingLeft: 30,
     },
     selected: {
       backgroundColor: '#4A90E2',
       color: '#fff'
     },
-    dark: {
-      borderTopColor: 'rgba(255,255,255,0.15)'
-    },
-    selectedDark: {
-      backgroundColor: 'rgba(255,255,255,0.15)'
-    },
     topHit: {
       lineHeight: '40px',
-      fontSize: '110%'
+      fontSize: '13px'
     },
     icon: {
-      float: 'left',
-      width: '32px',
-      textAlign: 'center',
-      margin: '0 5px',
-      background: 'no-repeat 50% 50% none'
-    },
-    iconSymbol: {
       fontSize: '16px',
       fontFamily: 'FontAwesome',
-      whiteSpace: 'pre'
+      position: 'absolute',
+      left: 9,
+    },
+    favicon: {
+      backgroundSize: 'cover',
+      backgroundPosition: 'center center',
+      backgroundRepeat: 'no-repeat',
+      borderRadius: 3,
+      height: 16,
+      left: 8,
+      position: 'absolute',
+      top: 11,
+      width: 16,
     },
     text: {
       fontSize: 'inherit',
@@ -211,8 +218,7 @@
 
   const Icon = {
     'search': SEARCH_ICON,
-    'history': HISTORY_ICON,
-    'topHit': ' '
+    'history': HISTORY_ICON
   };
 
   const Load = state => WebView.BySelected({
@@ -229,21 +235,19 @@
       state.title : `${state.title} — ${getDomainName(state.uri)}`;
 
     return html.li({
-      key: 'sugession',
+      key: 'suggestion',
       style: Style(style.suggestion,
                    index == selected && style.selected,
+                   (Icon[type] || state.icon) && style.hasIcon,
                    style[type]),
       onMouseDown: address.pass(Load, state)
     }, [
-      html.figure({
-        key: 'icon',
-        style: Style(style.icon,
-                     state.icon && {backgroundImage: `url(${state.icon})`})
-      }, [
-        html.figcaption({
-          style: style.iconSymbol
-        }, Icon[type])
-      ]),
+      (Icon[type] ?
+        html.div({key: 'icon', style: style.icon}, Icon[type]) :
+        html.div({
+          key: 'favicon',
+          style: Style(style.favicon,
+                       state.icon && {backgroundImage: `url(${state.icon})`})})),
       html.p({
         key: 'text',
         style: style.text
