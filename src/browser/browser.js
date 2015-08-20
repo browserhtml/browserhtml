@@ -4,7 +4,7 @@
   'use strict';
 
   const {html, node, render, cache} = require('reflex');
-  const {Record, Any, Union, Maybe} = require('../common/typed');
+  const {Record, Maybe} = require('typed-immutable');
   const {inspect} = require('../common/debug');
   const {StyleSheet, Style} = require('../common/style');
   const WindowBar = require('./window-bar');
@@ -179,7 +179,8 @@
       render('LocationBar', LocationBar.view,
         state.mode, loader, security, page, input, suggestions, address),
       render('Preview', Preview.view,
-        state.mode, webViews.loader, webViews.page, webViews.previewed, theme, address),
+        state.mode, webViews.loader, webViews.page, webViews.card,
+        webViews.previewed, theme, address),
       render('Suggestions', Suggestions.view,
         state.mode, suggestions, input, address),
       html.div({

@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
   const {html, render} = require('reflex');
   const {StyleSheet, Style} = require('../common/style');
   const URI = require('../common/url-helper');
@@ -18,6 +18,7 @@
   const Loader = require('./web-loader');
   const Selector = require('../common/selector');
   const Force = require('../service/force');
+  const Card = require('./web-card');
 
   // Model
   const Model = Record({
@@ -31,17 +32,9 @@
     progress: List(Progress.Model),
     navigation: List(Navigation.Model),
     security: List(Security.Model),
+    card: List(Card.Model)
   }, 'WebViews');
   exports.Model = Model;
-
-  // Returns subset of the model which can be restored acrosse sessions.
-  const write = model => model.merge({
-    progress: model.progress.map(Progress.write),
-    page: model.page.map(Page.write),
-    navigation: model.navigation.map(Navigation.write),
-    security: model.security.map(Security.write)
-  });
-  exports.write = write;
 
   const get = (state, index) => ({
     loader: state.loader.get(index),
@@ -49,7 +42,8 @@
     page: state.page.get(index),
     progress: state.progress.get(index),
     navigation: state.navigation.get(index),
-    security: state.security.get(index)
+    security: state.security.get(index),
+    card: state.card.get(index)
   });
   exports.get = get;
 
@@ -101,42 +95,14 @@
   }, 'WebViews.SelectByID');
   exports.SelectByID = SelectByID;
 
-  const {Load, LocationChanged} = Loader;
-  const {CanGoBackChanged, CanGoForwardChanged} = Navigation;
-  const {LoadStarted, LoadEnded} = Progress;
-  const {MetaChanged, ThumbnailChanged, TitleChanged,
-         IconChanged, Scrolled, OverflowChanged,
-         FirstPaint, DocumentFirstPaint,
-         AnnounceCuratedColor, PageCardChanged,
-         Swipe} = Page;
-  const {SecurityChanged} = Security;
-  const {VisibilityChanged, ZoomIn, ZoomOut, ResetZoom} = Shell;
-  const {Focus, Blur, Focused, Blured} = Focusable;
-
 
   // Just a union type for all possible actions that are targeted at specific
   // web view.
-  const Action = Union({
+  const Action = Union(
     Close, Open, OpenInBackground,
-    // Loader
-    Load, LocationChanged,
-    // Progress
-    LoadStarted, LoadEnded,
-    // Navigation
-    CanGoBackChanged, CanGoForwardChanged,
-    // Page
-    MetaChanged, ThumbnailChanged, TitleChanged, IconChanged, Scrolled,
-    OverflowChanged, PageCardChanged, FirstPaint, DocumentFirstPaint,
-    PageCardChanged, AnnounceCuratedColor, Swipe,
-    // Security
-    SecurityChanged,
-    // Shell
-    VisibilityChanged,
-    Focus, Blur, Focused, Blured,
-    ZoomIn, ZoomOut, ResetZoom,
-    // Other
-    Failure, ContextMenu, ModalPrompt, Authentificate
-  });
+    Loader.Action, Progress.Action, Navigation.Action, Focusable.Action,
+    Page.Action, Security.Action, Shell.Action, Card.Action,
+    Failure, ContextMenu, ModalPrompt, Authentificate);
   exports.Action = Action;
 
   // Type contains `id` of the web-view and an `action` that is targeted
@@ -184,7 +150,8 @@
     page: state.page.unshift(Page.Model()),
     progress: state.progress.unshift(Progress.Model()),
     navigation: state.navigation.unshift(Navigation.Model()),
-    security: state.security.unshift(Security.Model())
+    security: state.security.unshift(Security.Model()),
+    card: state.card.unshift(Card.Model())
   }));
   exports.open = open;
 
@@ -197,7 +164,8 @@
       page: state.page.remove(index),
       progress: state.progress.remove(index),
       navigation: state.navigation.remove(index),
-      security: state.security.remove(index)
+      security: state.security.remove(index),
+      card: state.card.remove(index)
     }));
   exports.closeByIndex = closeByIndex;
 
@@ -213,7 +181,7 @@
   exports.loadByIndex = loadByIndex;
 
   const updateByIndex = (state, n, action) =>
-    action instanceof Load ? loadByIndex(state, n, action) :
+    action instanceof Loader.Load ? loadByIndex(state, n, action) :
     action instanceof Close ? closeByIndex(state, n, action) :
     action instanceof Open ? open(state, action) :
     action instanceof OpenInBackground ? open(state, action) :
@@ -221,17 +189,18 @@
 
 
   const changeByIndex = (state, n, action) => {
-    const {loader, shell, page, progress, navigation, security} = state;
+    const {loader, shell, page, progress, navigation, security, card} = state;
     return n === null ? state : activate(state.merge({
-      selected: action instanceof Focus ? n :
-               action instanceof Focused ? n :
+      selected: action instanceof Focusable.Focus ? n :
+               action instanceof Focusable.Focused ? n :
                state.selected,
       loader: loader.set(n, Loader.update(loader.get(n), action)),
       shell: shell.set(n, Shell.update(shell.get(n), action)),
       page: page.set(n, Page.update(page.get(n), action)),
       progress: progress.set(n, Progress.update(progress.get(n), action)),
       security: security.set(n, Security.update(security.get(n), action)),
-      navigation: navigation.set(n, Navigation.update(navigation.get(n), action))
+      navigation: navigation.set(n, Navigation.update(navigation.get(n), action)),
+      card: card.set(n, Card.update(card.get(n), action))
     }));
   };
 
@@ -429,13 +398,13 @@
     Event[event.type](event);
 
   Event.mozbrowserdocumentfirstpaint = event =>
-    DocumentFirstPaint();
+    Page.DocumentFirstPaint();
 
   Event.mozbrowserfirstpaint = event =>
-    FirstPaint();
+    Page.FirstPaint();
 
   Event.mozbrowserlocationchange = ({detail: uri, timeStamp}) =>
-    LocationChanged({uri, timeStamp});
+    Loader.LocationChanged({uri, timeStamp});
 
   // TODO: Figure out what's in detail
   Event.mozbrowserclose = ({detail}) =>
@@ -477,45 +446,45 @@
 
 
   Event.focus = ({id}) =>
-    Focused({id});
+    Focusable.Focused({id});
 
   Event.blur = ({id}) =>
-    Blured({id});
+    Focusable.Blured({id});
 
 
   Event.mozbrowsergobackchanged = ({detail: value}) =>
-    CanGoBackChanged({value});
+    Navigation.CanGoBackChanged({value});
 
   Event.mozbrowsergoforwardchanged = ({detail: value}) =>
-    CanGoForwardChanged({value});
+    Navigation.CanGoForwardChanged({value});
 
 
   Event.mozbrowserloadstart = ({target, timeStamp}) =>
-    LoadStarted({uri: target.location, timeStamp});
+    Progress.LoadStarted({uri: target.location, timeStamp});
 
   Event.mozbrowserloadend = ({target, timeStamp}) =>
-    LoadEnded({uri: target.location, timeStamp});
+    Progress.LoadEnded({uri: target.location, timeStamp});
 
   Event.mozbrowsertitlechange = ({target, detail: title}) =>
-    TitleChanged({uri: target.location, title});
+    Page.TitleChanged({uri: target.location, title});
 
   Event.mozbrowsericonchange = ({target, detail: icon}) =>
-    IconChanged({uri: target.location, icon});
+    Page.IconChanged({uri: target.location, icon});
 
   Event.mozbrowsermetachange = ({detail: {content, name}}) =>
-    MetaChanged({content, name});
+    Page.MetaChanged({content, name});
 
   // TODO: Figure out what's in detail
   Event.mozbrowserasyncscroll = ({detail}) =>
-    Scrolled();
+    Page.Scrolled();
 
   Event.mozbrowserscrollareachanged = ({target, detail}) =>
-    OverflowChanged({
+    Page.OverflowChanged({
       overflow: detail.height > target.parentNode.clientHeight
     });
 
   Event.mozbrowsersecuritychange = ({detail}) =>
-    SecurityChanged({
+    Security.SecurityChanged({
       state: detail.state,
       extendedValidation: detail.extendedValidation
     });

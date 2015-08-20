@@ -23,6 +23,9 @@
   }, 'WebView.Security.Change');
   exports.SecurityChanged = SecurityChanged;
 
+  const Action = SecurityChanged;
+  exports.Action = Action;
+
   // Update
 
   const update = (state, action) =>

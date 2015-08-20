@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union} = require('../common/typed');
+  const {Record, Union} = require('typed-immutable');
   const {VirtualAttribute} = require('./element');
 
   // Model
@@ -35,6 +35,8 @@
   }, 'Focusable.Blured');
   exports.Blured = Blured;
 
+  const Action = Union(Focus, Blur, Focused, Blured);
+  exports.Action = Action;
   // Update
 
   const focus = state => state.set('isFocused', true);

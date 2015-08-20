@@ -7,6 +7,7 @@
   const {html, render} = require('reflex');
   const WebView = require('./web-view');
   const Page = require('./web-page');
+  const Card = require('./web-card');
   const Focusable = require('../common/focusable');
   const {Style, StyleSheet} = require('../common/style');
   const {getDomainName} = require('../common/url-helper');
@@ -14,6 +15,7 @@
   const Selector = require('../common/selector');
   const Theme = require('./theme');
   const {Element, Event, CapturedEvent} = require('../common/element');
+  const {animate} = require('../common/animation');
 
   const Create = Record({
     description: 'Create a new web view'
@@ -85,6 +87,7 @@
       boxShadow: '0 0 0 6px #4A90E2'
     },
     header: {
+      pointerEvents: 'none',
       height: '24px',
       lineHeight: '24px',
       padding: '0px 24px 0px 10px',
@@ -94,6 +97,7 @@
       whiteSpace: 'nowrap'
     },
     icon: {
+      pointerEvents: 'none',
       backgroundSize: 'cover',
       backgroundPosition: 'center center',
       backgroundRepeat: 'no-repeat',
@@ -105,6 +109,7 @@
       height: '16px',
     },
     image: {
+      pointerEvents: 'none',
       backgroundColor: '#DDD',
       backgroundImage: null,
       backgroundPosition: 'center center',
@@ -115,6 +120,7 @@
       width: '240px',
     },
     screenshot: {
+      pointerEvents: 'none',
       backgroundColor: '#DDD',
       backgroundImage: null,
       backgroundPosition: 'center top',
@@ -123,6 +129,7 @@
       width: '240px'
     },
     imageLoader: {
+      pointerEvents: 'none',
       position: 'absolute',
       left: 0,
       zIndex: -1,
@@ -130,6 +137,7 @@
       height: 'inherit'
     },
     description: {
+      pointerEvents: 'none',
       fontSize: '12px',
       lineHeight: '18px',
       height: '90px',
@@ -216,7 +224,14 @@
 
   const DIRECTION_UP = 2;
 
-  const viewPreview = (loader, page, isSelected, address) => {
+  const isVerticallyScrolledOutBy = (node, offset=0) => {
+    const {bottom, top} = node.getBoundingClientRect();
+    return bottom + offset < 0 ||
+           top - offset > node.parentElement.getBoundingClientRect().height;
+  }
+
+
+  const viewPreview = (loader, page, card, isSelected, address) => {
     const hero = page.hero.get(0);
     const title = page.label || page.title;
     const name = page.name || getDomainName(loader.uri);
@@ -228,35 +243,40 @@
         viewContentsHeroTitleDescription(title, icon, hero, page.description, theme) :
         viewContentsScreenshot(title, icon, page.thumbnail, theme);
 
+    const cardView = html.div({
+      className: 'card',
+      style: Style(stylePreview.card,
+                   isSelected && stylePreview.selected,
+                   (card && card.y != 0) && {
+                     transform: `translateY(${-1000 * card.y}px)`
+                   }),
+      onClick: address.pass(Focusable.Focus),
+      onMouseUp: address.pass(Close),
+    }, previewContents);
+
     return swipingDiv({
       style: style.cardholder,
       onMozSwipeGestureStart: (event) => {
         if (event.direction === 1 || event.direction === 2) {
           event.direction === 1 & 2;
           event.preventDefault();
+          address.receive(Card.BeginSwipe({timeStamp: performance.now()}));
         }
       },
       onMozSwipeGestureUpdate: (event) => {
-        if (Math.abs(event.delta) > 0.1) {
-          console.log(event);
-          address.receive(WebView.Close());
-        } else {
-          address.receive(Page.Swipe({delta: event.delta}));
-        }
+        address.receive(Card.ContinueSwipe({y: event.delta,
+                                            isVisible: true,
+                                            timeStamp: performance.now()}));
       },
       onMozSwipeGestureEnd: (event) => {
-        address.receive(Page.Swipe({delta: event.delta}));
+        address.receive(Card.EndSwipe({timeStamp: performance.now()}));
       }
-    }, html.div({
-      className: 'card',
-      style: Style(stylePreview.card,
-                   isSelected && stylePreview.selected,
-                   page.swipeDelta !== null && {
-                     transform: `translateY(${-1000 * page.swipeDelta}px)`
-                   }),
-      onClick: address.pass(Focusable.Focus),
-      onMouseUp: address.pass(Close),
-    }, previewContents));
+    }, card.timeStamp ? animate(cardView, ({timeStamp, target}) => {
+      address.receive(Card.AnimationFrame({
+        timeStamp,
+        isVisible: isVerticallyScrolledOutBy(target, 8)
+      }));
+    }) : cardView);
   };
   exports.viewPreview = viewPreview;
 
@@ -300,11 +320,13 @@
   }));
 
 
-  const viewPreviews = (loaders, pages, selected, address) =>
+  const viewPreviews = (loaders, pages, cards, selected, address) =>
     loaders
       .map((loader, index) =>
         render(`Preview@${loader.id}`, viewPreview,
-               loader, pages.get(index),
+               loader,
+               pages.get(index),
+               cards.get(index),
                index === selected,
                address.forward(action =>
                                 WebView.ByID({id: loader.id, action}))));
@@ -324,12 +346,14 @@
       }, children)
     ]);
 
-  const viewInEditMode = (loaders, pages, selected, theme, address) =>
-    viewContainer(theme, ghostPreview, ...viewPreviews(loaders, pages, selected, address));
+  const viewInEditMode = (loaders, pages, cards, selected, theme, address) =>
+    viewContainer(theme, ghostPreview,
+                  ...viewPreviews(loaders, pages, cards, selected, address));
 
-  const viewInCreateMode = (loaders, pages, selected, theme, address) =>
+  const viewInCreateMode = (loaders, pages, cards, selected, theme, address) =>
     // Pass selected as `-1` so none is highlighted.
-    viewContainer(theme, ghostPreview, ...viewPreviews(loaders, pages, -1, address));
+    viewContainer(theme, ghostPreview,
+                  ...viewPreviews(loaders, pages, cards, -1, address));
 
   const view = (mode, ...etc) =>
     mode === 'create-web-view' ? viewInCreateMode(...etc) :

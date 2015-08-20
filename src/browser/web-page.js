@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
   const Pallet = require('../service/pallet');
   const Loader = require('./web-loader');
   const Progress = require('./web-progress');
@@ -37,9 +37,7 @@
 
     themeColor: Maybe(String),
     curatedColor: Maybe(String),
-    pallet: Pallet.Model,
-
-    swipeDelta: Maybe(Number)
+    pallet: Pallet.Model
   });
   exports.Model = Model;
 
@@ -106,12 +104,12 @@
   const AnnounceCuratedColor = Pallet.AnnounceCuratedColor;
   exports.AnnounceCuratedColor = AnnounceCuratedColor;
 
-  const Swipe = Record({
-    description: 'Swipe',
-    delta: Number
-  }, 'Preview.Swipe');
-  exports.Swipe = Swipe;
-
+  const Action = Union(
+    MetaChanged, ThumbnailChanged, TitleChanged,
+    IconChanged, Scrolled, OverflowChanged,
+    FirstPaint, DocumentFirstPaint, PageCardChanged,
+    AnnounceCuratedColor);
+  exports.Action = Action;
 
   // Update
 
@@ -154,6 +152,5 @@
     // If you goBack `DocumentFirstPaint` does not seem to fire there for
     // we updatePallet again on LoadEnded to cover that as well.
     action instanceof Progress.LoadEnded ? updatePallet(state) :
-    action instanceof Swipe ? state.set('swipeDelta', action.delta) :
     state;
   exports.update = update;
