@@ -6,13 +6,13 @@
   const React = require('react');
 
   class Animation extends React.Component {
-    static run() {
+    static run(timeStamp) {
       Animation.id = null;
       Animation.frame = null;
       const event = Animation.Event || (Animation.Event = {
-        type: 'animation-frame'
+        type: 'AnimationFrame',
       });
-      event.timeStamp = performance.now();
+      event.timeStamp = timeStamp;
 
       const handlers = Animation.handlers.splice(0);
       const count = handlers.length;
@@ -20,6 +20,7 @@
 
       while (index < count) {
         const handler = handlers[index];
+        event.target =
         handler.onAnimationFrame(event);
         index  = index + 1;
       }

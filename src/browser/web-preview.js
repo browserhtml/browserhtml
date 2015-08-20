@@ -76,7 +76,8 @@
       scrollSnapCoordinate: '50% 50%',
       width: '240px',
       top: '50%',
-      marginTop: '-50%'
+      marginTop: '-50%',
+      transition: 'ease-in opacity 0.1s'
     },
     ghost: {
       backgroundColor: 'transparent',
@@ -87,7 +88,6 @@
       boxShadow: '0 0 0 6px #4A90E2'
     },
     header: {
-      pointerEvents: 'none',
       height: '24px',
       lineHeight: '24px',
       padding: '0px 24px 0px 10px',
@@ -97,7 +97,6 @@
       whiteSpace: 'nowrap'
     },
     icon: {
-      pointerEvents: 'none',
       backgroundSize: 'cover',
       backgroundPosition: 'center center',
       backgroundRepeat: 'no-repeat',
@@ -109,7 +108,6 @@
       height: '16px',
     },
     image: {
-      pointerEvents: 'none',
       backgroundColor: '#DDD',
       backgroundImage: null,
       backgroundPosition: 'center center',
@@ -120,7 +118,6 @@
       width: '240px',
     },
     screenshot: {
-      pointerEvents: 'none',
       backgroundColor: '#DDD',
       backgroundImage: null,
       backgroundPosition: 'center top',
@@ -129,7 +126,6 @@
       width: '240px'
     },
     imageLoader: {
-      pointerEvents: 'none',
       position: 'absolute',
       left: 0,
       zIndex: -1,
@@ -137,7 +133,6 @@
       height: 'inherit'
     },
     description: {
-      pointerEvents: 'none',
       fontSize: '12px',
       lineHeight: '18px',
       height: '90px',
@@ -215,21 +210,22 @@
 
   const swipingDiv = Element('div', {
     onMozSwipeGestureStart: Event('MozSwipeGestureStart'),
-    onMozSwipeGestureStartCapture: CapturedEvent('MozSwipeGestureStart'),
+    //onMozSwipeGestureStartCapture: CapturedEvent('MozSwipeGestureStart'),
     onMozSwipeGestureUpdate: Event('MozSwipeGestureUpdate'),
-    onMozSwipeGestureUpdateCapture: CapturedEvent('MozSwipeGestureUpdate'),
+    //onMozSwipeGestureUpdateCapture: CapturedEvent('MozSwipeGestureUpdate'),
     onMozSwipeGestureEnd: Event('MozSwipeGestureEnd'),
-    onMozSwipeGestureEndCapture: CapturedEvent('MozSwipeGestureEnd')
+    //onMozSwipeGestureEndCapture: CapturedEvent('MozSwipeGestureEnd'),
+    onMozSwipeGesture: Event('MozSwipeGesture'),
+    //onMozSwipeGestureCapture: CapturedEvent('MozSwipeGesture')
   });
 
-  const DIRECTION_UP = 2;
+  const DIRECTION_UP = 1;
+  const DIRECTION_DOWN = 2;
 
-  const isVerticallyScrolledOutBy = (node, offset=0) => {
-    const {bottom, top} = node.getBoundingClientRect();
-    return bottom + offset < 0 ||
-           top - offset > node.parentElement.getBoundingClientRect().height;
+  const distanceToOpacity = (n, maxReduced) => {
+    const opacity = (100 - Card.exitProximity(n)) / 100;
+    return opacity === 1 ? 1 : Math.min(opacity, maxReduced);
   }
-
 
   const viewPreview = (loader, page, card, isSelected, address) => {
     const hero = page.hero.get(0);
@@ -248,7 +244,8 @@
       style: Style(stylePreview.card,
                    isSelected && stylePreview.selected,
                    (card && card.y != 0) && {
-                     transform: `translateY(${-1000 * card.y}px)`
+                     opacity: distanceToOpacity(card.y, 0.6),
+                     transform: `translateY(${-1 * card.y}px)`
                    }),
       onClick: address.pass(Focusable.Focus),
       onMouseUp: address.pass(Close),
@@ -257,26 +254,35 @@
     return swipingDiv({
       style: style.cardholder,
       onMozSwipeGestureStart: (event) => {
-        if (event.direction === 1 || event.direction === 2) {
-          event.direction === 1 & 2;
+        if (event.direction === DIRECTION_UP ||
+            event.direction === DIRECTION_DOWN)
+        {
+          event.allowedDirections = DIRECTION_UP | DIRECTION_DOWN;
           event.preventDefault();
           address.receive(Card.BeginSwipe({timeStamp: performance.now()}));
         }
       },
       onMozSwipeGestureUpdate: (event) => {
-        address.receive(Card.ContinueSwipe({y: event.delta,
-                                            isVisible: true,
+        address.receive(Card.ContinueSwipe({y: Math.floor(event.delta * 1000),
                                             timeStamp: performance.now()}));
       },
-      onMozSwipeGestureEnd: (event) => {
+      onMozSwipeGestureEnd(event) {
+        address.receive(Card.ContinueSwipe({y: Math.floor(event.delta * 1000),
+                                            timeStamp: performance.now()}));
+      },
+      onMozSwipeGesture: (event) => {
         address.receive(Card.EndSwipe({timeStamp: performance.now()}));
       }
-    }, card.timeStamp ? animate(cardView, ({timeStamp, target}) => {
-      address.receive(Card.AnimationFrame({
-        timeStamp,
-        isVisible: isVerticallyScrolledOutBy(target, 8)
-      }));
-    }) : cardView);
+    }, [card.timeStamp ? animate(cardView, address.pass(Card.AnimationFrame)) :
+       cardView, html.code({
+         style: {
+           position: 'absolute',
+           top: 0,
+           left: 0,
+           backgroundColor: 'white',
+           color: 'black'
+         }
+       }, `${card.y}:${card.velocity}`)]);
   };
   exports.viewPreview = viewPreview;
 
@@ -285,7 +291,8 @@
       height: '100%',
       float: 'left',
       overflow: 'hidden',
-      width: 280
+      width: 280,
+      position: 'relative'
     },
     scroller: {
       backgroundColor: '#273340',
