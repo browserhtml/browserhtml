@@ -205,8 +205,6 @@
     const loader = state.loader.get(index);
     return !loader ?
             open(state, action) :
-           loader.uri && (URI.getOrigin(loader.uri) !== URI.getOrigin(action.uri)) ?
-            open(state, action) :
             changeByIndex(state, index, action);
   };
   exports.loadByIndex = loadByIndex;
