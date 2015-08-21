@@ -56,6 +56,7 @@ const fadeDistance = 240;
 const dropDistance = 450;
 const releaseDistance = 60;
 const maxVelocity = 5;
+const shrinkDuration = 15;
 
 export const exitProximity = y =>
   Math.max(0, Math.min(100, (Math.abs(y) - thresholdY) * 100 / fadeDistance));
@@ -71,9 +72,10 @@ const physics = (state, action) => {
         beginShrink: state.beginShrink > 0 ? state.beginShrink :
                      state.y === maxY || state.y === -1 * maxY ? action.timeStamp :
                      state.beginShrink,
-        endShrink: state.endShrink > 0 ? state.endShrink :
-                   state.beginShrink - action.timeStamp > 10 ? action.timeStamp :
-                   state.beginShrink,
+        endShrink: state.beginShrink <= 0 ? state.endShrink :
+                    state.endShrink > 0 ? state.endShrink :
+                    action.timeStamp - state.beginShrink  > shrinkDuration ? action.timeStamp :
+                   state.endShrink,
         timeStamp: state.endShrink > 0 ? null : action.timeStamp,
         velocity: Math.max(-1 * maxVelocity, Math.min(maxVelocity, elapsedTime * state.acceleration)),
         y: Math.max(-1 * maxY, Math.min(maxY, Math.round(state.y + time * state.velocity))),
