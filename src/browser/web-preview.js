@@ -77,7 +77,9 @@
       width: '240px',
       top: '50%',
       marginTop: '-50%',
-      transition: 'ease-in opacity 0.1s'
+      // Seems to make things worse
+      // transition: 'ease-in opacity 0.1s'
+      transition: 'ease box-shadow 0.15s'
     },
     ghost: {
       backgroundColor: 'transparent',
@@ -222,10 +224,8 @@
   const DIRECTION_UP = 1;
   const DIRECTION_DOWN = 2;
 
-  const distanceToOpacity = (n, maxReduced) => {
-    const opacity = (100 - Card.exitProximity(n)) / 100;
-    return opacity === 1 ? 1 : Math.min(opacity, maxReduced);
-  }
+  const distanceToOpacity = n =>
+    (100 - Card.exitProximity(n)) / 100;
 
   const viewPreview = (loader, page, card, isSelected, address) => {
     const hero = page.hero.get(0);
@@ -244,7 +244,7 @@
       style: Style(stylePreview.card,
                    isSelected && stylePreview.selected,
                    (card && card.y != 0) && {
-                     opacity: distanceToOpacity(card.y, 0.6),
+                     opacity: distanceToOpacity(card.y),
                      transform: `translateY(${-1 * card.y}px)`
                    }),
       onClick: address.pass(Focusable.Focus),
@@ -252,7 +252,8 @@
     }, previewContents);
 
     return swipingDiv({
-      style: style.cardholder,
+      style: Style(style.cardholder,
+                   card.beginShrink > 0 && style.shrink),
       onMozSwipeGestureStart: (event) => {
         if (event.direction === DIRECTION_UP ||
             event.direction === DIRECTION_DOWN)
@@ -273,16 +274,10 @@
       onMozSwipeGesture: (event) => {
         address.receive(Card.EndSwipe({timeStamp: performance.now()}));
       }
-    }, [card.timeStamp ? animate(cardView, address.pass(Card.AnimationFrame)) :
-       cardView, html.code({
-         style: {
-           position: 'absolute',
-           top: 0,
-           left: 0,
-           backgroundColor: 'white',
-           color: 'black'
-         }
-       }, `${card.y}:${card.velocity}`)]);
+    }, card.isClosing ? animate(cardView, event => {
+      address.receive(card.endShrink > 0 ? WebView.Close() :
+                      Card.AnimationFrame(event));
+    }) : cardView);
   };
   exports.viewPreview = viewPreview;
 
@@ -292,7 +287,11 @@
       float: 'left',
       overflow: 'hidden',
       width: 280,
-      position: 'relative'
+      position: 'relative',
+      transition: 'ease-out width 0.1s'
+    },
+    shrink: {
+      width: 0
     },
     scroller: {
       backgroundColor: '#273340',

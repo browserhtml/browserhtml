@@ -16,6 +16,8 @@ const Animation = Record({
 
 export const Model = Record({
   y: 0,
+  beginShrink: 0,
+  endShrink: 0,
   isClosing: false,
   acceleration: 0,
   velocity: 0,
@@ -50,11 +52,10 @@ export const AnimationFrame = Record({
 export const Action = Union(BeginSwipe, EndSwipe, ContinueSwipe, AnimationFrame);
 
 const thresholdY = 90;
-const fadeDistance = 50;
+const fadeDistance = 240;
 const dropDistance = 450;
-const releaseDistance = 70;
-const acceleration = 0.2;
-const maxVelocity = 10;
+const releaseDistance = 60;
+const maxVelocity = 5;
 
 export const exitProximity = y =>
   Math.max(0, Math.min(100, (Math.abs(y) - thresholdY) * 100 / fadeDistance));
@@ -63,11 +64,18 @@ const physics = (state, action) => {
   const time = Math.max(0, action.timeStamp - state.timeStamp);
   const elapsedTime = state.elapsedTime + time;
   const maxY = thresholdY + dropDistance;
-  return state.isClosing ?
+  return state.timeStamp === null ? state :
+    state.isClosing ?
       state.merge({
         elapsedTime,
-        timeStamp: action.timeStamp,
-        velocity: Math.max(-1 * maxVelocity, Math.min(maxVelocity, state.velocity + acceleration)),
+        beginShrink: state.beginShrink > 0 ? state.beginShrink :
+                     state.y === maxY || state.y === -1 * maxY ? action.timeStamp :
+                     state.beginShrink,
+        endShrink: state.endShrink > 0 ? state.endShrink :
+                   state.beginShrink - action.timeStamp > 10 ? action.timeStamp :
+                   state.beginShrink,
+        timeStamp: state.endShrink > 0 ? null : action.timeStamp,
+        velocity: Math.max(-1 * maxVelocity, Math.min(maxVelocity, elapsedTime * state.acceleration)),
         y: Math.max(-1 * maxY, Math.min(maxY, Math.round(state.y + time * state.velocity))),
       }) :
     action instanceof ContinueSwipe ?
@@ -80,9 +88,10 @@ const physics = (state, action) => {
         // release is automated. You can think of it as momentum gained after
         // certain distance traveld that makes card out of user control.
         isClosing: Math.abs(action.y) > thresholdY + releaseDistance,
-        timeStamp: action.timeStamp,
+        timeStamp: state.y > 0 && action.y == 0 ? null : action.timeStamp,
         y: action.y,
-        velocity: action.y / elapsedTime
+        velocity: action.y / elapsedTime,
+        acceleration: (action.y / elapsedTime) / elapsedTime
       }) :
     state;
 };
