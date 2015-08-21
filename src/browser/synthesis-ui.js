@@ -7,6 +7,7 @@
   const {compose} = require('../lang/functional');
   const WebView = require('./web-view');
   const Preview = require('./web-preview');
+  const {Load} = require('./web-loader');
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
   const Gesture = require('../service/gesture');
@@ -114,7 +115,7 @@
     const webViews = state.mode === 'edit-web-view' ?
       WebView.loadByIndex(state.webViews,
                           state.webViews.selected,
-                          {uri}) :
+                          Load({uri})) :
       WebView.open(state.webViews, {uri});
 
     return state.set('webViews', webViews);
