@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record} = require('typed-immutable');
   const {html, render} = require('reflex');
   const WebView = require('./web-view');
   const Focusable = require('../common/focusable');
@@ -13,10 +13,16 @@
   const Selector = require('../common/selector');
   const Theme = require('./theme');
 
+  // Action
   const Create = Record({
     description: 'Create a new web view'
   }, 'Preview.Create');
   exports.Create = Create;
+
+  const Action = Create;
+  exports.Action = Action;
+
+  // View
 
   const Close = event => {
     if (event.button === 1) {
@@ -25,10 +31,6 @@
     }
     return null;
   }
-
-
-  // View
-
 
   const styleControls = StyleSheet.create({
     panel: {

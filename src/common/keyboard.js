@@ -4,7 +4,6 @@
   'use strict';
 
   const platform = require('../common/os').platform();
-  const {Record, Any} = require('../common/typed');
 
   const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
     const modifiers = [];

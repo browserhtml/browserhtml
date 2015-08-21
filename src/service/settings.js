@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, Any} = require('../common/typed');
+  const {Record, Union, Any} = require('typed-immutable');
   const {Map} = require('immutable');
 
   // Actions
@@ -35,6 +35,9 @@
   Fetched.read = ({id}, settings) =>
     Fetched({id, settings: Map(settings)});
   exports.Fetched = Fetched;
+
+  const Action = Union(Update, Fetch, Changed, Fetched);
+  exports.Action = Action;
 
   const service = address => {
     if (navigator.mozSettings) {

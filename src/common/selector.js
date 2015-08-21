@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 'use strict';
 
-import {Record, Maybe, Union} from '../common/typed';
+import {Record, Maybe, Union} from 'typed-immutable';
 
 export const Next = Record({
   description: 'Select an entry following a selected one',
@@ -26,7 +26,7 @@ export const ByIndex = Record({
   index: Number
 }, 'Selector.ByIndex');
 
-export const Action = Union({Next, Previous, ByOffset, ByIndex});
+export const Action = Union(Next, Previous, ByOffset, ByIndex);
 
 // Update
 

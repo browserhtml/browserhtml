@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Any, Union} = require('../common/typed');
+  const {Record} = require('typed-immutable');
   const WebView = require('./web-view');
 
   // Action

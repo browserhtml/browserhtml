@@ -5,13 +5,16 @@
 
   'use strict';
 
-  const {Record, Union} = require('../common/typed');
+  const {Record} = require('typed-immutable');
   const Settings = require('./settings');
 
   const ApplicationUpdate = Record({
     commit: String
   }, 'ApplicationUpdate');
   exports.ApplicationUpdate = ApplicationUpdate;
+
+  const Action = ApplicationUpdate;
+  exports.Action = Action;
 
 
   const UpdateHead = value =>

@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union} = require('../common/typed');
+  const {Record, Union} = require('typed-immutable');
   const {StyleSheet, Style} = require('../common/style');
   const {html, render} = require('reflex');
   const Loader = require('./web-loader');
@@ -27,6 +27,9 @@
     timeStamp: Number
   }, 'Progress.LoadEnded');
   exports.LoadEnded = LoadEnded;
+
+  const Action = Union(Loader.Load, LoadStarted, LoadEnded);
+  exports.Action = Action;
 
   // Update
 

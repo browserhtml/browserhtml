@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List} = require('../common/typed');
   const Loader = require('../browser/web-loader');
   const Page = require('../browser/web-page');
   const WebView = require('../browser/web-view');

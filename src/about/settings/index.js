@@ -5,7 +5,7 @@
   'use strict';
 
   const {render, html, Address, Application} = require('reflex');
-  const {Record, Any} = require('../../common/typed');
+  const {Record, Any} = require('typed-immutable');
   const {Map} = require('immutable');
   const Settings = require('../../service/settings');
 
