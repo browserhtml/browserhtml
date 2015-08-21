@@ -56,7 +56,7 @@ const fadeDistance = 240;
 const dropDistance = 450;
 const releaseDistance = 60;
 const maxVelocity = 5;
-const shrinkDuration = 15;
+export const shrinkDuration = 100;
 
 export const exitProximity = y =>
   Math.max(0, Math.min(100, (Math.abs(y) - thresholdY) * 100 / fadeDistance));

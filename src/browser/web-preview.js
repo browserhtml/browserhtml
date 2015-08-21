@@ -291,7 +291,7 @@
       scrollSnapCoordinate: '50% 50%',
     },
     shrinkable: {
-      transition: 'ease-out width 0.1s'
+      transition: `ease-out width ${Card.shrinkDuration}ms`
     },
     shrink: {
       width: 0
