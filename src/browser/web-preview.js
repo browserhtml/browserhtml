@@ -252,6 +252,7 @@
 
     return swipingDiv({
       style: Style(style.cardholder,
+                   style.shrinkable,
                    card.beginShrink > 0 && style.shrink),
       onMozSwipeGestureStart: (event) => {
         if (event.direction === DIRECTION_UP ||
@@ -283,11 +284,13 @@
   const style = StyleSheet.create({
     cardholder: {
       height: '100%',
-      float: 'left',
+      display: 'inline-block',
       overflow: 'hidden',
-      width: 280,
+      width: 260,
       position: 'relative',
       scrollSnapCoordinate: '50% 50%',
+    },
+    shrinkable: {
       transition: 'ease-out width 0.1s'
     },
     shrink: {
@@ -301,6 +304,7 @@
       scrollSnapDestination: '50% 50%',
       overflowX: 'auto',
       position: 'absolute',
+      textAlign: 'center',
       top: 0,
       zIndex: 0,
       MozWindowDragging: 'drag',
@@ -346,9 +350,7 @@
     }, [
       html.div({
         key: 'preview-content',
-        style: Style(style.previews, {
-          width: children.length * 280
-        })
+        style: Style(style.previews, style.shrinkable)
       }, children)
     ]);
 
