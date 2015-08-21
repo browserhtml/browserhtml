@@ -73,7 +73,6 @@
       margin: '0 10px',
       overflow: 'hidden',
       position: 'relative',
-      scrollSnapCoordinate: '50% 50%',
       width: '240px',
       top: '50%',
       marginTop: '-50%',
@@ -288,6 +287,7 @@
       overflow: 'hidden',
       width: 280,
       position: 'relative',
+      scrollSnapCoordinate: '50% 50%',
       transition: 'ease-out width 0.1s'
     },
     shrink: {
