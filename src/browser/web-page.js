@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
   const Pallet = require('../service/pallet');
   const Loader = require('./web-loader');
   const Progress = require('./web-progress');
@@ -104,6 +104,12 @@
   const AnnounceCuratedColor = Pallet.AnnounceCuratedColor;
   exports.AnnounceCuratedColor = AnnounceCuratedColor;
 
+  const Action = Union(
+    MetaChanged, ThumbnailChanged, TitleChanged,
+    IconChanged, Scrolled, OverflowChanged,
+    FirstPaint, DocumentFirstPaint, PageCardChanged,
+    AnnounceCuratedColor);
+  exports.Action = Action;
 
   // Update
 
@@ -139,6 +145,7 @@
     action instanceof OverflowChanged && !state.overflow ? state.set('overflow', action.overflow) : // we don't want overflow to be set back to false
     action instanceof ThumbnailChanged ? state.set('thumbnail', action.image) :
     action instanceof MetaChanged ? updateMeta(state, action) :
+    action instanceof PageCardChanged ? updateCard(state, action) :
     action instanceof AnnounceCuratedColor ? updateTheme(state, action) :
     action instanceof Progress.LoadStarted ? Model({pallet: state.pallet}) :
     action instanceof DocumentFirstPaint ? updatePallet(state) :

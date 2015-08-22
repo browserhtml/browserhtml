@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Maybe, Union} = require('../common/typed');
+  const {Record, Maybe, Union} = require('typed-immutable');
   const URI = require('../common/url-helper');
   const WebView = require('../browser/web-view');
   const Loader = require('../browser/web-loader');
@@ -24,7 +24,8 @@
     'daringfireball.net': ['#4a525a', '#fff'],
     'firewatchgame.com': ['#2d102b', '#ef4338'],
     'whatliesbelow.com': ['#74888b', '#fff', ],
-    'supertimeforce.com': ['#051224', '#2ebcec']
+    'supertimeforce.com': ['#051224', '#2ebcec'],
+    'github.com': ['rgb(245, 245, 245), rgb(51, 51, 51)']
   };
 
   const Color = String;
@@ -63,16 +64,19 @@
   });
   exports.AnnounceCuratedColor = AnnounceCuratedColor;
 
+  const Action = AnnounceCuratedColor;
+  exports.Action = Action;
+
   const service = address => action => {
-    if (action instanceof WebView.Action &&
-        action.action instanceof Loader.LocationChanged) {
+    const isWebViewAction = action instanceof WebView.ByID ||
+                            action instanceof WebView.BySelected;
+    if (isWebViewAction && action.action instanceof Loader.LocationChanged) {
       const hostname = URI.getDomainName(action.action.uri);
       const theme = curated[hostname];
       if (theme) {
-        address.receive(WebView.Action({
-          id: action.id,
-          action: AnnounceCuratedColor({color: theme.join('|')})
-        }));
+        address.receive(action.set('action', AnnounceCuratedColor({
+          color: theme.join('|')
+        })));
       }
     }
     return action

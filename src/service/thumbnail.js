@@ -7,7 +7,6 @@
   const WebView = require('../browser/web-view');
   const Loader = require('../browser/web-loader');
   const Page = require('../browser/web-page');
-  const {Record, Union} = require('../common/typed');
   const {fromDOMRequest, fromEvent} = require('../lang/promise');
   const URI = require('../common/url-helper');
 
@@ -42,18 +41,17 @@
   // service
 
   const service = address => action => {
-    if (action instanceof WebView.Action &&
-        action.action instanceof Loader.LocationChanged) {
+    const isWebViewAction = action instanceof WebView.ByID ||
+                            action instanceof WebView.BySelected;
+    if (isWebViewAction && action.action instanceof Loader.LocationChanged) {
       const iframe = document.getElementById(`web-view-${action.id}`);
       const uri = iframe.location;
       const id = action.id;
       if (iframe) {
-        fetchScreenshot(iframe).then(address.pass(blob => WebView.Action({
-          id,
-          action: Page.ThumbnailChanged({
+        fetchScreenshot(iframe).then(address.pass(blob =>
+          action.set('action', Page.ThumbnailChanged({
             uri, image: URL.createObjectURL(blob)
-          })
-        })));
+          }))));
       }
     }
 

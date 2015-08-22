@@ -5,12 +5,12 @@
   'use strict';
 
   const {render, html, Address, Application} = require('reflex');
-  const {Record, Any} = require('../../common/typed');
-  const {StyleSheet, Style} = require('../../common/style');
-  const ClassSet = require('../../common/class-set');
+  const {Record, Any} = require('typed-immutable');
   const {Map} = require('immutable');
   const Settings = require('../../service/settings');
   const React = require('react');
+  const {StyleSheet, Style} = require('../../common/style');
+  const ClassSet = require('../../common/class-set');
 
 
   class Input extends React.Component {

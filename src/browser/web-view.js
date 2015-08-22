@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
   const {html, render} = require('reflex');
   const {StyleSheet, Style} = require('../common/style');
   const URI = require('../common/url-helper');
@@ -16,10 +16,14 @@
   const Security = require('./web-security');
   const Page = require('./web-page');
   const Loader = require('./web-loader');
+  const Selector = require('../common/selector');
+  const Force = require('../service/force');
+  const Card = require('./web-card');
 
   // Model
   const Model = Record({
     selected: Maybe(Number),
+    previewed: Maybe(Number),
     nextID: 0,
 
     loader: List(Loader.Model),
@@ -28,17 +32,9 @@
     progress: List(Progress.Model),
     navigation: List(Navigation.Model),
     security: List(Security.Model),
+    card: List(Card.Model)
   }, 'WebViews');
   exports.Model = Model;
-
-  // Returns subset of the model which can be restored acrosse sessions.
-  const write = model => model.merge({
-    progress: model.progress.map(Progress.write),
-    page: model.page.map(Page.write),
-    navigation: model.navigation.map(Navigation.write),
-    security: model.security.map(Security.write)
-  });
-  exports.write = write;
 
   const get = (state, index) => ({
     loader: state.loader.get(index),
@@ -46,7 +42,8 @@
     page: state.page.get(index),
     progress: state.progress.get(index),
     navigation: state.navigation.get(index),
-    security: state.security.get(index)
+    security: state.security.get(index),
+    card: state.card.get(index)
   });
   exports.get = get;
 
@@ -74,16 +71,12 @@
   exports.Authentificate = Authentificate;
 
   const Open = Record({
+    opener: Any,
     uri: Maybe(String),
     name: '_blank',
     features: ''
   }, 'WebViews.Open');
   exports.Open = Open;
-
-  const FadeToOpen = Record({
-    description: 'Transition to open-web-view mode with fade animation'
-  }, 'WebViews.FadeToOpen');
-  exports.FadeToOpen = FadeToOpen;
 
   const OpenInBackground = Record({
     uri: String,
@@ -96,224 +89,152 @@
   }, 'WebView.Close');
   exports.Close = Close;
 
-  const SelectByOffset = Record({
-    description: 'Select web-view by an offset',
-    offset: Number,
-    loop: true
-  }, 'WebViews.SelectByOffset');
-  exports.SelectByOffset = SelectByOffset;
-
   const SelectByID = Record({
     description: 'Select web-view by an id',
     id: String
   }, 'WebViews.SelectByID');
   exports.SelectByID = SelectByID;
 
-  const SelectByIndex = Record({
-    description: 'Select web-view by an index',
-    index: Number
-  }, 'WebViews.SelectByIndex');
-  exports.SelectByIndex = SelectByIndex;
-
-  const SelectNext = Record({
-    description: 'Select web view following selected one'
-  }, 'WebViews.SelectNext');
-  exports.SelectNext = SelectNext;
-
-  const SelectPrevious = Record({
-    description: 'Select web view preceeding selected one'
-  }, 'WebView.SelectPrevious');
-  exports.SelectPrevious = SelectPrevious;
-
-  const {Load, LocationChanged} = Loader;
-  const {CanGoBackChanged, CanGoForwardChanged} = Navigation;
-  const {LoadStarted, LoadEnded} = Progress;
-  const {MetaChanged, ThumbnailChanged, TitleChanged,
-         IconChanged, Scrolled, OverflowChanged,
-         FirstPaint, DocumentFirstPaint,
-         AnnounceCuratedColor, PageCardChanged} = Page;
-  const {SecurityChanged} = Security;
-  const {VisibilityChanged} = Shell;
-  const {Focus, Blur, Focused, Blured} = Focusable;
-
 
   // Just a union type for all possible actions that are targeted at specific
   // web view.
-  const WebViewAction = Union({
+  const Action = Union(
     Close, Open, OpenInBackground,
-    // Loader
-    Load, LocationChanged,
-    // Progress
-    LoadStarted, LoadEnded,
-    // Navigation
-    CanGoBackChanged, CanGoForwardChanged,
-    // Page
-    MetaChanged, ThumbnailChanged, TitleChanged, IconChanged, Scrolled,
-    OverflowChanged, PageCardChanged, FirstPaint, DocumentFirstPaint,
-    PageCardChanged, AnnounceCuratedColor,
-    // Security
-    SecurityChanged,
-    // Shell
-    VisibilityChanged,
-    Focus, Blur, Focused, Blured,
-    // Other
-    Failure, ContextMenu, ModalPrompt, Authentificate
-  });
-  exports.WebViewAction = WebViewAction;
+    Loader.Action, Progress.Action, Navigation.Action, Focusable.Action,
+    Page.Action, Security.Action, Shell.Action, Card.Action,
+    Failure, ContextMenu, ModalPrompt, Authentificate);
+  exports.Action = Action;
 
   // Type contains `id` of the web-view and an `action` that is targeted
   // the web-view that has matching `id`. If `id` is `null` targets currently
   // selected web-view.
-  const Action = Record({
-    id: Maybe(String),
-    action: WebViewAction
-  }, 'WebView.Action');
-  exports.Action = Action;
+  const ByID = Record({
+    id: String,
+    action: Action
+  }, 'WebView.ByID');
+  exports.ByID = ByID;
 
+  const BySelected = Record({
+    action: Action
+  }, 'WebView.BySelected');
+  exports.BySelected = BySelected;
+
+  const Select = Record({
+    action: Selector.Action
+  }, 'WebView.Select');
+  exports.Select = Select;
+
+  const Preview = Record({
+    action: Selector.Action
+  }, 'WebView.Preview');
+  exports.Preview = Preview;
 
 
   // Update
 
 
   const indexByID = (state, id) =>
-    id === null ? state.selected :
-    id === void(0) ? state.selected :
-    id === '@selected' ? state.selected :
     state.loader.findIndex(loader => loader.id === id);
   exports.indexByID = indexByID;
 
-  const indexByOffset = (state, offset, loop) => {
-    const position = state.selected + offset;
-    const count = state.loader.size;
-    if (loop) {
-      const index = position - Math.trunc(position / count) * count
-      return index < 0 ? index + count :  index
-    } else {
-      return Math.min(count - 1, Math.max(0, position))
-    }
-  }
-  exports.indexByOffset = indexByOffset;
-
-  const selectByOffset = (state, offset, loop=true) =>
-    state.set('selected', indexByOffset(state, offset, loop));
-  exports.selectByOffset = selectByOffset;
-
-  const selectByID = (state, id) =>
-    state.set('selected', indexByID(state, id));
-  exports.selectByID = selectByID;
-
-  const selectByIndex = (state, index) =>
-    state.set('selected', index);
-  exports.selectByIndex = selectByIndex;
-
   // Transformers
 
-  const open = (state, {uri, inBackground}) => state.merge({
+  const open = (state, {uri, inBackground, opener}) => activate(state.merge({
     nextID: state.nextID + 1,
-    selected: inBackground ? state.selected + 1: 0,
-    loader: state.loader.unshift(Loader.Model({uri, id: String(state.nextID)})),
+    previewed: inBackground ? state.selected + 1 : 0,
+    loader: state.loader.unshift(Loader.Model({
+      uri, opener,
+      id: String(state.nextID),
+    })),
     shell: state.shell.unshift(Shell.Model({isFocused: !inBackground})),
     page: state.page.unshift(Page.Model()),
     progress: state.progress.unshift(Progress.Model()),
     navigation: state.navigation.unshift(Navigation.Model()),
-    security: state.security.unshift(Security.Model())
-  });
+    security: state.security.unshift(Security.Model()),
+    card: state.card.unshift(Card.Model())
+  }));
   exports.open = open;
 
-  const close = state =>
-    closeByIndex(state, state.selected);
-  exports.close = close;
-
-  const closeByID = (state, id) =>
-    closeByIndex(state, indexByID(state, id));
-  exports.closeByID = closeByID;
-
   const closeByIndex = (state, index) =>
-    index === null ? state : state.merge({
-      selected: state.loader.size === 1 ?  null :
-                index === 0 ? 0 : index - 1,
-
+    index === null ? state : activate(state.merge({
+      previewed: state.loader.size === 1 ?  null :
+                 index === 0 ? 0 : index - 1,
       loader: state.loader.remove(index),
       shell: state.shell.remove(index),
       page: state.page.remove(index),
       progress: state.progress.remove(index),
       navigation: state.navigation.remove(index),
-      security: state.security.remove(index)
-    });
+      security: state.security.remove(index),
+      card: state.card.remove(index)
+    }));
   exports.closeByIndex = closeByIndex;
 
-
-  const load = (state, action) =>
-    loadByIndex(state, state.selected, action);
-  exports.load = load;
-
-  const loadByID = (state, id, action) =>
-    loadByIndex(state, indexByID(id), action);
-  exports.loadByID = loadByID;
 
   const loadByIndex = (state, index, action) => {
     const loader = state.loader.get(index);
     return !loader ?
             open(state, action) :
-           loader.uri && (URI.getOrigin(loader.uri) !== URI.getOrigin(action.uri)) ?
-            open(state, action) :
-            updateByIndex(state, index, Loader.Load(action));
+            changeByIndex(state, index, action);
   };
   exports.loadByIndex = loadByIndex;
 
-
-  const updateByID = (state, id, action) =>
-    action instanceof Load ? loadByID(state, id, action) :
-    action instanceof Close ? closeByID(state, id) :
+  const updateByIndex = (state, n, action) =>
+    action instanceof Loader.Load ? loadByIndex(state, n, action) :
+    action instanceof Close ? closeByIndex(state, n, action) :
     action instanceof Open ? open(state, action) :
     action instanceof OpenInBackground ? open(state, action) :
-    updateByIndex(state, indexByID(state, id), action);
-  exports.updateByID = updateByID;
+    changeByIndex(state, n, action);
 
-  const updateByIndex = (state, n, action) => {
-    const {loader, shell, page, progress, navigation, security} = state;
-    return n === null ? state : state.merge({
-     selected: action instanceof Focus ? n :
-               action instanceof Focused ? n :
+
+  const changeByIndex = (state, n, action) => {
+    const {loader, shell, page, progress, navigation, security, card} = state;
+    return n === null ? state : activate(state.merge({
+      selected: action instanceof Focusable.Focus ? n :
+               action instanceof Focusable.Focused ? n :
                state.selected,
-     loader: loader.set(n, Loader.update(loader.get(n), action)),
-     shell: shell.set(n, Shell.update(shell.get(n), action)),
-     page: page.set(n, Page.update(page.get(n), action)),
-     progress: progress.set(n, Progress.update(progress.get(n), action)),
-     security: security.set(n, Security.update(security.get(n), action)),
-     navigation: navigation.set(n, Navigation.update(navigation.get(n), action))
-   });
- };
+      loader: loader.set(n, Loader.update(loader.get(n), action)),
+      shell: shell.set(n, Shell.update(shell.get(n), action)),
+      page: page.set(n, Page.update(page.get(n), action)),
+      progress: progress.set(n, Progress.update(progress.get(n), action)),
+      security: security.set(n, Security.update(security.get(n), action)),
+      navigation: navigation.set(n, Navigation.update(navigation.get(n), action)),
+      card: card.set(n, Card.update(card.get(n), action))
+    }));
+  };
+
+  const updateSelected = (state, action) =>
+    updateByIndex(state, state.selected, action);
+
+  const activate = state =>
+    state.set('selected', state.previewed);
+  exports.activate = activate;
+
+  const select = (state, action) =>
+    activate(state.set('previewed',
+                       Selector.indexOf(state.selected,
+                                        state.loader.size,
+                                        action)));
+  exports.select = select;
+
+  const preview = (state, action) =>
+    state.set('previewed', Selector.indexOf(state.previewed,
+                                            state.loader.size,
+                                            action));
+  exports.preview = preview;
 
   const update = (state, action) =>
-    action instanceof Load ?
-      load(state, action) :
+    action instanceof Select ?
+      select(state, action.action) :
+    action instanceof Preview ?
+      preview(state, action.action) :
+    action instanceof ByID ?
+      updateByIndex(state, indexByID(state, action.id), action.action) :
+    action instanceof BySelected ?
+      updateByIndex(state, state.selected, action.action) :
     action instanceof Open ?
       open(state, action) :
     action instanceof OpenInBackground ?
       open(state, action) :
-    action instanceof Close ?
-      close(state) :
-    action instanceof SelectByIndex ?
-      selectByIndex(state, action.index) :
-    action instanceof SelectByID ?
-      selectByID(state, action.id) :
-    action instanceof SelectByOffset ?
-      selectByOffset(state, action.offset, action.loop) :
-    action instanceof SelectNext ?
-      selectByOffset(state, 1) :
-    action instanceof SelectPrevious ?
-      selectByOffset(state, -1) :
-    // @TODO we explicitly tie ZoomIn/ZoomOut actions to selected webview.
-    // It may make more sense in future to include an ID with the action model.
-    action instanceof Shell.ResetZoom ?
-      updateByID(state, '@selected', action) :
-    action instanceof Shell.ZoomIn ?
-      updateByID(state, '@selected', action) :
-    action instanceof Shell.ZoomOut ?
-      updateByID(state, '@selected', action) :
-    action instanceof Action ?
-      updateByID(state, action.id, action.action) :
     state;
   exports.update = update;
 
@@ -350,6 +271,7 @@
     return IFrame.view({
       id: `web-view-${loader.id}`,
       uri: location,
+      opener: loader.opener,
       className: `web-view ${isSelected ? 'selected' : ''}`,
       // This is a workaround for Bug #266 that prevents capturing
       // screenshots if iframe or it's ancesstors have `display: none`.
@@ -457,7 +379,13 @@
              shell.get(index),
              page.get(index).thumbnail,
              index === selected,
-             address.forward(action => Action({id: loader.id, action})))));
+             address.forward(action =>
+               // If action is boxed in Force.Action we want to keep it
+               // that way.
+               action instanceof Force.Action ?
+                action.set('action', ByID({id: loader.id,
+                                           action: action.action})) :
+                ByID({id: loader.id, action})))));
   exports.view = view;
 
   // Actions that web-view produces but `update` does not handles.
@@ -468,25 +396,35 @@
     Event[event.type](event);
 
   Event.mozbrowserdocumentfirstpaint = event =>
-    DocumentFirstPaint();
+    Page.DocumentFirstPaint();
 
   Event.mozbrowserfirstpaint = event =>
-    FirstPaint();
+    Page.FirstPaint();
 
-  Event.mozbrowserlocationchange = ({detail: uri}) =>
-    LocationChanged({uri});
+  Event.mozbrowserlocationchange = ({detail: uri, timeStamp}) =>
+    Loader.LocationChanged({uri, timeStamp});
 
   // TODO: Figure out what's in detail
   Event.mozbrowserclose = ({detail}) =>
     Close();
 
   Event.mozbrowseropenwindow = ({detail}) =>
-    Open({uri: detail.url,
-          name: detail.name,
-          features: detail.features});
+    Force.Action({
+      action: Open({
+        uri: detail.url,
+        opener: IFrame.Opener(detail.frameElement),
+        name: detail.name,
+        features: detail.features
+      })
+    });
 
   Event.mozbrowseropentab = ({detail}) =>
-    OpenInBackground({uri: detail.url});
+    Force.Action({
+      action: OpenInBackground({
+        uri: detail.url,
+        opener: IFrame.Opener(detail.frameElement),
+      })
+    });
 
   // TODO: Figure out what's in detail
   Event.mozbrowsercontextmenu = ({detail}) =>
@@ -506,45 +444,45 @@
 
 
   Event.focus = ({id}) =>
-    Focused({id});
+    Focusable.Focused({id});
 
   Event.blur = ({id}) =>
-    Blured({id});
+    Focusable.Blured({id});
 
 
   Event.mozbrowsergobackchanged = ({detail: value}) =>
-    CanGoBackChanged({value});
+    Navigation.CanGoBackChanged({value});
 
   Event.mozbrowsergoforwardchanged = ({detail: value}) =>
-    CanGoForwardChanged({value});
+    Navigation.CanGoForwardChanged({value});
 
 
   Event.mozbrowserloadstart = ({target, timeStamp}) =>
-    LoadStarted({uri: target.location});
+    Progress.LoadStarted({uri: target.location, timeStamp});
 
   Event.mozbrowserloadend = ({target, timeStamp}) =>
-    LoadEnded({uri: target.location});
+    Progress.LoadEnded({uri: target.location, timeStamp});
 
   Event.mozbrowsertitlechange = ({target, detail: title}) =>
-    TitleChanged({uri: target.location, title});
+    Page.TitleChanged({uri: target.location, title});
 
   Event.mozbrowsericonchange = ({target, detail: icon}) =>
-    IconChanged({uri: target.location, icon});
+    Page.IconChanged({uri: target.location, icon});
 
   Event.mozbrowsermetachange = ({detail: {content, name}}) =>
-    MetaChanged({content, name});
+    Page.MetaChanged({content, name});
 
   // TODO: Figure out what's in detail
   Event.mozbrowserasyncscroll = ({detail}) =>
-    Scrolled();
+    Page.Scrolled();
 
   Event.mozbrowserscrollareachanged = ({target, detail}) =>
-    OverflowChanged({
+    Page.OverflowChanged({
       overflow: detail.height > target.parentNode.clientHeight
     });
 
   Event.mozbrowsersecuritychange = ({detail}) =>
-    SecurityChanged({
+    Security.SecurityChanged({
       state: detail.state,
       extendedValidation: detail.extendedValidation
     });

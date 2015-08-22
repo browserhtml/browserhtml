@@ -4,12 +4,14 @@
 
   'use strict';
 
-  const {Record, Union} = require('../common/typed');
+  const {Record} = require('typed-immutable');
 
   const Pinch = Record({
     description: 'Pinch gesture'
   });
   exports.Pinch = Pinch;
+
+  exports.Action = Pinch;
 
   const service = address => {
 

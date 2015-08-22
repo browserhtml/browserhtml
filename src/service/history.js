@@ -3,11 +3,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Maybe, Union, List} = require('../common/typed');
+  const {Record, Maybe, Union, List} = require('typed-immutable');
   const Loader = require('../browser/web-loader');
   const Progress = require('../browser/web-progress');
   const Page = require('../browser/web-page');
   const WebView = require('../browser/web-view');
+
+  const TopHit = Record({
+    title: Maybe(String),
+    icon: Maybe(String),
+    uri: String
+  }, 'History.TopHit');
+  exports.TopHit = TopHit;
 
   const PageMatch = Record({
     title: Maybe(String),
@@ -16,10 +23,10 @@
   }, 'History.PageMatch');
   exports.PageMatch = PageMatch;
 
-
   const PageResult = Record({
     id: String,
-    results: List(PageMatch, 'History.PageResult')
+    topHit: Maybe(TopHit),
+    matches: List(PageMatch, 'History.PageResult')
   });
   exports.PageResult = PageResult;
 
@@ -29,6 +36,9 @@
     limit: Number
   }, 'History.PageQuery');
   exports.PageQuery = PageQuery;
+
+  const Action = Union(TopHit, PageMatch, PageResult, PageQuery);
+  exports.Action = Action;
 
   const service = address => {
 
@@ -80,7 +90,8 @@
                             action: action.toJSON()});
       }
 
-      if (action instanceof WebView.Action) {
+      if (action instanceof WebView.ByID ||
+          action instanceof WebView.BySelected) {
         handleAction(action)
       }
     }

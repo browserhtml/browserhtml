@@ -3,11 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
 
   // Model
   const Model = Record({
     id: String,
+    opener: Any,
     uri: Maybe(String)
   }, 'WebLoader');
   exports.Model = Model;
@@ -22,9 +23,13 @@
 
   const LocationChanged = Record({
     description: 'Location of the web view changed to enclosed uri',
-    uri: String
+    uri: String,
+    timeStamp: Number
   }, 'WebView.LocationChanged');
   exports.LocationChanged = LocationChanged;
+
+  const Action = Union(Load, LocationChanged);
+  exports.Action = Action;
 
   // Update
 

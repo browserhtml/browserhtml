@@ -5,7 +5,7 @@
 
   const {html} = require('reflex');
   const {StyleSheet, Style} = require('../common/style');
-  const {Record, Union} = require('../common/typed');
+  const {Record} = require('typed-immutable');
   const Runtime = require('../common/runtime');
   const Update = require('../service/update');
 

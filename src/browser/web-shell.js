@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
   const Focusable = require('../common/focusable');
   const Loader = require('./web-loader');
 
@@ -40,6 +40,8 @@
   }, 'WebView.Shell.VisibilityChanged');
   exports.VisibilityChanged = VisibilityChanged;
 
+  const Action = Union(VisibilityChanged, ZoomIn, ZoomOut, ResetZoom);
+  exports.Action = Action;
 
   // Update
 

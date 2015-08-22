@@ -3,14 +3,30 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record} = require('typed-immutable');
   const {html, render} = require('reflex');
   const WebView = require('./web-view');
+  const Page = require('./web-page');
+  const Card = require('./web-card');
   const Focusable = require('../common/focusable');
   const {Style, StyleSheet} = require('../common/style');
   const {getDomainName} = require('../common/url-helper');
   const Favicon = require('../common/favicon');
+  const Selector = require('../common/selector');
+  const Theme = require('./theme');
+  const {Element, Event, CapturedEvent} = require('../common/element');
+  const {animate} = require('../common/animation');
 
+  // Action
+  const Create = Record({
+    description: 'Create a new web view'
+  }, 'Preview.Create');
+  exports.Create = Create;
+
+  const Action = Create;
+  exports.Action = Action;
+
+  // View
 
   const Close = event => {
     if (event.button === 1) {
@@ -19,9 +35,6 @@
     }
     return null;
   }
-
-  // View
-
 
   const styleControls = StyleSheet.create({
     panel: {
@@ -42,16 +55,13 @@
 
   const DashboardIcon = '\uf067';
 
-  const OpenWebView = () =>
-    WebView.Action({action: WebView.Open()});
-
   const viewControls = (theme, address) => html.div({
     style: styleControls.panel
   }, [
     html.button({
       key: 'dashboard-button',
       style: styleControls.button,
-      onClick: address.pass(OpenWebView)
+      onClick: address.pass(Create)
     }, DashboardIcon)
   ]);
   exports.viewControls = viewControls;
@@ -62,13 +72,14 @@
       borderRadius: '4px',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
       color: '#444',
-      float: 'left',
       height: '300px',
       margin: '0 10px',
       overflow: 'hidden',
       position: 'relative',
-      'scroll-snap-coordinate': '50% 50%',
-      width: '240px'
+      width: '240px',
+      top: '50%',
+      marginTop: '-50%',
+      transition: 'box-shadow 80ms ease'
     },
     ghost: {
       backgroundColor: 'transparent',
@@ -81,20 +92,9 @@
     header: {
       height: '24px',
       lineHeight: '24px',
-      margin: '0px 24px 0px 10px',
+      padding: '0px 24px 0px 10px',
       overflow: 'hidden',
       position: 'relative',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap'
-    },
-    title: {
-      display: 'block',
-      fontSize: '14px',
-      fontWeight: 'bold',
-      lineHeight: '18px',
-      margin: '0 10px 8px 10px',
-      width: '200px',
-      overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap'
     },
@@ -137,18 +137,21 @@
     description: {
       fontSize: '12px',
       lineHeight: '18px',
-      height: '72px',
+      height: '90px',
       margin: '0px 10px',
       overflow: 'hidden',
       whiteSpace: 'normal'
     }
   });
 
-  const viewContentsHeroTitleDescription = (name, icon, hero, title, description) => [
+  const viewContentsHeroTitleDescription = (title, icon, hero, description, theme) => [
     html.header({
         key: 'header',
-        style: stylePreview.header,
-      }, name),
+        style: Style(stylePreview.header, {
+          backgroundColor: theme.shell,
+          color: theme.shellText
+        }),
+      }, title),
     html.span({
       key: 'icon',
       alt: '',
@@ -157,6 +160,7 @@
       })
     }),
     html.div({
+      key: 'hero',
       style: Style(stylePreview.image, {
         backgroundImage: `url(${hero})`
       })
@@ -169,21 +173,20 @@
         onLoad: event => URL.revokeObjectURL(event.target.src)
       })
     ]),
-    html.div({
-      key: 'title',
-      style: stylePreview.title
-    }, title),
     html.p({
       key: 'description',
       style: stylePreview.description
     }, description)
   ];
 
-  const viewContentsScreenshot = (name, icon, screenshot) => [
+  const viewContentsScreenshot = (title, icon, screenshot, theme) => [
     html.header({
         key: 'header',
-        style: stylePreview.header,
-      }, name),
+        style: Style(stylePreview.header, {
+          backgroundColor: theme.shell,
+          color: theme.shellText
+        }),
+      }, title),
     html.span({
       key: 'icon',
       alt: '',
@@ -192,6 +195,7 @@
       })
     }),
     html.div({
+      key: 'screenshot',
       style: Style(stylePreview.screenshot, {
         backgroundImage: `url(${screenshot})`
       })
@@ -206,42 +210,101 @@
     ])
   ];
 
-  const viewPreview = (loader, page, isSelected, address) => {
+  const swipingDiv = Element('div', {
+    onMozSwipeGestureStart: Event('MozSwipeGestureStart'),
+    onMozSwipeGestureUpdate: Event('MozSwipeGestureUpdate'),
+    onMozSwipeGestureEnd: Event('MozSwipeGestureEnd'),
+    onMozSwipeGesture: Event('MozSwipeGesture')
+  });
+
+  const DIRECTION_UP = 1;
+  const DIRECTION_DOWN = 2;
+
+  const distanceToOpacity = n =>
+    (100 - Card.exitProximity(n)) / 100;
+
+  const viewPreview = (loader, page, card, isSelected, address) => {
     const hero = page.hero.get(0);
     const title = page.label || page.title;
     const name = page.name || getDomainName(loader.uri);
-
+    const theme = Theme.read(page.pallet);
     const icon = page.faviconURL || Favicon.getFallback(loader.uri);
 
     const previewContents =
       hero && title && page.description ?
-        viewContentsHeroTitleDescription(name, icon, hero, title, page.description) :
-        viewContentsScreenshot(name, icon, page.thumbnail);
+        viewContentsHeroTitleDescription(title, icon, hero, page.description, theme) :
+        viewContentsScreenshot(title, icon, page.thumbnail, theme);
 
-    return html.div({
+    const cardView = html.div({
       className: 'card',
       style: Style(stylePreview.card,
-                   isSelected && stylePreview.selected),
+                   isSelected && stylePreview.selected,
+                   (card && card.y != 0) && {
+                     opacity: distanceToOpacity(card.y),
+                     transform: `translateY(${-1 * card.y}px)`
+                   }),
       onClick: address.pass(Focusable.Focus),
-      onMouseUp: address.pass(Close)
+      onMouseUp: address.pass(Close),
     }, previewContents);
+
+    return swipingDiv({
+      style: Style(style.cardholder,
+                   style.shrinkable,
+                   card.beginShrink > 0 && style.shrink),
+      onMozSwipeGestureStart: (event) => {
+        if (event.direction === DIRECTION_UP ||
+            event.direction === DIRECTION_DOWN)
+        {
+          event.allowedDirections = DIRECTION_UP | DIRECTION_DOWN;
+          event.preventDefault();
+          address.receive(Card.BeginSwipe({timeStamp: performance.now()}));
+        }
+      },
+      onMozSwipeGestureUpdate: (event) => {
+        address.receive(Card.ContinueSwipe({y: Math.floor(event.delta * 1000),
+                                            timeStamp: performance.now()}));
+      },
+      onMozSwipeGestureEnd(event) {
+        address.receive(Card.ContinueSwipe({y: Math.floor(event.delta * 1000),
+                                            timeStamp: performance.now()}));
+      },
+      onMozSwipeGesture: (event) => {
+        address.receive(Card.EndSwipe({timeStamp: performance.now()}));
+      }
+    }, card.isClosing ? animate(cardView, event => {
+      address.receive(card.endShrink > 0 ? WebView.Close() :
+                      Card.AnimationFrame(event));
+    }) : cardView);
   };
   exports.viewPreview = viewPreview;
 
-  const ghostPreview = html.div({
-    className: 'card',
-    style: Style(stylePreview.card, stylePreview.ghost)
-  });
-
   const style = StyleSheet.create({
+    cardholder: {
+      height: '100%',
+      display: 'inline-block',
+      overflow: 'hidden',
+      width: 260,
+      position: 'relative',
+      scrollSnapCoordinate: '50% 50%',
+    },
+    shrinkable: {
+      transition: `width ${Card.shrinkDuration}ms ease-out`
+    },
+    shrink: {
+      width: 0
+    },
     scroller: {
-      backgroundColor: '#273340',
-      height: '100vh',
+      // Use 100px to hide a scrollbar by making scroller little larger and
+      // compensating with a bottom padding.
+      height: 'calc(100vh + 100px)',
+      paddingBottom: 100,
       width: '100vw',
       scrollSnapType: 'proximity',
       scrollSnapDestination: '50% 50%',
       overflowX: 'auto',
+      overflowY: 'hidden',
       position: 'absolute',
+      textAlign: 'center',
       top: 0,
       zIndex: 0,
       MozWindowDragging: 'drag',
@@ -251,39 +314,53 @@
       // Margin doesn't play well with scroll -- the right-hand edge will get
       // cut off, so we turn on the traditional CSS box model and use padding.
       boxSizing: 'content-box',
-      width: '100vw',
-      // Fixed height to contain floats.
-      height: '300px',
-      padding: 'calc(50vh - 150px) 200px 0 200px',
+      height: '100%',
       margin: '0 auto',
+      padding: '0 200px'
     }
   });
 
+  const ghostPreview = html.div({
+    style: style.cardholder
+  }, html.div({
+    key: 'ghost',
+    className: 'card',
+    style: Style(stylePreview.card, stylePreview.ghost)
+  }));
 
-  const viewPreviews = (loaders, pages, selected, address) =>
+
+  const viewPreviews = (loaders, pages, cards, selected, address) =>
     loaders
       .map((loader, index) =>
         render(`Preview@${loader.id}`, viewPreview,
-               loader, pages.get(index),
+               loader,
+               pages.get(index),
+               cards.get(index),
                index === selected,
                address.forward(action =>
-                                WebView.Action({id: loader.id, action}))));
+                                WebView.ByID({id: loader.id, action}))));
 
   const viewContainer = (theme, ...children) =>
     // Set the width of the previews element to match the width of each card
     // plus padding.
-    html.div({key: 'preview-container', style: style.scroller}, [
-      html.div({style: Style(style.previews, {
-        width: children.length * 260
-      })}, children)
+    html.div({
+      key: 'preview-container',
+      style: style.scroller
+    }, [
+      html.div({
+        key: 'preview-content',
+        style: Style(style.previews, style.shrinkable)
+      }, children)
     ]);
 
-  const viewInEditMode = (loaders, pages, selected, theme, address) =>
-    viewContainer(theme, ghostPreview, ...viewPreviews(loaders, pages, selected, address));
+  const viewInEditMode = (loaders, pages, cards, selected, theme, address) =>
+    viewContainer(theme, ghostPreview,
+                  ...viewPreviews(loaders, pages, cards, selected, address));
 
-  const viewInCreateMode = (loaders, pages, selected, theme, address) =>
+  const viewInCreateMode = (loaders, pages, cards, selected, theme, address) =>
     // Pass selected as `-1` so none is highlighted.
-    viewContainer(theme, ghostPreview, ...viewPreviews(loaders, pages, -1, address));
+    viewContainer(theme, ghostPreview,
+                  ...viewPreviews(loaders, pages, cards, -1, address));
 
   const view = (mode, ...etc) =>
     mode === 'create-web-view' ? viewInCreateMode(...etc) :

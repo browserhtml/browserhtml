@@ -7,23 +7,23 @@
 
   const {getDomainName} = require('../common/url-helper');
   const {html, render} = require('reflex');
-  const {Record, List, Union} = require('../common/typed');
+  const {Record, List, Union} = require('typed-immutable');
   const {StyleSheet, Style} = require('../common/style');
   const ClassSet = require('../common/class-set');
   const Loader = require('./web-loader');
+  const WebView = require('./web-view');
   const History = require('../service/history');
   const Search = require('../service/search');
 
   // Model
 
-  const Suggestion = Union({
-    Search: Search.Match,
-    Page: History.PageMatch
-  }, 'Suggestion');
+  const Suggestion = Union(Search.Match, History.PageMatch, History.TopHit);
   exports.Suggestion = Suggestion;
 
+  const Suggestions = List(Suggestion, 'Suggestions');
+
   const Model = Record({
-    entries: List(Suggestion),
+    entries: Suggestions,
     selected: -1
   }, 'Suggestions');
   exports.Model = Model;
@@ -75,32 +75,41 @@
 
 
   const isntSearch = entry => !(entry instanceof Search.Match);
-  const isntPage = entry => !(entry instanceof History.PageMatch);
+  const isntPage = entry =>
+    !(entry instanceof History.PageMatch) &&
+    !(entry instanceof History.TopHit);
+
 
   const updateSearch = (state, {results: matches}) => {
     const entries = state.entries.filter(isntSearch);
     const half = Math.floor(MAX_RESULTS / 2);
     const count = Math.min(matches.count(),
                            MAX_RESULTS - Math.min(half, entries.count()));
+    const results = entries.take(count);
+    const searches = matches.slice(0, count);
 
     return state.merge({
       selected: -1,
-      entries: entries.take(count)
-                      .concat(matches.slice(0, count))
+      entries: results.first() instanceof History.TopHit ?
+        results.take(1).concat(searches).concat(results.skip(1)) :
+        results.unshift(...searches)
     });
   };
 
-  const updatePage = (state, {results: matches}) => {
-    const entries = state.entries.filter(isntPage);
+  const noTop = [];
+  const updatePage = (state, {matches, topHit}) => {
+    const search = state.entries.filter(isntPage);
     const half = Math.floor(MAX_RESULTS / 2);
-    const count = Math.min(matches.count(),
-                           MAX_RESULTS - Math.min(half, entries.count()));
-    const pages = matches.take(count);
+    const limit = Math.min(matches.count(),
+                           Math.max(MAX_RESULTS - search.count(), half));
+
+    const pages = matches.take(limit);
+    const entries = search.take(MAX_RESULTS - limit)
+                          .push(...pages);
 
     return state.merge({
       selected: -1,
-      entries: entries.unshift(...pages)
-                      .take(MAX_RESULTS)
+      entries: topHit ? entries.unshift(topHit) : entries
     });
   };
 
@@ -132,9 +141,10 @@
       pointerEvents: 'none'
     },
     collapsed: {
-      visibility: 'collapse'
+      display: 'none'
     },
     suggestions: {
+      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
       color: 'rgba(0,0,0,0.7)',
       display: 'inline-block',
       textAlign: 'left',
@@ -150,7 +160,7 @@
     },
     suggestion: {
       lineHeight: '30px',
-      paddingLeft: 30,
+      paddingLeft: 10,
       paddingRight: 10,
       verticalAlign: 'middle',
       cursor: 'pointer',
@@ -159,21 +169,40 @@
       position: 'relative',
       textOverflow: 'ellipsis',
     },
+    hasIcon: {
+      paddingLeft: 30,
+    },
     selected: {
       backgroundColor: '#4A90E2',
       color: '#fff'
     },
-    dark: {
-      borderTopColor: 'rgba(255,255,255,0.15)'
+    topHit: {
+      lineHeight: '40px',
+      fontSize: '13px'
     },
-    selectedDark: {
-      backgroundColor: 'rgba(255,255,255,0.15)'
-    },
-    prefix: {
+    icon: {
       fontSize: '16px',
       fontFamily: 'FontAwesome',
       position: 'absolute',
-      left: 9
+      left: 9,
+    },
+    favicon: {
+      backgroundSize: 'cover',
+      backgroundPosition: 'center center',
+      backgroundRepeat: 'no-repeat',
+      borderRadius: 3,
+      height: 16,
+      left: 8,
+      position: 'absolute',
+      top: 11,
+      width: 16,
+    },
+    text: {
+      fontSize: 'inherit',
+      overflow: 'hidden',
+      // Contains absolute elements
+      position: 'relative',
+      textOverflow: 'ellipsis',
     }
   });
 
@@ -188,24 +217,36 @@
     'history': HISTORY_ICON
   };
 
+  const Load = state => WebView.BySelected({
+    action: Loader.Load(state)
+  });
+
   const viewSuggestion = (state, selected, index, address) => {
     const type = state instanceof History.PageMatch ? 'history' :
                  state instanceof Search.Match ? 'search' :
+                 state instanceof History.TopHit ? 'topHit' :
                  null;
 
     const text = type == 'search' ?
       state.title : `${state.title} — ${getDomainName(state.uri)}`;
 
-    return html.p({
-      style: Style(style.suggestion, index == selected && style.selected),
-      onMouseDown: address.pass(Loader.Load, state)
+    return html.li({
+      key: 'suggestion',
+      style: Style(style.suggestion,
+                   index == selected && style.selected,
+                   (Icon[type] || state.icon) && style.hasIcon,
+                   style[type]),
+      onMouseDown: address.pass(Load, state)
     }, [
-      html.span({
-        key: 'suggestionprefix',
-        style: style.prefix,
-      }, Icon[type] || ''),
-      html.span({
-        key: 'suggestion'
+      (Icon[type] ?
+        html.div({key: 'icon', style: style.icon}, Icon[type]) :
+        html.div({
+          key: 'favicon',
+          style: Style(style.favicon,
+                       state.icon && {backgroundImage: `url(${state.icon})`})})),
+      html.p({
+        key: 'text',
+        style: style.text
       }, text)
     ]);
   };
@@ -217,12 +258,12 @@
   exports.isSuggesting = isSuggesting;
 
   const view = (mode, state, input, address) =>
-    html.div({
+    html.menu({
       key: 'suggestionscontainer',
       style: Style(style.container,
                    !isSuggesting(input, state) && style.collapsed)
     }, [
-      html.div({
+      html.ul({
         key: 'suggestions',
         style: style.suggestions
       }, state.entries.map((entry, index) => {
