@@ -18,6 +18,7 @@
   const Loader = require('./web-loader');
   const Selector = require('../common/selector');
   const Force = require('../service/force');
+  const Card = require('./web-card');
 
   // Model
   const Model = Record({
@@ -31,17 +32,9 @@
     progress: List(Progress.Model),
     navigation: List(Navigation.Model),
     security: List(Security.Model),
+    card: List(Card.Model)
   }, 'WebViews');
   exports.Model = Model;
-
-  // Returns subset of the model which can be restored acrosse sessions.
-  const write = model => model.merge({
-    progress: model.progress.map(Progress.write),
-    page: model.page.map(Page.write),
-    navigation: model.navigation.map(Navigation.write),
-    security: model.security.map(Security.write)
-  });
-  exports.write = write;
 
   const get = (state, index) => ({
     loader: state.loader.get(index),
@@ -49,7 +42,8 @@
     page: state.page.get(index),
     progress: state.progress.get(index),
     navigation: state.navigation.get(index),
-    security: state.security.get(index)
+    security: state.security.get(index),
+    card: state.card.get(index)
   });
   exports.get = get;
 
@@ -107,7 +101,7 @@
   const Action = Union(
     Close, Open, OpenInBackground,
     Loader.Action, Progress.Action, Navigation.Action, Focusable.Action,
-    Page.Action, Security.Action, Shell.Action,
+    Page.Action, Security.Action, Shell.Action, Card.Action,
     Failure, ContextMenu, ModalPrompt, Authentificate);
   exports.Action = Action;
 
@@ -156,7 +150,8 @@
     page: state.page.unshift(Page.Model()),
     progress: state.progress.unshift(Progress.Model()),
     navigation: state.navigation.unshift(Navigation.Model()),
-    security: state.security.unshift(Security.Model())
+    security: state.security.unshift(Security.Model()),
+    card: state.card.unshift(Card.Model())
   }));
   exports.open = open;
 
@@ -169,7 +164,8 @@
       page: state.page.remove(index),
       progress: state.progress.remove(index),
       navigation: state.navigation.remove(index),
-      security: state.security.remove(index)
+      security: state.security.remove(index),
+      card: state.card.remove(index)
     }));
   exports.closeByIndex = closeByIndex;
 
@@ -191,7 +187,7 @@
 
 
   const changeByIndex = (state, n, action) => {
-    const {loader, shell, page, progress, navigation, security} = state;
+    const {loader, shell, page, progress, navigation, security, card} = state;
     return n === null ? state : activate(state.merge({
       selected: action instanceof Focusable.Focus ? n :
                action instanceof Focusable.Focused ? n :
@@ -201,7 +197,8 @@
       page: page.set(n, Page.update(page.get(n), action)),
       progress: progress.set(n, Progress.update(progress.get(n), action)),
       security: security.set(n, Security.update(security.get(n), action)),
-      navigation: navigation.set(n, Navigation.update(navigation.get(n), action))
+      navigation: navigation.set(n, Navigation.update(navigation.get(n), action)),
+      card: card.set(n, Card.update(card.get(n), action))
     }));
   };
 

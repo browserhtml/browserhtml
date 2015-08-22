@@ -126,7 +126,8 @@
       backgroundColor: null,
       height: '100vh',
       width: '100vw',
-      position: 'relative',
+      position: 'absoulte',
+      overflow: 'hidden'
     },
     webviewsContainer: {
       height: 'calc(100vh - 28px)',
@@ -179,7 +180,8 @@
       render('LocationBar', LocationBar.view,
         state.mode, loader, security, page, input, suggestions, address),
       render('Preview', Preview.view,
-        state.mode, webViews.loader, webViews.page, webViews.previewed, theme, address),
+        state.mode, webViews.loader, webViews.page, webViews.card,
+        webViews.previewed, theme, address),
       render('Suggestions', Suggestions.view,
         state.mode, suggestions, input, address),
       html.div({
