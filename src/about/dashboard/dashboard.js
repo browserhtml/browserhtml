@@ -7,7 +7,7 @@ define((require, exports, module) => {
   'use strict';
 
   const {html, render} = require('reflex')
-  const {Record, Union, List, Maybe} = require('common/typed');
+  const {Record, Union, List, Maybe} = require('typed-immutable');
   const WebView = require('browser/web-view');
   const Theme = require('browser/theme');
   const Pallet = require('service/pallet');
@@ -57,7 +57,7 @@ define((require, exports, module) => {
   const {Open} = WebView;
   const ChangeTheme = Record({id: String}, 'Dashboard.ChangeTheme');
 
-  const Action = Union({ChangeTheme});
+  const Action = ChangeTheme;
 
   exports.Action = Action;
 

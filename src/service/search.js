@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Maybe, Union, List} = require('../common/typed');
+  const {Record, Maybe, Union, List} = require('typed-immutable');
   const {async} = require('../lang/task');
 
   const Match = Record({
@@ -28,6 +28,9 @@
     limit: Number
   }, 'Search.Query');
   exports.Query = Query;
+
+  const Action = Union(Match, Result, Query);
+  exports.Action = Action;
 
 
   const service = address => {

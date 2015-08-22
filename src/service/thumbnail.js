@@ -7,7 +7,6 @@
   const WebView = require('../browser/web-view');
   const Loader = require('../browser/web-loader');
   const Page = require('../browser/web-page');
-  const {Record, Union} = require('../common/typed');
   const {fromDOMRequest, fromEvent} = require('../lang/promise');
   const URI = require('../common/url-helper');
 

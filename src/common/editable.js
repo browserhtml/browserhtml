@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, Maybe} = require('../common/typed');
+  const {Record, Union, Maybe} = require('typed-immutable');
   const {Element, VirtualAttribute} = require('./element');
   const Focusable = require('./focusable');
 
@@ -38,6 +38,9 @@
     selection: Selection
   }, 'Editable.Change');
   exports.Change = Change;
+
+  const Action = Union(Change, Select);
+  exports.Action = Action;
 
   // Update
 

@@ -7,7 +7,7 @@
 
   const {getDomainName} = require('../common/url-helper');
   const {html, render} = require('reflex');
-  const {Record, List, Union} = require('../common/typed');
+  const {Record, List, Union} = require('typed-immutable');
   const {StyleSheet, Style} = require('../common/style');
   const ClassSet = require('../common/class-set');
   const Loader = require('./web-loader');
@@ -17,11 +17,7 @@
 
   // Model
 
-  const Suggestion = Union({
-    Search: Search.Match,
-    Page: History.PageMatch,
-    TopHit: History.TopHit
-  }, 'Suggestion');
+  const Suggestion = Union(Search.Match, History.PageMatch, History.TopHit);
   exports.Suggestion = Suggestion;
 
   const Suggestions = List(Suggestion, 'Suggestions');

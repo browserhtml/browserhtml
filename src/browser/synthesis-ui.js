@@ -3,10 +3,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Any, Union} = require('../common/typed');
+  const {Record} = require('typed-immutable');
   const {compose} = require('../lang/functional');
   const WebView = require('./web-view');
   const Preview = require('./web-preview');
+  const {Load} = require('./web-loader');
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
   const Gesture = require('../service/gesture');
@@ -114,7 +115,7 @@
     const webViews = state.mode === 'edit-web-view' ?
       WebView.loadByIndex(state.webViews,
                           state.webViews.selected,
-                          {uri}) :
+                          Load({uri})) :
       WebView.open(state.webViews, {uri});
 
     return state.set('webViews', webViews);

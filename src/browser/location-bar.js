@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, Maybe} = require('../common/typed');
   const {html, render} = require('reflex');
   const URI = require('../common/url-helper');
   const {StyleSheet, Style} = require('../common/style');

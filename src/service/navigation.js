@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record} = require('../common/typed');
+  const {Record, Union} = require('typed-immutable');
 
   const GoBack = Record({
     id: '@selected'
@@ -25,6 +25,8 @@
   }, 'WebView.Navigation.Reload');
   exports.Reload = Reload;
 
+  const Action = Union(GoBack, GoForward, Stop, Reload);
+  exports.Action = Action;
 
   const webViewByID = id =>
     id === '@selected' ? document.querySelector('.web-view.selected') :
