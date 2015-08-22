@@ -79,9 +79,7 @@
       width: '240px',
       top: '50%',
       marginTop: '-50%',
-      // Seems to make things worse
-      // transition: 'ease-in opacity 0.1s'
-      transition: 'ease box-shadow 0.15s'
+      transition: 'box-shadow 80ms ease'
     },
     ghost: {
       backgroundColor: 'transparent',
@@ -214,13 +212,9 @@
 
   const swipingDiv = Element('div', {
     onMozSwipeGestureStart: Event('MozSwipeGestureStart'),
-    //onMozSwipeGestureStartCapture: CapturedEvent('MozSwipeGestureStart'),
     onMozSwipeGestureUpdate: Event('MozSwipeGestureUpdate'),
-    //onMozSwipeGestureUpdateCapture: CapturedEvent('MozSwipeGestureUpdate'),
     onMozSwipeGestureEnd: Event('MozSwipeGestureEnd'),
-    //onMozSwipeGestureEndCapture: CapturedEvent('MozSwipeGestureEnd'),
-    onMozSwipeGesture: Event('MozSwipeGesture'),
-    //onMozSwipeGestureCapture: CapturedEvent('MozSwipeGesture')
+    onMozSwipeGesture: Event('MozSwipeGesture')
   });
 
   const DIRECTION_UP = 1;
@@ -294,7 +288,7 @@
       scrollSnapCoordinate: '50% 50%',
     },
     shrinkable: {
-      transition: `ease-out width ${Card.shrinkDuration}ms`
+      transition: `width ${Card.shrinkDuration}ms ease-out`
     },
     shrink: {
       width: 0
@@ -318,9 +312,8 @@
       // cut off, so we turn on the traditional CSS box model and use padding.
       boxSizing: 'content-box',
       height: '100%',
-      // Fixed height to contain floats.
-      //padding: 'calc(50vh - 150px) 200px 0 200px',
       margin: '0 auto',
+      padding: '0 200px'
     }
   });
 

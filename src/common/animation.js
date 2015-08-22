@@ -20,7 +20,6 @@
 
       while (index < count) {
         const handler = handlers[index];
-        event.target =
         handler.onAnimationFrame(event);
         index  = index + 1;
       }
