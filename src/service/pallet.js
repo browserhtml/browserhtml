@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Maybe, Union} = require('../common/typed');
+  const {Record, Maybe, Union} = require('typed-immutable');
   const URI = require('../common/url-helper');
   const WebView = require('../browser/web-view');
   const Loader = require('../browser/web-loader');
@@ -63,6 +63,9 @@
     color: String
   });
   exports.AnnounceCuratedColor = AnnounceCuratedColor;
+
+  const Action = AnnounceCuratedColor;
+  exports.Action = Action;
 
   const service = address => action => {
     const isWebViewAction = action instanceof WebView.ByID ||

@@ -5,7 +5,7 @@
 // Manages events coming from gecko.
   'use strict';
 
-  const {Record, Union, Any} = require('../common/typed');
+  const {Record, Union, Any} = require('typed-immutable');
 
   // Actions
 
@@ -77,6 +77,13 @@
     type: 'toggle-fullscreen-native-window'
   }, 'Runtime.Maximize');
   exports.Maximize = Maximize;
+
+  const Action = Union(
+    Unknown, RemoteDebugRequest, UpdateAvailable, UpdateDownloaded,
+    CheckUpdate, RemoteDebugResponse, DownloadUpdate, Restart,
+    CleanRestart, CleanReload, Shutdown, Minimize, Maximize
+  );
+  exports.Action = Action;
 
 
   const Incoming = ({detail}) =>

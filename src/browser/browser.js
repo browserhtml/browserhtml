@@ -4,7 +4,7 @@
   'use strict';
 
   const {html, node, render, cache} = require('reflex');
-  const {Record, Any, Union, Maybe} = require('../common/typed');
+  const {Record, Maybe} = require('typed-immutable');
   const {inspect} = require('../common/debug');
   const {StyleSheet, Style} = require('../common/style');
   const WindowBar = require('./window-bar');

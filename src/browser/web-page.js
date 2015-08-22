@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
   const Pallet = require('../service/pallet');
   const Loader = require('./web-loader');
   const Progress = require('./web-progress');
@@ -104,6 +104,12 @@
   const AnnounceCuratedColor = Pallet.AnnounceCuratedColor;
   exports.AnnounceCuratedColor = AnnounceCuratedColor;
 
+  const Action = Union(
+    MetaChanged, ThumbnailChanged, TitleChanged,
+    IconChanged, Scrolled, OverflowChanged,
+    FirstPaint, DocumentFirstPaint, PageCardChanged,
+    AnnounceCuratedColor);
+  exports.Action = Action;
 
   // Update
 

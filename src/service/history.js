@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Maybe, Union, List} = require('../common/typed');
+  const {Record, Maybe, Union, List} = require('typed-immutable');
   const Loader = require('../browser/web-loader');
   const Progress = require('../browser/web-progress');
   const Page = require('../browser/web-page');
@@ -36,6 +36,9 @@
     limit: Number
   }, 'History.PageQuery');
   exports.PageQuery = PageQuery;
+
+  const Action = Union(TopHit, PageMatch, PageResult, PageQuery);
+  exports.Action = Action;
 
   const service = address => {
 

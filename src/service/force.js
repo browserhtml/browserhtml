@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 'use strict';
 
-const {Record, Any} = require('../common/typed');
+const {Record, Any} = require('typed-immutable');
 
 const Action = Record({
   description: 'Wrapped action will force immediate render',

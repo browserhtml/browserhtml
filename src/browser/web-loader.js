@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
 
   // Model
   const Model = Record({
@@ -27,6 +27,9 @@
     timeStamp: Number
   }, 'WebView.LocationChanged');
   exports.LocationChanged = LocationChanged;
+
+  const Action = Union(Load, LocationChanged);
+  exports.Action = Action;
 
   // Update
 

@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
   const {html, render} = require('reflex');
   const {StyleSheet, Style} = require('../common/style');
   const URI = require('../common/url-helper');
@@ -101,41 +101,14 @@
   }, 'WebViews.SelectByID');
   exports.SelectByID = SelectByID;
 
-  const {Load, LocationChanged} = Loader;
-  const {CanGoBackChanged, CanGoForwardChanged} = Navigation;
-  const {LoadStarted, LoadEnded} = Progress;
-  const {MetaChanged, ThumbnailChanged, TitleChanged,
-         IconChanged, Scrolled, OverflowChanged,
-         FirstPaint, DocumentFirstPaint,
-         AnnounceCuratedColor, PageCardChanged} = Page;
-  const {SecurityChanged} = Security;
-  const {VisibilityChanged, ZoomIn, ZoomOut, ResetZoom} = Shell;
-  const {Focus, Blur, Focused, Blured} = Focusable;
-
 
   // Just a union type for all possible actions that are targeted at specific
   // web view.
-  const Action = Union({
+  const Action = Union(
     Close, Open, OpenInBackground,
-    // Loader
-    Load, LocationChanged,
-    // Progress
-    LoadStarted, LoadEnded,
-    // Navigation
-    CanGoBackChanged, CanGoForwardChanged,
-    // Page
-    MetaChanged, ThumbnailChanged, TitleChanged, IconChanged, Scrolled,
-    OverflowChanged, PageCardChanged, FirstPaint, DocumentFirstPaint,
-    PageCardChanged, AnnounceCuratedColor,
-    // Security
-    SecurityChanged,
-    // Shell
-    VisibilityChanged,
-    Focus, Blur, Focused, Blured,
-    ZoomIn, ZoomOut, ResetZoom,
-    // Other
-    Failure, ContextMenu, ModalPrompt, Authentificate
-  });
+    Loader.Action, Progress.Action, Navigation.Action, Focusable.Action,
+    Page.Action, Security.Action, Shell.Action,
+    Failure, ContextMenu, ModalPrompt, Authentificate);
   exports.Action = Action;
 
   // Type contains `id` of the web-view and an `action` that is targeted
@@ -210,7 +183,7 @@
   exports.loadByIndex = loadByIndex;
 
   const updateByIndex = (state, n, action) =>
-    action instanceof Load ? loadByIndex(state, n, action) :
+    action instanceof Loader.Load ? loadByIndex(state, n, action) :
     action instanceof Close ? closeByIndex(state, n, action) :
     action instanceof Open ? open(state, action) :
     action instanceof OpenInBackground ? open(state, action) :
@@ -220,8 +193,8 @@
   const changeByIndex = (state, n, action) => {
     const {loader, shell, page, progress, navigation, security} = state;
     return n === null ? state : activate(state.merge({
-      selected: action instanceof Focus ? n :
-               action instanceof Focused ? n :
+      selected: action instanceof Focusable.Focus ? n :
+               action instanceof Focusable.Focused ? n :
                state.selected,
       loader: loader.set(n, Loader.update(loader.get(n), action)),
       shell: shell.set(n, Shell.update(shell.get(n), action)),
@@ -426,13 +399,13 @@
     Event[event.type](event);
 
   Event.mozbrowserdocumentfirstpaint = event =>
-    DocumentFirstPaint();
+    Page.DocumentFirstPaint();
 
   Event.mozbrowserfirstpaint = event =>
-    FirstPaint();
+    Page.FirstPaint();
 
   Event.mozbrowserlocationchange = ({detail: uri, timeStamp}) =>
-    LocationChanged({uri, timeStamp});
+    Loader.LocationChanged({uri, timeStamp});
 
   // TODO: Figure out what's in detail
   Event.mozbrowserclose = ({detail}) =>
@@ -474,45 +447,45 @@
 
 
   Event.focus = ({id}) =>
-    Focused({id});
+    Focusable.Focused({id});
 
   Event.blur = ({id}) =>
-    Blured({id});
+    Focusable.Blured({id});
 
 
   Event.mozbrowsergobackchanged = ({detail: value}) =>
-    CanGoBackChanged({value});
+    Navigation.CanGoBackChanged({value});
 
   Event.mozbrowsergoforwardchanged = ({detail: value}) =>
-    CanGoForwardChanged({value});
+    Navigation.CanGoForwardChanged({value});
 
 
   Event.mozbrowserloadstart = ({target, timeStamp}) =>
-    LoadStarted({uri: target.location, timeStamp});
+    Progress.LoadStarted({uri: target.location, timeStamp});
 
   Event.mozbrowserloadend = ({target, timeStamp}) =>
-    LoadEnded({uri: target.location, timeStamp});
+    Progress.LoadEnded({uri: target.location, timeStamp});
 
   Event.mozbrowsertitlechange = ({target, detail: title}) =>
-    TitleChanged({uri: target.location, title});
+    Page.TitleChanged({uri: target.location, title});
 
   Event.mozbrowsericonchange = ({target, detail: icon}) =>
-    IconChanged({uri: target.location, icon});
+    Page.IconChanged({uri: target.location, icon});
 
   Event.mozbrowsermetachange = ({detail: {content, name}}) =>
-    MetaChanged({content, name});
+    Page.MetaChanged({content, name});
 
   // TODO: Figure out what's in detail
   Event.mozbrowserasyncscroll = ({detail}) =>
-    Scrolled();
+    Page.Scrolled();
 
   Event.mozbrowserscrollareachanged = ({target, detail}) =>
-    OverflowChanged({
+    Page.OverflowChanged({
       overflow: detail.height > target.parentNode.clientHeight
     });
 
   Event.mozbrowsersecuritychange = ({detail}) =>
-    SecurityChanged({
+    Security.SecurityChanged({
       state: detail.state,
       extendedValidation: detail.extendedValidation
     });

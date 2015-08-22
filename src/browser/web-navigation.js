@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('../common/typed');
+  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
   const Loader = require('./web-loader');
   const Progress = require('./web-progress');
 
@@ -30,6 +30,8 @@
   exports.CanGoForwardChanged = CanGoForwardChanged;
 
 
+  const Action = Union(CanGoBackChanged, CanGoForwardChanged);
+  exports.Action = Action;
   // Update
 
   const update = (state, action) =>
