@@ -126,7 +126,8 @@
       backgroundColor: null,
       height: '100vh',
       width: '100vw',
-      position: 'relative',
+      position: 'absoulte',
+      overflow: 'hidden'
     },
     webviewsContainer: {
       height: 'calc(100vh - 28px)',

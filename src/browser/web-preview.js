@@ -294,12 +294,15 @@
       width: 0
     },
     scroller: {
-      backgroundColor: '#273340',
-      height: '100vh',
+      // Use 100px to hide a scrollbar by making scroller little larger and
+      // compensating with a bottom padding.
+      height: 'calc(100vh + 100px)',
+      paddingBottom: 100,
       width: '100vw',
       scrollSnapType: 'proximity',
       scrollSnapDestination: '50% 50%',
       overflowX: 'auto',
+      overflowY: 'hidden',
       position: 'absolute',
       textAlign: 'center',
       top: 0,
