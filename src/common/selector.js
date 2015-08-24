@@ -41,6 +41,8 @@ export const indexOfOffset = (index, size, offset, loop) => {
 }
 
 export const indexOf = (index, size, action) =>
+  index === null ?
+    index :
   action instanceof Next ?
     indexOfOffset(index, size, 1, action.loop) :
   action instanceof Previous ?

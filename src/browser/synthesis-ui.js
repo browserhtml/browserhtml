@@ -167,6 +167,7 @@
     state;
 
   const fadeToShowModeFromSelectMode = state =>
+    state.webViews.selected == null ? state :
     state.mode === 'select-web-view' ? fadeToShowMode(state) :
     state;
 
