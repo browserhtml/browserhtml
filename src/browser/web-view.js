@@ -156,9 +156,25 @@
   exports.open = open;
 
   const closeByIndex = (state, index) =>
-    index === null ? state : activate(state.merge({
-      previewed: state.loader.size === 1 ?  null :
-                 index === 0 ? 0 : index - 1,
+    index == null ? state : activate(state.merge({
+      previewed: // If view closed is to the right of the previewed one
+                 // everything stays as is.
+                 index > state.previewed ? state.previewed :
+                 // If view closed is to the left of the previewed one
+                 // then index of previewed is positive (given that index
+                 // is at min 0) so previewed is decremented.
+                 index < state.previewed ? state.previewed - 1 :
+
+                 // Otherwise previewed view is being closed.
+
+                 // If it is only view there is no more previewed view so
+                 // it is `null`.
+                 state.loader.size === 1 ?  null :
+                 // If it is a first view new previewed is still the first.
+                 index === 0 ? 0 :
+                 // otherwise to keep the same view previewed we decrement
+                 // (index althoug here it's same as previewd).
+                 index - 1,
       loader: state.loader.remove(index),
       shell: state.shell.remove(index),
       page: state.page.remove(index),
