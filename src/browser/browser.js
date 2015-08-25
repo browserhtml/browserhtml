@@ -32,7 +32,7 @@
 
   // Model
   const Model = Record({
-    version: '0.0.7',
+    version: require('../../package.json').version,
     mode: 'create-web-view', // or show-web-view, edit-web-view, choose-web-view
     transition: Maybe(String), // zoom, fade, or null (no transition)
     shell: Focusable.Model({isFocused: true}),
