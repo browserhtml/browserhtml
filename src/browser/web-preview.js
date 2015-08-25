@@ -77,6 +77,7 @@
       overflow: 'hidden',
       position: 'relative',
       width: '240px',
+      textAlign: 'left',
       top: '50%',
       marginTop: '-50%',
       transition: 'box-shadow 80ms ease'
