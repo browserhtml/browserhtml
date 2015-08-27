@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
-  const {Element, Event, ChromeEvent, VirtualAttribute} = require('../common/element');
+  const {Element, BubbledEvent, ChromeEvent, VirtualAttribute} = require('../common/element');
 
   const getOwnerWindow = node => node.ownerDocument.defaultView;
 
@@ -12,18 +12,20 @@
   // Define custom `main` element with a custom `scrollGrab` attribute
   // that maps to same named proprety.
   const Main = Element('div', {
-    windowTitle: VirtualAttribute((node, current, past) => {
+    windowTitle: new VirtualAttribute((node, current, past) => {
       node.ownerDocument.title = current;
+      return node;
     }),
-    scrollGrab: VirtualAttribute((node, current, past) => {
+    scrollGrab: new VirtualAttribute((node, current, past) => {
       node.scrollgrab = current;
+      return node;
     }),
-    onWindowFocus: Event('focus', getOwnerWindow),
-    onWindowBlur: Event('blur', getOwnerWindow),
-    onKeyDown: Event('keydown', getOwnerWindow),
-    onKeyUp: Event('keyup', getOwnerWindow),
-    onUnload: Event('unload', getOwnerWindow),
-    onOpenWindow: ChromeEvent('mozbrowseropenwindow')
+    onWindowFocus: new BubbledEvent('focus', getOwnerWindow),
+    onWindowBlur: new BubbledEvent('blur', getOwnerWindow),
+    onKeyDown: new BubbledEvent('keydown', getOwnerWindow),
+    onKeyUp: new BubbledEvent('keyup', getOwnerWindow),
+    onUnload: new BubbledEvent('unload', getOwnerWindow),
+    onOpenWindow: new ChromeEvent('mozbrowseropenwindow')
   });
 
   exports.Main = Main;

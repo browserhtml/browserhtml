@@ -65,6 +65,7 @@
           node.blur();
         }
       }
+      return node;
     })
   };
   exports.Field = Field;

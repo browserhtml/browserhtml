@@ -4,54 +4,50 @@
   'use strict';
 
   const Focusable = require('../common/focusable');
-  const {ElementView, BeforeAppendAttribute, VirtualAttribute, Event, VirtualEvent} = require('../common/element');
+  const {Element, BeforeAppendAttribute, VirtualAttribute,
+        BubbledEvent, VirtualEvent} = require('../common/element');
   const React = require('react');
   const {html} = require('reflex');
 
-  class IFrameView extends ElementView {
-    componentDidMount() {
-      super.componentDidMount();
-      this.setState({swapped: true});
+  const DOMProperty = require('react/lib/ReactInjection').DOMProperty;
+
+  // Configure react to make it understand custom mozbrowser attributes.
+  DOMProperty.injectDOMPropertyConfig({
+    Properties: {
+      'remote': DOMProperty.MUST_USE_ATTRIBUTE,
+      'mozbrowser': DOMProperty.MUST_USE_ATTRIBUTE,
+      'mozapp': DOMProperty.MUST_USE_ATTRIBUTE,
+      'mozallowfullscreen': DOMProperty.MUST_USE_ATTRIBUTE,
     }
-    render() {
-      return React.createElement(this.props.type, this.props.model,
-                                 this.props.children);
+  });
+
+  const transplant = (from, to) => {
+    for (let {name, value} of from.attributes) {
+      to.setAttribute(name, value);
     }
+
+    for (let name of from.properties.names) {
+      to[name] = node[name];
+    }
+
+    return to;
   }
 
-  const view = IFrameView.create('iframe', {
+  const view = Element('iframe', {
     opener: new VirtualAttribute((node, current) => {
-      const element = current instanceof String &&
-                      current.unbox &&
-                      current.unbox();
+      const element = current instanceof String && current.unbox != null ?
+                        current.unbox() :
+                        null;
 
-      if (element && node !== element) {
-        for (let {name, value} of node.attributes) {
-          element.setAttribute(name, value);
-        }
 
-        for (let name of node.properties.names) {
-          element[name] = node.name;
-        }
-
-        node.parentNode.replaceChild(element, node);
+      if (element != null && node !== element) {
+        return transplant(node, element);
+      } else {
+        return node;
       }
     }),
     isFocused: Focusable.Field.isFocused,
-    remote: new BeforeAppendAttribute('remote'),
-    mozbrowser: new BeforeAppendAttribute('mozbrowser'),
-    mozapp: new BeforeAppendAttribute('mozapp'),
-    mozallowfullscreen: new BeforeAppendAttribute('mozallowfullscreen'),
-    uri: VirtualAttribute((node, current, past) => {
-      if (current != past) {
-        const uri = node.setVisible ? current : `data:text/html,${current}`
-        if (node.location !== uri) {
-          node.location = uri;
-          node.src = uri;
-        }
-      }
-    }),
-    isVisible: VirtualAttribute((node, current, past) => {
+    isVisible: new VirtualAttribute((node, current, past) => {
       if (current != past) {
         if (node.setVisible) {
           try {
@@ -63,8 +59,9 @@
           }
         }
       }
+      return node;
     }),
-    zoom: VirtualAttribute((node, current, past) => {
+    zoom: new VirtualAttribute((node, current, past) => {
       if (current != past) {
         if (node.zoom) {
           try {
@@ -76,44 +73,37 @@
           }
         }
       }
+      return node;
     }),
-    onAsyncScroll: Event('mozbrowserasyncscroll'),
-    onClose: Event('mozbrowserclose'),
-    onOpenWindow: Event('mozbrowseropenwindow'),
-    onOpenTab: Event('mozbrowseropentab'),
-    onMenu: Event('mozbrowsercontextmenu'),
-    onError: Event('mozbrowsererror'),
-    onLoadStarted: Event('mozbrowserloadstart'),
-    onLoadEnded: Event('mozbrowserloadend'),
-    onIconChanged: Event('mozbrowsericonchange'),
-    onUserActivityDone: Event('mozbrowseractivitydone'),
-    onVisibilityChanged: Event('mozbrowservisibilitychange'),
-    onMetaChanged: Event('mozbrowsermetachange'),
-    onFirstPaint: Event('mozbrowserfirstpaint'),
-    onDocumentFirstPaint: Event('mozbrowserdocumentfirstpaint'),
+    onAsyncScroll: new BubbledEvent('mozbrowserasyncscroll'),
+    onClose: new BubbledEvent('mozbrowserclose'),
+    onOpenWindow: new BubbledEvent('mozbrowseropenwindow'),
+    onOpenTab: new BubbledEvent('mozbrowseropentab'),
+    onMenu: new BubbledEvent('mozbrowsercontextmenu'),
+    onError: new BubbledEvent('mozbrowsererror'),
+    onLoadStarted: new BubbledEvent('mozbrowserloadstart'),
+    onLoadEnded: new BubbledEvent('mozbrowserloadend'),
+    onIconChanged: new BubbledEvent('mozbrowsericonchange'),
+    onUserActivityDone: new BubbledEvent('mozbrowseractivitydone'),
+    onVisibilityChanged: new BubbledEvent('mozbrowservisibilitychange'),
+    onMetaChanged: new BubbledEvent('mozbrowsermetachange'),
+    onFirstPaint: new BubbledEvent('mozbrowserfirstpaint'),
+    onDocumentFirstPaint: new BubbledEvent('mozbrowserdocumentfirstpaint'),
     // Use `VirtualEvent` to proxy events in order to mutate `target.location`
     // so that user can check `target.location` before deciding if change to
     // `target.src` is required.
-    onLocationChanged: VirtualEvent((target, dispatch) => {
-      target.addEventListener('mozbrowserlocationchange', event => {
-        target.location = event.detail;
-        // Set an attribute as well so that in the inspector we can tell what
-        // is the location of a page even if user navigated away.
-        target.setAttribute('location', event.detail);
-        dispatch(event);
-      });
-    }),
-    onSecurityChanged: Event('mozbrowsersecuritychange'),
-    onTitleChanged: Event('mozbrowsertitlechange'),
-    onPrompt: Event('mozbrowsershowmodalprompt'),
-    onAuthentificate: Event('mozbrowserusernameandpasswordrequired'),
-    onScrollAreaChange: Event('mozbrowserscrollareachanged'),
-    onLoadProgressChange: Event('mozbrowserloadprogresschanged'),
+    onLocationChanged: new BubbledEvent('mozbrowserlocationchange'),
+    onSecurityChanged: new BubbledEvent('mozbrowsersecuritychange'),
+    onTitleChanged: new BubbledEvent('mozbrowsertitlechange'),
+    onPrompt: new BubbledEvent('mozbrowsershowmodalprompt'),
+    onAuthentificate: new BubbledEvent('mozbrowserusernameandpasswordrequired'),
+    onScrollAreaChange: new BubbledEvent('mozbrowserscrollareachanged'),
+    onLoadProgressChange: new BubbledEvent('mozbrowserloadprogresschanged'),
 
     // It is unfortunate that state of `canGoBack` and `canGoForward` is
     // not observadle, with virtual events we polifill more desired API
     // and pretend there are events dispatched when state changes.
-    onCanGoBackChanged: VirtualEvent((target, dispatch) => {
+    onCanGoBackChanged: new VirtualEvent((target, dispatch) => {
       const onsuccess = request =>
         dispatch({target,
                   type: 'mozbrowsergobackchanged',
@@ -122,8 +112,10 @@
       target.addEventListener('mozbrowserlocationchange', event => {
         target.getCanGoBack().onsuccess = onsuccess;
       });
+
+      return target;
     }),
-    onCanGoForwardChanged: VirtualEvent((target, dispatch) => {
+    onCanGoForwardChanged: new VirtualEvent((target, dispatch) => {
       const onsuccess = request =>
         dispatch({target,
                   type: 'mozbrowsergoforwardchanged',
@@ -132,6 +124,8 @@
       target.addEventListener('mozbrowserlocationchange', event => {
         target.getCanGoForward().onsuccess = onsuccess;
       });
+
+      return target;
     })
   });
   exports.view = view;

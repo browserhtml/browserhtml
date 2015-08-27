@@ -81,18 +81,21 @@
 
 
   const updateSearch = (state, {results: matches}) => {
-    const entries = state.entries.filter(isntSearch);
+    const pages = state.entries.filter(isntSearch);
     const half = Math.floor(MAX_RESULTS / 2);
-    const count = Math.min(matches.count(),
-                           MAX_RESULTS - Math.min(half, entries.count()));
-    const results = entries.take(count);
-    const searches = matches.slice(0, count);
+    const limit = Math.min(matches.size,
+                           Math.max(MAX_RESULTS - pages.size, half));
+    const searches = matches.slice(0, limit);
+    const entries = pages.first() instanceof History.TopHit ?
+      pages.take(1)
+           .concat(searches)
+           .concat(pages.skip(1).take(MAX_RESULTS - limit)) :
+      pages.take(MAX_RESULTS - limit)
+           .unshift(...searches);
 
     return state.merge({
       selected: -1,
-      entries: results.first() instanceof History.TopHit ?
-        results.take(1).concat(searches).concat(results.skip(1)) :
-        results.unshift(...searches)
+      entries
     });
   };
 
@@ -100,8 +103,8 @@
   const updatePage = (state, {matches, topHit}) => {
     const search = state.entries.filter(isntPage);
     const half = Math.floor(MAX_RESULTS / 2);
-    const limit = Math.min(matches.count(),
-                           Math.max(MAX_RESULTS - search.count(), half));
+    const limit = Math.min(matches.size,
+                           Math.max(MAX_RESULTS - search.size, half));
 
     const pages = matches.take(limit);
     const entries = search.take(MAX_RESULTS - limit)

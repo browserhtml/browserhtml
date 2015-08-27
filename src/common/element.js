@@ -6,113 +6,47 @@
   const React = require('react');
   const {node} = require('reflex');
 
-  const isPreMountHook = field => field && field.mount;
+  /*::
+  type EventHandler = (event: any) => void
+  type EventListener = {handleEvent: EventHandler} | EventHandler
+  */
 
-  const isPostMountHook = field => field && field.mounted;
+  class Hook {}
 
-  const isUpdateHook = field => field && field.write;
+  /*::
+  type AttributeValue = ?string|number|boolean;
+  */
 
-  const isConstractorHook = field => field && field.construct;
-
-  class ElementView extends React.Component {
-    static create(type, fields={}) {
-      // In react you can actually define custom HTML element it's
-      // just set of attributes you'll be able to set will be limited
-      // to React's white list. To workaround that we define React
-      // custom HTML element factory & custom react component that
-      // will render that HTML element via custom factory.
-
-      const keys = Object.keys(fields);
-      const mount = keys.filter(key => isPreMountHook(fields[key]));
-      const mounted = keys.filter(key => isPostMountHook(fields[key]));
-      const write = keys.filter(key => isUpdateHook(fields[key]));
-      const construct = keys.filter(key => isConstractorHook(fields[key]));
-
-      return (model, children) =>
-        React.createElement(this, {
-          model, type,
-          key: model.key || model.id,
-          fields,
-          mount, mounted, write
-        }, children);
+  // Attribute can be used to define field mapped to a
+  // DOM attribute with a given `name`. If the field is
+  // set to `undefined` or `null` attribute is removed
+  // othrewise it's set to given value.
+  // Example: Element('hbox', {flex: Attribute('flex')})
+  class Attribute extends Hook {
+    /*::
+    name: string;
+    */
+    constructor(name/*:string*/) {
+      super();
+      this.name = name
     }
-    constructor(props, context) {
-      super(props, context);
-      this.setup();
+    mounted(node/*:Element*/, value/*:AttributeValue*/) /*:Element*/ {
+      if (value != null) {
+        node.setAttribute(this.name, String(value));
+      }
+      return node;
     }
-    setup() {
-      const {type, fields, mount, mounted, write} = this.props;
-      const hooks = Object.create(null);
-
-      for (var key in fields) {
-        if (fields.hasOwnProperty(key)) {
-          const field = fields[key];
-          const hook = field.construct ? field.construct() : field;
-          hooks[key] = hook;
+    write(node/*:Element*/, present/*:AttributeValue*/, past/*:AttributeValue*/) /*:Element*/ {
+      if (present !== past) {
+        if (present == null) {
+          node.removeAttribute(this.name);
+        } else {
+          node.setAttribute(this.name, String(present));
         }
       }
-
-      this.displayName = `html:${type}`
-      this.state = hooks;
-    }
-    getMountTarget() {
-      return React.findDOMNode(this);
-    }
-    componentDidMount() {
-      const node = this.getMountTarget();
-      const {mount} = this.props;
-
-      this.mount();
-
-      if (mount.length > 0) {
-        // mount fields need to be set before node
-        // is in the document. Since react does not has
-        // an appropriate hook we replace node with itself
-        // to trigger desired behavior.
-        node.parentNode.replaceChild(node, node);
-      }
-
-      this.mounted();
-    }
-    mount() {
-      const {model, mount} = this.props;
-      const hooks = this.state;
-
-      for (var key of mount) {
-        const hook = hooks[key];
-        const value = model[key];
-        hook.mount(this.getMountTarget(), value);
-      }
-    }
-    // Reflect attributes not recognized by react.
-    mounted() {
-      const {model, mounted} = this.props;
-      const hooks = this.state;
-
-      for (var key of mounted) {
-        const hook = hooks[key];
-        hook.mounted(this.getMountTarget(), model[key]);
-      }
-    }
-    // Reflect attribute changes not recognized by react.
-    componentDidUpdate({model: past}) {
-      const {model, write} = this.props;
-      const hooks = this.state;
-
-      for (var key of write) {
-        const hook = hooks[key];
-        hook.write(this.getMountTarget(), model[key], past[key]);
-      }
-    }
-    // Render renders wrapped HTML node.
-    render() {
-      const {type, model, children, parent} = this.props;
-      return node(type, model, children);
+      return node;
     }
   }
-
-  const Element = (type, fields={}) =>
-    ElementView.create(type, fields);
 
   // BeforeAppendAttribute can be used to define attribute on the
   // element that is set once before element is inserted into a
@@ -121,59 +55,14 @@
   // reserved only for attributes changes to which aren't picked up
   // after node is in the tree.
   // Example: Element('iframe', { browser: BeforeAppendAttribute('mozbrowser') })
-  const BeforeAppendAttribute = function(name) {
-    if (!(this instanceof BeforeAppendAttribute)) {
-      return new BeforeAppendAttribute(name);
+  class BeforeAppendAttribute extends Attribute {
+    mount(node/*:Element*/, value/*:AttributeValue*/) /*:Element*/ {
+      return this.mounted(node, value);
     }
-
-    this.name = name;
-  }
-  BeforeAppendAttribute.prototype = {
-    constructor: BeforeAppendAttribute,
-    mount(node, value) {
-      if (value != void(0)) {
-        node.setAttribute(this.name, value);
-      }
-    },
-    write(node, present, past) {
-      Attribute.prototype.write.call(this, node, present, past)
-      if (present !== past) {
-        node.parentNode.replaceChild(node, node)
-      }
+    write(node/*:Element*/, present/*:AttributeValue*/, past/*:AttributeValue*/) /*:Element*/ {
+      return super.write(node.cloneNode(true), present, past);
     }
   };
-  Element.BeforeAppendAttribute = BeforeAppendAttribute;
-
-  // Attribute can be used to define field mapped to a
-  // DOM attribute with a given `name`. If the field is
-  // set to `undefined` or `null` attribute is removed
-  // othrewise it's set to given value.
-  // Example: Element('hbox', {flex: Attribute('flex')})
-  const Attribute = function(name) {
-    if (!(this instanceof Attribute)) {
-      return new Attribute(name);
-    }
-
-    this.name = name;
-  };
-  Attribute.prototype = {
-    constructor: Attribute,
-    mounted(node, value) {
-      if (value != void(0)) {
-        node.setAttribute(this.name, value);
-      }
-    },
-    write(node, present, past) {
-      if (present != past) {
-        if (present == void(0)) {
-          node.removeAttribute(this.name);
-        } else {
-          node.setAttribute(this.name, present);
-        }
-      }
-    }
-  }
-  Element.Attribute = Attribute;
 
   // VirtualAttribute can be used to define fields that can't be
   // mapped to an attribute in the DOM. VirtualAttribute is defined
@@ -188,139 +77,340 @@
   //     node.focus()
   //   }
   // }})
-  const VirtualAttribute = function(write) {
-    if (!(this instanceof VirtualAttribute)) {
-      return new VirtualAttribute(write);
-    }
-    this.write = write;
-  };
-  VirtualAttribute.prototype = {
-    constructor: Attribute,
-    mounted(node, value) {
-      this.write(node, value, void(0));
-    }
-  };
-  Element.VirtualAttribute = VirtualAttribute;
 
-  // Event can be used to define event handler fields, for
-  // the given event `type`. When event of that type occurs
-  // event handler assigned to the associated field will be
-  // invoked. Optionally `read` function can be passed as a
-  // second argument, in which case event handler will be
-  // invoked with `read(event)` instead of `event`.
-  // Example:
-  // Element('iframe', {onTitleChanged: Event('mozbrowsertitlechange')})
-  const Event = function(type, read, capture=false) {
-    if (!(this instanceof Event)) {
-      return new Event(type, read, capture);
+  /*::
+  type Writer = (node:Element, present:AttributeValue, past:AttributeValue) => Element
+  */
+  class VirtualAttribute extends Hook {
+    /*::
+    write: Writer;
+    */
+    constructor(write/*:Writer*/) {
+      super();
+      this.write = write;
     }
-    this.type = type;
-    this.read = read;
-    this.capture = capture;
+    mounted(node/*Element*/, value/*AttributeValue*/) /*Element*/{
+      return this.write(node, value, null);
+    }
   };
-  Event.prototype = {
-    constructor: Event,
-    construct() {
-      return new this.constructor(this.type,
-                                  this.read,
-                                  this.capture);
-    },
-    capture: false,
-    mounted(node, handler) {
-      this.handler = handler;
-      const target = this.read ? this.read(node) : node;
-      target.addEventListener(this.type, this, this.capture);
-    },
-    write(node, present) {
-      this.handler = present;
-    },
-    handleEvent(event) {
-      if (this.handler) {
-        this.handler(event);
+
+  /*::
+  type Reader = (node:Element) => Element
+  type EventListener = (event:any) => void
+  */
+  class EventHook extends Hook {
+    /*::
+    type: string;
+    capture: boolean;
+    read: ?Reader;
+    handler: ?EventListener;
+    listenersByNode: WeakMap;
+    listenedNodes: number;
+    */
+    constructor(type/*:string*/, capture/*:boolean*/, read=null) {
+      super();
+      this.capture = capture;
+      this.type = type;
+      this.read = read;
+      this.listenersByNode = new WeakMap();
+      this.listenedNodes = 0;
+    }
+    getTarget(node) {
+      return this.read != null ? this.read(node) : node;
+    }
+    register(node/*:Element*/) /*:void*/ {
+      ++this.listenedNodes;
+      node.addEventListener(this.type, this, this.capture);
+    }
+    unregister(node/*:Element*/) /*:void*/ {
+      --this.listenedNodes;
+      if (this.listenedNodes === 0) {
+        node.removeEventListener(this.type, this, this.capture);
       }
     }
-  };
-  Element.Event = Event;
-
-  const ChromeEvent = function(type) {
-    if (!(this instanceof ChromeEvent)) {
-      return new ChromeEvent(type);
-    }
-    this.type = type;
-  };
-  ChromeEvent.prototype = {
-    constructor: ChromeEvent,
-    construct() {
-      return new this.constructor(this.type);
-    },
-    mounted(node, handler) {
-      this.handler = handler;
-      window.addEventListener('mozChromeEvent', this);
-    },
-    write(node, present) {
-      this.handler = present;
-    },
     handleEvent(event) {
-      if (this.handler && this.type == event.detail.type) {
-        this.handler(event);
+      const listeners = this.listenersByNode.get(event.currentTarget);
+      if (listeners != null && listeners.length > 0) {
+        this.dispatch(event, listeners, 0);
       }
     }
-  };
-  Element.ChromeEvent = ChromeEvent;
-
-  // CapturedEvent can be used same as `Event` with a difference
-  // that events listeners will be added with a capture `true`.
-  const CapturedEvent = function(type, read) {
-    if (!(this instanceof CapturedEvent)) {
-      return new CapturedEvent(type, read);
+    dispatch(event, listeners, index) {
+      // Note: In general listeners can be updated in response to invoking a
+      // listener, but since with update DOM on animation frame we don't really
+      // need to care about those mutions.
+      try {
+        while (index < listeners.length) {
+          const listener = listeners[index];
+          index = index + 1;
+          listener(event);
+        }
+      } finally {
+        if (index < listeners.length) {
+          this.dispatch(event, listeners, index);
+        }
+      }
     }
+    removeListener(node/*:Element*/, listener/*:EventListener*/) /*:void*/ {
+      const listeners = this.listenersByNode.get(node);
+      if (listeners != null) {
+        const index = listeners.indexOf(listener);
+        if (index >= 0) {
+          listeners.splice(index, 1);
+          if (listeners.length === 0) {
+            this.unregister(node);
+          }
+        }
+      }
+    }
+    addListener(node/*:Element*/, listener/*:EventListener*/) {
+      // Find the listeners array for the given node which will
+      // exist if listener for this node was ever added.
+      const listeners = this.listenersByNode.get(node);
+      // If listeners array does not exist then create one
+      // with a passed listener in it. Also register self as an
+      // event listener on this node.
+      if (listeners == null) {
+        this.listenersByNode.set(node, [listener]);
+        this.register(node);
+      }
+      // If listeners array exists then just add passed listener
+      // to it. If added listener is an only item in the array
+      // then listeners was empty, which means that `this` was
+      // unregistered when last listener was removed, there for
+      // register `this` as an event listener.
+      else {
+        if (listeners.indexOf(listener) < 0) {
+          listeners.push(listener);
+          if (listeners.length === 1) {
+            this.register(node);
+          }
+        }
+      }
+    }
+    mounted(node/*:Element*/, listener/*:?EventListener*/) {
+      // If listener is present when node is mounted add a listener
+      // the target.
+      if (listener != null) {
+        this.addListener(this.getTarget(node), listener);
+      }
+      return node;
+    }
+    unmount(node/*:Element*/, listener/*:?EventListener*/) {
+      // When node is unmounted unregister `this` as an event listener from
+      // the target and remove associated listeners.
+      if (listener != null) {
+        this.removeListener(this.getTarget(node), listener);
+      }
+      return node;
+    }
+    write(node/*:Element*/, current/*:?EventListener*/, past/*:?EventListener*/) /*:Element*/ {
+      const isExisting = past != null;
+      const isDelete = current == null;
+      const isWrite = !isDelete;
 
-    this.type = type;
-    this.read = read;
-    this.capture = true;
+      if (past !== current) {
+        // If a different listener was set in the past
+        if (past != null) {
+          // and current listener is preset then add
+          // current listener and remove the past listener.
+          if (current != null) {
+            this.addListener(this.getTarget(node), current);
+          }
+          // otherwise just remove past listener.
+          this.removeListener(this.getTarget(node), past);
+        }
+        // If no listener was set in the past, and the current listener
+        // is present then add add current listener.
+        else {
+          if (current != null) {
+            this.addListener(this.getTarget(node), current);
+          }
+        }
+      }
+
+      return node;
+    }
   }
-  CapturedEvent.prototype = Event.prototype;
-  Element.CapturedEvent = CapturedEvent;
 
-  const VirtualEvent = function(setup) {
-    if (!(this instanceof VirtualEvent)) {
-      return new VirtualEvent(setup);
+  class BubbledEvent extends EventHook {
+    constructor(type/*:string*/, read=null) {
+      super(type, false, read);
     }
-
-    this.setup = setup;
   }
-  VirtualEvent.prototype = {
-    constructor: VirtualEvent,
-    construct() {
-      return new this.constructor(this.setup);
-    },
-    mounted(node, handler) {
-      this.write(node, handler);
-      this.setup(node, this.handleEvent.bind(this));
-    },
-    write(node, present) {
-      this.handler = present;
-    },
+
+  class CapturedEvent extends EventHook {
+    constructor(type/*:string*/, read=null) {
+      super(type, true, read);
+    }
+  }
+
+  class ChromeEvent extends EventHook {
+    static read(node/*:Element*/) {
+      return node.ownerDocument.defaultView;
+    }
+    constructor(detailType/*:string*/) {
+      super('mozChromeEvent', false, ChromeEvent.read);
+      this.detailType = detailType;
+    }
     handleEvent(event) {
-      if (this.handler) {
+      if (this.detailType === event.detail.type) {
+        super.handleEvent(event);
+      }
+    }
+  }
+
+
+  /*::
+  type EventSetup = (node: Element, dispatch: (event:any) => void) => Element
+  */
+  class VirtualEvent extends Hook {
+    /*::
+    setup: EventSetup;
+    handler: ?EventListener;
+    dispatch: (event: any) => void;
+    */
+    constructor(setup/*: EventSetup*/) {
+      super();
+      this.setup = setup;
+      this.dispatch = this.handleEvent.bind(this);
+      this.handler = null;
+    }
+    write(node/*:Element*/, present/*:?EventListener*/) {
+      if (present != null) {
+        if (this.handler == null) {
+          this.handler = present;
+          node = this.setup(node, this.dispatch);
+        } else {
+          this.handler = present;
+        }
+      } else {
+        if (this.handler != null) {
+          this.handler = null;
+        }
+      }
+      return node;
+    }
+    mounted(node, handler) {
+      return this.write(node, handler);
+    }
+    handleEvent(event) {
+      if (this.handler != null) {
         this.handler(event);
       }
     }
-  };
-  Element.VirtualEvent = VirtualEvent;
+  }
+
+  const isMountHook = field => field && field.mount;
+  const isMountedHook = field => field != null && field.mounted != null;
+  const isWriteHook = field => field != null && field.write != null;
+  const isUnmountHook = field => field != null && field.unmount != null;
+
+  class ElementView extends React.Component {
+    static create(type, fields={}) {
+      // In react you can actually define custom HTML element it's
+      // just set of attributes you'll be able to set will be limited
+      // to React's white list. To workaround that we define React
+      // custom HTML element factory & custom react component that
+      // will render that HTML element via custom factory.
+
+      const keys = Object.keys(fields);
+      const mount = keys.filter(key => isMountHook(fields[key]));
+      const mounted = keys.filter(key => isMountedHook(fields[key]));
+      const unmount = keys.filter(key => isUnmountHook(fields[key]));
+      const write = keys.filter(key => isWriteHook(fields[key]));
+
+      return (model, children) =>
+        React.createElement(this, {
+          model, type,
+          key: model.key || model.id,
+          fields,
+          mount, mounted, write, unmount
+        }, children);
+    }
+    constructor(props, context) {
+      super(props, context);
+      this.displayName = `html:${props.type}`
+    }
+    step(from, to) {
+      if (from !== to && from != null && from.parentNode != null) {
+        from.parentNode.replaceChild(to, from);
+      }
+      return to;
+    }
+    getMount() {
+      return React.findDOMNode(this);
+    }
+    componentDidMount() {
+      const node = this.getMount(this);
+      this.mounted(this.step(node, this.mount(node)));
+    }
+    mount(node) {
+      const {model, mount, fields} = this.props;
+
+      for (var key of mount) {
+        const field = fields[key];
+        const value = model[key];
+        node = field.mount(node, value);
+      }
+
+      return node;
+    }
+    // Reflect attributes not recognized by react.
+    mounted(node) {
+      const {model, mounted, fields} = this.props;
+
+      for (var key of mounted) {
+        const field = fields[key];
+        node = this.step(node, field.mounted(node, model[key]));
+      }
+
+      return node;
+    }
+    write(node, current, past) {
+      const {fields, write} = this.props;
+
+      for (var key of write) {
+        const field = fields[key];
+        node = this.step(node, field.write(node, current[key], past[key]));
+      }
+
+      return node;
+    }
+    // Reflect attribute changes not recognized by react.
+    componentDidUpdate({model: past}) {
+      const {model: present} = this.props;
+      this.write(this.getMount(), present, past);
+    }
+    componentWillUnmount() {
+      const {model, unmount, fields} = this.props;
+
+      for (var key of unmount) {
+        const field = fields[key];
+        field.unmount(node, model[key]);
+      }
+    }
+    // Render renders wrapped HTML node.
+    render() {
+      const {type, model, children, parent} = this.props;
+      return node(type, model, children);
+    }
+  }
+
+  const Element = (type, fields={}) =>
+    ElementView.create(type, fields);
 
   // Exports:
 
   exports.ElementView = ElementView;
-  exports.isPreMountHook = isPreMountHook;
-  exports.isPostMountHook = isPostMountHook;
-  exports.isUpdateHook = isUpdateHook;
-  exports.isConstractorHook = isConstractorHook;
+  exports.isMountHook = isMountHook;
+  exports.isMountedHook = isMountedHook;
+  exports.isWriteHook = isWriteHook;
+  exports.isUnmountHook = isUnmountHook;
   exports.Element = Element;
   exports.BeforeAppendAttribute = BeforeAppendAttribute;
   exports.Attribute = Attribute;
   exports.VirtualAttribute = VirtualAttribute;
-  exports.Event = Event;
+  exports.BubbledEvent = BubbledEvent;
   exports.CapturedEvent = CapturedEvent;
   exports.VirtualEvent = VirtualEvent;
   exports.ChromeEvent = ChromeEvent;
