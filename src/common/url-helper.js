@@ -4,21 +4,31 @@
 
   'use strict';
 
+  const nullURL = {
+    origin: null,
+    hostname: null,
+    protocol: null
+  }
+
+  const parse = input => {
+    try {
+      return new URL(input);
+    } catch(_) {
+      return nullURL;
+    }
+  }
+
   const hasScheme = input => !!(rscheme.exec(input) || [])[0];
-  const getOrigin = url => new URL(url).origin;
+  const getOrigin = url => parse(url).origin;
   const getBaseURI = () => new URL('./', location);
-  const getHostname = url => new URL(url).hostname;
-  const getDomainName = url => getHostname(url).replace(/^www\./, '');
-  const getProtocol = url => new URL(url).protocol;
+  const getHostname = url => parse(url).hostname;
+  const getDomainName = url =>
+    (getHostname(url) || '').replace(/^www\./, '');
+  const getProtocol = url => parse(url).protocol;
   const getManifestURL = () => new URL('./manifest.webapp', getBaseURI());
 
-  const isAboutURL = url => {
-    try {
-      return new URL(url).protocol == 'about:';
-    } catch (e) {
-      return false;
-    }
-  };
+  const isAboutURL = url =>
+    parse(url).protocol === 'about:';
 
   const isPrivileged = uri => {
     // FIXME: not safe. White list?
@@ -82,6 +92,7 @@
     return about != null ? `about:${about}` : null;
   }
 
+  exports.parse = parse;
   exports.resolve = resolve;
   exports.asAboutURI = asAboutURI;
   exports.read = read;
