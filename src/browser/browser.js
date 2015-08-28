@@ -196,6 +196,7 @@
           webViews.loader,
           webViews.shell,
           webViews.page,
+          webViews.sheet,
           address,
           webViews.selected)),
       render('DevtoolsHUD', DevtoolsHUD.view, state.devtoolsHUD, address),

@@ -19,6 +19,9 @@
   const Selector = require('../common/selector');
   const Force = require('../service/force');
   const Card = require('./web-card');
+  const Sheet = require('./web-sheet');
+  const {animate} = require('../common/animation');
+  const {Element, BubbledEvent, CapturedEvent} = require('../common/element');
 
   // Model
   const Model = Record({
@@ -32,7 +35,8 @@
     progress: List(Progress.Model),
     navigation: List(Navigation.Model),
     security: List(Security.Model),
-    card: List(Card.Model)
+    card: List(Card.Model),
+    sheet: List(Sheet.Model)
   }, 'WebViews');
   exports.Model = Model;
 
@@ -43,7 +47,8 @@
     progress: state.progress.get(index),
     navigation: state.navigation.get(index),
     security: state.security.get(index),
-    card: state.card.get(index)
+    card: state.card.get(index),
+    sheet: state.sheet.get(index)
   });
   exports.get = get;
 
@@ -101,7 +106,7 @@
   const Action = Union(
     Close, Open, OpenInBackground,
     Loader.Action, Progress.Action, Navigation.Action, Focusable.Action,
-    Page.Action, Security.Action, Shell.Action, Card.Action,
+    Page.Action, Security.Action, Shell.Action, Card.Action, Sheet.Action,
     Failure, ContextMenu, ModalPrompt, Authentificate);
   exports.Action = Action;
 
@@ -151,7 +156,8 @@
     progress: state.progress.unshift(Progress.Model()),
     navigation: state.navigation.unshift(Navigation.Model()),
     security: state.security.unshift(Security.Model()),
-    card: state.card.unshift(Card.Model())
+    card: state.card.unshift(Card.Model()),
+    sheet: state.sheet.unshift(Sheet.init())
   }));
   exports.open = open;
 
@@ -181,7 +187,8 @@
       progress: state.progress.remove(index),
       navigation: state.navigation.remove(index),
       security: state.security.remove(index),
-      card: state.card.remove(index)
+      card: state.card.remove(index),
+      sheet: state.sheet.remove(index)
     }));
   exports.closeByIndex = closeByIndex;
 
@@ -201,9 +208,8 @@
     action instanceof OpenInBackground ? open(state, action) :
     changeByIndex(state, n, action);
 
-
   const changeByIndex = (state, n, action) => {
-    const {loader, shell, page, progress, navigation, security, card} = state;
+    const {loader, shell, page, progress, navigation, security, card, sheet} = state;
     return n === null ? state : activate(state.merge({
       selected: action instanceof Focusable.Focus ? n :
                action instanceof Focusable.Focused ? n :
@@ -214,9 +220,12 @@
       progress: progress.set(n, Progress.update(progress.get(n), action)),
       security: security.set(n, Security.update(security.get(n), action)),
       navigation: navigation.set(n, Navigation.update(navigation.get(n), action)),
-      card: card.set(n, Card.update(card.get(n), action))
+      card: card.set(n, Card.update(card.get(n), action)),
+      sheet: sheet.set(n, Sheet.update(sheet.get(n), action))
     }));
   };
+
+
 
   const updateSelected = (state, action) =>
     updateByIndex(state, state.selected, action);
@@ -266,8 +275,33 @@
       backgroundColor: '#fff',
       zIndex: 0,
     },
-    active: {
+    previous: {
       zIndex: 1,
+      backgroundColor: 'rgba(255, 255, 0, 0.2)',
+      pointerEvents: 'none'
+    },
+    current: {
+      zIndex: 3,
+      backgroundColor: 'white',
+      pointerEvents: 'none',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
+    },
+    image: {
+      backgroundImage: null,
+      backgroundPosition: 'center center',
+      backgroundSize: 'cover',
+    },
+    imageLoader: {
+      visibility: 'hidden',
+      pointerEvents: 'none'
+    },
+    next: {
+      zIndex: 4,
+      backgroundColor: 'rgba(255, 0, 0, 0.2)',
+      pointerEvents: 'none'
+    },
+    active: {
+      zIndex: 2,
     },
     inactive: {
       display: 'none',
@@ -277,7 +311,103 @@
     }
   });
 
-  const viewWebView = (loader, shell, thumbnail, isSelected, address) => {
+  const swipingDiv = Element('div', {
+    onMozSwipeGestureStart: new BubbledEvent('MozSwipeGestureStart'),
+    onMozSwipeGestureUpdate: new BubbledEvent('MozSwipeGestureUpdate'),
+    onMozSwipeGestureEnd: new BubbledEvent('MozSwipeGestureEnd'),
+    onMozSwipeGesture: new BubbledEvent('MozSwipeGesture')
+  });
+
+  // See: https://dxr.mozilla.org/mozilla-central/source/dom/interfaces/events/nsIDOMSimpleGestureEvent.idl?offset=100#108-109
+  const DIRECTION_LEFT = 4;
+  const DIRECTION_RIGHT = 8;
+
+  const viewWebView = (loader, shell, thumbnail, sheet, isSelected, address) => {
+    const node = swipingDiv({
+      onMozSwipeGestureStart: event => {
+        if (event.direction === DIRECTION_LEFT ||
+            event.direction === DIRECTION_RIGHT)
+        {
+          event.allowedDirections = DIRECTION_LEFT | DIRECTION_RIGHT;
+          event.preventDefault();
+          // Stop loading
+          event.target.stop();
+
+          const {offsetWidth, offsetHeight} = event.target;
+
+          address.receive(Sheet.BeginSwipe({
+            delta: event.delta,
+            timeStamp: performance.now(),
+            width: offsetWidth,
+          }));
+
+          event.target
+               .getScreenshot(offsetWidth, offsetHeight, 'image/png')
+               .then(blob => {
+                 address.receive(Sheet.Screenshot({
+                  image: URL.createObjectURL(blob)
+                }));
+               });
+        }
+      },
+      onMozSwipeGestureUpdate: (event) => {
+        address.receive(Sheet.ContinueSwipe({
+          delta: event.delta,
+          timeStamp: performance.now()
+        }));
+      },
+      onMozSwipeGestureEnd(event) {
+        address.receive(Sheet.ContinueSwipe({
+          delta: event.delta,
+          timeStamp: performance.now()
+        }));
+      },
+      onMozSwipeGesture: (event) => {
+        address.receive(Sheet.EndSwipe({
+          timeStamp: performance.now()
+        }));
+      }
+    }, [
+      html.div({
+        key: 'previous-page',
+        style: Style(webviewStyle.base, webviewStyle.previous)
+      }),
+      html.div({
+        key: 'current-page',
+        style: Style(webviewStyle.base,
+                     webviewStyle.current,
+                     webviewStyle.image,
+                     sheet.isInMotion ? null : webviewStyle.inactive,
+                     {
+          transform: `translateX(${sheet.x}px)`,
+          backgroundImage: `url(${sheet.image})`
+        })
+      }, [
+        html.img({
+          src: sheet.image,
+          style: webviewStyle.imageLoader,
+          onLoad: event => URL.revokeObjectURL(event.target.src)
+        }),
+        /*
+        html.pre({
+          style: {
+            whiteSpace: 'pre',
+            fontFamily: 'monaco',
+            position: 'absolute',
+            zIndex: 2,
+            top: 0
+          }
+        }, JSON.stringify(sheet, ' ', ' '))
+        */
+      ]),
+      viewWebFrame(loader, shell, thumbnail, isSelected, address)
+    ]);
+
+    return animate(node, address.pass(Sheet.AnimationFrame),
+                   sheet.isInMotion);
+  }
+
+  const viewWebFrame = (loader, shell, thumbnail, isSelected, address) => {
     // Do not render anything unless viewer has an `uri`
     if (loader.uri == null) return null;
 
@@ -386,7 +516,7 @@
       webviewsStyle.fadeOut :
     webviewsStyle.shrink;
 
-  const view = (mode, transition, loader, shell, page, address, selected) =>
+  const view = (mode, transition, loader, shell, page, sheet, address, selected) =>
     html.div({
       key: 'web-views',
       style: Style(webviewsStyle.base, getModeStyle(mode, transition)),
@@ -395,6 +525,7 @@
              loader,
              shell.get(index),
              page.get(index).thumbnail,
+             sheet.get(index),
              index === selected,
              address.forward(action =>
                // If action is boxed in Force.Action we want to keep it
