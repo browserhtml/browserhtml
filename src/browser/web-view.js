@@ -279,7 +279,7 @@
 
   const viewWebView = (loader, shell, thumbnail, isSelected, address) => {
     // Do not render anything unless viewer has an `uri`
-    if (!loader.uri) return null;
+    if (loader.uri == null) return null;
 
     const action = address.pass(Event);
     const location = URI.resolve(loader.uri);
