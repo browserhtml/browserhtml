@@ -71,13 +71,14 @@
   // Field
 
   const Field = {
-    selection: VirtualAttribute((node, current, past) => {
+    selection: new VirtualAttribute((node, current, past) => {
       if (current !== past) {
         const {start, end, direction} = current;
         node.setSelectionRange(start === Infinity ? node.value.length : start,
                                end === Infinity ? node.value.length : end,
                                direction);
       }
+      return node;
     })
   };
   exports.Field = Field;

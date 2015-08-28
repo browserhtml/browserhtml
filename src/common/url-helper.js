@@ -28,7 +28,7 @@
   const getManifestURL = () => new URL('./manifest.webapp', getBaseURI());
 
   const isAboutURL = url =>
-    parse(url).protocol == 'about';
+    parse(url).protocol === 'about:';
 
   const isPrivileged = uri => {
     // FIXME: not safe. White list?
@@ -66,6 +66,7 @@
     `https://duckduckgo.com/?q=${encodeURIComponent(input)}`;
 
   const readAboutURL = input =>
+    input === 'about:blank' ? input :
     `${getBaseURI()}src/about/${input.replace('about:', '')}/index.html`;
 
   const read = input =>
@@ -77,8 +78,23 @@
     isAboutURL(uri) ? readAboutURL(uri) :
     uri;
 
+  const aboutPattern = /\/about\/([^\/]+)\/index.html$/;
+
+  const readAboutTerm = input => {
+    const match = aboutPattern.exec(input);
+    return match != null ? match[1] : null;
+  }
+
+  const asAboutURI = uri => {
+    const base = getBaseURI();
+    const {origin, pathname} = new URI(uri);
+    const about = base.origin === origin ? readAboutTerm(pathname) : null;
+    return about != null ? `about:${about}` : null;
+  }
+
   exports.parse = parse;
   exports.resolve = resolve;
+  exports.asAboutURI = asAboutURI;
   exports.read = read;
   exports.hasScheme = hasScheme;
   exports.getOrigin = getOrigin;

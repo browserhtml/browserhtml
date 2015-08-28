@@ -14,7 +14,7 @@
   const Favicon = require('../common/favicon');
   const Selector = require('../common/selector');
   const Theme = require('./theme');
-  const {Element, Event, CapturedEvent} = require('../common/element');
+  const {Element, BubbledEvent, CapturedEvent} = require('../common/element');
   const {animate} = require('../common/animation');
 
   // Action
@@ -212,10 +212,10 @@
   ];
 
   const swipingDiv = Element('div', {
-    onMozSwipeGestureStart: Event('MozSwipeGestureStart'),
-    onMozSwipeGestureUpdate: Event('MozSwipeGestureUpdate'),
-    onMozSwipeGestureEnd: Event('MozSwipeGestureEnd'),
-    onMozSwipeGesture: Event('MozSwipeGesture')
+    onMozSwipeGestureStart: new BubbledEvent('MozSwipeGestureStart'),
+    onMozSwipeGestureUpdate: new BubbledEvent('MozSwipeGestureUpdate'),
+    onMozSwipeGestureEnd: new BubbledEvent('MozSwipeGestureEnd'),
+    onMozSwipeGesture: new BubbledEvent('MozSwipeGesture')
   });
 
   const DIRECTION_UP = 1;

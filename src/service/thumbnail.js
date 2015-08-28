@@ -45,7 +45,7 @@
                             action instanceof WebView.BySelected;
     if (isWebViewAction && action.action instanceof Loader.LocationChanged) {
       const iframe = document.getElementById(`web-view-${action.id}`);
-      const uri = iframe.location;
+      const uri = iframe.dataset.uri;
       const id = action.id;
       if (iframe) {
         fetchScreenshot(iframe).then(address.pass(blob =>

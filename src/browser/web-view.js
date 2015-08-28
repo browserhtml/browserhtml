@@ -143,7 +143,7 @@
     nextID: state.nextID + 1,
     previewed: inBackground ? state.selected + 1 : 0,
     loader: state.loader.unshift(Loader.Model({
-      uri, opener,
+      uri, opener, src: uri,
       id: String(state.nextID),
     })),
     shell: state.shell.unshift(Shell.Model({isFocused: !inBackground})),
@@ -282,11 +282,12 @@
     if (loader.uri == null) return null;
 
     const action = address.pass(Event);
-    const location = URI.resolve(loader.uri);
+    const location = URI.resolve(loader.src);
 
     return IFrame.view({
       id: `web-view-${loader.id}`,
-      uri: location,
+      src: location,
+      'data-uri': loader.uri,
       opener: loader.opener,
       className: `web-view ${isSelected ? 'selected' : ''}`,
       // This is a workaround for Bug #266 that prevents capturing
@@ -474,16 +475,16 @@
 
 
   Event.mozbrowserloadstart = ({target, timeStamp}) =>
-    Progress.LoadStarted({uri: target.location, timeStamp});
+    Progress.LoadStarted({uri: target.dataset.uri, timeStamp});
 
   Event.mozbrowserloadend = ({target, timeStamp}) =>
-    Progress.LoadEnded({uri: target.location, timeStamp});
+    Progress.LoadEnded({uri: target.dataset.uri, timeStamp});
 
   Event.mozbrowsertitlechange = ({target, detail: title}) =>
-    Page.TitleChanged({uri: target.location, title});
+    Page.TitleChanged({uri: target.dataset.uri, title});
 
   Event.mozbrowsericonchange = ({target, detail: icon}) =>
-    Page.IconChanged({uri: target.location, icon});
+    Page.IconChanged({uri: target.dataset.uri, icon});
 
   Event.mozbrowsermetachange = ({detail: {content, name}}) =>
     Page.MetaChanged({content, name});

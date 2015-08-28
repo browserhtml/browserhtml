@@ -4,12 +4,14 @@
   'use strict';
 
   const {Record, Union, List, Maybe, Any} = require('typed-immutable');
+  const URI = require('../common/url-helper');
 
   // Model
   const Model = Record({
     id: String,
     opener: Any,
-    uri: Maybe(String)
+    uri: Maybe(String),
+    src: Maybe(String)
   }, 'WebLoader');
   exports.Model = Model;
 
@@ -34,7 +36,11 @@
   // Update
 
   const update = (state, action) =>
-    action instanceof Load ? state.set('uri', action.uri) :
-    action instanceof LocationChanged ? state.set('uri', action.uri) :
+    action instanceof Load ? state.merge({
+      src: action.uri,
+      uri: action.uri
+    }) :
+    action instanceof LocationChanged ?
+      state.set('uri', action.uri) :
     state;
   exports.update = update;
