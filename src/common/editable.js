@@ -73,10 +73,12 @@
   const Field = {
     selection: new VirtualAttribute((node, current, past) => {
       if (current !== past) {
-        const {start, end, direction} = current;
-        node.setSelectionRange(start === Infinity ? node.value.length : start,
-                               end === Infinity ? node.value.length : end,
-                               direction);
+        if (node.setSelectionRange) { // FIXME: remove once Servo supports setSelectionRange
+          const {start, end, direction} = current;
+          node.setSelectionRange(start === Infinity ? node.value.length : start,
+                                 end === Infinity ? node.value.length : end,
+                                 direction);
+        }
       }
       return node;
     })

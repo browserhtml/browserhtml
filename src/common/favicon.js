@@ -11,7 +11,13 @@
     constructFaviconURL(getOrigin(pageURL) + '/favicon.ico', FAVICON_SIZE) : null;
 
   // Ideal size for a favicon.
-  const FAVICON_SIZE = 16 * devicePixelRatio;
+  var FAVICON_SIZE;
+  if (window.devicePixelRatio) {
+    FAVICON_SIZE = 16 * devicePixelRatio;
+  } else {
+    // FIXME: remove once Servo supports devicePixelRatio
+    FAVICON_SIZE = 16;
+  }
 
   /**
    * Takes an array of icons, and find the icon the fits best as a favicon.

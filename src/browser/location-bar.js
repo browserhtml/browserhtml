@@ -28,6 +28,7 @@
       zIndex: 101,
       top: 0,
       width: '100vw',
+      height: '100vh',
       textAlign: 'center',
       pointerEvents: 'none'
     },
@@ -38,7 +39,7 @@
       overflow: 'hidden',
       // Contains absolute elements
       position: 'relative',
-      pointerEvents: 'all',
+      pointerEvents: 'auto',
       width: null
     },
     inactive: {
