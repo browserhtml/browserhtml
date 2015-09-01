@@ -58,11 +58,5 @@
     "vinyl-source-stream": "1.1.0",
     "watchify": "3.3.1"
   },
-  "licenses": [
-    {
-      "type": "MPL",
-      "version": "2.0",
-      "url": "http://mozilla.org/MPL/2.0/"
-    }
-  ]
+  "license": "MPL-2.0"
 }
