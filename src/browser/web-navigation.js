@@ -7,14 +7,6 @@
   const Loader = require('./web-loader');
   const Progress = require('./web-progress');
 
-  // Model
-
-  const Model = Record({
-    canGoBack: false,
-    canGoForward: false,
-  });
-  exports.Model = Model;
-
   // Actions
 
   const CanGoBackChanged = Record({
@@ -30,8 +22,68 @@
   exports.CanGoForwardChanged = CanGoForwardChanged;
 
 
-  const Action = Union(CanGoBackChanged, CanGoForwardChanged);
+  const GoBack = Record({
+    description: 'Navigate web-view back'
+  },'WebView.Navigation.GoBack');
+  GoBack.Task = class {
+    run(node) {
+      if (node.goBack) {
+        node.goBack();
+      }
+    }
+  };
+  exports.GoBack = GoBack;
+
+  const GoForward = Record({
+    description: 'Navigate web-view forward'
+  }, 'WebView.Navigation.GoForward');
+  GoForward.Task = class {
+    run(node) {
+      if (node.goForward) {
+        node.goForward();
+      }
+    }
+  };
+  exports.GoForward = GoForward;
+
+  const Stop = Record({
+    description: 'Interupt web-view navigation'
+  }, 'WebView.Navigation.Stop');
+  Stop.Task = class {
+    run(node) {
+      if (node.stop) {
+        node.stop();
+      }
+    }
+  };
+  exports.Stop = Stop;
+
+  const Reload = Record({
+    description: 'Reload web-view'
+  },  'WebView.Navigation.Reload');
+  Reload.Task = class {
+    run(node) {
+      if (node.reload) {
+        node.reload();
+      }
+    }
+  };
+  exports.Reload = Reload;
+
+  const Action = Union(CanGoBackChanged, CanGoForwardChanged,
+                       Stop, Reload, GoBack, GoForward);
   exports.Action = Action;
+
+  // Model
+
+  const Model = Record({
+    canGoBack: false,
+    canGoForward: false,
+    task: Any
+  });
+  exports.Model = Model;
+
+
   // Update
 
   const update = (state, action) =>
@@ -39,9 +91,20 @@
       state.set('canGoBack', action.value) :
     action instanceof CanGoForwardChanged ?
       state.set('canGoForward', action.value) :
-    // Clear state when load is initiated or load is started.
-    action instanceof Progress.LoadStarted ? state.clear() :
-    action instanceof Loader.Load ? state.clear() :
+    action instanceof GoBack ?
+      state.set('task', new GoBack.Task()) :
+    action instanceof GoForward ?
+      state.set('task', new GoForward.Task()) :
+    action instanceof Stop ?
+      state.set('task', new Stop.Task()) :
+    action instanceof Reload ?
+      state.set('task', new Reload.Task()) :
+    action instanceof Loader.LocationChanged ?
+      state.set('task', null) :
+    action instanceof Progress.LoadStarted ?
+      state.clear() :
+    action instanceof Loader.Load ?
+      state.clear() :
     state;
 
   exports.update = update;

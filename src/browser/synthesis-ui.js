@@ -7,6 +7,7 @@
   const {compose} = require('../lang/functional');
   const WebView = require('./web-view');
   const Preview = require('./web-preview');
+  const Navigation = require('./web-navigation');
   const {Load} = require('./web-loader');
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
@@ -14,7 +15,6 @@
   const URI = require('../common/url-helper');
   const Focusable = require('../common/focusable');
   const Editable = require('../common/editable');
-  const Navigation = require('../service/navigation');
   const Selector = require('../common/selector');
 
   // Action
@@ -146,6 +146,8 @@
   const showPreview = compose(fadeToSelectMode, blurInput);
 
   const updateByWebViewIndex = (state, n, action) =>
+    action instanceof Navigation.Stop ?
+      escape(state, action) :
     action instanceof Focusable.Focus ?
       showWebViewByIndex(state, n) :
     action instanceof Focusable.Focused ?
@@ -181,12 +183,13 @@
   const escape = state =>
     // If we're already showing a webview, or we can't show a webview because
     // none exist yet, do nothing. Otherwise, fade to the selected web view.
-    state.mode === 'show-web-view' || state.webViews.selected === null ? state :
+    state.mode === 'show-web-view' ?
+      state :
+    state.webViews.selected === null ?
+      state :
     fadeToShowMode(state);
 
   const update = (state, action) =>
-    action instanceof Navigation.Stop ?
-      escape(state) :
     action instanceof Input.Action ?
       updateByInputAction(state, action.action) :
     action instanceof Input.Submit ?

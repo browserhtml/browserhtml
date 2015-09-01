@@ -21,11 +21,11 @@
   const Input = require('./web-input');
   const Loader = require('./web-loader');
   const Preview = require('./web-preview');
+  const Navigation = require('./web-navigation');
   const Session = require('./session');
   const OS = require('../common/os');
   const Suggestions = require('./suggestion-box');
   const URI = require('../common/url-helper');
-  const Navigation = require('../service/navigation');
   const SynthesisUI = require('./synthesis-ui');
   const DevtoolsHUD = require('./devtools-hud');
   const Selector = require('../common/selector');
@@ -61,10 +61,10 @@
     'control shift tab': _ => WebView.Preview({action: Selector.Previous()}),
     'accel shift backspace': _ => Session.ResetSession(),
     'accel shift s': _ => Session.SaveSession(),
-    'accel r': _ => Navigation.Reload(),
-    'escape': _ => Navigation.Stop(),
-    [`${modifier} left`]: _ => Navigation.GoBack(),
-    [`${modifier} right`]: _ => Navigation.GoForward(),
+    'accel r': _ => WebView.BySelected({action: Navigation.Reload()}),
+    'escape': _ => WebView.BySelected({action: Navigation.Stop()}),
+    [`${modifier} left`]: _ => WebView.BySelected({action: Navigation.GoBack()}),
+    [`${modifier} right`]: _ => WebView.BySelected({action: Navigation.GoForward()}),
 
     // TODO: `meta alt i` generates `accel alt i` on OSX we need to look
     // more closely into this but so declaring both shortcuts should do it.

@@ -75,6 +75,15 @@
       }
       return node;
     }),
+    task: new VirtualAttribute((node, current, past) => {
+      if (current != past) {
+        if (current && current.run) {
+          current.run(node);
+        }
+      }
+
+      return node;
+    }),
     onAsyncScroll: new BubbledEvent('mozbrowserasyncscroll'),
     onClose: new BubbledEvent('mozbrowserclose'),
     onOpenWindow: new BubbledEvent('mozbrowseropenwindow'),
