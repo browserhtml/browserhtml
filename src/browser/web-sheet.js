@@ -4,45 +4,13 @@
 'use strict';
 
 import {Record, Union, List, Maybe, Any} from 'typed-immutable';
-
-// Model
-
-export const Model = Record({
-  isForced: Boolean,
-  isInMotion: Boolean,
-
-  x: Number,
-  width: Number,
-  delta: Number,
-  velocity: Number,
-  lastVelocity: Number,
-  image: Maybe(String),
-
-  forceTime: Maybe(Number),
-  moveTime: Maybe(Number)
-});
-
-export const init = () => Model({
-  isForced: false,
-  isInMotion: false,
-
-  image: null,
-  x: 0,
-  width: 0,
-  delta: 0,
-  velocity: 0,
-  lastVelocity: 0,
-
-  forceTime: null,
-  moveTime: null
-});
+import {GoBack, GoForward} from './web-navigation';
 
 // Action
 
 export const BeginSwipe = Record({
   description: 'Begin swiping a sheet',
   delta: Number,
-  width: Number,
   timeStamp: Number
 }, 'Sheet.BeginSwipe');
 
@@ -62,79 +30,126 @@ export const AnimationFrame = Record({
   timeStamp: Number
 }, 'Sheet.AnimationFrame');
 
-export const Screenshot = Record({
-  description: 'Made screenshot',
-  image: String,
-}, 'Sheet.Screenshot');
-
 export const Action = Union(BeginSwipe, EndSwipe, ContinueSwipe,
-                            AnimationFrame, Screenshot);
+                            AnimationFrame);
 
 
-const stop = (state, _) => state.merge({
-  isInMotion: false,
-  isForced: false,
+// Model
 
-  velocity: 0,
-  lastVelocity: 0,
-  x: 0,
-  delta: 0,
-  image: null,
-  width: 0,
+export const Model = Record({
+  isForced: Boolean,
+  isInMotion: Boolean,
+  // Action that needs to trigger when motion is complete.
+  // This is an ugly workaround that we need to use until
+  // we allow update to request an action.
+  action: Maybe(Union(GoBack, GoForward)),
 
-  moveTime: null,
-  forceTime: null
+  // Tilt progress in range of -1 to 1 where negative
+  // value is for left tilt and positive for right tilt.
+  value: Number,
+
+  // All these are derived from above value but unlike
+  // value are updated on every animation frame for smooth
+  // transition.
+  x: Number,
+  z: Number,
+  angle: Number,
+
+  // Duration of release animation in ms.
+  releaseDuration: Number,
+  // Timestam of when release occured.
+  releaseTime: Maybe(Number)
 });
 
+export const init = () => Model({
+  isForced: false,
+  isInMotion: false,
+  action: null,
+
+  x: 0,
+  z: 0,
+  angle: 0,
+  value: 0,
+
+  releaseDuration: 0,
+  releaseTime: null
+});
+
+
+
+
+const maxAngle = 15;
+const maxZ = -180;
+const maxX = 25;
+const maxDelta = 0.8;
+const maxReleaseAnimationDuration = 300;
+const threshold = 0.8;
+
+const clear = (state, _) => state.merge({
+  isInMotion: false,
+  isForced: false,
+  action: null,
+
+  x: 0,
+  z: 0,
+  angle: 0,
+  value: 0,
+
+  releaseDuration: 0,
+  releaseTime: null
+});
+
+// Apply physical force and produce new state.
 const force = (state, action) =>
-  !state.isForced ? state :
-    state.merge({
-      delta: action.delta,
-      forceTime: action.timeStamp,
-      lastVelocity: state.velocity,
-      velocity: (action.delta - state.delta) /
-                (action.timeStamp / state.forceTime)
-    });
+  state.isForced ?
+    state.set('value', Math.max(Math.min(action.delta / maxDelta, 1), -1)) :
+    state;
 
-const move = (state, action) => {
-  const x = state.x + Math.floor((action.timeStamp - state.moveTime) * state.velocity * 70);
-
-  return Math.abs(x) >= state.width ?
-            stop(state) :
-          x <= 0 && state.x > 0 ? stop(state) :
-          x >= 0 && state.x < 0 ? stop(state) :
+// Tilt model according to the applied force.
+const tilt = (state, action) => {
+  return state.isForced ?
             state.merge({
-              moveTime: action.timeStamp,
-              x
-            });
+              x: Math.floor(state.value * maxX),
+              z: Math.floor(Math.abs(state.value) * maxZ),
+              angle: Math.floor(state.value * maxAngle * 10) / 10,
+            }) :
+          state.releaseTime + state.releaseDuration <=  action.timeStamp ?
+            clear(state) :
+          state;
 };
 
 const touch = (state, action) => state.merge({
   isForced: true,
   isInMotion: true,
-  x: 0,
-  delta: action.delta,
-  velocity: 0,
-  width: action.width,
+  action: null,
 
-  forceTime: action.timeStamp,
-  moveTime: action.timeStamp
+  x: 0,
+  z: 0,
+  angle: 0,
+  value: 0,
+
+  releaseTime: null,
+  releaseDuration: 0
 });
 
-// If when released it's not passed the trethold area then allow
-// spring force to move it back to the starting point. Otherwise
-// release the force and let the momentum take over.
+// If released passed the threshold provide an action to be triggered
+// otherwise just reset fields and compute release animation duration.
 const release = (state, action) =>
-  Math.abs(state.x) < (state.width / 2) ? state :
-  state.merge({isForced: false,
-              // Hack: It seems that just before MozSwipeGesture we receive
-              // MozSwipeGestureUpdate with a same delta as previous one and
-              // we end up with velocity 0. Note we can't just ignore such
-              // MozSwipeGestureUpdate events as user in fact may stop swiping
-              // without releasing a touch which we would not like to ignore.
-               velocity: state.lastVelocity});
+  state.merge({
+    action: Math.abs(state.value) < threshold ? null :
+            state.value < 0 ? GoBack() :
+            GoForward(),
+    angle: 0, x: 0, z: 0,
+    isForced: false,
+    releaseTime: action.timeStamp,
+    releaseDuration: Math.abs(Math.floor(state.value * maxReleaseAnimationDuration))
+  });
 
 const physics = (state, action) =>
+  action instanceof GoBack ?
+    state.set('action', null) :
+  action instanceof GoForward ?
+    state.set('action', null) :
   action instanceof BeginSwipe ?
     touch(state, action) :
   !state.isInMotion ?
@@ -144,10 +159,8 @@ const physics = (state, action) =>
   action instanceof ContinueSwipe ?
     force(state, action) :
   action instanceof AnimationFrame ?
-    move(state, action) :
+    tilt(state, action) :
     state;
 
 export const update = (state, action) =>
-  action instanceof Screenshot ?
-    state.set('image', action.image) :
   physics(state, action);

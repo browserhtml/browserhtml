@@ -180,7 +180,7 @@
         state.mode, loader, security, page, input, suggestions, address),
       render('Preview', Preview.view,
         state.mode, webViews.loader, webViews.page, webViews.card,
-        webViews.previewed, theme, address),
+        webViews.previewed, address),
       render('Suggestions', Suggestions.view,
         state.mode, suggestions, input, address),
       html.div({
@@ -195,6 +195,7 @@
           state.transition,
           webViews.loader,
           webViews.shell,
+          webViews.navigation,
           webViews.page,
           webViews.sheet,
           address,
