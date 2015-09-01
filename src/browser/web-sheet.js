@@ -102,7 +102,7 @@ const clear = (state, _) => state.merge({
 // Apply physical force and produce new state.
 const force = (state, action) =>
   state.isForced ?
-    state.set('value', Math.max(Math.min(action.delta / maxDelta, 1), -1)) :
+    state.set('value', Math.max(Math.min(action.delta / maxDelta * -1, 1), -1)) :
     state;
 
 // Tilt model according to the applied force.
