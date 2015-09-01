@@ -47,7 +47,9 @@
       this.componentDidUpdate();
     }
     componentDidUpdate() {
-      Animation.schedule(this);
+      if (this.props.isActive) {
+        Animation.schedule(this);
+      }
     }
     onAnimationFrame(event) {
       if (this.props.onAnimationFrame) {
@@ -62,14 +64,15 @@
 
   // Utility for re-rendering `target` on every animation frame. This is useful
   // when components need to react to passed time and not some user event.
-  const animate = (target, onAnimationFrame) => {
+  const animate = (target, onAnimationFrame, isActive=true) => {
     if (typeof(onAnimationFrame) != 'function') {
       throw TypeError('animate must be given function as a second argument');
     }
 
     return React.createElement(Animation, {
       key: target.key, target,
-      onAnimationFrame
+      onAnimationFrame,
+      isActive
     });
   }
 

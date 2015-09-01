@@ -19,6 +19,9 @@
   const Selector = require('../common/selector');
   const Force = require('../service/force');
   const Card = require('./web-card');
+  const Sheet = require('./web-sheet');
+  const {animate} = require('../common/animation');
+  const {Element, BubbledEvent, CapturedEvent} = require('../common/element');
 
   // Model
   const Model = Record({
@@ -32,7 +35,8 @@
     progress: List(Progress.Model),
     navigation: List(Navigation.Model),
     security: List(Security.Model),
-    card: List(Card.Model)
+    card: List(Card.Model),
+    sheet: List(Sheet.Model)
   }, 'WebViews');
   exports.Model = Model;
 
@@ -43,7 +47,8 @@
     progress: state.progress.get(index),
     navigation: state.navigation.get(index),
     security: state.security.get(index),
-    card: state.card.get(index)
+    card: state.card.get(index),
+    sheet: state.sheet.get(index)
   });
   exports.get = get;
 
@@ -101,7 +106,7 @@
   const Action = Union(
     Close, Open, OpenInBackground,
     Loader.Action, Progress.Action, Navigation.Action, Focusable.Action,
-    Page.Action, Security.Action, Shell.Action, Card.Action,
+    Page.Action, Security.Action, Shell.Action, Card.Action, Sheet.Action,
     Failure, ContextMenu, ModalPrompt, Authentificate);
   exports.Action = Action;
 
@@ -133,8 +138,10 @@
   // Update
 
 
-  const indexByID = (state, id) =>
-    state.loader.findIndex(loader => loader.id === id);
+  const indexByID = (state, id) => {
+    const index = state.loader.findIndex(loader => loader.id === id);
+    return index < 0 ? null : index;
+  };
   exports.indexByID = indexByID;
 
   // Transformers
@@ -151,7 +158,8 @@
     progress: state.progress.unshift(Progress.Model()),
     navigation: state.navigation.unshift(Navigation.Model()),
     security: state.security.unshift(Security.Model()),
-    card: state.card.unshift(Card.Model())
+    card: state.card.unshift(Card.Model()),
+    sheet: state.sheet.unshift(Sheet.init())
   }));
   exports.open = open;
 
@@ -181,7 +189,8 @@
       progress: state.progress.remove(index),
       navigation: state.navigation.remove(index),
       security: state.security.remove(index),
-      card: state.card.remove(index)
+      card: state.card.remove(index),
+      sheet: state.sheet.remove(index)
     }));
   exports.closeByIndex = closeByIndex;
 
@@ -201,10 +210,9 @@
     action instanceof OpenInBackground ? open(state, action) :
     changeByIndex(state, n, action);
 
-
   const changeByIndex = (state, n, action) => {
-    const {loader, shell, page, progress, navigation, security, card} = state;
-    return n === null ? state : activate(state.merge({
+    const {loader, shell, page, progress, navigation, security, card, sheet} = state;
+    return n == null ? state : activate(state.merge({
       selected: action instanceof Focusable.Focus ? n :
                action instanceof Focusable.Focused ? n :
                state.selected,
@@ -214,9 +222,12 @@
       progress: progress.set(n, Progress.update(progress.get(n), action)),
       security: security.set(n, Security.update(security.get(n), action)),
       navigation: navigation.set(n, Navigation.update(navigation.get(n), action)),
-      card: card.set(n, Card.update(card.get(n), action))
+      card: card.set(n, Card.update(card.get(n), action)),
+      sheet: sheet.set(n, Sheet.update(sheet.get(n), action))
     }));
   };
+
+
 
   const updateSelected = (state, action) =>
     updateByIndex(state, state.selected, action);
@@ -264,20 +275,133 @@
       width: '100%',
       height: '100%',
       backgroundColor: '#fff',
-      zIndex: 0,
+      zIndex: 2
     },
-    active: {
+    motion: {
+      boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.4)',
+    },
+
+    navigationArrow: {
+      position: 'absolute',
       zIndex: 1,
+      fontFamily: 'FontAwesome',
+      fontSize: '60px',
+      lineHeight: '60px',
+      display: 'inline',
+      top: '50%',
+      marginTop: '-60px'
+    },
+    forwardArrow: {
+      right: '60px',
+      content: '\uf054'
+    },
+    backArrow: {
+      left: '60px',
+      content: '\uf053'
+    },
+
+    active: {
+      zIndex: 2,
     },
     inactive: {
       display: 'none',
     },
     passive: {
       visibility: 'hidden',
+    },
+    perspective: {
+      perspective: '100vw',
+      transformStyle: 'preserve-3d',
+      height: 'inherit',
+      width: 'inherit'
     }
   });
 
-  const viewWebView = (loader, shell, thumbnail, isSelected, address) => {
+  const swipingDiv = Element('div', {
+    onMozSwipeGestureStart: new BubbledEvent('MozSwipeGestureStart'),
+    onMozSwipeGestureUpdate: new BubbledEvent('MozSwipeGestureUpdate'),
+    onMozSwipeGestureEnd: new BubbledEvent('MozSwipeGestureEnd'),
+    onMozSwipeGesture: new BubbledEvent('MozSwipeGesture')
+  });
+
+  // See: https://dxr.mozilla.org/mozilla-central/source/dom/interfaces/events/nsIDOMSimpleGestureEvent.idl?offset=100#108-109
+  const DIRECTION_LEFT = 4;
+  const DIRECTION_RIGHT = 8;
+
+  const viewWebView = (loader, shell, navigation, thumbnail, sheet, isSelected, address) => {
+    const node = swipingDiv({
+      key: 'web-view',
+      style: webviewStyle.perspective,
+      onMozSwipeGestureStart: event => {
+        if (event.direction === DIRECTION_LEFT ||
+            event.direction === DIRECTION_RIGHT)
+        {
+          event.allowedDirections = DIRECTION_LEFT | DIRECTION_RIGHT;
+          event.preventDefault();
+
+
+          address.receive(Sheet.BeginSwipe({
+            delta: event.delta,
+            timeStamp: performance.now()
+          }));
+        }
+      },
+      onMozSwipeGestureUpdate: (event) => {
+        address.receive(Sheet.ContinueSwipe({
+          delta: event.delta,
+          timeStamp: performance.now()
+        }));
+      },
+      onMozSwipeGestureEnd(event) {
+        address.receive(Sheet.ContinueSwipe({
+          delta: event.delta,
+          timeStamp: performance.now()
+        }));
+      },
+      onMozSwipeGesture: (event) => {
+        address.receive(Sheet.EndSwipe({
+          timeStamp: performance.now()
+        }));
+      }
+    }, [
+      html.figure({
+        key: 'goBack',
+        style: Style(webviewStyle.navigationArrow,
+                     webviewStyle.backArrow,
+                     navigation.canGoBack ?
+                      {opacity: Math.abs(sheet.value)} :
+                      webviewStyle.inactive)
+      }, webviewStyle.backArrow.content),
+      html.figure({
+        key: 'goForward',
+        style: Style(webviewStyle.navigationArrow,
+                     webviewStyle.forwardArrow,
+                     navigation.canGoForward ?
+                      {opacity: Math.abs(sheet.value)} :
+                      webviewStyle.inactive)
+      }, webviewStyle.forwardArrow.content),
+      html.div({
+        key: 'perspective',
+        style: Style(webviewStyle.base,
+                     sheet.isInMotion ? webviewStyle.motion : null,
+                     sheet.isInMotion ? {
+                        transform: `rotateY(${sheet.angle}deg)
+                                    translateZ(${sheet.z}px)
+                                    translateX(${sheet.x}px)`
+                     } : null,
+                     (sheet.isInMotion && !sheet.isForced) ? {
+                       transition: `${sheet.releaseDuration}ms transform ease-out`
+                     } : null),
+      }, viewWebFrame(loader, shell, navigation, thumbnail, isSelected, address))
+    ]);
+
+    return animate(node, event => {
+      address.receive(sheet.action);
+      address.receive(Sheet.AnimationFrame(event));
+    }, sheet.isInMotion);
+  };
+
+  const viewWebFrame = (loader, shell, navigation, thumbnail, isSelected, address) => {
     // Do not render anything unless viewer has an `uri`
     if (loader.uri == null) return null;
 
@@ -304,6 +428,7 @@
       mozallowfullscreen: true,
       isVisible: isSelected || !thumbnail,
       zoom: shell.zoom,
+      task: navigation.task,
 
       isFocused: shell.isFocused,
 
@@ -386,7 +511,7 @@
       webviewsStyle.fadeOut :
     webviewsStyle.shrink;
 
-  const view = (mode, transition, loader, shell, page, address, selected) =>
+  const view = (mode, transition, loader, shell, navigation, page, sheet, address, selected) =>
     html.div({
       key: 'web-views',
       style: Style(webviewsStyle.base, getModeStyle(mode, transition)),
@@ -394,7 +519,9 @@
       render(`web-view@${loader.id}`, viewWebView,
              loader,
              shell.get(index),
+             navigation.get(index),
              page.get(index).thumbnail,
+             sheet.get(index),
              index === selected,
              address.forward(action =>
                // If action is boxed in Force.Action we want to keep it

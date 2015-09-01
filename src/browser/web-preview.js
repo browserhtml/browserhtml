@@ -310,6 +310,9 @@
       zIndex: 0,
       MozWindowDragging: 'drag',
     },
+    inactive: {
+      display: 'none'
+    },
     previews: {
       // This is important. We need previews to make space around itself.
       // Margin doesn't play well with scroll -- the right-hand edge will get
@@ -341,12 +344,12 @@
                address.forward(action =>
                                 WebView.ByID({id: loader.id, action}))));
 
-  const viewContainer = (theme, ...children) =>
+  const viewContainer = (styles, ...children) =>
     // Set the width of the previews element to match the width of each card
     // plus padding.
     html.div({
       key: 'preview-container',
-      style: style.scroller
+      style: styles
     }, [
       html.div({
         key: 'preview-content',
@@ -354,16 +357,24 @@
       }, children)
     ]);
 
-  const viewInEditMode = (loaders, pages, cards, selected, theme, address) =>
-    viewContainer(theme, ghostPreview,
+  const viewInactive = (loaders, pages, cards, selected, address) =>
+    viewContainer(Style(style.scroller, style.inactive),
+                  ghostPreview,
                   ...viewPreviews(loaders, pages, cards, selected, address));
 
-  const viewInCreateMode = (loaders, pages, cards, selected, theme, address) =>
+  const viewInEditMode = (loaders, pages, cards, selected, address) =>
+    viewContainer(style.scroller,
+                  ghostPreview,
+                  ...viewPreviews(loaders, pages, cards, selected, address));
+
+  const viewInCreateMode = (loaders, pages, cards, selected, address) =>
     // Pass selected as `-1` so none is highlighted.
-    viewContainer(theme, ghostPreview,
+    viewContainer(style.scroller,
+                  ghostPreview,
                   ...viewPreviews(loaders, pages, cards, -1, address));
 
   const view = (mode, ...etc) =>
+    mode === 'show-web-view' ? viewInactive(...etc) :
     mode === 'create-web-view' ? viewInCreateMode(...etc) :
     viewInEditMode(...etc);
   exports.view = view;

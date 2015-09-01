@@ -16,7 +16,6 @@
   const Keyboard = require('../common/keyboard');
   const Settings = require('../service/settings');
   const Scraper = require('../service/scraper');
-  const Navigation = require('../service/navigation');
   const Gesture = require('../service/gesture');
   const SynthesisUI = require('./synthesis-ui');
   const Force = require('../service/force');
@@ -45,7 +44,6 @@
       keyboard(action);
       settings(action);
       scraper(action);
-      navigation(action);
       synthesis(action);
 
       // We cancel scheduled render on next animation frame as we are
@@ -75,7 +73,6 @@
   const keyboard = Keyboard.service(address);
   const settings = Settings.service(address);
   const scraper = Scraper.service(address);
-  const navigation = Navigation.service(address);
   const gesture = Gesture.service(address);
   const synthesis = SynthesisUI.service(address);
 
