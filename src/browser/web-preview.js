@@ -78,8 +78,7 @@
       position: 'relative',
       width: '240px',
       textAlign: 'left',
-      top: '50%',
-      marginTop: '-50%',
+      marginTop: 'calc(50vh - 150px)',
       transition: 'box-shadow 80ms ease'
     },
     ghost: {
