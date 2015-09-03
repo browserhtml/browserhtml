@@ -46,6 +46,7 @@ Pattern.escape = input => input.replace(/[\.\?\*\+\^\$\|\(\)\{\[\]\\]/g, '\\$&')
     const query = Pattern(terms.join('[\\s\\S]+') + '|' + terms.join('|'));
     const matches = rows.map(({doc: page}) => {
       const domain = URI.getDomainName(page.uri);
+      const pathname = URI.getPathname(page.uri);
 
       // frequency score is ranked from 0-1 not based on quality of
       // match but solely on how often this page has been visited in the
@@ -56,6 +57,7 @@ Pattern.escape = input => input.replace(/[\.\?\*\+\^\$\|\(\)\{\[\]\\]/g, '\\$&')
       const titleScore = score(query, page.title);
       const uriScore = score(query, page.uri);
       const domainScore = domainQuery ? score(domainQuery, domain) : 0;
+      const pathScore = domainQuery ? score(domainQuery, pathname) : 0;
 
       // Store each score just for debuging purposes.
       page.frequencyScore = frequencyScore;
@@ -64,21 +66,15 @@ Pattern.escape = input => input.replace(/[\.\?\*\+\^\$\|\(\)\{\[\]\\]/g, '\\$&')
       page.uriScore = uriScore;
       page.domain = domain;
 
-      // Total score is ranked form `-1` to `1`. Score is devided into
-      // 15 slots and individual field get's different weight based of
-      // portion it can contribute to of over score. No match on individual
-      // field has a negative impact (again besed on it's weight) on actual
-      // score. Assigned weight will likely need some tuning right now
-      // frequencey of visits has a largest wegiht (almost half but less than
-      // half so that no match will still exclude the result). Title has higher
-      // weight than uri as search engines tend to add search term in terms of
-      // query arguments (probably would make sense to score query arguments &
-      // uri hash separately so they weight less, althouh since scoring is length
-      // and index based match in query already get's scored less).
-      page.score = frequencyScore * 6/15 +
-                   titleScore * 3/15 +
-                   uriScore * 2/15 +
-                   domainScore * 4/15;
+      // Total score is ranked form `-1` to `1`. Individual score has certain
+      // impact it can have on overal score which expressed by multiplication
+      // with a percentage of the impact it may have. No match on individual
+      // field has a negative impact (again besed on it's impact weight).
+      page.score = frequencyScore * 40/100 +
+                   titleScore * 17/100 +
+                   domainScore * 25/100 +
+                   pathScore * 13/100 +
+                   uriScore * 5/100;
       page.isTopHit = domainQuery && domain.startsWith(domainQuery.source);
 
       return page;

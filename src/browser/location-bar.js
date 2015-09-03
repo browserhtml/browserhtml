@@ -222,7 +222,7 @@
         type: 'text',
         value:
           suggestions.selected >= 0 ?
-            suggestions.entries.get(suggestions.selected).uri :
+            Suggestions.entries(suggestions).get(suggestions.selected).uri :
             (input.value || ''),
         style: style.input,
         isFocused: input.isFocused,

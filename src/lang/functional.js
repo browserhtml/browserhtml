@@ -130,7 +130,7 @@
     var timestamp = null;
     var result = null;
 
-    const later = (...args) => {
+    const later = () => {
       var last = Date.now() - timestamp;
 
       if (last < wait && last >= 0) {

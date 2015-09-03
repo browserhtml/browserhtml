@@ -9,7 +9,7 @@
   const Focusable = require('../common/focusable');
   const History = require('./history');
   const Search = require('./search');
-  const {throttle} = require('../lang/functional');
+  const {debounce} = require('../lang/functional');
   const Suggestions = require('../browser/suggestion-box');
 
   const MAX_RESULTS = 5;
@@ -18,7 +18,7 @@
     const search = Search.service(address)
     const history = History.service(address)
 
-    const requestSuggestions = throttle(action => {
+    const requestSuggestions = debounce(action => {
       history(History.PageQuery({id: action.value,
                                  input: action.value,
                                  limit: MAX_RESULTS}));
@@ -26,7 +26,7 @@
       search(Search.Query({id: action.value,
                            input: action.value,
                            limit: MAX_RESULTS}));
-    }, 300);
+    }, 200);
 
     return action => {
       history(action);
@@ -37,7 +37,11 @@
         }
 
         if (action.action instanceof Editable.Change) {
-          requestSuggestions(action.action);
+          if (action.action.value === "") {
+            address.receive(Suggestions.Clear());
+          } else {
+            requestSuggestions(action.action);
+          }
         }
 
         if (action.action instanceof Input.Submit) {
