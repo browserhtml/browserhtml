@@ -26,6 +26,7 @@
     (getHostname(url) || '').replace(/^www\./, '');
   const getProtocol = url => parse(url).protocol;
   const getManifestURL = () => new URL('./manifest.webapp', getBaseURI());
+  const getPathname = input => parse(input).pathname;
 
   const isAboutURL = url =>
     parse(url).protocol === 'about:';
@@ -102,6 +103,7 @@
   exports.getHostname = getHostname;
   exports.getDomainName = getDomainName;
   exports.getProtocol = getProtocol;
+  exports.getPathname = getPathname;
   exports.getManifestURL = getManifestURL;
   exports.isAboutURL = isAboutURL;
   exports.isPrivileged = isPrivileged;

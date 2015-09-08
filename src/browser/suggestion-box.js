@@ -7,13 +7,14 @@
 
   const {getDomainName} = require('../common/url-helper');
   const {html, render} = require('reflex');
-  const {Record, List, Union} = require('typed-immutable');
+  const {Record, List, Maybe, Union} = require('typed-immutable');
   const {StyleSheet, Style} = require('../common/style');
   const ClassSet = require('../common/class-set');
   const Loader = require('./web-loader');
   const WebView = require('./web-view');
   const History = require('../service/history');
   const Search = require('../service/search');
+  const {compose} = require('../lang/functional');
 
   // Model
 
@@ -23,10 +24,40 @@
   const Suggestions = List(Suggestion, 'Suggestions');
 
   const Model = Record({
-    entries: Suggestions,
-    selected: -1
+    selected: -1,
+    topHit: Maybe(History.TopHit),
+    page: List(History.PageMatch),
+    search: List(Search.Match)
   }, 'Suggestions');
   exports.Model = Model;
+
+
+  // Counts number of available suggestions in the above defined model instance.
+  const count = ({topHit, search, page}) =>
+    (topHit != null ? 1 : 0) +
+    Math.min(search.size + page.size, MAX_RESULTS);
+  exports.count = count;
+
+  const counts = (model) => {
+    const half = Math.floor(MAX_RESULTS / 2);
+    const topHit = model.topHit != null ? 1 : 0;
+    const search = Math.min(model.search.size,
+                            Math.max(MAX_RESULTS - model.page.size, half));
+    const page = MAX_RESULTS - search;
+    return {topHit, search, page}
+  }
+
+  // Returns entries in the form of a list `[topHit, ...search, ...page]` where
+  // there can be at most one `topHit` and sum of search and page entries are
+  // at most MAX_RESULTS also entries per type is split by even when possible.
+  const entries = model => {
+    const sizes = counts(model);
+    return Suggestions(sizes.topHit === 0 ? null : [model.topHit])
+      .concat(model.search.take(sizes.search))
+      .concat(model.page.take(sizes.page));
+  };
+  exports.entries = entries;
+
 
   // Action
 
@@ -58,63 +89,78 @@
 
   // Update
 
-  // Selects suggestion `n` items away relative to currently seleceted suggestion.
+  // Selects suggestion `n` items away relative to currently selected suggestion.
   // Selection over suggestion entries is moved in a loop although there is extra
   // "no selection" entry between last and first suggestions. Given `n` can be negative
   // or positive in order to select suggestion before or after the current one.
-  const selectRelative = (state, offset) =>
-    state.update('selected', index => {
-      const none = -1;
-      const last = state.entries.count() - 1;
-      const to = index + offset;
-
-      return to > last ? none :
-             to < none ? last :
-             to;
-    });
-
-
-  const isntSearch = entry => !(entry instanceof Search.Match);
-  const isntPage = entry =>
-    !(entry instanceof History.PageMatch) &&
-    !(entry instanceof History.TopHit);
-
-
-  const updateSearch = (state, {results: matches}) => {
-    const pages = state.entries.filter(isntSearch);
-    const half = Math.floor(MAX_RESULTS / 2);
-    const limit = Math.min(matches.size,
-                           Math.max(MAX_RESULTS - pages.size, half));
-    const searches = matches.slice(0, limit);
-    const entries = pages.first() instanceof History.TopHit ?
-      pages.take(1)
-           .concat(searches)
-           .concat(pages.skip(1).take(MAX_RESULTS - limit)) :
-      pages.take(MAX_RESULTS - limit)
-           .unshift(...searches);
-
-    return state.merge({
-      selected: -1,
-      entries
-    });
+  const selectRelative = (state, offset) => {
+    const none = -1;
+    const last = count(state) - 1;
+    const to = state.selected + offset;
+    return state.set('selected',
+                      to > last ? none :
+                      to < none ? last :
+                      to);
   };
 
-  const noTop = [];
-  const updatePage = (state, {matches, topHit}) => {
-    const search = state.entries.filter(isntPage);
-    const half = Math.floor(MAX_RESULTS / 2);
-    const limit = Math.min(matches.size,
-                           Math.max(MAX_RESULTS - search.size, half));
 
-    const pages = matches.take(limit);
-    const entries = search.take(MAX_RESULTS - limit)
-                          .push(...pages);
 
-    return state.merge({
-      selected: -1,
-      entries: topHit ? entries.unshift(topHit) : entries
-    });
+  const retainEntry = (before, after, retained, size) => {
+    const afterIndex = after.findIndex(x => x.uri === retained.uri);
+    if (afterIndex < 0) {
+      const beforeIndex = before.indexOf(retained);
+      const index = Math.min(beforeIndex, size - 1);
+      // If prior index is with in a new range for the type insert retained
+      // retained node into same index otherwise put it as a last visible
+      // entry.
+      return after.splice(index, 0, retained);
+    }
+    else {
+      if (afterIndex < size) {
+        return after.set(afterIndex, retained);
+      } else {
+        return after.remove(afterIndex).splice(size - 1, 0, retained);
+      }
+    }
   };
+
+  // If updated entries no longer have item that was selected we reset
+  // a selection. Otherwise we update a selection to have it keep the item
+  // which was selected.
+  const retainSelected = (before, after) => {
+    // If there was no selected entry there is nothing to retain so
+    // return as is.
+    if (before.selected < 0) {
+      return after
+    } else {
+      // Grab entry that we wish to retain and act by it's type. We also need
+      const retained = entries(before).get(before.selected);
+
+      const next =
+        retained instanceof History.TopHit ?
+          after.set('topHit', retained) :
+        retained instanceof Search.Match ?
+          after.set('search', retainEntry(before.search,
+                                          after.search,
+                                          retained,
+                                          counts(after).search)) :
+        retained instanceof History.PageMatch ?
+          after.set('page', retainEntry(before.page,
+                                        after.page,
+                                        retained,
+                                        counts(after).page)) :
+          after;
+
+      return next.set('selected', entries(next).indexOf(retained));
+    }
+  };
+
+
+  const updateSearch = (state, {results: search}) =>
+    state.set('search', search);
+
+  const updatePage = (state, {topHit, matches: page}) =>
+    state.merge({topHit, page});
 
   const clear = state => state.clear();
   exports.clear = clear;
@@ -125,8 +171,10 @@
     action instanceof SelectPrevious ? selectRelative(state, -1) :
     action instanceof Unselect ? state.remove('selected') :
     action instanceof Clear ? state.clear() :
-    action instanceof Search.Result ? updateSearch(state, action) :
-    action instanceof History.PageResult ? updatePage(state, action) :
+    action instanceof Search.Result ?
+      retainSelected(state, updateSearch(state, action)) :
+    action instanceof History.PageResult ?
+      retainSelected(state, updatePage(state, action)) :
     state;
   exports.update = update;
 
@@ -257,7 +305,7 @@
 
   // Check if input is in "suggestions" mode.
   const isSuggesting = (input, suggestions) =>
-    input.isFocused && input.value && suggestions.entries.count() > 0;
+    input.isFocused && input.value && count(suggestions) > 0;
   exports.isSuggesting = isSuggesting;
 
   const view = (mode, state, input, address) =>
@@ -269,7 +317,7 @@
       html.ul({
         key: 'suggestions',
         style: style.suggestions
-      }, state.entries.map((entry, index) => {
+      }, entries(state).map((entry, index) => {
         return render(`suggestion@${index}`, viewSuggestion,
                       entry, state.selected, index,
                       address);
