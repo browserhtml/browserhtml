@@ -142,6 +142,7 @@ gulp.task('watcher', function() {
 gulp.task('livereloader', function() {
   settings.transforms['browser/index'] = [[reload, {global: true}]];
   reload.monitor('./dist/browser/index.js', {displayNotification: true});
+  reload.monitor('./dist/service/history-worker.js', {displayNotification: true});
 });
 
 bundler('browser/index');
