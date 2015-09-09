@@ -1,5 +1,7 @@
 graphene
 .DS_Store
 node_modules/
-.profile/
+.profile/*
+!.profile
+!.profile/user.js
 dist/
