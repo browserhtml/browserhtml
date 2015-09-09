@@ -20,11 +20,12 @@
   const SynthesisUI = require('./synthesis-ui');
   const Force = require('../service/force');
 
+  const isReload = window.application != null;
   // Set up a address (message bus if you like) that will be used
   // as an address for all application components / services. This
   // address is going to receive action and then pass it on to each
   // application component for it handle it.
-  const mailbox = {
+  const address = new Address({
     receive(action) {
       // This is unfortunate hack to workaround gecko issues: #566, #565, #564
       // Basic idea is that actions that need to happen in the same tick are
@@ -53,9 +54,7 @@
         application.render();
       }
     }
-  };
-
-  const address = new Address(mailbox);
+  });
   const thumbnail = Thumbnail.service(address);
   const pallet = Pallet.service(address);
   const updater = Update.service(address);
@@ -66,10 +65,10 @@
   const scraper = Scraper.service(address);
   const gesture = Gesture.service(address);
   const synthesis = SynthesisUI.service(address);
-  const application = window.application != null ? window.application :
-  new Application({
+  const application = new Application({
     target: document.body,
-    state: Browser.Model(),
+    state: isReload ? Browser.Model(window.application.state) :
+           Browser.Model(),
     update: Browser.update,
     view: Browser.view,
     address: address
@@ -79,15 +78,9 @@
 
   // If hotswap change address so it points to a new mailbox &
   // re-render.
-  if (window.address) {
-    window.address.mailbox = mailbox;
-    application.state = Browser.Model(window.application.state)
-    application.update = Browser.update;
-    application.view = Browser.view;
-
+  if (isReload) {
     application.render();
   } else {
-    window.address = address;
     // Restore application state.
     address.receive(Session.RestoreSession());
 
