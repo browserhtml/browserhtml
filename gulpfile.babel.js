@@ -25,6 +25,7 @@ var settings = {
                './.profile',
   cache: {},
   packageCache: {},
+  transforms: {},
   transform: [
     babelify.configure({
       "optional": [
@@ -47,9 +48,10 @@ var Bundler = function(entry) {
   this.bundler = browserify({
     entries: ['./src/' + entry],
     debug: settings.debug,
-    cache: settings.cache,
-    packageCache: settings.packageCache,
-    transform: settings.transform
+    cache: {},
+    packageCache: {},
+    transform: [...settings.transform,
+                ...(settings.transforms[entry] || [])]
   });
 
   this.watcher = settings.watch &&
@@ -138,7 +140,7 @@ gulp.task('watcher', function() {
 });
 
 gulp.task('livereloader', function() {
-  settings.transform.push([reload, {global: true}]);
+  settings.transforms['browser/index'] = [[reload, {global: true}]];
   reload.monitor('./dist/browser/index.js', {displayNotification: true});
 });
 

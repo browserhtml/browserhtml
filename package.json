@@ -12,6 +12,7 @@
     "url": "http://github.com/mozilla/browser.html/issues/"
   },
   "scripts": {
+    "live": "gulp live",
     "start": "gulp develop",
     "server": "gulp server",
     "client": "gulp client",
