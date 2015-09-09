@@ -24,7 +24,7 @@
   // as an address for all application components / services. This
   // address is going to receive action and then pass it on to each
   // application component for it handle it.
-  const address = new Address({
+  const mailbox = {
     receive(action) {
       // This is unfortunate hack to workaround gecko issues: #566, #565, #564
       // Basic idea is that actions that need to happen in the same tick are
@@ -53,18 +53,9 @@
         application.render();
       }
     }
-  });
-  window.address = address;
+  };
 
-  const application = new Application({
-    target: document.body,
-    state: Browser.Model(),
-    update: Browser.update,
-    view: Browser.view,
-    address: address
-  });
-  window.application = application;
-
+  const address = new Address(mailbox);
   const thumbnail = Thumbnail.service(address);
   const pallet = Pallet.service(address);
   const updater = Update.service(address);
@@ -75,10 +66,32 @@
   const scraper = Scraper.service(address);
   const gesture = Gesture.service(address);
   const synthesis = SynthesisUI.service(address);
+  const application = window.application != null ? window.application :
+  new Application({
+    target: document.body,
+    state: Browser.Model(),
+    update: Browser.update,
+    view: Browser.view,
+    address: address
+  });
+  window.application = application;
 
-  // Restore application state.
-  address.receive(Session.RestoreSession());
 
-  // Trigger a forced update check after 5s to not slow down startup.
-  // TODO: delay until we're online if needed.
-  window.setTimeout(address.pass(Runtime.CheckUpdate), 500);
+  // If hotswap change address so it points to a new mailbox &
+  // re-render.
+  if (window.address) {
+    window.address.mailbox = mailbox;
+    application.state = Browser.Model(window.application.state)
+    application.update = Browser.update;
+    application.view = Browser.view;
+
+    application.render();
+  } else {
+    window.address = address;
+    // Restore application state.
+    address.receive(Session.RestoreSession());
+
+    // Trigger a forced update check after 5s to not slow down startup.
+    // TODO: delay until we're online if needed.
+    window.setTimeout(address.pass(Runtime.CheckUpdate), 500);
+  }
