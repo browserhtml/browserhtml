@@ -383,6 +383,7 @@
     }
     componentWillUnmount() {
       const {model, unmount, fields} = this.props;
+      const node = this.getMount(this);
 
       for (var key of unmount) {
         const field = fields[key];

@@ -11,15 +11,19 @@
 
   const DOMProperty = require('react/lib/ReactInjection').DOMProperty;
 
-  // Configure react to make it understand custom mozbrowser attributes.
-  DOMProperty.injectDOMPropertyConfig({
-    Properties: {
-      'remote': DOMProperty.MUST_USE_ATTRIBUTE,
-      'mozbrowser': DOMProperty.MUST_USE_ATTRIBUTE,
-      'mozapp': DOMProperty.MUST_USE_ATTRIBUTE,
-      'mozallowfullscreen': DOMProperty.MUST_USE_ATTRIBUTE,
-    }
-  });
+  // This call will throw on livereload as react is already has these properties
+  // injected there for we wrap it try / catch.
+  try {
+    // Configure react to make it understand custom mozbrowser attributes.
+    DOMProperty.injectDOMPropertyConfig({
+      Properties: {
+        'remote': DOMProperty.MUST_USE_ATTRIBUTE,
+        'mozbrowser': DOMProperty.MUST_USE_ATTRIBUTE,
+        'mozapp': DOMProperty.MUST_USE_ATTRIBUTE,
+        'mozallowfullscreen': DOMProperty.MUST_USE_ATTRIBUTE,
+      }
+    });
+  } catch (_) {}
 
   const transplant = (from, to) => {
     for (let {name, value} of from.attributes) {
@@ -54,7 +58,7 @@
             node.setVisible(current);
           } catch (error) {
             if (!node.isSetVisibleBroken) {
-              throw(error);
+              console.error(error);
             }
           }
         }
@@ -68,7 +72,7 @@
             node.zoom(current);
           } catch (error) {
             if (!node.isZoomBroken) {
-              throw(error);
+              console.error(error);
             }
           }
         }

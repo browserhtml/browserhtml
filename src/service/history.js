@@ -42,8 +42,15 @@
 
   const service = address => {
 
+    // Use this workaround to handle livereload case during development.
+    // If global historyWorker is present than it's a reload and there
+    // for we terminate previous worker.
+    if (window.historyWorker) {
+      window.historyWorker.terminate();
+    }
     // TODO: Figure out better way to resolve path.
     const worker = new Worker('./dist/service/history-worker.js');
+    window.historyWorker = worker;
 
     worker.onmessage = ({data: {type, action}}) => {
       if (type === 'PageResult') {

@@ -20,6 +20,7 @@
   const SynthesisUI = require('./synthesis-ui');
   const Force = require('../service/force');
 
+  const isReload = window.application != null;
   // Set up a address (message bus if you like) that will be used
   // as an address for all application components / services. This
   // address is going to receive action and then pass it on to each
@@ -54,17 +55,6 @@
       }
     }
   });
-  window.address = address;
-
-  const application = new Application({
-    target: document.body,
-    state: Browser.Model(),
-    update: Browser.update,
-    view: Browser.view,
-    address: address
-  });
-  window.application = application;
-
   const thumbnail = Thumbnail.service(address);
   const pallet = Pallet.service(address);
   const updater = Update.service(address);
@@ -75,10 +65,26 @@
   const scraper = Scraper.service(address);
   const gesture = Gesture.service(address);
   const synthesis = SynthesisUI.service(address);
+  const application = new Application({
+    target: document.body,
+    state: isReload ? Browser.Model(window.application.state) :
+           Browser.Model(),
+    update: Browser.update,
+    view: Browser.view,
+    address: address
+  });
+  window.application = application;
 
-  // Restore application state.
-  address.receive(Session.RestoreSession());
 
-  // Trigger a forced update check after 5s to not slow down startup.
-  // TODO: delay until we're online if needed.
-  window.setTimeout(address.pass(Runtime.CheckUpdate), 500);
+  // If hotswap change address so it points to a new mailbox &
+  // re-render.
+  if (isReload) {
+    application.render();
+  } else {
+    // Restore application state.
+    address.receive(Session.RestoreSession());
+
+    // Trigger a forced update check after 5s to not slow down startup.
+    // TODO: delay until we're online if needed.
+    window.setTimeout(address.pass(Runtime.CheckUpdate), 500);
+  }
