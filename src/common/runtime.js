@@ -78,6 +78,12 @@
   }, 'Runtime.Maximize');
   exports.Maximize = Maximize;
 
+  const LiveReload = Record({
+    description: 'Action is triggered when application JS is hot swapped'
+  }, 'Runtime.LiveReload');
+  exports.LiveReload = LiveReload;
+
+
   const Action = Union(
     Unknown, RemoteDebugRequest, UpdateAvailable, UpdateDownloaded,
     CheckUpdate, RemoteDebugResponse, DownloadUpdate, Restart,
@@ -95,10 +101,13 @@
 
   const service = address => {
     // Start listening for runtime events.
-    window.addEventListener('mozChromeEvent', address.pass(Incoming));
+    const handler = address.pass(Incoming);
+    window.addEventListener('mozChromeEvent', handler);
 
     return action => {
-      if (action instanceof RemoteDebugRequest) {
+      if (action instanceof LiveReload) {
+        window.removeEventListener('mozChromeEvent', handler);
+      } else if (action instanceof RemoteDebugRequest) {
         address.receive(RemoteDebugResponse({value: true}));
       } else if (action instanceof UpdateDownloaded) {
         address.receive(DownloadUpdate());

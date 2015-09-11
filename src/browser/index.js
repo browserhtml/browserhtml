@@ -46,6 +46,7 @@
       settings(action);
       scraper(action);
       synthesis(action);
+      gesture(action);
 
       // We cancel scheduled render on next animation frame as we are
       // forceing render to happen right away.
@@ -73,12 +74,13 @@
     view: Browser.view,
     address: address
   });
-  window.application = application;
+  application.unload = address.pass(Runtime.LiveReload);
 
 
   // If hotswap change address so it points to a new mailbox &
   // re-render.
   if (isReload) {
+    window.application.unload();
     application.render();
   } else {
     // Restore application state.
@@ -88,3 +90,5 @@
     // TODO: delay until we're online if needed.
     window.setTimeout(address.pass(Runtime.CheckUpdate), 500);
   }
+
+  window.application = application;
