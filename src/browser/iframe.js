@@ -6,7 +6,7 @@
   const Focusable = require('../common/focusable');
   const {Element, BeforeAppendAttribute, VirtualAttribute,
         BubbledEvent, VirtualEvent} = require('../common/element');
-  const React = require('react');
+  const React = require('../common/react');
   const {html} = require('reflex');
 
   const DOMProperty = require('react/lib/ReactInjection').DOMProperty;

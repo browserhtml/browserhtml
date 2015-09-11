@@ -5,6 +5,7 @@
   'use strict';
 
   const {Record} = require('typed-immutable');
+  const {LiveReload} = require('../common/runtime');
 
   const Pinch = Record({
     description: 'Pinch gesture'
@@ -17,26 +18,35 @@
 
     var delta;
 
-    const checkScale = () => {
+    const handler = event => {
+      if (event.type === 'MozMagnifyGestureStart') {
+        delta = event.delta;
+      }
+
+      if (event.type === 'MozMagnifyGestureUpdate') {
+        delta += event.delta;
+      }
+
+      if (event.type === 'MozMagnifyGesture') {
+        delta += event.delta;
+      }
+
       if (delta < -200) {
         address.receive(Pinch());
       }
     }
 
-    document.addEventListener('MozMagnifyGestureStart', (e) => {
-      delta = e.delta;
-      checkScale();
-    }, true);
+    document.addEventListener('MozMagnifyGestureStart', handler, true);
+    document.addEventListener('MozMagnifyGestureUpdate', handler, true);
+    document.addEventListener('MozMagnifyGesture', handler, true);
 
-    document.addEventListener('MozMagnifyGestureUpdate', (e) => {
-      delta += e.delta;
-      checkScale();
-    }, true);
-
-    document.addEventListener('MozMagnifyGesture', (e) => {
-      delta += e.delta;
-      checkScale();
-    }, true);
+    return action => {
+      if (action instanceof LiveReload) {
+        document.removeEventListener('MozMagnifyGestureStart', handler, true);
+        document.removeEventListener('MozMagnifyGestureUpdate', handler, true);
+        document.removeEventListener('MozMagnifyGesture', handler, true);
+      }
+    }
   };
 
   exports.service = service;
