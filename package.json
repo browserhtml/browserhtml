@@ -25,7 +25,7 @@
     "immutable": "3.7.0",
     "pouchdb": "4.0.0",
     "react": "0.13.3",
-    "reflex": "0.0.27",
+    "reflex": "0.0.28",
     "tinycolor2": "1.1.2",
     "typed-immutable": "0.0.7"
   },
