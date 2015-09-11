@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const React = require('react');
+  const React = require('./react');
 
   class Animation extends React.Component {
     static run(timeStamp) {
