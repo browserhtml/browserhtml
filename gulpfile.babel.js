@@ -104,7 +104,7 @@ gulp.task('server', function() {
     root: path.join(module.filename, '../'),
     cache: 0
   }));
-  server.listen(6060);
+  server.listen(settings.port);
 });
 
 
