@@ -167,6 +167,6 @@ gulp.task('develop', sequencial('watch', 'server', 'application'));
 gulp.task('build-server', sequencial('watch', 'server'));
 
 gulp.task('live', ['livereloader', 'develop']);
-gulp.task('live-server', ['livereload', 'build-server']);
+gulp.task('live-server', ['livereloader', 'build-server']);
 
 gulp.task('default', ['develop']);
