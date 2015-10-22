@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {html, node, render, cache} = require('reflex');
+  const {html, node, thunk: render, forward} = require('reflex');
   const {Record, Maybe} = require('typed-immutable');
   const {inspect} = require('../common/debug');
   const {StyleSheet, Style} = require('../common/style');
@@ -14,7 +14,6 @@
   const Theme = require('./theme');
   const {KeyBindings} = require('../common/keyboard');
   const Focusable = require('../common/focusable');
-  const {Main} = require('./main');
   const Updates = require('./update-banner');
   const WebView = require('./web-view');
   const Shell = require('./web-shell');
@@ -29,6 +28,11 @@
   const SynthesisUI = require('./synthesis-ui');
   const DevtoolsHUD = require('./devtools-hud');
   const Selector = require('../common/selector');
+  const {on, onWindow, title, scrollGrab} = require('driver');
+  const {identity} = require('../lang/functional');
+
+
+  const getOwnerWindow = node => node.ownerDocument.defaultView;
 
   // Model
   const Model = Record({
@@ -144,22 +148,22 @@
     const id = loader && loader.id;
     const theme =
       (mode === 'show-web-view' && page) ?
-        cache(Theme.read, page.pallet) :
+        Theme.read(page.pallet) :
       mode === 'show-web-view' ?
         Theme.default :
       Theme.dashboard;
 
-    return Main({
+    return html.div({
       key: 'root',
-      windowTitle: !loader ? '' :
+      title: title(!loader ? '' :
                    !page ? loader.uri :
-                   page.title || loader.uri,
-      onKeyDown: address.pass(KeyDown),
-      onKeyUp: address.pass(KeyUp),
-      onWindowBlur: address.pass(Focusable.Blured),
-      onWindowFocus: address.pass(Focusable.Focused),
-      onUnload: address.pass(Session.SaveSession),
-      onOpenWindow: address.pass(OpenWindow),
+                   page.title || loader.uri),
+      onKeyDown: onWindow(forward(address, KeyDown), identity),
+      onKeyUp: onWindow(forward(address, KeyUp), identity),
+      onBlur: onWindow(forward(address, Focusable.Blured)),
+      onFocus: onWindow(forward(address, Focusable.Focused)),
+      onUnload: onWindow(forward(address, Session.SaveSession)),
+      onMozBrowserOpenWindow: onWindow(address, OpenWindow),
       tabIndex: 1,
       className: theme.isDark ? 'is-dark' : '',
       style: Style(style.shell, {
@@ -189,7 +193,7 @@
         // We use this container to position it properly.
         style: style.webviewsContainer,
         key: 'web-views-container',
-      },
+      }, [
         render('WebViews', WebView.view,
           state.mode,
           state.transition,
@@ -199,7 +203,8 @@
           webViews.page,
           webViews.sheet,
           address,
-          webViews.selected)),
+          webViews.selected)
+      ]),
       render('DevtoolsHUD', DevtoolsHUD.view, state.devtoolsHUD, address),
       render('Updater', Updates.view, state.updates, address)
     ])

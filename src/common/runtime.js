@@ -101,7 +101,7 @@
 
   const service = address => {
     // Start listening for runtime events.
-    const handler = address.pass(Incoming);
+    const handler = event => address(Incoming(event));
     window.addEventListener('mozChromeEvent', handler);
 
     return action => {

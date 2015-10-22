@@ -4,7 +4,7 @@
 
   'use strict';
 
-  const {render, html, Address, Application} = require('reflex');
+  const {thunk:render, html, Address, Application} = require('reflex');
   const {Record, Any, Maybe, Union} = require('typed-immutable');
   const {Map} = require('immutable');
   const Settings = require('../../service/settings');

@@ -11,6 +11,9 @@
   "bugs": {
     "url": "http://github.com/mozilla/browser.html/issues/"
   },
+  "browser": {
+    "driver": "./src/driver/virtual-dom/index.js"
+  },
   "scripts": {
     "live": "gulp live",
     "start": "gulp develop",
@@ -24,8 +27,8 @@
   "dependencies": {
     "immutable": "3.7.0",
     "pouchdb": "4.0.0",
-    "react": "0.13.3",
-    "reflex": "0.0.28",
+    "reflex": "0.0.50",
+    "reflex-virtual-dom-driver": "0.0.1",
     "tinycolor2": "1.1.2",
     "typed-immutable": "0.0.7"
   },

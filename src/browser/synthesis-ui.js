@@ -16,6 +16,7 @@
   const Focusable = require('../common/focusable');
   const Editable = require('../common/editable');
   const Selector = require('../common/selector');
+  const {forward} = require('reflex');
 
   // Action
 
@@ -216,7 +217,7 @@
 
   const service = address => {
     let id = -1;
-    const showPreview = address.pass(ShowPreview)
+    const showPreview = forward(address, ShowPreview)
 
     return action => {
       if (action instanceof WebView.Preview) {

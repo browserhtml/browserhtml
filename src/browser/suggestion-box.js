@@ -6,7 +6,7 @@
   const MAX_RESULTS = 6;
 
   const {getDomainName} = require('../common/url-helper');
-  const {html, render} = require('reflex');
+  const {html, thunk:render, forward} = require('reflex');
   const {Record, List, Maybe, Union} = require('typed-immutable');
   const {StyleSheet, Style} = require('../common/style');
   const ClassSet = require('../common/class-set');
@@ -287,7 +287,7 @@
                    index == selected && style.selected,
                    (Icon[type] || state.icon) && style.hasIcon,
                    style[type]),
-      onMouseDown: address.pass(Load, state)
+      onMouseDown: _ => address(Load(state))
     }, [
       (Icon[type] ?
         html.div({key: 'icon', style: style.icon}, Icon[type]) :
@@ -298,7 +298,7 @@
       html.p({
         key: 'text',
         style: style.text
-      }, text)
+      }, [text])
     ]);
   };
   exports.viewSuggestion = viewSuggestion;
@@ -317,10 +317,10 @@
       html.ul({
         key: 'suggestions',
         style: style.suggestions
-      }, entries(state).map((entry, index) => {
+      }, [...entries(state).map((entry, index) => {
         return render(`suggestion@${index}`, viewSuggestion,
                       entry, state.selected, index,
                       address);
-      }))
+      })])
     ]);
   exports.view = view;

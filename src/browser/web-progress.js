@@ -5,7 +5,7 @@
 
   const {Record, Union} = require('typed-immutable');
   const {StyleSheet, Style} = require('../common/style');
-  const {html, render} = require('reflex');
+  const {html, thunk:render} = require('reflex');
   const Loader = require('./web-loader');
 
   // Model
@@ -117,13 +117,13 @@
     return html.div({
       key: 'progressbars',
       style: style.container
-    }, loaders.map((loader, index) =>
+    }, [...loaders.map((loader, index) =>
       render(`progressbar@${loader.id}`, progressbarView,
              loader.id,
              progress.get(index),
              // If not in show-web-view pass -1 to hide all progressbars.
              mode === 'show-web-view' && index === selected,
-             theme)));
+             theme))]);
   };
 
   exports.view = view;

@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {html, render} = require('reflex');
+  const {html, thunk:render, forward} = require('reflex');
   const URI = require('../common/url-helper');
   const {StyleSheet, Style} = require('../common/style');
 
@@ -17,6 +17,7 @@
   const Input = require('./web-input');
   const Suggestions = require('./suggestion-box');
   const ClassSet = require('../common/class-set');
+  const {focus, selection} = require('driver')
 
   // Model
 
@@ -193,7 +194,7 @@
         'location-bar': true
       }),
       style: Style(style.bar, style[mode]),
-      onClick: address.pass(Focusable.Focus)
+      onClick: forward(address, Focusable.Focus)
     }, children)
   ]);
 
@@ -205,7 +206,7 @@
 
   const viewInDashboard = (loader, security, page, input, suggestions, address) => {
     // Make forwarding addres that wraps actions into `Input.Action`.
-    const inputAddress = address.forward(InputAction);
+    const inputAddress = forward(address, InputAction);
 
     const view = Suggestions.isSuggesting(input, suggestions) ?
       viewSuggestingBar : viewActiveBar;
@@ -214,8 +215,8 @@
       html.span({
         key: 'icon',
         style: Style(style.searchIconLarge, style.visible)
-      }, SEARCH_ICON),
-      Editable.view({
+      }, [SEARCH_ICON]),
+      html.input({
         key: 'input',
         className: 'location-bar-input',
         placeholder: 'Search or enter address',
@@ -225,13 +226,13 @@
             Suggestions.entries(suggestions).get(suggestions.selected).uri :
             (input.value || ''),
         style: style.input,
-        isFocused: input.isFocused,
-        selection: input.selection,
-        onChange: inputAddress.pass(Changed),
-        onSelect: inputAddress.pass(Selected),
-        onFocus: inputAddress.pass(Focusable.Focused),
-        onBlur: inputAddress.pass(Focusable.Blured),
-        onKeyDown: address.pass(Binding)
+        isFocused: focus(input.isFocused),
+        selection: selection(input.selection),
+        onChange: forward(inputAddress, Changed),
+        onSelect: forward(inputAddress, Selected),
+        onFocus: forward(inputAddress, Focusable.Focused),
+        onBlur: forward(inputAddress, Focusable.Blured),
+        onKeyDown: forward(address, Binding)
       })
     ]);
   }
@@ -252,22 +253,22 @@
       children.push(html.span({
         key: 'securityicon',
         style: style.security
-      }, GearIcon));
+      }, [GearIcon]));
     } else if (isSecure) {
       children.push(html.span({
         key: 'securityicon',
         style: style.security
-      }, LockIcon));
+      }, [LockIcon]));
     }
 
     children.push(title);
 
-    return viewInactiveBar(address.forward(InputAction), [
+    return viewInactiveBar(forward(address, InputAction), [
       html.span({
         key: 'icon',
         className: 'location-search-icon',
         style: style.searchIconSmall
-      }, SEARCH_ICON),
+      }, [SEARCH_ICON]),
       html.div({
         key: 'page-summary',
         style: style.summary

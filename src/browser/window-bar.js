@@ -4,7 +4,7 @@
 
   'use strict';
 
-  const {html, render} = require('reflex')
+  const {html, thunk:render} = require('reflex')
   const {StyleSheet, Style} = require('../common/style');
   const Preview = require('./web-preview');
 

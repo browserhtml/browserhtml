@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
   'use strict';
 
-  const {html} = require('reflex');
+  const {html, forward} = require('reflex');
   const {Style, StyleSheet} = require('../common/style');
   const Runtime = require('../common/runtime');
 
@@ -67,21 +67,21 @@
       style: Style(styleButton.button,
                    styleButton.close,
                    theme.isDark ? styleButton.dark : styleButton.light),
-      onClick: address.send(Runtime.Shutdown())
+      onClick: forward(address, Runtime.Shutdown)
     }),
     html.button({
       key: 'WindowMinButton',
       style: Style(styleButton.button,
                    styleButton.min,
                    theme.isDark ? styleButton.dark : styleButton.light),
-      onClick: address.send(Runtime.Minimize())
+      onClick: forward(address, Runtime.Minimize)
     }),
     html.button({
       key: 'WindowMaxButton',
       style: Style(styleButton.button,
                    styleButton.max,
                    theme.isDark ? styleButton.dark : styleButton.light),
-      onClick: address.send(Runtime.Maximize())
+      onClick: forward(address, Runtime.Maximize)
     })
   ]);
   exports.view = view;

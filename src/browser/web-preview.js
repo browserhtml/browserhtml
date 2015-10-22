@@ -4,7 +4,7 @@
   'use strict';
 
   const {Record} = require('typed-immutable');
-  const {html, render} = require('reflex');
+  const {html, thunk:render, forward} = require('reflex');
   const WebView = require('./web-view');
   const Page = require('./web-page');
   const Card = require('./web-card');
@@ -14,8 +14,8 @@
   const Favicon = require('../common/favicon');
   const Selector = require('../common/selector');
   const Theme = require('./theme');
-  const {Element, BubbledEvent, CapturedEvent} = require('../common/element');
-  const {animate} = require('../common/animation');
+  const {onAnimationFrame, on} = require('driver');
+
 
   // Action
   const Create = Record({
@@ -61,8 +61,8 @@
     html.button({
       key: 'dashboard-button',
       style: styleControls.button,
-      onClick: address.pass(Create)
-    }, DashboardIcon)
+      onClick: forward(address, Create)
+    }, [DashboardIcon])
   ]);
   exports.viewControls = viewControls;
 
@@ -151,7 +151,7 @@
           backgroundColor: theme.shell,
           color: theme.shellText
         }),
-      }, title),
+      }, [title]),
     html.span({
       key: 'icon',
       alt: '',
@@ -176,7 +176,7 @@
     html.p({
       key: 'description',
       style: stylePreview.description
-    }, description)
+    }, [description])
   ];
 
   const viewContentsScreenshot = (title, icon, screenshot, theme) => [
@@ -186,7 +186,7 @@
           backgroundColor: theme.shell,
           color: theme.shellText
         }),
-      }, title),
+      }, [title]),
     html.span({
       key: 'icon',
       alt: '',
@@ -210,15 +210,34 @@
     ])
   ];
 
-  const swipingDiv = Element('div', {
-    onMozSwipeGestureStart: new BubbledEvent('MozSwipeGestureStart'),
-    onMozSwipeGestureUpdate: new BubbledEvent('MozSwipeGestureUpdate'),
-    onMozSwipeGestureEnd: new BubbledEvent('MozSwipeGestureEnd'),
-    onMozSwipeGesture: new BubbledEvent('MozSwipeGesture')
-  });
-
   const DIRECTION_UP = 1;
   const DIRECTION_DOWN = 2;
+
+  const preventOnBegin = action =>
+    action instanceof Card.BeginSwipe ? true : false
+
+  const decodeSwipeGestureStart = event => {
+    if (event.direction === DIRECTION_UP ||
+        event.direction === DIRECTION_DOWN)
+    {
+      event.allowedDirections = DIRECTION_UP | DIRECTION_DOWN;
+      return Card.BeginSwipe({timeStamp: performance.now()});
+    } else {
+      return null
+    }
+  }
+
+  const decodeSwipeGestureUpdate = event =>
+    Card.ContinueSwipe({y: Math.floor(event.delta * 1000),
+                        timeStamp: performance.now()});
+
+
+  const decodeSwipeGestureEnd = event =>
+    Card.ContinueSwipe({y: Math.floor(event.delta * 1000),
+                        timeStamp: performance.now()});
+
+  const decodeSwipeGestureStop = event =>
+    Card.EndSwipe({timeStamp: performance.now()});
 
   const distanceToOpacity = n =>
     (100 - Card.exitProximity(n)) / 100;
@@ -235,46 +254,34 @@
         viewContentsHeroTitleDescription(title, icon, hero, page.description, theme) :
         viewContentsScreenshot(title, icon, page.thumbnail, theme);
 
-    const cardView = html.div({
-      className: 'card',
-      style: Style(stylePreview.card,
-                   isSelected && stylePreview.selected,
-                   (card && card.y != 0) && {
-                     opacity: distanceToOpacity(card.y),
-                     transform: `translateY(${-1 * card.y}px)`
-                   }),
-      onClick: address.pass(Focusable.Focus),
-      onMouseUp: address.pass(Close),
-    }, previewContents);
 
-    return swipingDiv({
+    return html.div({
       style: Style(style.cardholder,
                    style.shrinkable,
                    card.beginShrink > 0 && style.shrink),
-      onMozSwipeGestureStart: (event) => {
-        if (event.direction === DIRECTION_UP ||
-            event.direction === DIRECTION_DOWN)
-        {
-          event.allowedDirections = DIRECTION_UP | DIRECTION_DOWN;
-          event.preventDefault();
-          address.receive(Card.BeginSwipe({timeStamp: performance.now()}));
-        }
-      },
-      onMozSwipeGestureUpdate: (event) => {
-        address.receive(Card.ContinueSwipe({y: Math.floor(event.delta * 1000),
-                                            timeStamp: performance.now()}));
-      },
-      onMozSwipeGestureEnd(event) {
-        address.receive(Card.ContinueSwipe({y: Math.floor(event.delta * 1000),
-                                            timeStamp: performance.now()}));
-      },
-      onMozSwipeGesture: (event) => {
-        address.receive(Card.EndSwipe({timeStamp: performance.now()}));
-      }
-    }, card.isClosing ? animate(cardView, event => {
-      address.receive(card.endShrink > 0 ? WebView.Close() :
-                      Card.AnimationFrame(event));
-    }) : cardView);
+      onMozSwipeGestureStart: on(address, decodeSwipeGestureStart, {
+        preventDefault: preventOnBegin
+      }),
+      onMozSwipeGestureUpdate: on(address, decodeSwipeGestureUpdate),
+      onMozSwipeGestureEnd: on(address, decodeSwipeGestureEnd),
+      onMozSwipeGesture: on(address, decodeSwipeGestureStop),
+    }, [
+      html.div({
+        className: 'card',
+        style: Style(stylePreview.card,
+                     isSelected && stylePreview.selected,
+                     (card && card.y != 0) && {
+                       opacity: distanceToOpacity(card.y),
+                       transform: `translateY(${-1 * card.y}px)`
+                     }),
+        onClick: forward(address, Focusable.Focus),
+        onMouseUp: forward(address, Close),
+        onAnimationFrame: card.isClosing && onAnimationFrame(address, timeStamp => {
+          return card.endShrink > 0 ? WebView.Close() :
+                 Card.AnimationFrame({timeStamp})
+        })
+      }, previewContents)
+    ])
   };
   exports.viewPreview = viewPreview;
 
@@ -325,11 +332,13 @@
 
   const ghostPreview = html.div({
     style: style.cardholder
-  }, html.div({
-    key: 'ghost',
-    className: 'card',
-    style: Style(stylePreview.card, stylePreview.ghost)
-  }));
+  }, [
+    html.div({
+      key: 'ghost',
+      className: 'card',
+      style: Style(stylePreview.card, stylePreview.ghost)
+    })
+  ]);
 
 
   const viewPreviews = (loaders, pages, cards, selected, address) =>
@@ -340,7 +349,7 @@
                pages.get(index),
                cards.get(index),
                index === selected,
-               address.forward(action =>
+               forward(address, action =>
                                 WebView.ByID({id: loader.id, action}))));
 
   const viewContainer = (styles, ...children) =>
