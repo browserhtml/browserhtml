@@ -15,6 +15,9 @@
       backgroundRepeat: 'no-repeat',
       // Scale sprite by 1/2 for retina.
       backgroundSize: '12px auto',
+      borderRadius: '50%',
+      borderWidth: '0.5px',
+      borderStyle: 'solid',
       width: '12px',
       height: '12px',
       left: 0,
@@ -22,14 +25,20 @@
       top: 0
     },
     close: {
+      backgroundColor: '#fc635e',
+      borderColor: '#e03932',
       left: 0
     },
     min: {
       backgroundPosition: '0 -50px',
+      backgroundColor: '#fdc242',
+      borderColor: '#df9b08',
       left: '20px'
     },
     max: {
       backgroundPosition: '0 -100px',
+      backgroundColor: '#35cc4b',
+      borderColor: '#28ab36',
       left: '40px'
     },
     light: {
