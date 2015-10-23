@@ -41,6 +41,10 @@
       borderColor: '#28ab36',
       left: '40px'
     },
+    unfocused: {
+      backgroundColor: '#ddd',
+      borderColor: '#d3d3d3'
+    },
     light: {
       backgroundImage: 'url(css/window-controls-light.sprite.png)',
     },
