@@ -22,6 +22,7 @@
   const version = require('../../package.json').version;
   const {Renderer} = require('driver')
 
+
   const isReload = window.application != null;
 
 
@@ -30,7 +31,7 @@
                 Browser.Model(window.application.model.value) :
                 Session.restore(version, Browser.Model),
     update: Browser.update,
-    view: Browser.view
+    view: (model, _) => Browser.view(model, address)
   });
   application.unload = () => application.address(Runtime.LiveReload());
 
@@ -52,6 +53,44 @@
 
   const renderer = new Renderer({target: document.body})
   application.view.subscribe(renderer.address)
+
+
+  const address = action => {
+    const isForced = action instanceof Force.Action;
+    if (isForced) {
+      action = action.action;
+    }
+
+    application.address(action);
+    thumbnail(action);
+    pallet(action);
+    runtime(action);
+    suggestion(action);
+    keyboard(action);
+    settings(action);
+    scraper(action);
+    synthesis(action);
+    gesture(action);
+
+    // We cancel scheduled render on next animation frame as we are
+    // forceing render to happen right away.
+    if (isForced) {
+      console.log("FORCE!")
+      application.execute();
+    }
+  }
+
+  const thumbnail = Thumbnail.service(address);
+  const pallet = Pallet.service(address);
+  const updater = Update.service(address);
+  const runtime = Runtime.service(address);
+  const suggestion = Suggestion.service(address);
+  const keyboard = Keyboard.service(address);
+  const settings = Settings.service(address);
+  const scraper = Scraper.service(address);
+  const gesture = Gesture.service(address);
+  const synthesis = SynthesisUI.service(address);
+
 
   window.application = application;
 

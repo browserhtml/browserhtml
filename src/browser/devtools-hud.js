@@ -93,12 +93,12 @@
     }
     fetched = true;
     for (var name of [...state.get('settings').keys()]) {
-      address.receive(Settings.Fetch({
+      address(Settings.Fetch({
         id: 'devtools:fetch' + name,
         query: name}));
     }
     var name = 'debugger.remote-mode';
-    address.receive(Settings.Fetch({
+    address(Settings.Fetch({
       id: 'devtools:fetch:debugger.remote-mode',
       query: name}));
   }
@@ -164,16 +164,16 @@
     const runtimeButtons = [
       html.button({
         style: style.button,
-        onClick: address.send(Runtime.Restart())
-      }, 'Restart'),
+        onClick: _ => address(Runtime.Restart())
+      }, ['Restart']),
       html.button({
         style: style.button,
-        onClick: address.send(Runtime.CleanRestart())
-      }, 'Clear cache and restart'),
+        onClick: _ => address(Runtime.CleanRestart())
+      }, ['Clear cache and restart']),
       html.button({
         style: style.button,
-        onClick: address.send(Runtime.CleanReload())
-      }, 'Clear cache and reload')
+        onClick: _ => address(Runtime.CleanReload())
+      }, ['Clear cache and reload'])
     ];
 
     return html.div({
@@ -194,7 +194,8 @@
               'debugger.remote-mode': e.target.checked ? 'adb-devtools' : 'disabled'
             });
           }
-        }), 'Enable Remote DevTools'
+        }),
+        'Enable Remote DevTools'
       ]), [...settingsCheckboxes, runtimeButtons]]);
   };
 

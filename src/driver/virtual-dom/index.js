@@ -2,13 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {identity} from "../../lang/functional"
-
+import {identity} from '../../lang/functional'
+import {forward} from 'reflex'
 export {Renderer} from 'reflex-virtual-dom-driver'
 
 class On {
-  handleEvent(event) {
-    const {currentTarget} = event
+  static handleEvent(event) {
+    const {currentTarget, type} = event
 
     const handler = currentTarget[`on:${type}`]
     if (handler) {
@@ -37,6 +37,7 @@ class On {
     this.getTarget = getTarget
     this.stopPropagation = false
     this.preventDefault = false
+    this.type = 'On'
 
     if (options != null) {
       if (options.stopPropagation != null) {
@@ -51,13 +52,13 @@ class On {
   hook(node, name, previous) {
     const type = name.indexOf('on') === 0 ?
       name.substr(2).toLowerCase() :
-      name.toLowerCase()
+      name
 
     const target = this.getTarget != null ?
       this.getTarget(node) :
       node
 
-    if (!(previous instanceof this.constructor)) {
+    if (previous == null || previous.type != this.type) {
       target.addEventListener(type, this.constructor.handleEvent)
     }
 
@@ -72,8 +73,8 @@ class On {
       this.getTarget(node) :
       node
 
-    if (!(next instanceof this.constructor)) {
-      node.removeEventListener(this.type, this.constructor.handleEvent)
+    if (next == null || next.type != this.type) {
+      node.removeEventListener(type, this.constructor.handleEvent)
     }
 
     delete node[`on:${type}`]
@@ -92,7 +93,7 @@ const hash = v => {
     return `#t`
   } else {
     if (v[$hash] == null) {
-      v[$hash] = `f#++nextHash`
+      v[$hash] = `f#${++nextHash}`
     }
 
     if (v[$hash] == null) {
@@ -109,7 +110,7 @@ export const on = (address, decode, options, getTarget) => {
   const id = `on:${hash(decode)}@${hash(getTarget)}:${hash(stopPropagation)}:${hash(preventDefault)}}`
 
   if (!address[id]) {
-    address[id] = new On(address, decode, options)
+    address[id] = new On(address, decode, options, getTarget)
   }
 
   return address[id]
@@ -123,11 +124,14 @@ class MetaProperty {
   constructor(value, update) {
     this.value = value
     this.update = update
+    this.type = 'MetaProperty'
   }
   hook(node, name, previous) {
-    const before = previous instanceof this.constructor ?
-      previous.value :
-      previous
+    const before = previous == null ?
+        previous :
+      previous.type != this.type ?
+        previous :
+        previous.value
 
     this.update(node, this.value, before)
   }
@@ -142,13 +146,15 @@ export const metaProperty = update => value =>
 export const zoom = metaProperty((node, next, previous) => {
   if (previous != next) {
     if (node.zoom) {
-      try {
-        node.zoom(next);
-      } catch (error) {
-        if (!node.isZoomBroken) {
-          console.error(error);
+      Promise.resolve().then(() => {
+        try {
+          node.zoom(next);
+        } catch (error) {
+          if (!node.isZoomBroken) {
+            console.error(error);
+          }
         }
-      }
+      })
     }
   }
 })
@@ -180,40 +186,46 @@ const metaBooleanProperty = update => {
 export const visiblity = metaBooleanProperty((node, next, previous) => {
   if (next != previous) {
     if (node.setVisible) {
-      try {
-        node.setVisible(next);
-      } catch (error) {
-        if (!node.isSetVisibleBroken) {
-          console.error(error);
+      Promise.resolve().then(() => {
+        try {
+          node.setVisible(next);
+        } catch (error) {
+          if (!node.isSetVisibleBroken) {
+            console.error(error);
+          }
         }
-      }
+      })
     }
   }
 });
 
 export const focus = metaBooleanProperty((node, next, previous) => {
   if (next != previous) {
-    if (next) {
-      node.focus();
-    } else {
-      node.blur();
-    }
+    Promise.resolve().then(() => {
+      if (next) {
+        node.focus();
+      } else {
+        node.blur();
+      }
+    })
   }
 });
 
 export const navigate = metaProperty((node, next, previous) => {
   if (next != previous) {
-    if (next.isStop) {
-      node.stop()
-    }
-    if (next.isReload) {
-      node.reload()
-    }
-    if (next.isGoBack) {
-      node.goBack()
-    }
-    if (next.isGoForward) {
-      node.goForward()
+    if (next) {
+      if (next.isStop) {
+        node.stop()
+      }
+      if (next.isReload) {
+        node.reload()
+      }
+      if (next.isGoBack) {
+        node.goBack()
+      }
+      if (next.isGoForward) {
+        node.goForward()
+      }
     }
   }
 });
@@ -254,8 +266,8 @@ class OnAnimationFrame {
     }
   }
   static run(timeStamp) {
-    Animation.id = null
-    const targets = this.targets.splice(0)
+    OnAnimationFrame.id = null
+    const targets = OnAnimationFrame.targets.splice(0)
     const count = targets.length
     let index = 0
 
@@ -270,23 +282,23 @@ class OnAnimationFrame {
   constructor(address) {
     this.address = address
     this.field = Symbol.for('onAnimationFrame')
+    this.type = 'OnAnimationFrame'
   }
   hook(target, name, previous) {
-    if (!(previous instanceof OnAnimationFrame)) {
-      this.constructor.request(name)
-    }
+    this.constructor.request(target)
 
     target[$onAnimationFrame] = this.address
   }
   onhook(target, name, next) {
-    if (!(next instanceof this.constructor)) {
+    if (previous == null || previous.type !== this.type) {
       delete target[$onAnimationFrame]
     }
   }
 }
 
 
-export const onAnimationFrame = address => {
+export const onAnimationFrame = (address, decode) => {
+  address = decode != null ? forward(address, decode) : address
   if (address[$onAnimationFrame] == null) {
     address[$onAnimationFrame] = new OnAnimationFrame(address)
   }
@@ -296,13 +308,15 @@ export const onAnimationFrame = address => {
 
 
 export const selection = metaProperty((node, next, previous) => {
-  if (current !== past) {
-    const {start, end, direction} = current;
+  if (next !== previous) {
+    const {start, end, direction} = next;
     if (node.setSelectionRange) { // FIXME: remove once Servo supports setSelectionRange
       const {start, end, direction} = next;
-      node.setSelectionRange(start === Infinity ? node.value.length : start,
-                             end === Infinity ? node.value.length : end,
-                             direction);
+      Promise.resolve().then(() => {
+        node.setSelectionRange(start === Infinity ? node.value.length : start,
+                               end === Infinity ? node.value.length : end,
+                               direction);
+      })
     }
   }
 });
@@ -339,29 +353,30 @@ class OnNavigationStateChange extends On {
                       detail: request.target.result})
     };
   }
-  constructor(type, address, decode) {
+  constructor(eventType, address, decode) {
     super(address, decode, null, null)
-    this.type = type
+    this.eventType = eventType
+    this.type = 'OnNavigationStateChange'
   }
   hook(node, name, previous) {
-    super.hook(node, this.type, previous)
+    super.hook(node, this.eventType, previous)
 
-    if (!(previous instanceof this.constructor)) {
-      target.addEventListener(LOCATION_CHANGE,
-                              this.constructor.handleEvent)
+    if (previous == null || previous.type !== this.type) {
+      node.addEventListener(LOCATION_CHANGE,
+                            this.constructor.handleEvent)
     }
   }
   unhook(node, name, next) {
-    super.unhook(node, this.type, next)
+    super.unhook(node, this.eventType, next)
 
-    if (!(next instanceof this.constructor)) {
+    if (next == null || next.type !== this.type) {
       node.removeEventListener(LOCATION_CHANGE,
                                this.constructor.handleEvent)
     }
   }
 }
 
-export const onCanGoBackChange = (address, decoder) => {
+export const onCanGoBackChange = (address, decode) => {
   const id = `onCanGoBackChange:${hash(decode)}`
 
   if (!address[id]) {
@@ -371,7 +386,7 @@ export const onCanGoBackChange = (address, decoder) => {
   return address[id]
 }
 
-export const onCanGoForwardChange = (address, decoder) => {
+export const onCanGoForwardChange = (address, decode) => {
   const id = `onCanGoForwardChange:${hash(decode)}`
 
   if (!address[id]) {

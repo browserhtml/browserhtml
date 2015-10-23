@@ -186,9 +186,9 @@
       textAlign: 'center',
       width: '100vw',
       position: 'absolute',
-      top: 40,
+      top: '40px',
       zIndex: 43,
-      height: 260,
+      height: '260px',
       pointerEvents: 'none'
     },
     collapsed: {
@@ -199,11 +199,11 @@
       color: 'rgba(0,0,0,0.7)',
       display: 'inline-block',
       textAlign: 'left',
-      width: 400,
+      width: '400px',
       overflow: 'hidden',
       pointerEvents: 'all',
       backgroundColor: '#fff',
-      borderRadius: 5,
+      borderRadius: '5px',
       padding: '30px 0 5px'
     },
     first: {
@@ -211,8 +211,8 @@
     },
     suggestion: {
       lineHeight: '30px',
-      paddingLeft: 10,
-      paddingRight: 10,
+      paddingLeft: '10px',
+      paddingRight: '10px',
       verticalAlign: 'middle',
       cursor: 'pointer',
       overflow: 'hidden',
@@ -221,7 +221,7 @@
       textOverflow: 'ellipsis',
     },
     hasIcon: {
-      paddingLeft: 30,
+      paddingLeft: '30px',
     },
     selected: {
       backgroundColor: '#4A90E2',
@@ -235,18 +235,18 @@
       fontSize: '16px',
       fontFamily: 'FontAwesome',
       position: 'absolute',
-      left: 9,
+      left: '9px',
     },
     favicon: {
       backgroundSize: 'cover',
       backgroundPosition: 'center center',
       backgroundRepeat: 'no-repeat',
-      borderRadius: 3,
-      height: 16,
-      left: 8,
+      borderRadius: '3px',
+      height: '16px',
+      left: '8px',
       position: 'absolute',
-      top: 11,
-      width: 16,
+      top: '11px',
+      width: '16px',
     },
     text: {
       fontSize: 'inherit',
@@ -283,6 +283,7 @@
 
     return html.li({
       key: 'suggestion',
+      className: 'suggestion',
       style: Style(style.suggestion,
                    index == selected && style.selected,
                    (Icon[type] || state.icon) && style.hasIcon,
@@ -290,7 +291,7 @@
       onMouseDown: _ => address(Load(state))
     }, [
       (Icon[type] ?
-        html.div({key: 'icon', style: style.icon}, Icon[type]) :
+        html.div({key: 'icon', style: style.icon}, [Icon[type]]) :
         html.div({
           key: 'favicon',
           style: Style(style.favicon,
@@ -311,11 +312,13 @@
   const view = (mode, state, input, address) =>
     html.menu({
       key: 'suggestionscontainer',
+      className: 'suggestion-box',
       style: Style(style.container,
                    !isSuggesting(input, state) && style.collapsed)
     }, [
       html.ul({
         key: 'suggestions',
+        className: 'suggestions',
         style: style.suggestions
       }, [...entries(state).map((entry, index) => {
         return render(`suggestion@${index}`, viewSuggestion,

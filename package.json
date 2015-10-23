@@ -28,7 +28,7 @@
     "immutable": "3.7.0",
     "pouchdb": "4.0.0",
     "reflex": "0.0.50",
-    "reflex-virtual-dom-driver": "0.0.1",
+    "reflex-virtual-dom-driver": "0.0.2",
     "tinycolor2": "1.1.2",
     "typed-immutable": "0.0.7"
   },

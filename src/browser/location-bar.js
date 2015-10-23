@@ -36,7 +36,7 @@
     bar: {
       display: 'inline-block',
       MozWindowDragging: 'no-drag',
-      borderRadius: 5,
+      borderRadius: '5px',
       overflow: 'hidden',
       // Contains absolute elements
       position: 'relative',
@@ -44,30 +44,30 @@
       width: null
     },
     inactive: {
-      height: 22,
+      height: '22px',
       lineHeight: '22px',
       padding: '0 22px',
-      top: 3,
-      width: 250,
+      top: '3px',
+      width: '250px',
     },
     active: {
       backgroundColor: 'rgba(255,255,255,0.2)',
       color: 'rgba(255,255,255,0.7)',
-      height: 30,
+      height: '30px',
       lineHeight: '30px',
       padding: '0 30px',
-      width: 400,
-      top: 40,
+      width: '400px',
+      top: '40px',
     },
     // Display styles when location bar is displaying suggested result.
     suggesting: {
       backgroundColor: 'white',
       color: 'rgba(0,0,0,0.7)',
-      height: 30,
+      height: '30px',
       lineHeight: '30px',
       padding: '0 30px',
-      width: 400,
-      top: 40
+      width: '400px',
+      top: '40px'
     },
     button: {
       opacity: null,
@@ -79,8 +79,8 @@
       color: 'inherit',
       position: 'absolute',
       top: 0,
-      width: 30,
-      height: 30,
+      width: '30px',
+      height: '30px',
       fontFamily: 'FontAwesome',
       textAlign: 'center',
       fontSize: '17px',
@@ -143,7 +143,7 @@
 
     security: {
       fontFamily: 'FontAwesome',
-      marginRight: 6,
+      marginRight: '6px',
       verticalAlign: 'middle'
     }
   });
@@ -187,6 +187,7 @@
 
   const viewBar = mode => (address, children) => html.div({
     style: style.container,
+    className: 'location-bar-container'
   }, [
     html.div({
       key: 'LocationBar',
@@ -214,6 +215,7 @@
     return view(inputAddress, [
       html.span({
         key: 'icon',
+        className: 'location-search-icon',
         style: Style(style.searchIconLarge, style.visible)
       }, [SEARCH_ICON]),
       html.input({
@@ -228,7 +230,7 @@
         style: style.input,
         isFocused: focus(input.isFocused),
         selection: selection(input.selection),
-        onChange: forward(inputAddress, Changed),
+        onInput: forward(inputAddress, Changed),
         onSelect: forward(inputAddress, Selected),
         onFocus: forward(inputAddress, Focusable.Focused),
         onBlur: forward(inputAddress, Focusable.Blured),
@@ -271,6 +273,7 @@
       }, [SEARCH_ICON]),
       html.div({
         key: 'page-summary',
+        className: 'location-bar-page-summary',
         style: style.summary
       }, children)
     ]);

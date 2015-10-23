@@ -335,7 +335,7 @@
         timeStamp: performance.now()
       });
     } else {
-      return null
+      return {}
     }
   }
 
@@ -357,12 +357,14 @@
     return html.div({
       key: 'web-view',
       style: webviewStyle.perspective,
-      onMozSwipeGestureStart: on(address, decodeSwapeGestureStart),
-      onMozSwipeGestureUpdate: on(address, decodeSwipeGestureUpdate),
-      onMozSwipeGestureEnd: on(address, decodeSwipeGestureEnd),
-      onMozSwipeGesture: on(address, decodeSwipeGestureStop),
+      MozSwipeGestureStart: on(address, decodeSwapeGestureStart),
+      MozSwipeGestureUpdate: on(address, decodeSwipeGestureUpdate),
+      MozSwipeGestureEnd: on(address, decodeSwipeGestureEnd),
+      MozSwipeGesture: on(address, decodeSwipeGestureStop),
       onAnimationFrame: sheet.isInMotion && onAnimationFrame(timeStamp => {
-        address(sheet.action);
+        if (sheet.action != null) {
+          address(sheet.action);
+        }
         address(Sheet.AnimationFrame({timeStamp}));
       })
     }, [
@@ -424,7 +426,7 @@
       attributes: {
         mozbrowser: true,
         remote: true,
-        mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : null,
+        mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : void(0),
         mozallowfullscreen: true
       },
       isVisible: visiblity(isSelected || !thumbnail),
@@ -438,7 +440,7 @@
       // onMozbrowserAsyncScroll: on(address, decodeAsyncScroll),
 
       onMozBrowserCanGoBackChange: onCanGoBackChange(address, decodeCanGoBackChange),
-      onMozBrowserCanGoForwardChange: onCanGoForwardChanged(address, decodeCanGoForwardChange),
+      onMozBrowserCanGoForwardChange: onCanGoForwardChange(address, decodeCanGoForwardChange),
 
       onMozBrowserClose: on(address, decodeClose),
       onMozBrowserOpenWindow: on(address, decodeOpenWindow),
@@ -449,7 +451,7 @@
       onMozBrowserLoadEnd: on(address, decodeLoadEnd),
       onMozBrowserFirstPaint: on(address, decodeFirstPaint),
       onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
-      onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
+      // onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
       onMozBrowserLocationChange: on(address, decodeLocationChange),
       onMozBrowserMetaChange: on(address, decodeMetaChange),
       onMozBrowserIconChange: on(address, decodeIconChange),
@@ -518,7 +520,7 @@
     html.div({
       key: 'web-views',
       style: Style(webviewsStyle.base, getModeStyle(mode, transition)),
-    }, loader.map((loader, index) =>
+    }, [...loader.map((loader, index) =>
       render(`web-view@${loader.id}`, viewWebView,
               loader,
               shell.get(index),
@@ -534,7 +536,7 @@
                     id: loader.id,
                     action: action.action
                   })) :
-                  ByID({id: loader.id, action})))));
+                  ByID({id: loader.id, action}))))]);
   exports.view = view;
 
   // Actions that web-view produces but `update` does not handles.

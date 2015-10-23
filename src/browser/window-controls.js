@@ -15,8 +15,8 @@
       backgroundRepeat: 'no-repeat',
       // Scale sprite by 1/2 for retina.
       backgroundSize: '12px auto',
-      width: 12,
-      height: 12,
+      width: '12px',
+      height: '12px',
       left: 0,
       position: 'absolute',
       top: 0
@@ -26,11 +26,11 @@
     },
     min: {
       backgroundPosition: '0 -50px',
-      left: 20
+      left: '20px'
     },
     max: {
       backgroundPosition: '0 -100px',
-      left: 40
+      left: '40px'
     },
     light: {
       backgroundImage: 'url(css/window-controls-light.sprite.png)',
@@ -42,11 +42,11 @@
 
   const styleContainer = StyleSheet.create({
     container: {
-      height: 12,
+      height: '12px',
       position: 'absolute',
-      width: 50,
-      top: 8,
-      left: 8,
+      width: '50px',
+      top: '8px',
+      left: '8px',
       zIndex: 200
     },
     light: {
@@ -59,7 +59,8 @@
 
 
   const view = ({isFocused}, theme, address) => html.div({
-    key: 'WindowControls',
+    key: 'window-controls',
+    className: 'window-controls',
     style: styleContainer.container,
   }, [
     html.button({
@@ -71,6 +72,7 @@
     }),
     html.button({
       key: 'WindowMinButton',
+      className: 'button minimize',
       style: Style(styleButton.button,
                    styleButton.min,
                    theme.isDark ? styleButton.dark : styleButton.light),
@@ -78,6 +80,7 @@
     }),
     html.button({
       key: 'WindowMaxButton',
+      className: 'button maximize',
       style: Style(styleButton.button,
                    styleButton.max,
                    theme.isDark ? styleButton.dark : styleButton.light),

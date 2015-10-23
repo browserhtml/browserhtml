@@ -33,7 +33,7 @@
       event.stopPropagation();
       return WebView.Close();
     }
-    return null;
+    return {};
   }
 
   const styleControls = StyleSheet.create({
@@ -47,7 +47,7 @@
       lineHeight: '16px',
       fontFamily: 'FontAwesome',
       textAlign: 'center',
-      fontSize: 16,
+      fontSize: '16px',
       verticalAlign: 'middle',
       cursor: 'default'
     }
@@ -56,10 +56,12 @@
   const DashboardIcon = '\uf067';
 
   const viewControls = (theme, address) => html.div({
-    style: styleControls.panel
+    style: styleControls.panel,
+    className: 'web-preview-controls'
   }, [
     html.button({
       key: 'dashboard-button',
+      className: 'web-preview-dashboard-button',
       style: styleControls.button,
       onClick: forward(address, Create)
     }, [DashboardIcon])
@@ -151,7 +153,7 @@
           backgroundColor: theme.shell,
           color: theme.shellText
         }),
-      }, [title]),
+      }, [title != null ? title : '']),
     html.span({
       key: 'icon',
       alt: '',
@@ -186,7 +188,7 @@
           backgroundColor: theme.shell,
           color: theme.shellText
         }),
-      }, [title]),
+      }, [title != null ? title : '']),
     html.span({
       key: 'icon',
       alt: '',
@@ -223,7 +225,7 @@
       event.allowedDirections = DIRECTION_UP | DIRECTION_DOWN;
       return Card.BeginSwipe({timeStamp: performance.now()});
     } else {
-      return null
+      return {}
     }
   }
 
@@ -259,12 +261,12 @@
       style: Style(style.cardholder,
                    style.shrinkable,
                    card.beginShrink > 0 && style.shrink),
-      onMozSwipeGestureStart: on(address, decodeSwipeGestureStart, {
+      MozSwipeGestureStart: on(address, decodeSwipeGestureStart, {
         preventDefault: preventOnBegin
       }),
-      onMozSwipeGestureUpdate: on(address, decodeSwipeGestureUpdate),
-      onMozSwipeGestureEnd: on(address, decodeSwipeGestureEnd),
-      onMozSwipeGesture: on(address, decodeSwipeGestureStop),
+      MozSwipeGestureUpdate: on(address, decodeSwipeGestureUpdate),
+      MozSwipeGestureEnd: on(address, decodeSwipeGestureEnd),
+      MozSwipeGesture: on(address, decodeSwipeGestureStop),
     }, [
       html.div({
         className: 'card',
