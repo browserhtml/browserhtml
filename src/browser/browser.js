@@ -85,40 +85,7 @@
 
   // Update
 
-
-  // Utility function takes `update` functions and attepts to handle action
-  // with each one in the order they were passed until one of them returns
-  // updated state in which case it returns that state and no longer calls
-  // any further update functions.
-  const pipeline = updaters => {
-    const count = updaters.length
-    return (state, action) => {
-      var index = 0
-      var before = state
-      while (index < count) {
-        const after = updaters[index](before, action)
-        index = index + 1
-
-        if (before !== after) {
-          return after
-        }
-      }
-      return state
-    }
-  };
-
-  const update = pipeline([
-    SynthesisUI.update,
-    (state, action) =>
-      state.set('webViews', WebView.update(state.webViews, action)),
-    (state, action) =>
-      state.set('input', Input.update(state.input, action)),
-    Session.update,
-    (state, action) =>
-      state.set('devtoolsHUD', DevtoolsHUD.update(state.devtoolsHUD, action)),
-    (state, action) =>
-      state.set('suggestions', Suggestions.update(state.suggestions, action))
-  ]);
+  const update = SynthesisUI.update;
   exports.update = update;
 
 

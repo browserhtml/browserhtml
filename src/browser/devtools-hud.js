@@ -51,6 +51,12 @@
 
   exports.ToggleDevtoolsHUD = ToggleDevtoolsHUD;
 
+  // FIXME: DevtoolHUD should not react to settings actions
+  // instead settings should be requested as effects and
+  // mapped so they will be directed at devtools hud.
+  exports.Changed = Settings.Changed;
+  exports.Fetched = Settings.Fetched;
+
   // update
 
   const update = (state, action) => {

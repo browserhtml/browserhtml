@@ -86,6 +86,9 @@
   }, 'suggestions.Clear');
   exports.Clear = Clear;
 
+  exports.SearchResult = Search.Result;
+  exports.PageResult = History.PageResult;
+
 
   // Update
 
