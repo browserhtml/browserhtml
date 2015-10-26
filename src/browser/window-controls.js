@@ -11,13 +11,10 @@
 
   const styleButton = StyleSheet.create({
     button: {
-      backgroundPosition: '0 0',
+      backgroundImage: 'url(css/window-controls.sprite.png)',
       backgroundRepeat: 'no-repeat',
       // Scale sprite by 1/2 for retina.
-      backgroundSize: '12px auto',
-      borderRadius: '50%',
-      borderWidth: '0.5px',
-      borderStyle: 'solid',
+      backgroundSize: '25px auto',
       width: '12px',
       height: '12px',
       left: 0,
@@ -25,32 +22,29 @@
       top: 0
     },
     close: {
-      backgroundColor: '#fc635e',
-      borderColor: '#e03932',
+      backgroundPosition: '0 -150px',
       left: 0
     },
     min: {
-      backgroundPosition: '0 -50px',
-      backgroundColor: '#fdc242',
-      borderColor: '#df9b08',
+      backgroundPosition: '0 -200px',
       left: '20px'
     },
     max: {
-      backgroundPosition: '0 -100px',
-      backgroundColor: '#35cc4b',
-      borderColor: '#28ab36',
+      backgroundPosition: '0 -250px',
       left: '40px'
     },
+    hoverClose: {
+      backgroundPosition: '0 0',
+    },
+    hoverMin: {
+      backgroundPosition: '0 -50px',
+    },
+    hoverMax: {
+      backgroundPosition: '0 -100px',
+    },
     unfocused: {
-      backgroundColor: '#ddd',
-      borderColor: '#d3d3d3'
+      backgroundPosition: '0 -300px'
     },
-    light: {
-      backgroundImage: 'url(css/window-controls-light.sprite.png)',
-    },
-    dark: {
-      backgroundImage: 'url(css/window-controls-dark.sprite.png)'
-    }
   });
 
   const styleContainer = StyleSheet.create({
@@ -62,10 +56,6 @@
       left: '8px',
       zIndex: 200
     },
-    light: {
-    },
-    dark: {
-    }
   });
 
   // Style
@@ -79,24 +69,21 @@
     html.button({
       key: 'WindowCloseButton',
       style: Style(styleButton.button,
-                   styleButton.close,
-                   theme.isDark ? styleButton.dark : styleButton.light),
+                   styleButton.close),
       onClick: forward(address, Runtime.Shutdown)
     }),
     html.button({
       key: 'WindowMinButton',
       className: 'button minimize',
       style: Style(styleButton.button,
-                   styleButton.min,
-                   theme.isDark ? styleButton.dark : styleButton.light),
+                   styleButton.min),
       onClick: forward(address, Runtime.Minimize)
     }),
     html.button({
       key: 'WindowMaxButton',
       className: 'button maximize',
       style: Style(styleButton.button,
-                   styleButton.max,
-                   theme.isDark ? styleButton.dark : styleButton.light),
+                   styleButton.max),
       onClick: forward(address, Runtime.Maximize)
     })
   ]);
