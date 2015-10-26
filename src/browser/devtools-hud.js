@@ -54,7 +54,6 @@
   // update
 
   const update = (state, action) => {
-
     const updateSettingIfNeeded = (name, value) => {
       if (name in state.get('settings')) {
         state = state.setIn(['settings', name], value);
@@ -105,11 +104,11 @@
 
   const style = StyleSheet.create({
     checkbox: {
-      marginRight: 6,
+      marginRight: '6px',
       MozAppearance: 'checkbox',
     },
     label: {
-      padding: 6,
+      padding: '6px',
       MozUserSelect: 'none',
       display: 'block',
     },
@@ -117,14 +116,14 @@
       display: 'block',
       border: '1px solid #AAA',
       padding: '3px 6px',
-      margin: 6,
-      borderRadius: 3,
+      margin: '6px',
+      borderRadius: '3px',
     },
     container: {
-      padding: 10,
+      padding: '10px',
       position: 'absolute',
-      bottom: 10,
-      left: 10,
+      bottom: '10px',
+      left: '10px',
       width: '300px',
       height: '400px',
       color: 'black',
@@ -151,7 +150,7 @@
       }, [
         html.input({
           type: 'checkbox',
-          checked: state.getIn(['settings', settingName]),
+          checked: state.getIn(['settings', settingName]) ? true : void(0),
           style: style.checkbox,
           onChange: e => {
             var setting = {};
@@ -178,6 +177,7 @@
 
     return html.div({
       key: 'devtools-toolbox',
+      className: 'devtools toolbox',
       style: Style(style.container,
           state.enableHUD ? style.containerVisible : style.containerHidden),
     }, [
@@ -196,7 +196,10 @@
           }
         }),
         'Enable Remote DevTools'
-      ]), [...settingsCheckboxes, runtimeButtons]]);
+      ]),
+      ...settingsCheckboxes,
+      ...runtimeButtons
+    ]);
   };
 
   exports.view = view;
