@@ -55,7 +55,8 @@
           navigator.mozSettings
                    .createLock()
                    .get(action.query)
-                   .then(settings => Fetched.read(action, settings));
+                   .then(settings => Fetched.read(action, settings))
+                   .then(address);
         }
       }
     } else {
