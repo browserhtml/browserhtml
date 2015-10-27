@@ -210,7 +210,7 @@
       state :
     state.webViews.selected === null ?
       state :
-    fadeToShowMode(state);
+    fadeToShowMode(state.updateIn(['webViews'], WebView.focus));
 
   const updateWindowShell = (state, action) =>
     state.set('shell', WindowShell.update(state.shell, action));
