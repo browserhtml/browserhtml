@@ -144,7 +144,8 @@
         backgroundColor: theme.shell,
       })
     }, [
-      render('WindowControls', WindowControls.view, shell, theme, address),
+      render('WindowControls', WindowControls.view,
+        shell.isFocused, shell.controls.isHovering, theme, address),
       render('WindowBar', WindowBar.view,
         state.mode, id, shell, theme, address),
       render('ProgressBars', Progress.view,

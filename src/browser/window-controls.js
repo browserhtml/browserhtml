@@ -62,7 +62,7 @@
   // Style
 
 
-  const view = ({isFocused}, theme, address) => html.div({
+  const view = (isFocused, isHovering, theme, address) => html.div({
     key: 'window-controls',
     className: 'window-controls',
     style: styleContainer.container,
@@ -73,7 +73,8 @@
       key: 'WindowCloseButton',
       style: Style(styleButton.button,
                    styleButton.close,
-                   !isFocused && styleButton.unfocused),
+                   !isFocused && styleButton.unfocused,
+                   isHovering && styleButton.hoverClose),
       onClick: forward(address, Runtime.Shutdown)
     }),
     html.button({
@@ -81,7 +82,8 @@
       className: 'button minimize',
       style: Style(styleButton.button,
                    styleButton.min,
-                   !isFocused && styleButton.unfocused),
+                   !isFocused && styleButton.unfocused,
+                   isHovering && styleButton.hoverMin),
       onClick: forward(address, Runtime.Minimize)
     }),
     html.button({
@@ -89,7 +91,8 @@
       className: 'button maximize',
       style: Style(styleButton.button,
                    styleButton.max,
-                   !isFocused && styleButton.unfocused),
+                   !isFocused && styleButton.unfocused,
+                   isHovering && styleButton.hoverMax),
       onClick: forward(address, Runtime.Maximize)
     })
   ]);
