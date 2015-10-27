@@ -193,7 +193,7 @@
       }, [
         html.input({
           type: 'checkbox',
-          checked: state.get('enableRemoteDevtools'),
+          checked: state.get('enableRemoteDevtools') ? true : void(0),
           style: style.checkbox,
           onChange: e => {
             navigator.mozSettings.createLock().set({
