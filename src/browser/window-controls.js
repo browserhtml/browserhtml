@@ -69,21 +69,24 @@
     html.button({
       key: 'WindowCloseButton',
       style: Style(styleButton.button,
-                   styleButton.close),
+                   styleButton.close,
+                   !isFocused && styleButton.unfocused),
       onClick: forward(address, Runtime.Shutdown)
     }),
     html.button({
       key: 'WindowMinButton',
       className: 'button minimize',
       style: Style(styleButton.button,
-                   styleButton.min),
+                   styleButton.min,
+                   !isFocused && styleButton.unfocused),
       onClick: forward(address, Runtime.Minimize)
     }),
     html.button({
       key: 'WindowMaxButton',
       className: 'button maximize',
       style: Style(styleButton.button,
-                   styleButton.max),
+                   styleButton.max,
+                   !isFocused && styleButton.unfocused),
       onClick: forward(address, Runtime.Maximize)
     })
   ]);

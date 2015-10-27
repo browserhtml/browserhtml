@@ -190,8 +190,14 @@
       state :
     fadeToShowMode(state);
 
-  const update = (state, action) =>
-    action instanceof Input.Action ?
+  const focusShell = state =>
+    state.merge({shell: Focusable.focus(state.shell)});
+
+  const blurShell = state =>
+    state.merge({shell: Focusable.blur(state.shell)});
+
+  const update = (state, action) => {
+    return action instanceof Input.Action ?
       updateByInputAction(state, action.action) :
     action instanceof Input.Submit ?
       updateByInputAction(state, action) :
@@ -211,7 +217,15 @@
       completeSelection(state) :
     action instanceof ShowPreview ?
       showPreview(state) :
+
+    // Handle window shell focus
+    action instanceof Focusable.Focused ?
+      focusShell(state) :
+    action instanceof Focusable.Blured ?
+      blurShell(state) :
+
     state;
+  }
   exports.update = update;
 
 
