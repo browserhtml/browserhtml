@@ -365,7 +365,10 @@
   const viewWebView = (loader, shell, navigation, thumbnail, sheet, isSelected, address) => {
     return html.div({
       key: 'web-view',
-      style: webviewStyle.perspective,
+      style: Style(webviewStyle.perspective,
+                    isSelected ? webviewStyle.active :
+                    !thumbnail ? webviewStyle.passive :
+                    webviewStyle.inactive),
       MozSwipeGestureStart: on(address, decodeSwapeGestureStart),
       MozSwipeGestureUpdate: on(address, decodeSwipeGestureUpdate),
       MozSwipeGestureEnd: on(address, decodeSwipeGestureEnd),
@@ -424,14 +427,7 @@
       'data-uri': loader.uri,
       opener: opener(loader.opener),
       className: `web-view ${isSelected ? 'selected' : ''}`,
-      // This is a workaround for Bug #266 that prevents capturing
-      // screenshots if iframe or it's ancesstors have `display: none`.
-      // Until that's fixed on platform we just hide such elements with
-      // negative index and absolute position.
-      style: Style(webviewStyle.base,
-                   isSelected ? webviewStyle.active :
-                   !thumbnail ? webviewStyle.passive :
-                   webviewStyle.inactive),
+      style: webviewStyle.base,
       attributes: {
         mozbrowser: true,
         remote: true,
