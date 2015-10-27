@@ -100,11 +100,16 @@
   }, 'WebViews.SelectByID');
   exports.SelectByID = SelectByID;
 
+  const None = Record({
+    description: 'This is like a null action'
+  }, 'WebView.None');
+  exports.None = None;
+
 
   // Just a union type for all possible actions that are targeted at specific
   // web view.
   const Action = Union(
-    Close, Open, OpenInBackground,
+    Close, Open, OpenInBackground, None,
     Loader.Action, Progress.Action, Navigation.Action, Focusable.Action,
     Page.Action, Security.Action, Shell.Action, Card.Action, Sheet.Action,
     Failure, ContextMenu, ModalPrompt, Authentificate);
@@ -209,6 +214,7 @@
     action instanceof Open ? open(state, action) :
     action instanceof OpenInBackground ? open(state, action) :
     changeByIndex(state, n, action);
+  exports.updateByIndex = updateByIndex;
 
   const changeByIndex = (state, n, action) => {
     const {loader, shell, page, progress, navigation, security, card, sheet} = state;
@@ -335,7 +341,7 @@
         timeStamp: performance.now()
       });
     } else {
-      return {}
+      return None();
     }
   }
 

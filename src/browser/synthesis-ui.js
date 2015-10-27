@@ -16,7 +16,10 @@
   const Focusable = require('../common/focusable');
   const Editable = require('../common/editable');
   const Selector = require('../common/selector');
+  const Session = require('./session');
+  const DevtoolsHUD = require('./devtools-hud');
   const {forward} = require('reflex');
+
 
   // Action
 
@@ -155,7 +158,7 @@
       showWebViewByIndex(state, n) :
     action instanceof WebView.Close ?
       closeWebViewByIndex(state, n) :
-    state;
+      state.set('webViews', WebView.updateByIndex(state.webViews, n, action));
 
   const updateByWebViewID = (state, id, action) =>
     updateByWebViewIndex(state, WebView.indexByID(state.webViews, id), action);
@@ -163,11 +166,23 @@
   const updateBySelectedWebView = (state, action) =>
     updateByWebViewIndex(state, state.webViews.selected, action);
 
+  const updateWebViews = (state, action) =>
+    state.set('webViews', WebView.update(state.webViews, action));
+
+  const updateSuggestions = (state, action) =>
+    state.set('suggestions', Suggestions.update(state.suggestions, action));
+
   const updateByInputAction = (state, action) =>
-    action instanceof Input.Submit ? submit(state, action.value) :
-    action instanceof Focusable.Focus ? editSelectedWebView(state) :
-    action instanceof Focusable.Focused ? editSelectedWebView(state) :
-    state;
+    action.action instanceof Input.Submit ?
+      submit(state, action.action.value) :
+    action.action instanceof Focusable.Focus ?
+      editSelectedWebView(state) :
+    action.action instanceof Focusable.Focused ?
+      editSelectedWebView(state) :
+      state.set('input', Input.update(state.input, action));
+
+  const updateDevtoolsHUD = (state, action) =>
+    state.set('devtoolsHUD', DevtoolsHUD.update(state.devtoolsHUD, action));
 
   const fadeToShowModeFromSelectMode = state =>
     state.webViews.selected == null ? state :
@@ -180,6 +195,11 @@
   const completeSelection = compose(
     fadeToShowModeFromSelectMode,
     activateSelectedWebView);
+
+  const unknownAction = (state, action) => {
+    console.warn("Unknown action was received & ignored:", action + '')
+    return state
+  }
 
   const escape = state =>
     // If we're already showing a webview, or we can't show a webview because
@@ -196,21 +216,33 @@
   const blurShell = state =>
     state.merge({shell: Focusable.blur(state.shell)});
 
-  const update = (state, action) => {
-    return action instanceof Input.Action ?
-      updateByInputAction(state, action.action) :
-    action instanceof Input.Submit ?
+  const update = (state, action) =>
+    // Location bar actions
+    action instanceof Input.Action ?
       updateByInputAction(state, action) :
+
+    // SynthesisUI specific actions.
     action instanceof Preview.Create ?
       createWebView(state, 'zoom') :
     action instanceof OpenNew ?
       createWebView(state, 'fade') :
 
+    // WebView actions handled specially.
     action instanceof WebView.ByID ?
       updateByWebViewID(state, action.id, action.action) :
     action instanceof WebView.BySelected ?
       updateBySelectedWebView(state, action.action) :
+    // WebView actions handled by default
+    action instanceof WebView.Select ?
+      updateWebViews(state, action) :
+    action instanceof WebView.Preview ?
+      updateWebViews(state, action) :
+    action instanceof WebView.Open ?
+      updateWebViews(state, action) :
+    action instanceof WebView.OpenInBackground ?
+      updateWebViews(state, action) :
 
+    // WebView gesture actions
     action instanceof Gesture.Pinch ?
       zoomEditSelectedWebView(state) :
     action instanceof ShowSelected ?
@@ -218,14 +250,46 @@
     action instanceof ShowPreview ?
       showPreview(state) :
 
-    // Handle window shell focus
+    // Session actions
+    action instanceof Session.SaveSession ?
+      Session.update(state, action) :
+    action instanceof Session.ResetSession ?
+      Session.update(state, action) :
+    action instanceof Session.RestoreSession ?
+      Session.update(state, action) :
+
+    // Devtools HUD
+    action instanceof DevtoolsHUD.ToggleDevtoolsHUD ?
+      updateDevtoolsHUD(state, action) :
+    action instanceof DevtoolsHUD.Fetched ?
+      updateDevtoolsHUD(state, action) :
+    action instanceof DevtoolsHUD.Changed ?
+      updateDevtoolsHUD(state, action) :
+
+    // Suggestions
+    action instanceof Suggestions.SelectRelative ?
+      updateSuggestions(state, action) :
+    action instanceof Suggestions.SelectNext ?
+      updateSuggestions(state, action) :
+    action instanceof Suggestions.SelectPrevious ?
+      updateSuggestions(state, action) :
+    action instanceof Suggestions.Unselect ?
+      updateSuggestions(state, action) :
+    action instanceof Suggestions.Clear ?
+      updateSuggestions(state, action) :
+    action instanceof Suggestions.SearchResult ?
+      updateSuggestions(state, action) :
+    action instanceof Suggestions.PageResult ?
+      updateSuggestions(state, action) :
+
+    // Window shell focus
     action instanceof Focusable.Focused ?
       focusShell(state) :
     action instanceof Focusable.Blured ?
       blurShell(state) :
 
-    state;
-  }
+    // Unknown
+    unknownAction(state, action);
   exports.update = update;
 
 

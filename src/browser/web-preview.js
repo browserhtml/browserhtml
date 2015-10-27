@@ -33,7 +33,7 @@
       event.stopPropagation();
       return WebView.Close();
     }
-    return {};
+    return WebView.None();
   }
 
   const styleControls = StyleSheet.create({
@@ -225,7 +225,7 @@
       event.allowedDirections = DIRECTION_UP | DIRECTION_DOWN;
       return Card.BeginSwipe({timeStamp: performance.now()});
     } else {
-      return {}
+      return WebView.None();
     }
   }
 
