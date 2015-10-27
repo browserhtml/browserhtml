@@ -208,7 +208,7 @@
       state :
     state.webViews.selected === null ?
       state :
-    fadeToShowMode(state);
+    fadeToShowMode(state.updateIn(['webViews'], WebView.focus));
 
   const update = (state, action) =>
     // Location bar actions

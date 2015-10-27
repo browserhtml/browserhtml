@@ -242,6 +242,9 @@
     state.set('selected', state.previewed);
   exports.activate = activate;
 
+  exports.focus = state =>
+    state.setIn(['shell', state.selected, 'isFocused'], true)
+
   const select = (state, action) =>
     activate(state.set('previewed',
                        Selector.indexOf(state.selected,
