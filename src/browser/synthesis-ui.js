@@ -276,6 +276,14 @@
     action instanceof Suggestions.PageResult ?
       updateSuggestions(state, action) :
 
+    (
+      action instanceof Focusable.Focused ||
+      action instanceof Focusable.Focus ||
+      action instanceof Focusable.Blured ||
+      action instanceof Focusable.Blur
+    ) ?
+      state.set('shell', Focusable.update(state.shell, action)) :
+
     // Unknown
     unknownAction(state, action);
   exports.update = update;
