@@ -14,10 +14,12 @@
   const Gesture = require('../service/gesture');
   const URI = require('../common/url-helper');
   const Focusable = require('../common/focusable');
+  const Pointer = require('../common/pointer');
   const Editable = require('../common/editable');
   const Selector = require('../common/selector');
   const Session = require('./session');
   const DevtoolsHUD = require('./devtools-hud');
+  const WindowShell = require('./window-shell');
   const {forward} = require('reflex');
 
 
@@ -210,11 +212,8 @@
       state :
     fadeToShowMode(state);
 
-  const focusShell = state =>
-    state.merge({shell: Focusable.focus(state.shell)});
-
-  const blurShell = state =>
-    state.merge({shell: Focusable.blur(state.shell)});
+  const updateWindowShell = (state, action) =>
+    state.set('shell', WindowShell.update(state.shell, action));
 
   const update = (state, action) =>
     // Location bar actions
@@ -282,11 +281,15 @@
     action instanceof Suggestions.PageResult ?
       updateSuggestions(state, action) :
 
-    // Window shell focus
+    // Window shell actions
+    action instanceof Pointer.Out ?
+      updateWindowShell(state, action) :
+    action instanceof Pointer.Over ?
+      updateWindowShell(state, action) :
     action instanceof Focusable.Focused ?
-      focusShell(state) :
+      updateWindowShell(state, action) :
     action instanceof Focusable.Blured ?
-      blurShell(state) :
+      updateWindowShell(state, action) :
 
     // Unknown
     unknownAction(state, action);

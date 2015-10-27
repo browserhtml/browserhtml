@@ -9,6 +9,7 @@
   const {StyleSheet, Style} = require('../common/style');
   const WindowBar = require('./window-bar');
   const WindowControls = require('./window-controls');
+  const WindowShell = require('./window-shell');
   const LocationBar = require('./location-bar');
   const Progress = require('./web-progress');
   const Theme = require('./theme');
@@ -39,14 +40,19 @@
     version: require('../../package.json').version,
     mode: 'create-web-view', // or show-web-view, edit-web-view, choose-web-view
     transition: Maybe(String), // zoom, fade, or null (no transition)
-    shell: Focusable.Model({isFocused: true}),
+    shell: WindowShell.Model,
     updates: Updates.Model,
     webViews: WebView.Model,
     input: Input.Model,
     suggestions: Suggestions.Model,
-    devtoolsHUD: DevtoolsHUD.Model,
+    devtoolsHUD: DevtoolsHUD.Model
   });
   exports.Model = Model;
+
+  const initialize = () => Model({
+    shell: WindowShell.initialize(true)
+  });
+  exports.initialize = initialize;
 
   // Actions
 

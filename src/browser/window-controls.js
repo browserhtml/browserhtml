@@ -6,6 +6,7 @@
   const {html, forward} = require('reflex');
   const {Style, StyleSheet} = require('../common/style');
   const Runtime = require('../common/runtime');
+  const Pointer = require('../common/pointer');
 
   // style
 
@@ -65,6 +66,8 @@
     key: 'window-controls',
     className: 'window-controls',
     style: styleContainer.container,
+    onMouseOver: forward(address, Pointer.Over),
+    onMouseOut: forward(address, Pointer.Out),
   }, [
     html.button({
       key: 'WindowCloseButton',

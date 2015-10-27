@@ -29,7 +29,7 @@
   const application = start({
     initial: isReload ?
                 Browser.Model(window.application.model.value) :
-                Session.restore(version, Browser.Model),
+                Session.restore(version, Browser.Model, Browser.initialize()),
     update: Browser.update,
     view: (model, _) => Browser.view(model, address)
   });

@@ -24,13 +24,7 @@
   }, 'Session.ResetSession');
   exports.ResetSession = ResetSession;
 
-  const reset = (construct) => construct({
-    shell: {isFocused: true},
-    input: {isFocused: true}
-  })
-  exports.reset = reset
-
-  const restore = (version, construct) => {
+  const restore = (version, construct, initial) => {
     const session = localStorage[`session@${version}`];
     if (session) {
       try {
@@ -42,7 +36,7 @@
       console.error('Compatible session was not found, loading default');
     }
 
-    return reset(construct)
+    return initial;
   }
   exports.restore = restore
 
