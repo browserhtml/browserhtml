@@ -158,7 +158,7 @@
       showWebViewByIndex(state, n) :
     action instanceof WebView.Close ?
       closeWebViewByIndex(state, n) :
-    state;
+      state.set('webViews', WebView.updateByIndex(state.webViews, n, action));
 
   const updateByWebViewID = (state, id, action) =>
     updateByWebViewIndex(state, WebView.indexByID(state.webViews, id), action);
