@@ -1,7 +1,7 @@
 {
   "name": "browser.html",
   "description": "browser.html",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "homepage": "https://github.com/mozilla/browser.html",
   "repository": {
     "type": "git",
