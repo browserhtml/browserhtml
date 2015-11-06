@@ -46,8 +46,8 @@
     "babel-runtime": "5.8.20",
 
     "mocha": "2.2.4",
-    "graphene-marionette-runner": "0.0.9",
-    "graphene-marionette-client": "1.0.0",
+    "graphene-marionette-runner": "1.0.0",
+    "graphene-marionette-client": "1.0.1",
 
     "gulp": "3.9.0",
     "gulp-sequence": "0.4.1",
