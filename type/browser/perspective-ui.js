@@ -2,7 +2,7 @@
 
 import type {Address, VirtualTree, Effects} from "reflex/type"
 import type {URI} from "../common/prelude"
-import * as WebViewList from "./web-view-list"
+import * as WebViewList from "./web-views"
 import * as Browser from "./browser"
 
 // Application states (or modes rather) are expressed in terms of

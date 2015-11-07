@@ -5,8 +5,8 @@ export type Model = {
 }
 
 
-export type RequestFocus = {
-  type: "Focusable.RequestFocus"
+export type FocusRequest = {
+  type: "Focusable.FocusRequest"
 }
 
 export type Focus = {
@@ -18,13 +18,18 @@ export type Blur = {
 }
 
 export type Action
-  = RequestFocus
+  = FocusRequest
   | Focus
   | Blur
 
-type Focusable = Model
+export type Focusable <model>
+  = Model
+  & model
 
+export type asFocus = () => Focus
+export type asBlur = () => Blur
+export type asFocusRequest = () => FocusRequest
 
-export type focus <Model:Focusable> = (model:Model) => Model
-export type blur <Model:Focusable> = (model:Model) => Model
-export type update <Model:Focusable> = (model:Model, action:Action) => Model
+export type focus <model> = (state:Focusable<model>) => Focusable<model>
+export type blur <model> = (state:Focusable<model>) => Focusable<model>
+export type update <model> = (state:Focusable<model>, action:Action) => Focusable<model>

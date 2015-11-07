@@ -1,6 +1,7 @@
 /* @flow */
 
-import type {Address, VirtualTree, Effects} from "reflex/type"
+import type {Address, VirtualTree} from "reflex/type"
+import type {Effects} from "reflex/type/effects"
 import type {URI} from "./prelude"
 
 export type PageMatch = {
@@ -23,6 +24,7 @@ export type Match
 
 export type QueryResult = {
   type: "History.Result",
+  query: string,
   topHit: ?TopHit,
   matches: Array<PageMatch>
 }
