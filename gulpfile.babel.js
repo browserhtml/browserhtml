@@ -169,15 +169,15 @@ bundler('about/settings/index');
 gulp.task('build', [
   'compressor',
   'browser/index',
-  'service/history-worker',
-  'about/settings/index'
+  // 'service/history-worker',
+  // 'about/settings/index'
 ]);
 
 gulp.task('watch', [
   'watcher',
   'browser/index',
-  'service/history-worker',
-  'about/settings/index'
+  // 'service/history-worker',
+  // 'about/settings/index'
 ]);
 
 gulp.task('develop', sequencial('watch', 'server', 'application'));
