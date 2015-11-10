@@ -11,19 +11,19 @@ const version = require('../../package.json').version;
 const {Renderer} = require('reflex-virtual-dom-driver');
 
 const application = start({
-  initial: Browser.Model(window.application.model.value),
-  update: Browser.update,
-  view: (model, _) => Browser.view(model, address)
+  initial: Browser.initialize(),
+  step: Browser.step,
+  view: (model, address) => Browser.view(model, address)
 });
 
 application.unload = () => application.address(Runtime.LiveReload());
 
 // If hotswap change address so it points to a new mailbox &
 // re-render.
-if (isReload) {
-  window.application.unload();
-  //application.render();
-}
+// if (isReload) {
+//   window.application.unload();
+//   application.render();
+// }
 
 const renderer = new Renderer({target: document.body})
 application.view.subscribe(renderer.address)
