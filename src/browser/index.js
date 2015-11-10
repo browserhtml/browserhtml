@@ -3,12 +3,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 'use strict';
 
-const {start} = require('reflex');
-const Browser = require('./browser');
-// const PerspectiveUI = require('./perspective-ui');
-// const Session = require('./session');
-const version = require('../../package.json').version;
-const {Renderer} = require('reflex-virtual-dom-driver');
+import {start} from "reflex";
+import * as Browser from "./browser";
+
+// import * as PerspectiveUI from "./perspective-ui";
+// import * as Session from "./session";
+import {version} from "../../package.json";
+import {Renderer} from "driver";
 
 const application = start({
   initial: Browser.initialize(),
