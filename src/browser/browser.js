@@ -38,12 +38,11 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, Effects.none]
 }
 
-export const step/*:type.step*/ = (model, address) => {
+export const step/*:type.step*/ = (model, message) => {
 
 }
 
 
-export const view/*:type.view*/ = (model, action) => {
-  console.log('hit');
+export const view/*:type.view*/ = (model, address) => {
   return html.div({id: 'root'});
 }
