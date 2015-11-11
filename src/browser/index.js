@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 'use strict';
 
-import {start} from "reflex";
+import {start, Effects} from "reflex";
 import * as Browser from "./browser";
 
 // import * as Session from "./session";
@@ -28,10 +28,12 @@ const application = start({
 const renderer = new Renderer({target: document.body});
 application.view.subscribe(renderer.address);
 
-const address = action => {
-  // @TODO
-}
+application.task.subscribe(Effects.service(application.address));
 
-// @TODO hook up services to address.
+// const address = action => {
+//   // @TODO
+// }
+
+// @TODO hook up services to address. I think these are described with effects now.
 
 window.application = application;
