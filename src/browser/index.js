@@ -14,10 +14,10 @@ import {Renderer} from "driver";
 const application = start({
   initial: Browser.initialize(),
   step: Browser.step,
-  view: (model, address) => Browser.view(model, address)
+  view: Browser.view
 });
 
-application.unload = () => application.address(Runtime.LiveReload());
+// application.unload = () => application.address(Runtime.LiveReload());
 
 // If hotswap change address so it points to a new mailbox &
 // re-render.
@@ -26,8 +26,8 @@ application.unload = () => application.address(Runtime.LiveReload());
 //   application.render();
 // }
 
-const renderer = new Renderer({target: document.body})
-application.view.subscribe(renderer.address)
+const renderer = new Renderer({target: document.body});
+application.view.subscribe(renderer.address);
 
 const address = action => {
   // @TODO
