@@ -5,3 +5,6 @@
 
 // Do a shallow patch on an object, returning a new object.
 export const merge = (base, patch) => Object.assign({}, base, patch);
+
+// Set a property on an object, returning a new object.
+export const set = (base, key, value) => merge(base, {[key]: value});

@@ -6,6 +6,7 @@ import {Effects, html, forward} from "reflex";
 import * as Shell from "./shell";
 import * as Input from "./input";
 import * as Assistant from "./assistant";
+import * as WindowControls from "./window-controls.js";
 
 // import * as Updater from "./updater"
 // import * as Devtools from "./devtools"
@@ -63,4 +64,8 @@ export const view/*:type.view*/ = (model, address) =>
     onBlur: onWindow(forward(address, asFor("Shell")), Focusable.asBlur),
     onFocus: onWindow(forward(address, asFor("Shell")), Focusable.asFocus),
     // onUnload: () => address(Session.SaveSession),
-  });
+  }, [
+    // @TODO hook up window control hover
+    WindowControls.view(
+      model.shell.isFocused, false, forward(address, asFor("WindowControls")))
+  ]);
