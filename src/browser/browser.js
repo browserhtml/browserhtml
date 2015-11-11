@@ -3,7 +3,6 @@
 import {version} from "../../package.json";
 import {Effects, html, forward} from "reflex";
 
-import * as PerspectiveUI from "./perspective-ui";
 import * as Shell from "./shell";
 import * as Input from "./input";
 import * as Assistant from "./assistant";
@@ -45,13 +44,13 @@ export const initialize/*:type.initialize*/ = () => {
 }
 
 export const step/*:type.step*/ = (model, message) =>
-  [PerspectiveUI.update(model, message), Effects.none];
+  [model, Effects.none];
 
 export const view/*:type.view*/ = (model, address) =>
   html.div({
     key: 'root',
     tabIndex: 1,
-    onBlur: onWindow(forward(address, Focusable.asBlur), identity),
-    onFocus: onWindow(forward(address, Focusable.asFocus), identity),
+    onBlur: onWindow(forward(address, asFor("Shell")), Focusable.asBlur),
+    onFocus: onWindow(forward(address, asFor("Shell")), Focusable.asFocus),
     // onUnload: () => address(Session.SaveSession),
   });
