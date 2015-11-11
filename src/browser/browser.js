@@ -1,17 +1,22 @@
 /* @flow */
 
-import {version} from "../../package.json"
-import {Effects, html, forward} from "reflex"
+import {version} from "../../package.json";
+import {Effects, html, forward} from "reflex";
 
-import * as Shell from "./shell"
-import * as Input from "./input"
-import * as Assistant from "./assistant"
+import * as Shell from "./shell";
+import * as Input from "./input";
+import * as Assistant from "./assistant";
 
 // import * as Updater from "./updater"
 // import * as Devtools from "./devtools"
 // import * as WebViews from "./web-views"
 
-import {asFor} from "../common/prelude"
+import {asFor} from "../common/prelude";
+import * as Focusable from "../common/focusable";
+
+import {identity} from "../lang/functional";
+
+import {onWindow} from "driver";
 
 /*:: import * as type from "../../type/browser/browser" */
 
@@ -35,14 +40,20 @@ export const initialize/*:type.initialize*/ = () => {
   //   asFor("Updater", updaterFx)
   // ]);
 
-  return [model, Effects.none]
+  return [model, Effects.none];
 }
 
 export const step/*:type.step*/ = (model, message) => {
-
+  console.log(message);
+  return [model, Effects.none];
 }
 
 
-export const view/*:type.view*/ = (model, address) => {
-  return html.div({id: 'root'});
-}
+export const view/*:type.view*/ = (model, address) =>
+  html.div({
+    key: 'root',
+    tabIndex: 1,
+    onBlur: onWindow(forward(address, Focusable.asBlur), identity),
+    onFocus: onWindow(forward(address, Focusable.asFocus), identity),
+    // onUnload: () => address(Session.SaveSession),
+  });
