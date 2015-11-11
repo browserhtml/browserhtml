@@ -20,5 +20,6 @@ export const update/*:type.update*/ = (model, action) =>
    Focusable.update(model, action) :
   action.type === "Target.Over" ?
     Target.update(model, action) :
-  // action.type === "Target.Out" ?
-    Target.update(model, action)
+  action.type === "Target.Out" ?
+    Target.update(model, action) :
+  model;

@@ -67,5 +67,7 @@ export const view/*:type.view*/ = (model, address) =>
   }, [
     // @TODO hook up window control hover
     WindowControls.view(
-      model.shell.isFocused, false, forward(address, asFor("WindowControls")))
+      model.shell.isFocused,
+      model.shell.isPointerOver,
+      forward(address, asFor("Shell")))
   ]);
