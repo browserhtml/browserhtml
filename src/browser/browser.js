@@ -3,6 +3,7 @@
 import {version} from "../../package.json";
 import {Effects, html, forward} from "reflex";
 
+import * as PerspectiveUI from "./perspective-ui";
 import * as Shell from "./shell";
 import * as Input from "./input";
 import * as Assistant from "./assistant";
@@ -43,11 +44,8 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, Effects.none];
 }
 
-export const step/*:type.step*/ = (model, message) => {
-  console.log(message);
-  return [model, Effects.none];
-}
-
+export const step/*:type.step*/ = (model, message) =>
+  [PerspectiveUI.update(model, message), Effects.none];
 
 export const view/*:type.view*/ = (model, address) =>
   html.div({

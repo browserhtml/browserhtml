@@ -6,7 +6,6 @@
 import {start} from "reflex";
 import * as Browser from "./browser";
 
-// import * as PerspectiveUI from "./perspective-ui";
 // import * as Session from "./session";
 import {version} from "../../package.json";
 import {Renderer} from "driver";
