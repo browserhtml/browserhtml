@@ -15,6 +15,11 @@ export const Minimize/*:type.Minimize*/ = {type: 'Runtime.Minimize'};
 export const Maximize/*:type.Maximize*/ = {type: 'Runtime.Maximize'};
 export const LiveReload/*:type.LiveReload*/ = {type: 'Runtime.LiveReload'};
 
+// Action annotation functions
+export const asShutdown/*:type.asShutdown*/ = () => Shutdown;
+export const asMinimize/*:type.asMinimize*/ = () => Minimize;
+export const asMaximize/*:type.asMaximize*/ = () => Maximize;
+
 // Action annotations
 export const asUnknown/*:type.asUnknown*/ = detail => ({
   type: 'Runtime.Unknown',

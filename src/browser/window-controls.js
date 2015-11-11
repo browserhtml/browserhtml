@@ -7,8 +7,7 @@ import {html, forward} from 'reflex';
 import {on} from 'driver';
 import {asFor} from "../common/prelude";
 import {Style, StyleSheet} from '../common/style';
-// @TODO update runtime
-// import * as Runtime from '../common/runtime';
+import * as Runtime from '../common/runtime';
 import * as Target from '../common/target';
 
 // style
@@ -62,9 +61,6 @@ const styleContainer = StyleSheet.create({
   },
 });
 
-// Style
-
-
 export const view = (isFocused, isHovering, address) => html.div({
   key: 'window-controls',
   className: 'window-controls',
@@ -78,7 +74,7 @@ export const view = (isFocused, isHovering, address) => html.div({
                  styleButton.close,
                  !isFocused && styleButton.unfocused,
                  isHovering && styleButton.hoverClose),
-    // onClick: forward(address, Runtime.Shutdown)
+    onClick: on(forward(address, asFor('Runtime')), Runtime.asShutdown),
   }),
   html.button({
     key: 'WindowMinButton',
@@ -87,7 +83,7 @@ export const view = (isFocused, isHovering, address) => html.div({
                  styleButton.min,
                  !isFocused && styleButton.unfocused,
                  isHovering && styleButton.hoverMin),
-    // onClick: forward(address, Runtime.Minimize)
+    onClick: on(forward(address, asFor('Runtime')), Runtime.asMinimize),
   }),
   html.button({
     key: 'WindowMaxButton',
@@ -96,7 +92,7 @@ export const view = (isFocused, isHovering, address) => html.div({
                  styleButton.max,
                  !isFocused && styleButton.unfocused,
                  isHovering && styleButton.hoverMax),
-    // onClick: forward(address, Runtime.Maximize)
+    onClick: on(forward(address, asFor('Runtime')), Runtime.asMaximize),
   })
 ]);
 exports.view = view;

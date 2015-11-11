@@ -54,13 +54,19 @@ export type Shutdown = {
   type: 'Runtime.Shutdown',
 };
 
+export type asShutdown = () => Shutdown;
+
 export type Minimize = {
   type: 'Runtime.Minimize',
 };
 
+export type asMinimize = () => Minimize;
+
 export type Maximize = {
   type: 'Runtime.Maximize',
 };
+
+export type asMaximize = () => Maximize;
 
 // Action is triggered when application JS is hot swapped
 export type LiveReload = {
