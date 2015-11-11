@@ -69,5 +69,5 @@ export const view/*:type.view*/ = (model, address) =>
     WindowControls.view(
       model.shell.isFocused,
       model.shell.isPointerOver,
-      forward(address, asFor("Shell")))
+      address)
   ]);

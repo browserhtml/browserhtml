@@ -4,6 +4,8 @@
 'use strict';
 
 import {html, forward} from 'reflex';
+import {on} from 'driver';
+import {asFor} from "../common/prelude";
 import {Style, StyleSheet} from '../common/style';
 // @TODO update runtime
 // import * as Runtime from '../common/runtime';
@@ -67,8 +69,8 @@ export const view = (isFocused, isHovering, address) => html.div({
   key: 'window-controls',
   className: 'window-controls',
   style: styleContainer.container,
-  onMouseOver: forward(address, Target.asOver),
-  onMouseOut: forward(address, Target.asOut),
+  onMouseOver: on(forward(address, asFor('Shell')), Target.asOver),
+  onMouseOut: on(forward(address, asFor('Shell')), Target.asOut),
 }, [
   html.button({
     key: 'WindowCloseButton',
