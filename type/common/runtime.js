@@ -1,10 +1,10 @@
 /* @flow */
 
 export type Unknown = {
-  type: 'Runtime.Unknown',
-  // detail: an untyped field that may carry additional information about
-  // the unknown action.
+  type: 'Runtime.Unknown'
 };
+
+export type asUnknown <model> = (state:Unknown<model>) => Unknown<model>;
 
 export type RemoteDebugRequest = {
   type: 'Runtime.RemoteDebugRequest',
@@ -27,12 +27,16 @@ export type RemoteDebugResponse = {
   value: boolean
 };
 
+export type asRemoteDebugResponse = (value: boolean) => RemoteDebugResponse;
+
 type download = string;
 
 export type DownloadUpdate = {
   type: 'Runtime.DownloadUpdate',
   result: download
 };
+
+export type asDownloadUpdate = (result: download) => DownloadUpdate;
 
 export type Restart = {
   type: 'Runtime.Restart',
