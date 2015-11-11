@@ -15,6 +15,7 @@ import {asFor} from "../common/prelude";
 import * as Focusable from "../common/focusable";
 
 import {identity} from "../lang/functional";
+import {set} from "../lang/object";
 
 import {onWindow} from "driver";
 
@@ -43,7 +44,16 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, Effects.none];
 }
 
-export const step/*:type.step*/ = (model, message) =>
+// Unbox For actions and route them to their location.
+const stepFor = (model, action) =>
+  action.target === 'Shell' ?
+    [set(model, 'shell', Shell.update(model.shell, action.action)),
+     Effects.none] :
+  [model, Effects.none];
+
+export const step/*:type.step*/ = (model, action) =>
+  action.type === 'For' ?
+    stepFor(model, action) :
   [model, Effects.none];
 
 export const view/*:type.view*/ = (model, address) =>
