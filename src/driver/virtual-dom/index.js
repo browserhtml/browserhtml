@@ -310,7 +310,7 @@ export const onAnimationFrame = (address, decode) => {
 
 
 export const selection = metaProperty((node, next, previous) => {
-  if (next !== previous) {
+  if (next != null && next !== previous) {
     const {start, end, direction} = next;
     if (node.setSelectionRange) { // FIXME: remove once Servo supports setSelectionRange
       const {start, end, direction} = next;
