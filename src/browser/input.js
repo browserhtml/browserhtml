@@ -1,7 +1,7 @@
 /* @flow */
 
 import {html, forward} from 'reflex';
-import {on} from 'driver';
+import {on, focus, selection} from 'driver';
 import {identity} from '../lang/functional';
 import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
@@ -16,6 +16,8 @@ export const initial/*:type.Model*/ = {
 }
 
 export const update/*:type.update*/ = (model, action) =>
+  action.type === 'Keyboard.Command' && action.action.type === 'Focusable.Blur' ?
+    Focusable.update(model, action.action) :
   action.type === "Focusable.Blur" ?
     Focusable.update(model, action) :
   action.type === "Focusable.Focus" ?
@@ -39,7 +41,7 @@ const Binding = KeyBindings({
   //   action: Input.Submit({value: event.target.value})
   // }),
   'escape': Focusable.asBlur,
-}, 'LocationBar.Keyboard.Action');
+});
 
 // Read a selection model from an event target.
 // @TODO type signature
@@ -66,7 +68,7 @@ export const view = (model, address) =>
     type: 'text',
     value: model.value,
     // @TODO figure out how to hook these up.
-    // isFocused: focus(model.isFocused),
+    isFocused: focus(model.isFocused),
     // selection: selection(model.selection),
     onInput: on(forward(address, readChange), identity),
     onSelect: on(forward(address, readSelect), identity),
