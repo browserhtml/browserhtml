@@ -11,9 +11,16 @@ import * as Browser from "./browser";
 import {version} from "../../package.json";
 import {Renderer} from "driver";
 
+
+const logger = (step) => (model, action) => {
+  const out = step(model, action);
+  console.log(action, ...out);
+  return out;
+}
+
 const application = start({
   initial: Browser.initialize(),
-  step: Browser.step,
+  step: logger(Browser.step),
   view: Browser.view
 });
 

@@ -35,3 +35,5 @@ export const asDownloadUpdate/*:type.DownloadUpdate*/ = result => ({
   type: 'Runtime.DownloadUpdate',
   result
 });
+
+// @TODO hook up runtime service

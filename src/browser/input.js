@@ -5,6 +5,7 @@ import {on} from 'driver';
 import {identity} from '../lang/functional';
 import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
+import {KeyBindings} from '../common/keyboard';
 
 /*:: import * as type from "../../type/browser/input" */
 
@@ -27,7 +28,18 @@ export const update/*:type.update*/ = (model, action) =>
     Editable.update(model, action) :
   action.type === "Editable.Change" ?
     Editable.update(model, action) :
-  Editable.update(model, action)
+  model;
+
+const Binding = KeyBindings({
+  // 'up': _ => Suggestions.SelectPrevious(),
+  // 'control p': _ => Suggestions.SelectPrevious(),
+  // 'down': _ => Suggestions.SelectNext(),
+  // 'control n': _ => Suggestions.SelectNext(),
+  // 'enter': event => Input.Action({
+  //   action: Input.Submit({value: event.target.value})
+  // }),
+  'escape': Focusable.asBlur,
+}, 'LocationBar.Keyboard.Action');
 
 // Read a selection model from an event target.
 // @TODO type signature
@@ -54,12 +66,11 @@ export const view = (model, address) =>
     type: 'text',
     value: model.value,
     // @TODO figure out how to hook these up.
-    // isFocused: focus(input.isFocused),
-    // selection: selection(input.selection),
+    // isFocused: focus(model.isFocused),
+    // selection: selection(model.selection),
     onInput: on(forward(address, readChange), identity),
     onSelect: on(forward(address, readSelect), identity),
     onFocus: on(forward(address, Focusable.asFocus), identity),
     onBlur: on(forward(address, Focusable.asBlur), identity),
-    // @TODO fix this. Do I need the keyboard stuff for this to work?
-    // onKeyDown: forward(address, Binding),
+    onKeyDown: on(forward(address, Binding), identity),
   });
