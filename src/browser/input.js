@@ -1,5 +1,6 @@
 /* @flow */
 
+import {html, forward} from "reflex";
 import * as Focusable from "../common/focusable"
 import * as Editable from "../common/editable"
 
@@ -24,4 +25,39 @@ export const update/*:type.update*/ = (model, action) =>
     Editable.update(model, action) :
   action.type === "Editable.Change" ?
     Editable.update(model, action) :
-    Editable.update(model, action)
+  Editable.update(model, action)
+
+// Read a selection model from an event target.
+// @TODO type signature
+const readSelection = target => ({
+  start: target.selectionStart,
+  end: target.selectionEnd,
+  direction: target.selectionDirection
+});
+
+// Read change action from a dom event.
+// @TODO type signature
+const readChange = ({target}) =>
+  Editable.asChange(target.value, readSelection(target));
+
+// Read select action from a dom event.
+// @TODO type signature
+const readSelect = ({target}) =>
+  Editable.asSelect(readSelection(target));
+
+export const view = (model, address) =>
+  html.input({
+    key: 'input',
+    placeholder: 'Search or enter address',
+    type: 'text',
+    value: model.value,
+    // @TODO figure out how to hook these up.
+    // isFocused: focus(input.isFocused),
+    // selection: selection(input.selection),
+    onInput: forward(address, readChange),
+    onSelect: forward(address, readSelect),
+    onFocus: forward(address, Focusable.asFocus),
+    onBlur: forward(address, Focusable.asBlur),
+    // @TODO fix this. Do I need the keyboard stuff for this to work?
+    // onKeyDown: forward(address, Binding),
+  });

@@ -47,6 +47,9 @@ export const initialize/*:type.initialize*/ = () => {
 
 // Unbox For actions and route them to their location.
 const stepFor = (model, action) =>
+  action.target === 'Input' ?
+    [set(model, 'input', Input.update(model.input, action.action)),
+     Effects.none] :
   action.target === 'Shell' ?
     [set(model, 'shell', Shell.update(model.shell, action.action)),
      Effects.none] :
@@ -69,5 +72,6 @@ export const view/*:type.view*/ = (model, address) =>
     WindowControls.view(
       model.shell.isFocused,
       model.shell.isPointerOver,
-      address)
+      address),
+    Input.view(model.input, address)
   ]);
