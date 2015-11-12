@@ -73,5 +73,5 @@ export const view/*:type.view*/ = (model, address) =>
       model.shell.isFocused,
       model.shell.isPointerOver,
       address),
-    Input.view(model.input, address)
+    Input.view(model.input, forward(address, asFor("Input")))
   ]);

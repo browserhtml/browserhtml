@@ -1,8 +1,10 @@
 /* @flow */
 
-import {html, forward} from "reflex";
-import * as Focusable from "../common/focusable"
-import * as Editable from "../common/editable"
+import {html, forward} from 'reflex';
+import {on} from 'driver';
+import {identity} from '../lang/functional';
+import * as Focusable from '../common/focusable';
+import * as Editable from '../common/editable';
 
 /*:: import * as type from "../../type/browser/input" */
 
@@ -54,10 +56,10 @@ export const view = (model, address) =>
     // @TODO figure out how to hook these up.
     // isFocused: focus(input.isFocused),
     // selection: selection(input.selection),
-    onInput: forward(address, readChange),
-    onSelect: forward(address, readSelect),
-    onFocus: forward(address, Focusable.asFocus),
-    onBlur: forward(address, Focusable.asBlur),
+    onInput: on(forward(address, readChange), identity),
+    onSelect: on(forward(address, readSelect), identity),
+    onFocus: on(forward(address, Focusable.asFocus), identity),
+    onBlur: on(forward(address, Focusable.asBlur), identity),
     // @TODO fix this. Do I need the keyboard stuff for this to work?
     // onKeyDown: forward(address, Binding),
   });
