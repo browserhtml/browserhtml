@@ -6,6 +6,8 @@ import {identity} from '../../lang/functional'
 import {forward} from 'reflex'
 export {Renderer} from 'reflex-virtual-dom-driver'
 
+// @TODO documentation
+// I think this is some kind of memoization class? - GB 2015-11-12
 class On {
   static handleEvent(event) {
     const {currentTarget, type} = event
