@@ -67,9 +67,8 @@ export const view = (model, address) =>
     placeholder: 'Search or enter address',
     type: 'text',
     value: model.value,
-    // @TODO figure out how to hook these up.
     isFocused: focus(model.isFocused),
-    // selection: selection(model.selection),
+    selection: selection(model.selection),
     onInput: on(forward(address, readChange), identity),
     onSelect: on(forward(address, readSelect), identity),
     onFocus: on(forward(address, Focusable.asFocus), identity),
