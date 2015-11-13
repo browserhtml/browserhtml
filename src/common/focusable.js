@@ -25,5 +25,6 @@ export const update/*:type.update*/ = (model, action) =>
     focus(model) :
   action.type === "Focusable.FocusRequest" ?
     focus(model) :
-  //action.type === "Focusable.Blur" ?
-    blur(model);
+  action.type === "Focusable.Blur" ?
+    blur(model) :
+  model;
