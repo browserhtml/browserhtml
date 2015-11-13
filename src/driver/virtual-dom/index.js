@@ -308,9 +308,12 @@ export const onAnimationFrame = (address, decode) => {
   return address[$onAnimationFrame]
 }
 
+// Equality checking for selections.
+const isSameSelection = (a, b) =>
+  (a && b && a.start === b.start && a.end === b.end && a.direction === b.direction);
 
 export const selection = metaProperty((node, next, previous) => {
-  if (next != null && next !== previous) {
+  if (next != null && !isSameSelection(next, previous)) {
     const {start, end, direction} = next;
     if (node.setSelectionRange) { // FIXME: remove once Servo supports setSelectionRange
       const {start, end, direction} = next;
