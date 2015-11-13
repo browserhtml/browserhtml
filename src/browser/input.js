@@ -15,9 +15,17 @@ export const initial/*:type.Model*/ = {
   selection: null
 }
 
+// Create a new input submit action.
+export const asSubmit/*:type.asSubmit*/ = (value) => ({
+  type: 'Input.Submit',
+  value
+});
+
 export const update/*:type.update*/ = (model, action) =>
   action.type === 'Keyboard.Command' && action.action.type === 'Focusable.Blur' ?
     Focusable.update(model, action.action) :
+  action.type === 'Keyboard.Command' && action.action.type === 'Input.Submit' ?
+    Editable.clear(model) :
   action.type === "Focusable.Blur" ?
     Focusable.update(model, action) :
   action.type === "Focusable.Focus" ?
@@ -37,9 +45,7 @@ const Binding = KeyBindings({
   // 'control p': _ => Suggestions.SelectPrevious(),
   // 'down': _ => Suggestions.SelectNext(),
   // 'control n': _ => Suggestions.SelectNext(),
-  // 'enter': event => Input.Action({
-  //   action: Input.Submit({value: event.target.value})
-  // }),
+  'enter': event => asSubmit(event.target.value),
   'escape': Focusable.asBlur,
 });
 
