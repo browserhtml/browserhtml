@@ -70,7 +70,7 @@ export const step = (model, action) =>
     end(action.timeStamp, model) :
   action.type === 'WebView.Progress.Tick' ?
     tick(action.timeStamp, model) :
-  model;
+  [model, Effects.none];
 
 // @TODO currently we're doing naive linear animation. Add easing.
 export const progress/*:type.progress*/ = (model) =>
