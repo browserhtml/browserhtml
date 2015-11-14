@@ -18,7 +18,7 @@ import * as OS from '../common/os';
 import {KeyBindings} from '../common/keyboard';
 
 import {identity} from "../lang/functional";
-import {set} from "../lang/object";
+import {updateIn} from "../lang/object";
 
 import {onWindow} from "driver";
 
@@ -84,11 +84,9 @@ const KeyUp = KeyBindings({
 // Unbox For actions and route them to their location.
 const stepFor = (model, action) =>
   action.target === 'Input' ?
-    [set(model, 'input', Input.update(model.input, action.action)),
-     Effects.none] :
+    [updateIn('input', Input.update, model, action.action), Effects.none] :
   action.target === 'Shell' ?
-    [set(model, 'shell', Shell.update(model.shell, action.action)),
-     Effects.none] :
+    [updateIn('shell', Shell.update, model, action.action), Effects.none] :
   [model, Effects.none];
 
 export const step/*:type.step*/ = (model, action) =>
