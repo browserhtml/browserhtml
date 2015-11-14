@@ -20,13 +20,13 @@ export type ScreenshotUpdate = {
 export type CuratedColorUpdate = {
   type: "WebView.Page.CuratedColorUpdate",
   uri: URI,
-  color: Pallet.Model
+  pallet: Pallet.Model
 }
 
 export type ColorScraped = {
   type: "WebView.Page.ColorScraped",
   uri: URI,
-  color: Pallet.Model
+  pallet: Pallet.Model
 }
 
 export type Response
