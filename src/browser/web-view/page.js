@@ -6,8 +6,6 @@
 
 /*:: import * as type from "../../type/browser/web-view/page" */
 
-import * as Pallet from '../pallet';
-
 export const DocumentFirstPaint/*:type.DocumentFirstPaint*/ = {
   type: "WebView.Page.DocumentFirstPaint"
 };
@@ -40,7 +38,7 @@ export const initialize/*:type.initialize*/ = uri => ({
   uri: uri,
   title: null,
   faviconURI: null,
-  pallet: Pallet.initialize()
+  pallet: {isDark: false}
 });
 
 // @TODO step
