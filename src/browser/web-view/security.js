@@ -9,7 +9,6 @@
 export const asChanged = (state, extendedValidation) => ({
   type: "WebView.Security.Changed",
   state,
-  secure: action.state === 'secure',
   extendedValidation,
 });
 
