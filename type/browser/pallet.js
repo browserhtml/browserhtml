@@ -11,8 +11,7 @@ export type Model = {
   background: ?Color
 }
 
-export type parseHexColor = (color: Color) => HexColor;
-
-export type isBright = (hexcolor: HexColor) => boolean;
+export type isHexBright = (hexcolor: HexColor) => boolean;
+export type isDark = (color: Color) => boolean;
 
 export type initialize = (background: Color, foreground: Color) => Model;

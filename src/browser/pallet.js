@@ -27,14 +27,20 @@ const curated = {
   'github.com': {background: 'rgb(245, 245, 245)', foreground: 'rgb(51, 51, 51)'},
 };
 
-export const parseHexColor/*:type.parseHexColor*/ = (color) =>
-  tinycolor(color).toHex();
-
 // Calculate the distance from white, returning a boolean.
-export const isBright/*:type.isBright*/ = hexcolor =>
+// This is a pretty primitive check.
+const isHexBright/*:type.isBright*/ = hexcolor =>
   parseInt(hexcolor, 16) > 0xffffff/2;
+
+export const isDark/*:type.isDark*/ = color => {
+  const tcolor = tinycolor(color);
+  // tinycolor uses YIQ for brightness calculation, we also throw more
+  // primitive hex based calculation and treat background as dark if any
+  // of two calculations consider color to be dark.
+  return (tcolor.isDark() || !isHexBright(tcolor.toHex()));
+}
 
 const initialize/*:type.initialize*/ = (background, foreground) => ({
   background, foreground,
-  isDark: !isBright(parseHexColor(background)),
+  isDark: isDark(background),
 });
