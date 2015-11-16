@@ -77,6 +77,7 @@ export type end = (timeStamp:Time, model:Model) => [Model, Effects<Response>]
 export type tick = (timeStamp:Time, model:Model) => Model
 
 
+// @TODO shouldn't this be 0.0 - 1.0 range instead?
 export type Progress = number // Implied to be 0 - 100 range
 // Invoked from the view function and returns calculated progress:
 //  ease(bezier(0, 0.5, 0, 0.5),

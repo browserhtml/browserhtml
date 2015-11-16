@@ -22,7 +22,7 @@ export const select/*:type.select*/ = (model, action) =>
   merge(model, {selection: action.range})
 
 export const change/*:type.change*/ = (model, action) =>
-  merge(model, {selection: action.selection, value: model.value})
+  merge(model, {selection: action.selection, value: action.value})
 
 export const clear/*:type.clear*/ = model =>
   merge(model, initial)
@@ -32,5 +32,6 @@ export const update/*:type.update*/ = (model, action) =>
     clear(model) :
   action.type === "Editable.Select" ?
     select(model, action) :
-  // action.type === "Editable.Change"
-    change(model, action)
+  action.type === "Editable.Change" ?
+    change(model, action) :
+  model;

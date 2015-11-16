@@ -5,6 +5,8 @@ import * as Target from "../common/target"
 
 export type Model
   = Focusable.Model
+  // Shell is a Target because it keeps track of Window Control hover state.
+  // @TODO we may want to break window control state out into its own field.
   & Target.Model
 
 // Workaround for facebook/flow#957
