@@ -1,12 +1,13 @@
 /* @flow */
 
 import {html, forward, Effects} from 'reflex';
-import {on, focus, selection, send} from 'driver';
+import {on, focus, selection} from 'driver';
 import {identity} from '../lang/functional';
 import {always} from '../common/prelude';
 import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
 import * as Keyboard from '../common/keyboard';
+import {Style, StyleSheet} from '../common/style';
 
 /*:: import * as type from "../../type/browser/input" */
 
@@ -69,17 +70,81 @@ const readChange = ({target}) =>
 const readSelect = ({target}) =>
   Editable.asSelect(readSelection(target));
 
+const inputWidth = 460;
+
+const style = StyleSheet.create({
+  combobox: {
+    background: '#EBEEF2',
+    borderRadius: '5px',
+    height: '40px',
+    left: '50%',
+    marginLeft: (-1 * (inputWidth / 2)) + 'px',
+    position: 'absolute',
+    padding: '0 32px',
+    top: '40px',
+    width: inputWidth + 'px',
+  },
+  field: {
+    borderWidth: 0,
+    fontSize: '14px',
+    mozAppearance: 'none',
+    height: '100%',
+    padding: 0,
+    width: '100%'
+  },
+  inactive: {
+    opacity: 0,
+    pointerEvents: 'none'
+  },
+  searchIcon: {
+    color: 'rgba(0,0,0,0.5)',
+    fontFamily: 'FontAwesome',
+    fontSize: '16px',
+    left: '10px',
+    lineHeight: '40px',
+    position: 'absolute'
+  },
+  clearIcon: {
+    color: 'rgba(0,0,0,0.5)',
+    fontFamily: 'FontAwesome',
+    fontSize: '16px',
+    right: '10px',
+    lineHeight: '40px',
+    position: 'absolute'
+  },
+  clearIconInactive: {
+    opacity: 0
+  }
+});
+
 export const view = (model, address) =>
-  html.input({
-    key: 'input',
-    placeholder: 'Search or enter address',
-    type: 'text',
-    value: model.value,
-    isFocused: focus(model.isFocused),
-    selection: selection(model.selection),
-    onInput: on(address, readChange),
-    onSelect: on(address, readSelect),
-    onFocus: on(address, Focusable.asFocus),
-    onBlur: on(address, Focusable.asBlur),
-    onKeyDown: on(address, binding),
-  });
+  html.div({
+    key: 'combobox',
+    style: Style(style.combobox)
+  }, [
+    html.span({
+      key: 'search-icon',
+      style: Style(style.searchIcon)
+    }, ['']),
+    html.span({
+      key: 'clear-icon',
+      style: Style(
+        style.clearIcon,
+        model.value === '' && style.clearIconInactive
+      )
+    }, ['']),
+    html.input({
+      key: 'input',
+      placeholder: 'Search or enter address',
+      style: Style(style.field),
+      type: 'text',
+      value: model.value,
+      isFocused: focus(model.isFocused),
+      selection: selection(model.selection),
+      onInput: on(address, readChange),
+      onSelect: on(address, readSelect),
+      onFocus: on(address, Focusable.asFocus),
+      onBlur: on(address, Focusable.asBlur),
+      onKeyDown: on(address, binding),
+    })
+  ]);
