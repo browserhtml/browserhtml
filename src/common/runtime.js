@@ -36,4 +36,7 @@ export const asDownloadUpdate/*:type.DownloadUpdate*/ = result => ({
   result
 });
 
+export const LiveReload/*:type.LiveReload*/
+  = {type: "Runtime.LiveReload"};
+
 // @TODO hook up runtime service

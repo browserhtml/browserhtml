@@ -6,6 +6,7 @@
 
 import {start, Effects} from "reflex";
 import * as Browser from "./browser";
+import * as Runtime from "../common/runtime";
 
 // import * as Session from "./session";
 import {version} from "../../package.json";
@@ -18,30 +19,25 @@ const logger = (step) => (model, action) => {
   return out;
 }
 
+const isReload = window.application != null;
+
+// If hotswap change address so it points to a new mailbox &r
+// re-render.
+if (isReload) {
+  window.application.address(Runtime.LiveReload);
+}
+
 const application = start({
-  initial: Browser.initialize(),
+  initial: isReload ?
+            window.application.model.value :
+            Browser.initialize(),
   step: logger(Browser.step),
   view: Browser.view
 });
 
-// application.unload = () => application.address(Runtime.LiveReload());
-
-// If hotswap change address so it points to a new mailbox &
-// re-render.
-// if (isReload) {
-//   window.application.unload();
-//   application.render();
-// }
 
 const renderer = new Renderer({target: document.body});
 application.view.subscribe(renderer.address);
-
 application.task.subscribe(Effects.service(application.address));
-
-// const address = action => {
-//   // @TODO
-// }
-
-// @TODO hook up services to address. I think these are described with effects now.
 
 window.application = application;
