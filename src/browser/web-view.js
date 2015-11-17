@@ -134,7 +134,7 @@ const viewFrame = (model, address) =>
     src: location,
     'data-uri': loader.uri,
     // opener: opener(loader.opener),
-    style: style.iframe,
+    style: Style(style.iframe),
     mozbrowser: true,
     remote: true,
     // mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : void(0),
@@ -183,11 +183,11 @@ export const view/*:type.view*/ = (model, address) =>
     html.div({className: 'webview-local-overlay'}),
     html.div({
       className: 'webview-topbar',
-      style: style.topbar
+      style: Style(style.topbar)
     }, [
       html.div({
         className: 'webview-topbar-background',
-        style: style.topbarBackground
+        style: Style(style.topbarBackground)
       }),
       html.div({className: 'webview-combobar'}, [
         html.div({className: 'webview-title-container'}, [
