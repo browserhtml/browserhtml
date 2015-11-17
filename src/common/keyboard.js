@@ -6,21 +6,13 @@
 
 /*:: import * as type from "../../type/common/keyboard" */
 
+import {Effects} from "reflex";
 import * as OS from './os';
 
 const platform = OS.platform();
 
-export const Key/*:type.Key*/ = {type: 'Keyboard.Key'};
 
-export const asKey/*:type.asKey*/ = () => Key;
-
-export const asCommand/*:type.asCommand*/ = (action, chord, key, metaKey, shiftKey, altKey, ctrlKey) => ({
-  type: 'Keyboard.Command',
-  action,
-  chord, key, metaKey, shiftKey, altKey, ctrlKey
-});
-
-export const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
+const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
   const modifiers = [];
   // Modifier fields indicate if relevant modifier is pressed, in case
   // of 'keyup' event including those does not make sense.
@@ -42,65 +34,72 @@ export const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
 };
 
 
-export const readKey = key => readKey.table[key] || key;
+const readKey = key => readKey.table[key] || key;
+
 readKey.table = Object.assign(Object.create(null), {
-  'ctrl': 'control',
+  'ctrl': 'Control',
   'accel': platform == 'darwin' ? 'meta' : 'control',
-  'ArrowLeft': 'left',
-  'ArrowRight': 'right',
-  'ArrowUp': 'up',
-  'ArrowDown': 'down',
-  'esc': 'escape'
+  'ArrowLeft': 'Left',
+  'ArrowRight': 'Right',
+  'ArrowUp': 'Up',
+  'ArrowDown': 'Down',
+  'esc': 'Escape'
 });
 
-export const readChord = input =>
-  input.trim()
-  .toLowerCase()
-  .split(/\s+/)
-  .map(readKey)
-  .sort()
-  .join(' ');
-
-export const writeChord = event =>
-  [...readModifiers(event), readKey(event.key)]
-    .join(' ')
-    .toLowerCase()
-    .split(' ')
+const readChord = input =>
+  input
+    .split(/\s+/)
+    .map(readKey)
     .sort()
-    .join(' ');
+    .join(' ')
+    .trim()
+    .toLowerCase();
 
-export const KeyBindings = (bindingTable) => {
+const writeChord = event => {
+  const key = event.key
+  const modifiers = readModifiers(event)
+  const keys = modifiers.indexOf(key) < 0 ?
+                [...modifiers, key] :
+                modifiers;
+
+  return keys
+          .join(' ')
+          .toLowerCase()
+          .split(' ')
+          .sort()
+          .join(' ');
+};
+
+
+export const bindings/*:type.keyBindings*/ = bindingTable => {
   const bindings = Object.create(null);
   Object.keys(bindingTable).forEach(key => {
     bindings[readChord(key)] = bindingTable[key];
   });
 
-  const Binding = (event) => {
-    const chord = writeChord(event);
+  return event => {
+    const combination = writeChord(event);
+    console.log(combination);
+    const binding = bindings[combination]
 
-    // @TODO can we simplify this or write some documentation?
-    // At the moment, it's very magical.
-    const read = bindings[chord] ||
-                 bindings[`@${event.type} ${chord}`];
-
-    if (read) {
-      event.preventDefault();
+    if (binding == null) {
+      return {
+        type: event.type === "keyup" ?
+                "Keyboard.KeyUp" :
+              event.type === "keydown" ?
+                "Keyboard.KeyDown" :
+                "Keyboard.KeyPress",
+        combination: combination,
+        key: event.key,
+        metaKey: event.metaKey,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey
+      }
+    } else {
       event.stopPropagation();
-      return asCommand(
-        read(event), chord,
-        event.key, event.metaKey, event.shiftKey, event.altKey, event.ctrlKey
-      );
+      event.preventDefault();
+      return binding(event);
     }
-    else {
-      return asKey();
-    }
-  };
-
-  return Binding;
-};
-
-export const service = address => action => {
-  if (action.type === "For" && action.target === "Keyboard") {
-    address(action.action);
   }
 }

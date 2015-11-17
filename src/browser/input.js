@@ -1,11 +1,12 @@
 /* @flow */
 
-import {html, forward} from 'reflex';
-import {on, focus, selection} from 'driver';
+import {html, forward, Effects} from 'reflex';
+import {on, focus, selection, send} from 'driver';
 import {identity} from '../lang/functional';
+import {always} from '../common/prelude';
 import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
-import {KeyBindings} from '../common/keyboard';
+import * as Keyboard from '../common/keyboard';
 
 /*:: import * as type from "../../type/browser/input" */
 
@@ -16,10 +17,9 @@ export const initial/*:type.Model*/ = {
 }
 
 // Create a new input submit action.
-export const asSubmit/*:type.asSubmit*/ = (value) => ({
-  type: 'Input.Submit',
-  value
-});
+export const Submit/*:type.asSubmit*/ = {
+  type: 'Input.Submit'
+}
 
 export const update/*:type.update*/ = (model, action) =>
   action.type === 'Keyboard.Command' && action.action.type === 'Focusable.Blur' ?
@@ -40,13 +40,15 @@ export const update/*:type.update*/ = (model, action) =>
     Editable.update(model, action) :
   model;
 
-const Binding = KeyBindings({
+export const step = Effects.nofx(update);
+
+const binding = Keyboard.bindings({
   // 'up': _ => Suggestions.SelectPrevious(),
   // 'control p': _ => Suggestions.SelectPrevious(),
   // 'down': _ => Suggestions.SelectNext(),
   // 'control n': _ => Suggestions.SelectNext(),
-  'enter': event => asSubmit(event.target.value),
-  'escape': Focusable.asBlur,
+  'enter': always(Submit),
+  'escape': always(Focusable.Blur)
 });
 
 // Read a selection model from an event target.
@@ -79,5 +81,5 @@ export const view = (model, address) =>
     onSelect: on(address, readSelect),
     onFocus: on(address, Focusable.asFocus),
     onBlur: on(address, Focusable.asBlur),
-    onKeyDown: on(address, Binding),
+    onKeyDown: on(address, binding),
   });

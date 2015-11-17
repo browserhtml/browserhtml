@@ -12,10 +12,10 @@ import * as WindowControls from "./window-controls.js";
 // import * as Devtools from "./devtools"
 // import * as WebViews from "./web-views"
 
-import {asFor, merge} from "../common/prelude";
+import {asFor, merge, always} from "../common/prelude";
 import * as Focusable from "../common/focusable";
 import * as OS from '../common/os';
-import {KeyBindings} from '../common/keyboard';
+import * as Keyboard from '../common/keyboard';
 
 import {identity} from "../lang/functional";
 import {updateIn} from "../lang/object";
@@ -50,8 +50,11 @@ export const initialize/*:type.initialize*/ = () => {
 const asForInput = asFor('Input');
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
-const KeyDown = KeyBindings({
-  'accel l': _ => asForInput(Focusable.Focus),
+
+const FocusInput = asForInput(Focusable.Focus);
+
+const keyDown = Keyboard.bindings({
+  'accel l': always(asForInput(Focusable.Focus)),
   // 'accel t': _ => SynthesisUI.OpenNew(),
   // 'accel 0': _ => WebView.BySelected({action: Shell.ResetZoom()}),
   // 'accel -': _ => WebView.BySelected({action: Shell.ZoomOut()}),
@@ -76,39 +79,52 @@ const KeyDown = KeyBindings({
   // 'F12': _ => DevtoolsHUD.ToggleDevtoolsHUD()
 });
 
-const KeyUp = KeyBindings({
+const keyUp = Keyboard.bindings({
   // 'control': _ => SynthesisUI.ShowSelected(),
   // 'accel': _ => SynthesisUI.ShowSelected(),
 });
 
 // Unbox For actions and route them to their location.
-const stepFor = (model, action) => {
-  if (action.target === 'Input') {
-    const [input, fx] = Input.update(model.input, action.action);
-    return [merge(model, {input}), fx.map(asFor('Input'))];
+const stepFor = (target, model, action) => {
+  if (target === 'Browser.KeyUp' || target === 'Browser.KeyDown') {
+    if (action.type === 'Keyboard.KeyUp' ||
+        action.type === 'Keyborad.KeyDown' ||
+        action.type === 'Keyboard.KeyPress') {
+      return [model, Effects.none];
+    } else {
+      return step(model, action);
+    }
   }
-  else if (action.target === 'Shell') {
-    const [shell, fx] = Shell.step(model.shell, action.action);
+  else if (target === 'Input') {
+    if (action.type === 'Input.Submit') {
+      const [input, inputFx] = Input.step(model.input, action);
+      // more things need to happen here.
+      return [merge(model, {input}), inputFx.map(asFor('Input'))];
+    } else {
+      const [input, fx] = Input.step(model.input, action);
+      return [merge(model, {input}), fx.map(asFor('Input'))];
+    }
+  }
+  else if (target === 'Shell') {
+    const [shell, fx] = Shell.step(model.shell, action);
     return [merge(model, {shell}), fx.map(asFor('Shell'))];
-  } else {
+  }
+  else {
     return [model, Effects.none];
   }
 }
 
 export const step/*:type.step*/ = (model, action) =>
   action.type === 'For' ?
-    stepFor(model, action) :
-  // Unbox Keyboard commands
-  action.type === 'Keyboard.Command' && action.action.type === 'For' ?
-    stepFor(model, action.action) :
-  [model, Effects.none];
+    stepFor(action.target, model, action.action) :
+    [model, Effects.none];
 
 export const view/*:type.view*/ = (model, address) =>
   html.div({
     key: 'root',
     tabIndex: 1,
-    onKeyDown: onWindow(address, KeyDown),
-    onKeyUp: onWindow(address, KeyUp),
+    onKeyDown: onWindow(forward(address, asFor("Browser.KeyDown")), keyDown),
+    onKeyUp: onWindow(forward(address, asFor("Browser.KeyUp")), keyUp),
     onBlur: onWindow(forward(address, asFor("Shell")), Focusable.asBlur),
     onFocus: onWindow(forward(address, asFor("Shell")), Focusable.asFocus),
     // onUnload: () => address(Session.SaveSession),

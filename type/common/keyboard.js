@@ -1,31 +1,20 @@
-export type Key = {
-  type: 'Keyboard.Key',
-  // Currently Key carries no additional information, though in future we may
-  // want to have it carry the following.
-  // chord: string,
-  // key: string,
-  // metaKey: boolean,
-  // shiftKey: boolean,
-  // altKey: boolean,
-  // ctrlKey: boolean
-};
+/* @flow */
 
-// Keyboard actions wrap another action, annotating it with binding info.
-export type Command <action> = {
-  type: 'Keyboard.Command',
-  action: action,
+export type KeyCombination = {
+  type: "Keyboard.KeyUp"
+      | "Keyboard.KeyDown"
+      | "Keyboard.KeyPress",
   chord: string,
   key: string,
   metaKey: boolean,
   shiftKey: boolean,
   altKey: boolean,
   ctrlKey: boolean
-};
+}
 
-export type Action = Key | Command;
+export type BindingTable <Action> = {
+  [key:string]: (action:KeyboardEvent) => Action
+}
 
-// Wrap an action in a Command action
-export type asCommand <action> = (action:action, chord: string, key: string, metaKey: boolean, shiftKey: boolean, altKey: boolean, ctrlKey: boolean) =>
-  Command<action>;
-
-export type asKey = () => Key;
+export type bindings = <Action> (table:BindingTable<Action>) =>
+  (event:KeyboardEvent) => KeyCombination | Action
