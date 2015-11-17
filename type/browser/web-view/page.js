@@ -8,6 +8,10 @@ export type Model = {
   uri: URI,
   title: ?string,
   faviconURI: ?URI,
+
+  themeColor: ?string,
+  curatedColor: ?string,
+
   pallet: Pallet.Model
 }
 
@@ -20,13 +24,13 @@ export type ScreenshotUpdate = {
 export type CuratedColorUpdate = {
   type: "WebView.Page.CuratedColorUpdate",
   uri: URI,
-  pallet: Pallet.Model
+  color: ?string
 }
 
 export type ColorScraped = {
   type: "WebView.Page.ColorScraped",
   uri: URI,
-  pallet: Pallet.Model
+  color: ?string
 }
 
 export type Response
@@ -43,6 +47,18 @@ export type TitleChanged = {type: "WebView.Page.TitleChanged"}
 export type IconChanged = {type: "WebView.Page.IconChanged"}
 export type OverflowChanged = {type: "WebView.Page.OverflowChanged"}
 export type Scrolled = {type: "WebView.Page.Scrolled"}
+
+export type Action
+  = DocumentFirstPaint
+  | FirstPaint
+  | MetaChanged
+  | TitleChanged
+  | IconChanged
+  | OverflowChanged
+  | Scrolled
+  | ScreenshotUpdate
+  | CuratedColorUpdate
+  | ColorScraped
 
 export type initialize = (uri:URI) => Model
 export type step = (model:Model, action:Action) => [Model, Effects<Response>]
