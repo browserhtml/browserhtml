@@ -8,8 +8,9 @@ import {html, forward} from 'reflex';
 import {on} from 'driver';
 import {asFor} from "../common/prelude";
 import {Style, StyleSheet} from '../common/style';
-import * as Runtime from '../common/runtime';
 import * as Target from '../common/target';
+import * as Shell from '../browser/shell';
+/*:: import * as type from '../../type/browser/window-controls' */
 
 // style
 
@@ -62,38 +63,38 @@ const styleContainer = StyleSheet.create({
   },
 });
 
-export const view = (isFocused, isHovering, address) => html.div({
-  key: 'window-controls',
-  className: 'window-controls',
-  style: styleContainer.container,
-  onMouseOver: on(forward(address, asFor('Shell')), Target.asOver),
-  onMouseOut: on(forward(address, asFor('Shell')), Target.asOut),
-}, [
-  html.button({
-    key: 'WindowCloseButton',
-    style: Style(styleButton.button,
-                 styleButton.close,
-                 !isFocused && styleButton.unfocused,
-                 isHovering && styleButton.hoverClose),
-    onClick: on(forward(address, asFor('Runtime')), Runtime.asShutdown),
-  }),
-  html.button({
-    key: 'WindowMinButton',
-    className: 'button minimize',
-    style: Style(styleButton.button,
-                 styleButton.min,
-                 !isFocused && styleButton.unfocused,
-                 isHovering && styleButton.hoverMin),
-    onClick: on(forward(address, asFor('Runtime')), Runtime.asMinimize),
-  }),
-  html.button({
-    key: 'WindowMaxButton',
-    className: 'button maximize',
-    style: Style(styleButton.button,
-                 styleButton.max,
-                 !isFocused && styleButton.unfocused,
-                 isHovering && styleButton.hoverMax),
-    onClick: on(forward(address, asFor('Runtime')), Runtime.asMaximize),
-  })
-]);
-exports.view = view;
+export const view/*:type.view*/ = ({isFocused, isPointerOver}, address) =>
+  html.div({
+    key: 'window-controls',
+    className: 'window-controls',
+    style: styleContainer.container,
+    onMouseOver: forward(address, Target.asOver),
+    onMouseOut: forward(address, Target.asOut),
+  }, [
+    html.button({
+      key: 'WindowCloseButton',
+      style: Style(styleButton.button,
+                   styleButton.close,
+                   !isFocused && styleButton.unfocused,
+                   isPointerOver && styleButton.hoverClose),
+      onClick: forward(address, Shell.asRequestClose),
+    }),
+    html.button({
+      key: 'WindowMinButton',
+      className: 'button minimize',
+      style: Style(styleButton.button,
+                   styleButton.min,
+                   !isFocused && styleButton.unfocused,
+                   isPointerOver && styleButton.hoverMin),
+      onClick: forward(address, Shell.asRequestMinimize),
+    }),
+    html.button({
+      key: 'WindowMaxButton',
+      className: 'button maximize',
+      style: Style(styleButton.button,
+                   styleButton.max,
+                   !isFocused && styleButton.unfocused,
+                   isPointerOver && styleButton.hoverMax),
+      onClick: forward(address, Shell.asRequestFullScreenToggle)
+    })
+  ]);

@@ -12,7 +12,7 @@ import * as WindowControls from "./window-controls.js";
 // import * as Devtools from "./devtools"
 // import * as WebViews from "./web-views"
 
-import {asFor} from "../common/prelude";
+import {asFor, merge} from "../common/prelude";
 import * as Focusable from "../common/focusable";
 import * as OS from '../common/os';
 import {KeyBindings} from '../common/keyboard';
@@ -82,12 +82,18 @@ const KeyUp = KeyBindings({
 });
 
 // Unbox For actions and route them to their location.
-const stepFor = (model, action) =>
-  action.target === 'Input' ?
-    [updateIn('input', Input.update, model, action.action), Effects.none] :
-  action.target === 'Shell' ?
-    [updateIn('shell', Shell.update, model, action.action), Effects.none] :
-  [model, Effects.none];
+const stepFor = (model, action) => {
+  if (action.target === 'Input') {
+    const [input, fx] = Input.update(model.input, action.action);
+    return [merge(model, {input}), fx.map(asFor('Input'))];
+  }
+  else if (action.target === 'Shell') {
+    const [shell, fx] = Shell.step(model.shell, action.action);
+    return [merge(model, {shell}), fx.map(asFor('Shell'))];
+  } else {
+    return [model, Effects.none];
+  }
+}
 
 export const step/*:type.step*/ = (model, action) =>
   action.type === 'For' ?
@@ -107,10 +113,6 @@ export const view/*:type.view*/ = (model, address) =>
     onFocus: onWindow(forward(address, asFor("Shell")), Focusable.asFocus),
     // onUnload: () => address(Session.SaveSession),
   }, [
-    // @TODO hook up window control hover
-    WindowControls.view(
-      model.shell.isFocused,
-      model.shell.isPointerOver,
-      address),
+    WindowControls.view(model.shell, forward(address, asFor("Shell"))),
     Input.view(model.input, forward(address, asFor("Input")))
   ]);
