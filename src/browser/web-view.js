@@ -14,6 +14,7 @@ import * as Progress from './web-view/progress';
 // @TODO navigation
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
+import {Style, StyleSheet} from '../common/style';
 
 export const step/*:type.step*/ (model, action) =>
   // Shell actions
@@ -66,13 +67,45 @@ export const step/*:type.step*/ (model, action) =>
   // Default
   [model, Effects.none];
 
+const style = StyleSheet.create({
+  webview: {
+    position: 'absolute', // to stack webview on top of each other
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    mozUserSelect: 'none',
+    cursor: 'default',
+  },
+
+  webViewInactive: {
+    pointerEvents: 'none',
+    visibility: 'hidden',
+    opacity: 0
+  },
+
+  iframe: {
+    display: 'block', // iframe are inline by default
+    position: 'absolute',
+    // top: var(--webview-topbar-height),
+    left: 0,
+    width: '100%',
+    // height: calc(100% - var(--webview-topbar-height)),
+    mozUserSelect: 'none', // necessary to pass text drag to iframe's content
+
+    borderWidth: 0,
+    backgroundColor: 'white',
+  }
+
+});
+
 const viewFrame = (model, address) =>
   html.iframe({
     id: `web-view-${loader.id}`,
     src: location,
     'data-uri': loader.uri,
     // opener: opener(loader.opener),
-    // style: style.frame,
+    style: style.iframe,
     mozbrowser: true,
     remote: true,
     // mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : void(0),
@@ -112,6 +145,10 @@ const viewFrame = (model, address) =>
 export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'webview',
+    style: Style(
+      style.webview,
+      !model.isActive && style.webViewInactive
+    )
   }, [
     viewFrame(model, address),
     html.div({className: 'webview-local-overlay'}),
