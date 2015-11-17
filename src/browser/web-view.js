@@ -81,7 +81,7 @@ const style = StyleSheet.create({
   webViewInactive: {
     pointerEvents: 'none',
     visibility: 'hidden',
-    opacity: 0
+    opacity: 0,
   },
 
   iframe: {
@@ -92,11 +92,40 @@ const style = StyleSheet.create({
     width: '100%',
     // height: calc(100% - var(--webview-topbar-height)),
     mozUserSelect: 'none', // necessary to pass text drag to iframe's content
-
     borderWidth: 0,
     backgroundColor: 'white',
-  }
+  },
 
+  topbar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    // height: var(--webview-topbar-height),
+  },
+
+  topbarBackground: {
+    position: 'absolute',
+    // height: var(--webview-expended-topbar-height),
+    width: 100%,
+    top: 0,
+    left: 0,
+    // transform: translateY(calc(-1 * var(--webview-expended-topbar-height) + var(--webview-topbar-height))),
+    backgroundColor: 'white', // dynamic
+  },
+
+  combobar: {
+    position: 'absolute',
+    left: '50%',
+    top: 0,
+    // height: var(--webview-combobox-height),
+    // width: var(--webview-combobox-width),
+    // margin-top: calc(var(--webview-topbar-height) / 2 - var(--webview-combobox-height) / 2),
+    // margin-left: calc(var(--webview-combobox-width) / -2),
+    color: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: '5px',
+    cursor: 'text',
+  }
 });
 
 const viewFrame = (model, address) =>
@@ -130,7 +159,7 @@ const viewFrame = (model, address) =>
     // onMozBrowserLoadEnd: on(address, decodeLoadEnd),
     // onMozBrowserFirstPaint: on(address, decodeFirstPaint),
     // onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
-    // // onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
+    // onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
     // onMozBrowserLocationChange: on(address, decodeLocationChange),
     // onMozBrowserMetaChange: on(address, decodeMetaChange),
     // onMozBrowserIconChange: on(address, decodeIconChange),
@@ -152,8 +181,14 @@ export const view/*:type.view*/ = (model, address) =>
   }, [
     viewFrame(model, address),
     html.div({className: 'webview-local-overlay'}),
-    html.div({className: 'webview-topbar'}, [
-      html.div({className: 'webview-topbar-background'}),
+    html.div({
+      className: 'webview-topbar',
+      style: style.topbar
+    }, [
+      html.div({
+        className: 'webview-topbar-background',
+        style: style.topbarBackground
+      }),
       html.div({className: 'webview-combobar'}, [
         html.div({className: 'webview-title-container'}, [
           html.span({className: 'webview-security-icon'}),
