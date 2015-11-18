@@ -1,7 +1,7 @@
 /* @flow */
 
 import {always, merge, take, move} from "../common/prelude"
-import {Effects, batch, nofx} from "reflex"
+import {Effects, batch, nofx, html} from "reflex"
 import * as History from "../common/history"
 import * as Search from "../common/search"
 import {StyleSheet, Style} from '../common/style';
@@ -223,14 +223,14 @@ const fallbackTitle = 'Untitled';
 // an array keeps the return value type consistent with the other 2 result view
 // functions.
 const viewTopHit = (model, address) =>
-  model.topHit ? [
+  model.topHit != null ? [
     html.li({
       classname: 'assistant-result assistant-top-hit',
       style: style.result
     }, [
       html.div({
         className: 'result-title'
-      }, [History.readTitle(entry, fallbackTitle)])
+      }, [History.readTitle(model.topHit, fallbackTitle)])
     ])
   ] : [];
 
@@ -251,14 +251,14 @@ const viewHistory = (model, address) =>
 
 // Returns an array of vdom nodes
 const viewSearch = (model, address) =>
-  html.li({
-    classname: 'assistant-result assistant-history',
+  model.search.map(entry => html.li({
+    classname: 'assistant-result assistant-search',
     style: style.result
   }, [
-    html.div({
+    html.span({
       className: 'result-title'
     }, [History.readTitle(entry, fallbackTitle)])
-  ]);
+  ]));
 
 export const view/*:type.view*/ = (model, address) =>
   html.ol({
