@@ -254,6 +254,10 @@ const style = StyleSheet.create({
     borderBottomColor: 'transparent',
     borderRadius: '3px'
   },
+
+  resultAdjacentToSelected: {
+    borderColor: 'transparent'
+  }
 });
 
 // @TODO localize this string.
@@ -289,7 +293,8 @@ const viewHistory = (model, index, selected, address) =>
     classname: 'assistant-result assistant-history',
     style: Style(
       style.result,
-      index === selected && style.resultSelected
+      index === selected && style.resultSelected,
+      index === selected - 1 && style.resultAdjacentToSelected
     )
   }, [
     html.div({
@@ -315,7 +320,8 @@ const viewSearch = (model, index, selected, address) =>
     classname: 'assistant-result assistant-search',
     style: Style(
       style.result,
-      index === selected && style.resultSelected
+      index === selected && style.resultSelected,
+      index === selected - 1 && style.resultAdjacentToSelected
     )
   }, [
     html.div({
