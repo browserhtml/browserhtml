@@ -128,11 +128,11 @@ const style = StyleSheet.create({
   }
 });
 
-const viewFrame = (model, address) =>
+const viewFrame = ({id, page}, address) =>
   html.iframe({
-    id: `web-view-${loader.id}`,
+    id: `web-view-${id}`,
     src: location,
-    'data-uri': loader.uri,
+    'data-uri': page.uri,
     // opener: opener(loader.opener),
     style: Style(style.iframe),
     mozbrowser: true,
