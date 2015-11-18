@@ -4,6 +4,7 @@ import {always, merge, take, move} from "../common/prelude"
 import {Effects, batch, nofx} from "reflex"
 import * as History from "../common/history"
 import * as Search from "../common/search"
+import {StyleSheet, Style} from '../common/style';
 
 /*:: import * as type from "../../type/browser/assistant" */
 
@@ -196,3 +197,67 @@ export const step/*:type.step*/ = (model, action) => {
     }
   }
 }
+
+const style = StyleSheet.create({
+  results: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0
+  },
+
+  result: {
+    borderBottom: '1px solid rgba(0,0,0,0.08)',
+    fontSize: '14px'
+  },
+
+  resultUrl: {
+    color: '#4A90E2'
+  }
+});
+
+// Returns an array of vdom nodes. There's only one top hit, but returning
+// an array keeps the return value type consistent with the other 2 result view
+// functions.
+const viewTopHit = (model, address) =>
+  model.topHit ? [
+    html.li({
+      classname: 'assistant-result assistant-top-hit',
+      style: style.result
+    }, [
+      html.div({
+        className: 'result-title'
+      }, [History.readTitle(entry)])
+    ])
+  ] : [];
+
+// Returns an array of vdom nodes
+const viewHistory = (model, address) =>
+  model.page.map(entry => html.li({
+    classname: 'assistant-result assistant-history',
+    style: style.result
+  }, [
+    html.div({
+      className: 'result-title'
+    }, [History.readTitle(entry)])
+  ]));
+
+// Returns an array of vdom nodes
+const viewSearch = (model, address) =>
+  html.li({
+    classname: 'assistant-result assistant-history',
+    style: style.result
+  }, [
+    html.div({
+      className: 'result-title'
+    }, [History.readTitle(entry)])
+  ]);
+
+export const view/*:type.view*/ = (model, address) =>
+  html.ol({
+    className: 'assistant-results',
+    style: style.results
+  }, [
+    ...viewTopHit(model, address),
+    ...viewSearch(model, address),
+    ...viewHistory(model, address)
+  ]);
