@@ -8,7 +8,7 @@
 
 import {Effects, html} from 'reflex';
 import {on, onCanGoBackChange, onCanGoForwardChange} from 'driver';
-import {updateIn, stepIn} from '../common/lang/object';
+import {updateIn, stepIn} from '../lang/object';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 // @TODO navigation
@@ -16,7 +16,7 @@ import * as Security from './web-view/security';
 import * as Page from './web-view/page';
 import {Style, StyleSheet} from '../common/style';
 
-export const step/*:type.step*/ (model, action) =>
+export const step/*:type.step*/ = (model, action) =>
   // Shell actions
   action.type === "Focusable.FocusRequest" ?
     [updateIn('shell', Shell.update, model, action), Effects.none] :
@@ -107,7 +107,7 @@ const style = StyleSheet.create({
   topbarBackground: {
     position: 'absolute',
     // height: var(--webview-expended-topbar-height),
-    width: 100%,
+    width: '100%',
     top: 0,
     left: 0,
     // transform: translateY(calc(-1 * var(--webview-expended-topbar-height) + var(--webview-topbar-height))),
