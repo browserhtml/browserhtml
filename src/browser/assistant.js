@@ -219,70 +219,92 @@ const style = StyleSheet.create({
     fontSize: '14px'
   },
 
+  resultTitleSelected: {
+    color: '#fff'
+  },
+
   resultUrl: {
     color: '#4A90E2',
     fontSize: '14px'
   },
 
+  resultUrlSelected: {
+    color: 'rgba(255,255,255,0.7)'
+  },
+
   resultSelected: {
     background: '#4A90E2',
-    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
     borderRadius: '3px'
-  }
+  },
 });
 
 // @TODO localize this string.
 const fallbackTitle = 'Untitled';
 
+// Render a title in a result
+const viewTitle = (model, index, selected) =>
+  html.span({
+    className: 'result-title',
+    style: Style(
+      style.resultTitle,
+      index === selected && style.resultTitleSelected
+    )
+  }, [History.readTitle(model, fallbackTitle)]);
+
 // Returns an array of vdom nodes. There's only one top hit, but returning
 // an array keeps the return value type consistent with the other 2 result view
 // functions.
-const viewTopHit = (model, address) =>
+const viewTopHit = (model, index, selected, address) =>
   html.li({
     classname: 'assistant-result assistant-top-hit',
-    style: style.result
+    style: Style(
+      style.result,
+      index === selected && style.resultSelected
+    )
   }, [
-    html.div({
-      className: 'result-title'
-    }, [History.readTitle(model.topHit, fallbackTitle)])
+    viewTitle(model, index, selected)
   ]);
 
 // Returns an array of vdom nodes
-const viewHistory = (model, address) =>
+const viewHistory = (model, index, selected, address) =>
   html.li({
     classname: 'assistant-result assistant-history',
-    style: style.result
+    style: Style(
+      style.result,
+      index === selected && style.resultSelected
+    )
   }, [
-    html.span({
-      className: 'result-title',
-      style: style.resultTitle
-    }, [History.readTitle(model, fallbackTitle)]),
+    viewTitle(model, index, selected),
     html.span({
       className: 'result-url',
-      style: style.resultUrl
+      style: Style(
+        style.resultUrl,
+        index === selected && style.resultUrlSelected
+      )
     }, [` — ${prettify(model.uri)}`])
   ]);
 
 // Returns an array of vdom nodes
-const viewSearch = (model, address) =>
+const viewSearch = (model, index, selected, address) =>
   html.li({
     classname: 'assistant-result assistant-search',
-    style: style.result
+    style: Style(
+      style.result,
+      index === selected && style.resultSelected
+    )
   }, [
-    html.span({
-      className: 'result-title',
-      style: style.resultTitle
-    }, [History.readTitle(model, fallbackTitle)])
+    viewTitle(model, index, selected)
   ]);
 
 // Renders a result, picking the view function based on the model type.
-const viewResult = (model, address) =>
+const viewResult = (model, index, selected, address) =>
   model.type === 'History.TopHit' ?
-    viewTopHit(model, address) :
+    viewTopHit(model, index, selected, address) :
   model.type === 'History.PageMatch' ?
-    viewHistory(model, address) :
+    viewHistory(model, index, selected, address) :
   // model.type === 'Search.Match' ?
-    viewSearch(model, address);
+    viewSearch(model, index, selected, address);
 
 export const view/*:type.view*/ = (model, address) =>
   html.div({
@@ -291,6 +313,6 @@ export const view/*:type.view*/ = (model, address) =>
     html.ol({
       className: 'assistant-results',
       style: style.results
-    }, getAllSuggestions(model).map(entry =>
-      thunk(entry.id, viewResult, entry, address)))
+    }, getAllSuggestions(model).map((entry, index) =>
+      thunk(entry.id, viewResult, entry, index, model.selected, address)))
   ]);
