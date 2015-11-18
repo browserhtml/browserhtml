@@ -201,6 +201,18 @@ export const step/*:type.step*/ = (model, action) => {
 }
 
 const style = StyleSheet.create({
+  icon: {
+    color: 'rgba(0,0,0,0.7)',
+    fontFamily: 'FontAwesome',
+    fontSize: '17px',
+    left: '10px',
+    position: 'absolute'
+  },
+
+  iconSelected: {
+    color: '#fff'
+  },
+
   results: {
     listStyle: 'none',
     margin: '115px auto 0',
@@ -211,7 +223,12 @@ const style = StyleSheet.create({
   result: {
     borderBottom: '1px solid rgba(0,0,0,0.08)',
     lineHeight: '40px',
-    paddingLeft: '35px'
+    overflow: 'hidden',
+    paddingLeft: '35px',
+    paddingRight: '10px',
+    position: 'relative', // Contains absolute elements.
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis'
   },
 
   resultTitle: {
@@ -275,6 +292,13 @@ const viewHistory = (model, index, selected, address) =>
       index === selected && style.resultSelected
     )
   }, [
+    html.div({
+      className: 'assistant-icon',
+      style: Style(
+        style.icon,
+        index === selected && style.iconSelected
+      )
+    }, ['']),
     viewTitle(model, index, selected),
     html.span({
       className: 'result-url',
@@ -294,6 +318,13 @@ const viewSearch = (model, index, selected, address) =>
       index === selected && style.resultSelected
     )
   }, [
+    html.div({
+      className: 'assistant-icon',
+      style: Style(
+        style.icon,
+        index === selected && style.iconSelected
+      )
+    }, ['']),
     viewTitle(model, index, selected)
   ]);
 
