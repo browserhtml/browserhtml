@@ -262,7 +262,7 @@ const fallbackTitle = 'Untitled';
 // Render a title in a result
 const viewTitle = (model, index, selected) =>
   html.span({
-    className: 'result-title',
+    className: 'assistant-title',
     style: Style(
       style.resultTitle,
       index === selected && style.resultTitleSelected
@@ -301,7 +301,7 @@ const viewHistory = (model, index, selected, address) =>
     }, ['']),
     viewTitle(model, index, selected),
     html.span({
-      className: 'result-url',
+      className: 'assistant-url',
       style: Style(
         style.resultUrl,
         index === selected && style.resultUrlSelected
