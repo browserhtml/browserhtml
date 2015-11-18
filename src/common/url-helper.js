@@ -101,5 +101,8 @@ export const prettify = (input) =>
   // Display https, since that's relevant.
   getProtocol(input) === 'https:' ?
     input :
-  // Otherwise, remove protocols.
-  (getHostname(input) + getPathname(input));
+  // If there's a meaningful pathname, keep it.
+  getPathname(input) !== '/' ?
+    (getHostname(input) + getPathname(input)) :
+  // Otherwise, just show the hostname
+  getHostname(input);
