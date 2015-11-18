@@ -1,7 +1,7 @@
 /* @flow */
 
 import {always, merge, take, move} from "../common/prelude"
-import {Effects, batch, nofx, html} from "reflex"
+import {Effects, batch, nofx, html, thunk} from "reflex"
 import * as History from "../common/history"
 import * as Search from "../common/search"
 import {StyleSheet, Style} from '../common/style';
@@ -67,6 +67,7 @@ export const selectRelative/*:type.selectRelative*/ = (model, offset) => {
 // Returns entries in the form of a list `[topHit, ...search, ...page]` where
 // there can be at most one `topHit` and sum of search and page entries are
 // at most MAX_RESULTS also entries per type is split by even when possible.
+// @TODO we should limit search results to max 3... history can be more.
 const getAllSuggestions/*:type.getAllSuggestions*/ = model => {
   const sizes = countSuggestions(model);
   return (model.topHit == null ? [] : [model.topHit])
@@ -209,10 +210,12 @@ const style = StyleSheet.create({
 
   result: {
     borderBottom: '1px solid rgba(0,0,0,0.08)',
-    lineHeight: '40px'
+    lineHeight: '40px',
+    paddingLeft: '35px'
   },
 
   resultTitle: {
+    color: 'rgba(0,0,0,0.7)',
     fontSize: '14px'
   },
 
@@ -235,44 +238,51 @@ const fallbackTitle = 'Untitled';
 // an array keeps the return value type consistent with the other 2 result view
 // functions.
 const viewTopHit = (model, address) =>
-  model.topHit != null ? [
-    html.li({
-      classname: 'assistant-result assistant-top-hit',
-      style: style.result
-    }, [
-      html.div({
-        className: 'result-title'
-      }, [History.readTitle(model.topHit, fallbackTitle)])
-    ])
-  ] : [];
+  html.li({
+    classname: 'assistant-result assistant-top-hit',
+    style: style.result
+  }, [
+    html.div({
+      className: 'result-title'
+    }, [History.readTitle(model.topHit, fallbackTitle)])
+  ]);
 
 // Returns an array of vdom nodes
 const viewHistory = (model, address) =>
-  model.page.map(entry => html.li({
+  html.li({
     classname: 'assistant-result assistant-history',
     style: style.result
   }, [
     html.span({
       className: 'result-title',
       style: style.resultTitle
-    }, [History.readTitle(entry, fallbackTitle)]),
+    }, [History.readTitle(model, fallbackTitle)]),
     html.span({
       className: 'result-url',
       style: style.resultUrl
-    }, [` — ${prettify(entry.uri)}`])
-  ]));
+    }, [` — ${prettify(model.uri)}`])
+  ]);
 
 // Returns an array of vdom nodes
 const viewSearch = (model, address) =>
-  model.search.map(entry => html.li({
+  html.li({
     classname: 'assistant-result assistant-search',
     style: style.result
   }, [
     html.span({
       className: 'result-title',
       style: style.resultTitle
-    }, [History.readTitle(entry, fallbackTitle)])
-  ]));
+    }, [History.readTitle(model, fallbackTitle)])
+  ]);
+
+// Renders a result, picking the view function based on the model type.
+const viewResult = (model, address) =>
+  model.type === 'History.TopHit' ?
+    viewTopHit(model, address) :
+  model.type === 'History.PageMatch' ?
+    viewHistory(model, address) :
+  // model.type === 'Search.Match' ?
+    viewSearch(model, address);
 
 export const view/*:type.view*/ = (model, address) =>
   html.div({
@@ -281,9 +291,6 @@ export const view/*:type.view*/ = (model, address) =>
     html.ol({
       className: 'assistant-results',
       style: style.results
-    }, [
-      ...viewTopHit(model, address),
-      ...viewSearch(model, address),
-      ...viewHistory(model, address)
-    ])
+    }, getAllSuggestions(model).map(entry =>
+      thunk(entry.id, viewResult, entry, address)))
   ]);
