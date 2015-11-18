@@ -59,7 +59,7 @@ export const deactivate/*:type.deactivate*/ = model =>
     model;
 
 
-export const step/*:type.step*/ (model, action) => {
+export const step/*:type.step*/ = (model, action) => {
   // Shell actions
   if (action.type === "Focusable.FocusRequest") {
     return [activate(model), Effects.none];
@@ -100,7 +100,7 @@ export const step/*:type.step*/ (model, action) => {
         || action.type === 'WebView.Navigation.GoForward')
   {
     const [navigation, fx] = Navigation.step(model.navigation, action);
-    return [merge(model, {navigation}, fx];
+    return [merge(model, {navigation}), fx];
   }
   else if (action.type === 'WebView.Security.Changed') {
     const [security, fx] = Security.step(model.security, action);
@@ -127,6 +127,9 @@ export const step/*:type.step*/ (model, action) => {
 }
 
 
+const webviewTopBarHeight = '27px';
+const webviewTopBarMaxHeight = '66vh';
+
 const style = StyleSheet.create({
   webview: {
     position: 'absolute', // to stack webview on top of each other
@@ -147,10 +150,10 @@ const style = StyleSheet.create({
   iframe: {
     display: 'block', // iframe are inline by default
     position: 'absolute',
-    // top: var(--webview-topbar-height),
+    top: webviewTopBarHeight,
     left: 0,
     width: '100%',
-    // height: calc(100% - var(--webview-topbar-height)),
+    height: `calc(100% - ${webviewTopBarHeight})`,
     mozUserSelect: 'none', // necessary to pass text drag to iframe's content
     borderWidth: 0,
     backgroundColor: 'white',
@@ -161,16 +164,16 @@ const style = StyleSheet.create({
     top: 0,
     left: 0,
     width: '100%',
-    // height: var(--webview-topbar-height),
+    height: webviewTopBarHeight + 'px',
   },
 
   topbarBackground: {
     position: 'absolute',
-    // height: var(--webview-expended-topbar-height),
+    height: webviewTopBarMaxHeight,
     width: '100%',
     top: 0,
     left: 0,
-    // transform: translateY(calc(-1 * var(--webview-expended-topbar-height) + var(--webview-topbar-height))),
+    transform: `translateY(calc(-1 * ${webviewTopBarMaxHeight} + ${webviewTopBarHeight}))`,
     backgroundColor: 'white', // dynamic
   },
 
