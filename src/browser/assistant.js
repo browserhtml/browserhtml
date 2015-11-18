@@ -215,6 +215,9 @@ const style = StyleSheet.create({
   }
 });
 
+// @TODO localize this string.
+const fallbackTitle = 'Untitled';
+
 // Returns an array of vdom nodes. There's only one top hit, but returning
 // an array keeps the return value type consistent with the other 2 result view
 // functions.
@@ -226,7 +229,7 @@ const viewTopHit = (model, address) =>
     }, [
       html.div({
         className: 'result-title'
-      }, [History.readTitle(entry)])
+      }, [History.readTitle(entry, fallbackTitle)])
     ])
   ] : [];
 
@@ -238,7 +241,7 @@ const viewHistory = (model, address) =>
   }, [
     html.div({
       className: 'result-title'
-    }, [History.readTitle(entry)])
+    }, [History.readTitle(entry, fallbackTitle)])
   ]));
 
 // Returns an array of vdom nodes
@@ -249,7 +252,7 @@ const viewSearch = (model, address) =>
   }, [
     html.div({
       className: 'result-title'
-    }, [History.readTitle(entry)])
+    }, [History.readTitle(entry, fallbackTitle)])
   ]);
 
 export const view/*:type.view*/ = (model, address) =>
