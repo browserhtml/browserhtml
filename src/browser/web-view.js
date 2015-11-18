@@ -193,6 +193,15 @@ const style = StyleSheet.create({
     color: 'rgba(0, 0, 0, 0.8)',
     borderRadius: '5px',
     cursor: 'text',
+  },
+
+  titleContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    textAlign: 'center',
+    fontWeight: 'bold',
   }
 });
 
@@ -263,7 +272,10 @@ export const view/*:type.view*/ = (model, address) =>
         className: 'webview-combobox',
         style: Style(style.combobox)
       }, [
-        html.div({className: 'webview-title-container'}, [
+        html.div({
+          className: 'webview-title-container',
+          style: Style(style.titleContainer)
+        }, [
           html.span({className: 'webview-security-icon'}),
           html.span({className: 'webview-title'})
         ])
