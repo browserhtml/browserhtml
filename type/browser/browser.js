@@ -23,17 +23,17 @@ export type Model = {
 }
 
 export type Action
-  = For<"Shell", Shell.Action>
-  | For<"Updater", Updater.Action>
-  | For<"WebViews", WebViews.Action>
-  | For<"Input", Input.Action>
-  | For<"Assistant", Assistant.Action>
-  | For<"Devtools", Devtools.Action>
+  = For<"shell", Shell.Action>
+  | For<"updates", Updater.Action>
+  | For<"webViews", WebViews.Action>
+  | For<"input", Input.Action>
+  | For<"suggestions", Assistant.Action>
+  | For<"devtools", Devtools.Action>
 
 export type Response
-  = For<"WebViews", WebViews.Action>
-  | For<"Assistant", Assistant.Response>
-  | For<"Devtools", Devtools.Response>
+  = For<"webViews", WebViews.Action>
+  | For<"suggestions", Assistant.Response>
+  | For<"devtools", Devtools.Response>
 
 export type view = (model:Model, address:Address<Action>) => VirtualTree
 export type step = (model:Model, action:Action) => [Model, Effects<Response>]

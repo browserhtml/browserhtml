@@ -7,10 +7,12 @@
 /*:: import * as type from "../../type/browser/web-view" */
 
 import {Effects, html} from 'reflex';
+import {merge} from '../common/prelude';
 import {on, onCanGoBackChange, onCanGoForwardChange} from 'driver';
 import {updateIn, stepIn} from '../lang/object';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
+import * as Navigation from './web-view/navigation';
 // @TODO navigation
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
@@ -47,19 +49,21 @@ export const activate/*:type.activate*/ = model =>
     model :
     merge(model, {
       isActive: true,
-      shell: Focusable.focus(model.shell)
+      shell: Shell.focus(model.shell)
     });
 
 export const deactivate/*:type.deactivate*/ = model =>
   model.isActive ?
     merge(model, {
       isActive: false,
-      shell: Focusable.blur(model.shell)
+      shell: Shell.blur(model.shell)
     }) :
     model;
 
+export const asLoad = Navigation.asLoad;
 
-export const step/*:type.step*/ (model, action) => {
+
+export const step/*:type.step*/ = (model, action) => {
   // Shell actions
   if (action.type === "Focusable.FocusRequest") {
     return [activate(model), Effects.none];
@@ -100,7 +104,7 @@ export const step/*:type.step*/ (model, action) => {
         || action.type === 'WebView.Navigation.GoForward')
   {
     const [navigation, fx] = Navigation.step(model.navigation, action);
-    return [merge(model, {navigation}, fx];
+    return [merge(model, {navigation}), fx];
   }
   else if (action.type === 'WebView.Security.Changed') {
     const [security, fx] = Security.step(model.security, action);
@@ -188,17 +192,19 @@ const style = StyleSheet.create({
   }
 });
 
-const viewFrame = ({id, page}, address) =>
+const viewFrame = ({id, navigation}, address) =>
   html.iframe({
     id: `web-view-${id}`,
-    src: location,
-    'data-uri': page.uri,
+    src: navigation.initiatedURI,
+    'data-current-uri': navigation.currentURI,
     // opener: opener(loader.opener),
     style: Style(style.iframe),
-    mozbrowser: true,
-    remote: true,
-    // mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : void(0),
-    mozallowfullscreen: true
+    attributes: {
+      mozbrowser: true,
+      remote: true,
+      // mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : void(0),
+      mozallowfullscreen: true
+    },
     // isVisible: visiblity(isSelected || !thumbnail),
     // zoom: zoom(shell.zoom),
     // navigation: navigate(navigation.state),
@@ -258,4 +264,3 @@ export const view/*:type.view*/ = (model, address) =>
       html.div({className: 'webview-show-sidebar-button'})
     ])
   ]);
-

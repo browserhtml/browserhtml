@@ -28,6 +28,11 @@ export type Open
   = {type: "WebViews.Open"}
   & NewWebViewOptions
 
+export type NavigateTo = {
+  type: "WebViews.NavigateTo",
+  uri: URI
+}
+
 export type CloseActive = {
   type: "WebViews.CloseActive"
 }
@@ -58,6 +63,9 @@ export type Action
   | SelectByID
   | ActivateSelected | ActivateByID
 
+export type asByID = (id:ID) => (action:WebView.Action) => ByID
+export type asByActive = (action:WebView.Action) => ByID
+export type asNavigateTo = (uri:URI) => NavigateTo
 
 export type indexByID = (model:Model, id:ID) => number
 export type indexOfOffset = (index:number, size:number, offset:number, loop:boolean) => number

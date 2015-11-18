@@ -24,6 +24,9 @@ export const initiate/*:type.initiate*/ = (uri) => ({
   currentURI: uri
 });
 
+const asLoad/*:type.asLoad*/ = uri =>
+  ({type: "WebView.Navigation.Load", uri});
+
 export const load/*:type.load*/ = (model, uri) =>
   merge(model, {initiatedURI: uri, currentURI: uri});
 

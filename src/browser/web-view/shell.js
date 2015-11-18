@@ -22,6 +22,9 @@ export const initial = ({
   zoom: 1
 })
 
+export const focus = Focusable.focus;
+export const blur = Focusable.blur;
+
 export const resetZoom/*:type.resetZoom*/ = (model) =>
   merge(model, {zoom: 1});
 

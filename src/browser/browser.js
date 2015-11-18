@@ -1,7 +1,7 @@
 /* @flow */
 
 import {version} from "../../package.json";
-import {Effects, html, forward} from "reflex";
+import {Effects, html, forward, thunk} from "reflex";
 
 import * as Shell from "./shell";
 import * as Input from "./input";
@@ -10,7 +10,7 @@ import * as WindowControls from "./window-controls.js";
 
 // import * as Updater from "./updater"
 // import * as Devtools from "./devtools"
-// import * as WebViews from "./web-views"
+import * as WebViews from "./web-views"
 
 import {asFor, merge, always} from "../common/prelude";
 import * as Focusable from "../common/focusable";
@@ -33,7 +33,7 @@ export const initialize/*:type.initialize*/ = () => {
     shell: Shell.initial,
     input: Input.initial,
     suggestions: Assistant.initial,
-    // webViews: WebViews.initial,
+    webViews: WebViews.initial,
     // updates: updates,
     // devtools: devtools
   };
@@ -47,7 +47,7 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, Effects.none];
 }
 
-const asForInput = asFor('Input');
+const asForInput = asFor('input');
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
 
@@ -95,19 +95,32 @@ const stepFor = (target, model, action) => {
       return step(model, action);
     }
   }
-  else if (target === 'Input') {
+  else if (target === 'input') {
     if (action.type === 'Input.Submit') {
       const [input, inputFx] = Input.step(model.input, action);
+
+      const navigate = WebViews.asNavigateTo(model.input.value);
+      const [webViews, viewFx] = WebViews.step(model.webViews, navigate);
       // more things need to happen here.
-      return [merge(model, {input}), inputFx.map(asFor('Input'))];
+      return [
+        merge(model, {input, webViews}),
+        Effects.batch([
+          inputFx.map(asFor('input')),
+          viewFx.map(asFor('webViews'))
+        ])
+      ]
     } else {
       const [input, fx] = Input.step(model.input, action);
-      return [merge(model, {input}), fx.map(asFor('Input'))];
+      return [merge(model, {input}), fx.map(asFor('input'))];
     }
   }
-  else if (target === 'Shell') {
+  else if (target === 'shell') {
     const [shell, fx] = Shell.step(model.shell, action);
-    return [merge(model, {shell}), fx.map(asFor('Shell'))];
+    return [merge(model, {shell}), fx.map(asFor('shell'))];
+  }
+  else if (target === 'webViews') {
+    const [webViews, fx] = WebViews.step(model.webViews, action);
+    return [merge(model, {webViews}), fx.map(asFor('webViews'))];
   }
   else {
     return [model, Effects.none];
@@ -125,10 +138,20 @@ export const view/*:type.view*/ = (model, address) =>
     tabIndex: 1,
     onKeyDown: onWindow(forward(address, asFor("Browser.KeyDown")), keyDown),
     onKeyUp: onWindow(forward(address, asFor("Browser.KeyUp")), keyUp),
-    onBlur: onWindow(forward(address, asFor("Shell")), Focusable.asBlur),
-    onFocus: onWindow(forward(address, asFor("Shell")), Focusable.asFocus),
+    onBlur: onWindow(forward(address, asFor("shell")), Focusable.asBlur),
+    onFocus: onWindow(forward(address, asFor("shell")), Focusable.asFocus),
     // onUnload: () => address(Session.SaveSession),
   }, [
-    WindowControls.view(model.shell, forward(address, asFor("Shell"))),
-    Input.view(model.input, forward(address, asFor("Input")))
+    thunk('controls',
+          WindowControls.view,
+          model.shell,
+          forward(address, asFor("shell"))),
+    thunk('input',
+          Input.view,
+          model.input,
+          forward(address, asFor("input"))),
+    thunk('web-views',
+          WebViews.view,
+          model.webViews,
+          forward(address, asFor("webViews")))
   ]);
