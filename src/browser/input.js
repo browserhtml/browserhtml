@@ -82,9 +82,10 @@ const style = StyleSheet.create({
     position: 'absolute',
     padding: '0 32px',
     top: '40px',
-    width: inputWidth + 'px',
+    width: (inputWidth - (32 * 2)) + 'px',
   },
   field: {
+    background: 'transparent',
     borderWidth: 0,
     fontSize: '14px',
     mozAppearance: 'none',
