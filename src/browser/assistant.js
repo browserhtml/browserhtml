@@ -5,6 +5,7 @@ import {Effects, batch, nofx} from "reflex"
 import * as History from "../common/history"
 import * as Search from "../common/search"
 import {StyleSheet, Style} from '../common/style';
+import {prettify} from '../common/url-helper';
 
 /*:: import * as type from "../../type/browser/assistant" */
 
@@ -239,9 +240,13 @@ const viewHistory = (model, address) =>
     classname: 'assistant-result assistant-history',
     style: style.result
   }, [
-    html.div({
+    html.span({
       className: 'result-title'
-    }, [History.readTitle(entry, fallbackTitle)])
+    }, [History.readTitle(entry, fallbackTitle)]),
+    html.span({
+      className: 'result-url',
+      style: style.resultUrl
+    }, [` — ${prettify(entry.uri)}`])
   ]));
 
 // Returns an array of vdom nodes

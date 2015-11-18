@@ -92,3 +92,14 @@ export const asAboutURI = uri => {
   const about = base.origin === origin ? readAboutTerm(pathname) : null;
   return about != null ? `about:${about}` : null;
 }
+
+// Prettify a URL for display purposes. Will minimize the amount of URL cruft.
+export const prettify = (input) =>
+  // Don't mess with about:x
+  isAboutURL(input) ?
+    input :
+  // Display https, since that's relevant.
+  getProtocol(input) === 'https:' ?
+    input :
+  // Otherwise, remove protocols.
+  (getHostname(input) + getPathname(input));
