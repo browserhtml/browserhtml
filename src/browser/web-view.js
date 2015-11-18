@@ -6,15 +6,17 @@
 
 /*:: import * as type from "../../type/browser/web-view" */
 
-import {Effects} from 'reflex';
-import {updateIn, stepIn} from '../common/lang/object';
+import {Effects, html} from 'reflex';
+import {on, onCanGoBackChange, onCanGoForwardChange} from 'driver';
+import {updateIn, stepIn} from '../lang/object';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 // @TODO navigation
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
+import {Style, StyleSheet} from '../common/style';
 
-export const step/*:type.step*/ (model, action) =>
+export const step/*:type.step*/ = (model, action) =>
   // Shell actions
   action.type === "Focusable.FocusRequest" ?
     [updateIn('shell', Shell.update, model, action), Effects.none] :
@@ -64,3 +66,135 @@ export const step/*:type.step*/ (model, action) =>
 
   // Default
   [model, Effects.none];
+
+const style = StyleSheet.create({
+  webview: {
+    position: 'absolute', // to stack webview on top of each other
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    mozUserSelect: 'none',
+    cursor: 'default',
+  },
+
+  webViewInactive: {
+    pointerEvents: 'none',
+    visibility: 'hidden',
+    opacity: 0,
+  },
+
+  iframe: {
+    display: 'block', // iframe are inline by default
+    position: 'absolute',
+    // top: var(--webview-topbar-height),
+    left: 0,
+    width: '100%',
+    // height: calc(100% - var(--webview-topbar-height)),
+    mozUserSelect: 'none', // necessary to pass text drag to iframe's content
+    borderWidth: 0,
+    backgroundColor: 'white',
+  },
+
+  topbar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    // height: var(--webview-topbar-height),
+  },
+
+  topbarBackground: {
+    position: 'absolute',
+    // height: var(--webview-expended-topbar-height),
+    width: '100%',
+    top: 0,
+    left: 0,
+    // transform: translateY(calc(-1 * var(--webview-expended-topbar-height) + var(--webview-topbar-height))),
+    backgroundColor: 'white', // dynamic
+  },
+
+  combobar: {
+    position: 'absolute',
+    left: '50%',
+    top: 0,
+    // height: var(--webview-combobox-height),
+    // width: var(--webview-combobox-width),
+    // margin-top: calc(var(--webview-topbar-height) / 2 - var(--webview-combobox-height) / 2),
+    // margin-left: calc(var(--webview-combobox-width) / -2),
+    color: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: '5px',
+    cursor: 'text',
+  }
+});
+
+const viewFrame = ({id, page}, address) =>
+  html.iframe({
+    id: `web-view-${id}`,
+    src: location,
+    'data-uri': page.uri,
+    // opener: opener(loader.opener),
+    style: Style(style.iframe),
+    mozbrowser: true,
+    remote: true,
+    // mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : void(0),
+    mozallowfullscreen: true
+    // isVisible: visiblity(isSelected || !thumbnail),
+    // zoom: zoom(shell.zoom),
+    // navigation: navigate(navigation.state),
+    // isFocused: focus(shell.isFocused),
+    // onBlur: on(address, decodeBlur),
+    // onFocus: on(address, decodeFocus),
+    // onMozbrowserAsyncScroll: on(address, decodeAsyncScroll),
+
+    // onMozBrowserCanGoBackChange: onCanGoBackChange(address, decodeCanGoBackChange),
+    // onMozBrowserCanGoForwardChange: onCanGoForwardChange(address, decodeCanGoForwardChange),
+
+    // onMozBrowserClose: on(address, decodeClose),
+    // onMozBrowserOpenWindow: on(address, decodeOpenWindow),
+    // onMozBrowserOpenTab: on(address, decodeOpenTab),
+    // onMozBrowserContextMenu: on(address, decodeContexMenu),
+    // onMozBrowserError: on(address, decodeError),
+    // onMozBrowserLoadStart: on(address, decodeLoadStart),
+    // onMozBrowserLoadEnd: on(address, decodeLoadEnd),
+    // onMozBrowserFirstPaint: on(address, decodeFirstPaint),
+    // onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
+    // onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
+    // onMozBrowserLocationChange: on(address, decodeLocationChange),
+    // onMozBrowserMetaChange: on(address, decodeMetaChange),
+    // onMozBrowserIconChange: on(address, decodeIconChange),
+    // onMozBrowserLocationChange: on(address, decodeLocationChange),
+    // onMozBrowserSecurityChange: on(address, decodeSecurityChange),
+    // onMozBrowserTitleChange: on(address, decodeTitleChange),
+    // onMozBrowserShowModalPrompt: on(address, decodeShowModalPrompt),
+    // onMozBrowserUserNameAndPasswordRequired: on(address, decodeAuthenticate),
+    // onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
+  });
+
+export const view/*:type.view*/ = (model, address) =>
+  html.div({
+    className: 'webview',
+    style: Style(
+      style.webview,
+      !model.isActive && style.webViewInactive
+    )
+  }, [
+    viewFrame(model, address),
+    html.div({className: 'webview-local-overlay'}),
+    html.div({
+      className: 'webview-topbar',
+      style: Style(style.topbar)
+    }, [
+      html.div({
+        className: 'webview-topbar-background',
+        style: Style(style.topbarBackground)
+      }),
+      html.div({className: 'webview-combobar'}, [
+        html.div({className: 'webview-title-container'}, [
+          html.span({className: 'webview-security-icon'}),
+          html.span({className: 'webview-title'})
+        ])
+      ]),
+      html.div({className: 'webview-show-sidebar-button'})
+    ])
+  ]);
