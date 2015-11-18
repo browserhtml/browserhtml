@@ -6,7 +6,8 @@ import {Effects, html, forward, thunk} from "reflex";
 import * as Shell from "./shell";
 import * as Input from "./input";
 import * as Assistant from "./assistant";
-import * as WindowControls from "./window-controls.js";
+import * as WindowControls from "./window-controls";
+import * as Sidebar from "./sidebar";
 
 // import * as Updater from "./updater"
 // import * as Devtools from "./devtools"
@@ -152,6 +153,10 @@ export const view/*:type.view*/ = (model, address) =>
           forward(address, asFor("input"))),
     thunk('web-views',
           WebViews.view,
+          model.webViews,
+          forward(address, asFor("webViews"))),
+    thunk('sidebar',
+          Sidebar.view,
           model.webViews,
           forward(address, asFor("webViews")))
   ]);

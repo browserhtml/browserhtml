@@ -43,9 +43,15 @@ const style = StyleSheet.create({
     display: 'inline'
   },
 
-  favicon: {
-    backgroundColor: 'white',
+  image: {
+    backgroundColor: 'transparent',
     backgroundSize: 'cover',
+    backgroundPosition: 'center center',
+    backgroundRepeat: 'no-repeat',
+    border: 'none'
+  },
+
+  favicon: {
     borderRadius: '3px',
     left: '9px',
     position: 'absolute',
@@ -55,17 +61,24 @@ const style = StyleSheet.create({
   }
 });
 
+// @TODO Make a general purpose component out of this!
+const viewImage = (style, uri) =>
+  html.img({
+    src: uri == null ? void(0) : uri,
+    style: uri == null ?
+            style :
+            Style(style.image, {backgroundImage: `uri(${uri})`})
+  });
+
 const viewTab = (model, address) =>
   html.div({
     className: 'sidebar-tab',
     style: Style(style.tab)
   }, [
-    html.div({
-      src: model.page.faviconURI,
-      style: Style(style.favicon, {
-        backgroundImage: `url(model.page.faviconURI)`
-      })
-    }),
+    thunk('favicon',
+          viewImage,
+          style.favicon,
+          model.page && model.page.faviconURI),
     html.div({
       className: 'sidebar-tab-title',
       style: Style(style.title)
