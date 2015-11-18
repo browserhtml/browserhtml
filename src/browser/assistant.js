@@ -202,17 +202,29 @@ export const step/*:type.step*/ = (model, action) => {
 const style = StyleSheet.create({
   results: {
     listStyle: 'none',
-    margin: 0,
-    padding: 0
+    margin: '115px auto 0',
+    padding: 0,
+    width: '460px'
   },
 
   result: {
     borderBottom: '1px solid rgba(0,0,0,0.08)',
+    lineHeight: '40px'
+  },
+
+  resultTitle: {
     fontSize: '14px'
   },
 
   resultUrl: {
-    color: '#4A90E2'
+    color: '#4A90E2',
+    fontSize: '14px'
+  },
+
+  resultSelected: {
+    background: '#4A90E2',
+    borderTopColor: 'transparent',
+    borderRadius: '3px'
   }
 });
 
@@ -241,7 +253,8 @@ const viewHistory = (model, address) =>
     style: style.result
   }, [
     html.span({
-      className: 'result-title'
+      className: 'result-title',
+      style: style.resultTitle
     }, [History.readTitle(entry, fallbackTitle)]),
     html.span({
       className: 'result-url',
@@ -256,16 +269,21 @@ const viewSearch = (model, address) =>
     style: style.result
   }, [
     html.span({
-      className: 'result-title'
+      className: 'result-title',
+      style: style.resultTitle
     }, [History.readTitle(entry, fallbackTitle)])
   ]));
 
 export const view/*:type.view*/ = (model, address) =>
-  html.ol({
-    className: 'assistant-results',
-    style: style.results
+  html.div({
+    className: 'assistant'
   }, [
-    ...viewTopHit(model, address),
-    ...viewSearch(model, address),
-    ...viewHistory(model, address)
+    html.ol({
+      className: 'assistant-results',
+      style: style.results
+    }, [
+      ...viewTopHit(model, address),
+      ...viewSearch(model, address),
+      ...viewHistory(model, address)
+    ])
   ]);
