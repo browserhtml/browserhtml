@@ -61,3 +61,7 @@ export const step/*:type.step*/ = (model, action) =>
   // action.type === 'WebView.Page.OverflowChanged' ?
   // action.type === 'WebView.Page.Scrolled' ?
   [model, Effects.none];
+
+export const readTitle/*:type.readTitle*/ = (model) =>
+  // @TODO clean up URI and remove protocol stuff
+  model.title && model.title !== '' ? model.title : model.uri;
