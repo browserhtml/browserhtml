@@ -29,6 +29,7 @@ export type QueryResult = {
   matches: Array<PageMatch>
 }
 
+export type readTitle = (model: Match, fallback: string) => string;
 
 // Creates a search query task, when run completion side effect is
 // Result action.

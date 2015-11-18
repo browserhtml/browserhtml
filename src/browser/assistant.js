@@ -1,9 +1,11 @@
 /* @flow */
 
 import {always, merge, take, move} from "../common/prelude"
-import {Effects, batch, nofx} from "reflex"
+import {Effects, batch, nofx, html, thunk} from "reflex"
 import * as History from "../common/history"
 import * as Search from "../common/search"
+import {StyleSheet, Style} from '../common/style';
+import {prettify} from '../common/url-helper';
 
 /*:: import * as type from "../../type/browser/assistant" */
 
@@ -65,6 +67,7 @@ export const selectRelative/*:type.selectRelative*/ = (model, offset) => {
 // Returns entries in the form of a list `[topHit, ...search, ...page]` where
 // there can be at most one `topHit` and sum of search and page entries are
 // at most MAX_RESULTS also entries per type is split by even when possible.
+// @TODO we should limit search results to max 3... history can be more.
 const getAllSuggestions/*:type.getAllSuggestions*/ = model => {
   const sizes = countSuggestions(model);
   return (model.topHit == null ? [] : [model.topHit])
@@ -196,3 +199,157 @@ export const step/*:type.step*/ = (model, action) => {
     }
   }
 }
+
+const style = StyleSheet.create({
+  icon: {
+    color: 'rgba(0,0,0,0.7)',
+    fontFamily: 'FontAwesome',
+    fontSize: '17px',
+    left: '10px',
+    position: 'absolute'
+  },
+
+  iconSelected: {
+    color: '#fff'
+  },
+
+  results: {
+    listStyle: 'none',
+    margin: '115px auto 0',
+    padding: 0,
+    width: '460px'
+  },
+
+  result: {
+    borderBottom: '1px solid rgba(0,0,0,0.08)',
+    lineHeight: '40px',
+    overflow: 'hidden',
+    paddingLeft: '35px',
+    paddingRight: '10px',
+    position: 'relative', // Contains absolute elements.
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis'
+  },
+
+  resultTitle: {
+    color: 'rgba(0,0,0,0.7)',
+    fontSize: '14px'
+  },
+
+  resultTitleSelected: {
+    color: '#fff'
+  },
+
+  resultUrl: {
+    color: '#4A90E2',
+    fontSize: '14px'
+  },
+
+  resultUrlSelected: {
+    color: 'rgba(255,255,255,0.7)'
+  },
+
+  resultSelected: {
+    background: '#4A90E2',
+    borderBottomColor: 'transparent',
+    borderRadius: '3px'
+  },
+
+  resultAdjacentToSelected: {
+    borderColor: 'transparent'
+  }
+});
+
+// @TODO localize this string.
+const fallbackTitle = 'Untitled';
+
+// Render a title in a result
+const viewTitle = (model, index, selected) =>
+  html.span({
+    className: 'assistant-title',
+    style: Style(
+      style.resultTitle,
+      index === selected && style.resultTitleSelected
+    )
+  }, [History.readTitle(model, fallbackTitle)]);
+
+// Returns an array of vdom nodes. There's only one top hit, but returning
+// an array keeps the return value type consistent with the other 2 result view
+// functions.
+const viewTopHit = (model, index, selected, address) =>
+  html.li({
+    classname: 'assistant-result assistant-top-hit',
+    style: Style(
+      style.result,
+      index === selected && style.resultSelected
+    )
+  }, [
+    viewTitle(model, index, selected)
+  ]);
+
+// Returns an array of vdom nodes
+const viewHistory = (model, index, selected, address) =>
+  html.li({
+    classname: 'assistant-result assistant-history',
+    style: Style(
+      style.result,
+      index === selected && style.resultSelected,
+      index === selected - 1 && style.resultAdjacentToSelected
+    )
+  }, [
+    html.div({
+      className: 'assistant-icon',
+      style: Style(
+        style.icon,
+        index === selected && style.iconSelected
+      )
+    }, ['']),
+    viewTitle(model, index, selected),
+    html.span({
+      className: 'assistant-url',
+      style: Style(
+        style.resultUrl,
+        index === selected && style.resultUrlSelected
+      )
+    }, [` — ${prettify(model.uri)}`])
+  ]);
+
+// Returns an array of vdom nodes
+const viewSearch = (model, index, selected, address) =>
+  html.li({
+    classname: 'assistant-result assistant-search',
+    style: Style(
+      style.result,
+      index === selected && style.resultSelected,
+      index === selected - 1 && style.resultAdjacentToSelected
+    )
+  }, [
+    html.div({
+      className: 'assistant-icon',
+      style: Style(
+        style.icon,
+        index === selected && style.iconSelected
+      )
+    }, ['']),
+    viewTitle(model, index, selected)
+  ]);
+
+// Renders a result, picking the view function based on the model type.
+const viewResult = (model, index, selected, address) =>
+  model.type === 'History.TopHit' ?
+    viewTopHit(model, index, selected, address) :
+  model.type === 'History.PageMatch' ?
+    viewHistory(model, index, selected, address) :
+  // model.type === 'Search.Match' ?
+    viewSearch(model, index, selected, address);
+
+export const view/*:type.view*/ = (model, address) =>
+  html.div({
+    className: 'assistant'
+  }, [
+    html.ol({
+      className: 'assistant-results',
+      style: style.results
+    }, getAllSuggestions(model).map((entry, index) =>
+      thunk(entry.id, viewResult, entry, index, model.selected, address)))
+  ]);

@@ -17,6 +17,7 @@ import * as Navigation from './web-view/navigation';
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
 import {Style, StyleSheet} from '../common/style';
+import {prettify} from '../common/url-helper';
 
 export const open/*:type.open*/ = (id, options) => ({
   id: id,
@@ -66,7 +67,7 @@ export const readTitle/*:type.readTitle*/ = (model) =>
   // @TODO clean up URI and remove protocol stuff
   (model.page && model.page.title && model.page.title !== '') ?
     model.page.title :
-    model.navigation.currentURI;
+    prettify(model.navigation.currentURI);
 
 export const step/*:type.step*/ = (model, action) => {
   // Shell actions

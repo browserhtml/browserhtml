@@ -25,6 +25,9 @@
   }
   exports.StyleSheet = StyleSheet;
 
+  // Mix multiple style objects together. Will memoize the combination of styles
+  // to minimize object creation. Returns style object that is the result of
+  // mixing styles together.
   const Style = (...styles) => {
     var id = '0';
 
