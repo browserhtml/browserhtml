@@ -16,6 +16,7 @@ import * as Shell from '../browser/shell';
 
 const styleButton = StyleSheet.create({
   button: {
+    backgroundColor: 'transparent',
     backgroundImage: 'url(css/window-controls.sprite.png)',
     backgroundRepeat: 'no-repeat',
     // Scale sprite by 1/2 for retina.
