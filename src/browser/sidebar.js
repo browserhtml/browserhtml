@@ -6,11 +6,7 @@
 
 import {html} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
-
-// Read a tab title from a page model.
-// @TODO localize this string
-const readTitle = (page) =>
-  page.title && page.title !== '' ? page.title : page.uri;
+import {readTitle} from './web-view/page';
 
 const style = StyleSheet.create({
   sidebar: {

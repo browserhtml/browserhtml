@@ -130,6 +130,10 @@ export const step/*:type.step*/ = (model, action) => {
   }
 }
 
+const topBarHeight = '27px';
+const topBarMaxHeight = '66vh';
+const comboboxHeight = '21px';
+const comboboxWidth = '250px';
 
 const style = StyleSheet.create({
   webview: {
@@ -151,10 +155,10 @@ const style = StyleSheet.create({
   iframe: {
     display: 'block', // iframe are inline by default
     position: 'absolute',
-    // top: var(--webview-topbar-height),
+    top: topBarHeight,
     left: 0,
     width: '100%',
-    // height: calc(100% - var(--webview-topbar-height)),
+    height: `calc(100% - ${topBarHeight})`,
     mozUserSelect: 'none', // necessary to pass text drag to iframe's content
     borderWidth: 0,
     backgroundColor: 'white',
@@ -165,27 +169,27 @@ const style = StyleSheet.create({
     top: 0,
     left: 0,
     width: '100%',
-    // height: var(--webview-topbar-height),
+    height: topBarHeight + 'px',
   },
 
   topbarBackground: {
     position: 'absolute',
-    // height: var(--webview-expended-topbar-height),
+    height: topBarMaxHeight,
     width: '100%',
     top: 0,
     left: 0,
-    // transform: translateY(calc(-1 * var(--webview-expended-topbar-height) + var(--webview-topbar-height))),
+    transform: `translateY(calc(-1 * ${topBarMaxHeight} + ${topBarHeight}))`,
     backgroundColor: 'white', // dynamic
   },
 
-  combobar: {
+  combobox: {
     position: 'absolute',
     left: '50%',
     top: 0,
-    // height: var(--webview-combobox-height),
-    // width: var(--webview-combobox-width),
-    // margin-top: calc(var(--webview-topbar-height) / 2 - var(--webview-combobox-height) / 2),
-    // margin-left: calc(var(--webview-combobox-width) / -2),
+    height: comboboxHeight,
+    width: comboboxWidth,
+    marginTop: `calc(${topBarHeight} / 2 - ${comboboxHeight} / 2)`,
+    marginLeft: `calc(${comboboxWidth} / -2)`,
     color: 'rgba(0, 0, 0, 0.8)',
     borderRadius: '5px',
     cursor: 'text',
@@ -255,7 +259,10 @@ export const view/*:type.view*/ = (model, address) =>
         className: 'webview-topbar-background',
         style: Style(style.topbarBackground)
       }),
-      html.div({className: 'webview-combobar'}, [
+      html.div({
+        className: 'webview-combobox',
+        style: Style(style.combobox)
+      }, [
         html.div({className: 'webview-title-container'}, [
           html.span({className: 'webview-security-icon'}),
           html.span({className: 'webview-title'})
