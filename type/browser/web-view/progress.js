@@ -1,6 +1,7 @@
 /* @flow */
 
-import type {Effects, VirtualTree} from "reflex/type"
+import type {VirtualTree} from "reflex/type"
+import type {Effects} from "reflex/type/effects"
 import type {Time} from "../../common/prelude"
 
 export type Model = {

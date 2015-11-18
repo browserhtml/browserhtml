@@ -7,6 +7,7 @@
 /*:: import * as type from "../../type/browser/web-view/navigation" */
 
 import {merge} from '../../lang/object';
+import type {Effects} from "reflex/type/effects"
 
 // User interaction interaction may also triggered following actions:
 export const Stop/*:type.Stop*/ = {type: "WebView.Navigation.Stop"};
@@ -16,7 +17,7 @@ export const GoForward/*:type.GoForward*/ = {type: "WebView.Navigation.GoForward
 
 // @TODO IO
 
-export const initialize/*:type.initialize*/ = (uri) => ({
+export const initiate/*:type.initiate*/ = (uri) => ({
   canGoBack: false,
   canGoForward: false,
   initiatedURI: uri,

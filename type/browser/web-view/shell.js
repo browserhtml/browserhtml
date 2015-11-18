@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Focusable from "../../common/focusable"
+import type {Effects} from "reflex/type/effects"
 
 // Model extends Focusable.Model with isVisible and zoom fields
 export type Model
@@ -31,4 +32,6 @@ export type blur = (model:Model) => Model
 
 export type updateVisibility = (value:boolean, model:Model) => Model
 
+export type blank = Model
 export type update = (model:Model, action:Action) => Model
+export type step = (model:Model, action:Action) => [Model, Effects<Action>]

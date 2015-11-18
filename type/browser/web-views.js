@@ -12,47 +12,42 @@ export type Model = {
 }
 
 export type ByID = {
-  type: "WebViewList.ByID",
+  type: "WebViews.ByID",
   id: ID,
   action: WebView.Action
 }
 
 export type ByActive = {
-  type: "WebViewList.ByActive",
+  type: "WebViews.ByActive",
   action: WebView.Action
 }
 
-export type NewWebViewOptions = {
-  uri: URI,
-  inBackground: boolean,
-  name: string,
-  features: string
-}
+export type NewWebViewOptions = WebView.NewWebViewOptions
 
 export type Open
-  = {type: "WebViewList.Open"}
+  = {type: "WebViews.Open"}
   & NewWebViewOptions
 
 export type CloseActive = {
-  type: "WebViewList.CloseActive"
+  type: "WebViews.CloseActive"
 }
 
 export type CloseByID = {
-  type: "WebViewList.CloseByID",
+  type: "WebViews.CloseByID",
   id: ID
 }
 
 export type SelectByID = {
-  type: "WebViewList.SelectByID",
+  type: "WebViews.SelectByID",
   id: ID
 }
 
 export type ActivateSelected = {
-  type: "WebViewList.ActivateSelected"
+  type: "WebViews.ActivateSelected"
 }
 
 export type ActivateByID = {
-  type: "WebViewList.ActivateByID",
+  type: "WebViews.ActivateByID",
   id: ID
 }
 
@@ -65,6 +60,7 @@ export type Action
 
 
 export type indexByID = (model:Model, id:ID) => number
+export type indexOfOffset = (index:number, size:number, offset:number, loop:boolean) => number
 export type open = (model:Model, options:NewWebViewOptions) => Model
 
 export type closeActive = (model:Model) => Model
@@ -72,6 +68,8 @@ export type closeByIndex = (model:Model, index:number) => Model
 export type closeByID = (model:Model, id:ID) => Model
 
 export type selectByID = (model:Model, id:ID) => Model
+export type selectByIndex = (model:Model, index:number) => Model
+export type selectByOffset = (model:Model, offset:number) => Model
 
 export type activateSelected = (model:Model) => Model
 export type activateByID = (model:Model, id:ID) => Model

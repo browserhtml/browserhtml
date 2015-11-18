@@ -16,6 +16,12 @@ const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2;
 const ZOOM_STEP = 0.1;
 
+export const initial = ({
+  isFocused: false,
+  isVisible: false,
+  zoom: 1
+})
+
 export const resetZoom/*:type.resetZoom*/ = (model) =>
   merge(model, {zoom: 1});
 
@@ -26,7 +32,7 @@ export const zoomOut/*:type.zoomOut*/ = (model) =>
   merge(model, {zoom: Math.max(ZOOM_MIN, model.zoom - ZOOM_STEP)});
 
 export const updateVisibility/*:type.updateVisibility*/ = (value, model) =>
-  merge(model, {value});
+  merge(model, {isVisible: value});
 
 export const update/*:type.update*/ = (model, action) =>
   action.type === 'WebView.Shell.VisibilityChanged' ?

@@ -13,6 +13,8 @@ import * as Rotation from "./web-view/rotation"
 
 export type Model = {
   id: ID,
+  name: string,
+  features: string,
   isSelected: boolean,
   isActive: boolean,
   shell: Shell.Model,
@@ -21,6 +23,14 @@ export type Model = {
   security: Security.Model,
   page: ?Page.Model
 }
+
+export type NewWebViewOptions = {
+  uri: URI,
+  inBackground: boolean,
+  name: string,
+  features: string
+}
+
 
 export type Response
   = Navigation.Response
@@ -35,6 +45,12 @@ export type Action
   | Security.Action
   | Page.Action
 
+
+export type open = (id:ID, options:NewWebViewOptions) => Model
+export type select = (model:Model) => Model
+export type unselect = (model:Model) => Model
+export type activate = (model:Model) => Model
+export type dectivate = (model:Model) => Model
 
 export type step = (model:Model, action:Action) => [Model, Effects<Response>]
 

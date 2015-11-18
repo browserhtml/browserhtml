@@ -16,56 +16,116 @@ import * as Security from './web-view/security';
 import * as Page from './web-view/page';
 import {Style, StyleSheet} from '../common/style';
 
-export const step/*:type.step*/ = (model, action) =>
+export const open/*:type.open*/ = (id, options) => ({
+  id: id,
+  name: options.name,
+  features: options.name,
+  isSelected: false,
+  isActive: false,
+  shell: Shell.initial,
+  security: Security.initial,
+  navigation: Navigation.initiate(options.uri),
+  progress: null,
+  page: null
+})
+
+const selected = {isSelected: true};
+const unselected = {isSelected: false};
+
+export const select/*:type.select*/ = model =>
+  model.isSelected ?
+    model :
+    merge(model, selected);
+
+export const unselect/*:type.unselect*/ = model =>
+  model.isSelected ?
+    merge(model, unselected) :
+    model;
+
+export const activate/*:type.activate*/ = model =>
+  model.isActive ?
+    model :
+    merge(model, {
+      isActive: true,
+      shell: Focusable.focus(model.shell)
+    });
+
+export const deactivate/*:type.deactivate*/ = model =>
+  model.isActive ?
+    merge(model, {
+      isActive: false,
+      shell: Focusable.blur(model.shell)
+    }) :
+    model;
+
+
+export const step/*:type.step*/ (model, action) => {
   // Shell actions
-  action.type === "Focusable.FocusRequest" ?
-    [updateIn('shell', Shell.update, model, action), Effects.none] :
-  action.type === "Focusable.Focus" ?
-    [updateIn('shell', Shell.update, model, action), Effects.none] :
-  action.type === "Focusable.Blur" ?
-    [updateIn('shell', Shell.update, model, action), Effects.none] :
-  action.type === "Target.Over" ?
-    [updateIn('shell', Shell.update, model, action), Effects.none] :
-  action.type === "Target.Out" ?
-    [updateIn('shell', Shell.update, model, action), Effects.none] :
-
+  if (action.type === "Focusable.FocusRequest") {
+    return [activate(model), Effects.none];
+  }
+  else if (action.type === "Focusable.Focus") {
+    return [activate(model), Effects.none];
+  }
+  else if (action.type === "Focusable.Blur") {
+    const [shell, fx] = Shell.step(model.shell, action);
+    return [merge(model, {shell}), fx];
+  }
   // Progress actions
-  action.type === 'WebView.Progress.Start' ?
-    stepIn('progress', Progress.update, model, action) :
-  action.type === 'WebView.Progress.End' ?
-    stepIn('progress', Progress.update, model, action) :
-  action.type === 'WebView.Progress.Tick' ?
-    stepIn('progress', Progress.update, model, action) :
-  // @TODO navigation
+  else if (action.type === 'WebView.Progress.Tick')
+  {
+    const [progress, fx] = Progress.update(model.progress, action);
+    return [merge(model, {progress}), fx];
+  }
+  else if (action.type === 'WebView.Progress.Start'
+        || action.type === 'WebView.Progress.End')
+  {
+    const [progress, progressFx] = Progress.step(model.progress, action);
+    const [security, securityFx] = Security.step(model.security, action);
+    const [page, pageFx] = Page.step(model.page, action);
+    const [navigation, navigationFx] = Navigation.step(model.navigation, action);
 
-  // Security actions
-  action.type === 'WebView.Security.Changed' ?
-    [updateIn('security', Security.update, model, action), Effects.none] :
-
+    return [
+      merge(model, {progress, security, page, navigation}),
+      Effects.batch([progressFx, securityFx, pageFx, navigationFx])
+    ]
+  }
+  else if (action.type === 'WebView.Navigation.Load'
+        || action.type === 'WebView.Loader.LocationChanged'
+        || action.type === 'WebView.Navigation.CanGoBackChanged'
+        || action.type === 'WebView.Navigation.CanGoForwardChanged'
+        || action.type === 'WebView.Navigation.Stop'
+        || action.type === 'WebView.Navigation.Reload'
+        || action.type === 'WebView.Navigation.GoBack'
+        || action.type === 'WebView.Navigation.GoForward')
+  {
+    const [navigation, fx] = Navigation.step(model.navigation, action);
+    return [merge(model, {navigation}, fx];
+  }
+  else if (action.type === 'WebView.Security.Changed') {
+    const [security, fx] = Security.step(model.security, action);
+    return [merge(model, {security}), fx];
+  }
   // Page actions
-  action.type === 'WebView.Page.ScreenshotUpdate' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.CuratedColorUpdate' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.ColorScraped' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.DocumentFirstPaint' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.FirstPaint' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.MetaChanged' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.TitleChanged' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.IconChanged' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.OverflowChanged' ?
-    stepIn('page', Page.step, model, action) :
-  action.type === 'WebView.Page.Scrolled' ?
-    stepIn('page', Page.step, model, action) :
+ else if (action.type === 'WebView.Page.ScreenshotUpdate'
+        || action.type === 'WebView.Page.CuratedColorUpdate'
+        || action.type === 'WebView.Page.ColorScraped'
+        || action.type === 'WebView.Page.DocumentFirstPaint'
+        || action.type === 'WebView.Page.FirstPaint'
+        || action.type === 'WebView.Page.MetaChanged'
+        || action.type === 'WebView.Page.TitleChanged'
+        || action.type === 'WebView.Page.IconChanged'
+        || action.type === 'WebView.Page.OverflowChanged'
+        || action.type === 'WebView.Page.Scrolled')
+  {
+    const [page, fx] = Page.step(model.page, action);
+    return [merge(model, {page}), fx];
+  }
+  else {
+    return [model, Effects.none];
+  }
+}
 
-  // Default
-  [model, Effects.none];
 
 const style = StyleSheet.create({
   webview: {
@@ -198,3 +258,4 @@ export const view/*:type.view*/ = (model, address) =>
       html.div({className: 'webview-show-sidebar-button'})
     ])
   ]);
+

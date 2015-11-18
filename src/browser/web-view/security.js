@@ -12,11 +12,11 @@ export const asChanged = (state, extendedValidation) => ({
   extendedValidation,
 });
 
-export const initialize/*:type.initialize*/ = () => ({
+export const initial/*:type.initial*/ = {
   state: 'insecure',
   secure: false,
   extendedValidation: false,
-});
+};
 
 export const update/*:type.update*/ = (model, action) =>
   action.type === 'WebView.Security.Changed' ?

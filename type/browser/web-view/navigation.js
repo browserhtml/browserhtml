@@ -12,7 +12,7 @@ export type Model = {
   // loading & technically it won't be displayed). This uri updates during any
   // redirects or when user navigates away by going back / forward or by
   // navigating to a new uri.
-  currentURI: ?URI,
+  currentURI: URI,
 
   // URI that was entered in a location bar by a user. Note this may not be an
   // uri of currently loaded page as uri could have being redirect or user could
@@ -50,7 +50,7 @@ export type CanGoForwardChanged = {
 // `uri` field directly corresponds to `initiatedURI` field on the model,
 // althoug this action also updates `currentURI`.
 export type Load = {
-  type: "WebView.Loader.Load",
+  type: "WebView.Navigation.Load",
   uri: URI
 }
 
@@ -93,7 +93,7 @@ export type goForward = (id:ID) => Effects<void>
 
 // Returns:
 //  {canGoBack: false, canGoForward: false, initiatedURI: uri, currentURI: uri}
-export type initialize = (uri:URI) => Model
+export type initiate = (uri:URI) => Model
 
 // Returns:
 // {...model, initiatedURI: uri, currentURI: uri}
