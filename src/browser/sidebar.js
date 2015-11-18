@@ -6,7 +6,7 @@
 
 import {html} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
-import {readTitle} from './web-view/page';
+import {readTitle} from './web-view';
 
 const style = StyleSheet.create({
   sidebar: {
@@ -55,21 +55,21 @@ const style = StyleSheet.create({
   }
 });
 
-const viewTab = ({page}, address) =>
+const viewTab = (model, address) =>
   html.div({
     className: 'sidebar-tab',
     style: Style(style.tab)
   }, [
     html.div({
-      src: page.faviconURI,
+      src: model.page.faviconURI,
       style: Style(style.favicon, {
-        backgroundImage: `url(page.faviconURI)`
+        backgroundImage: `url(model.page.faviconURI)`
       })
     }),
     html.div({
       className: 'sidebar-tab-title',
       style: Style(style.title)
-    }, [readTitle(page)])
+    }, [readTitle(model)])
   ]);
 
 export const view = ({entries}, address) =>

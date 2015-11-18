@@ -62,6 +62,10 @@ export const deactivate/*:type.deactivate*/ = model =>
 
 export const asLoad = Navigation.asLoad;
 
+export const readTitle/*:type.readTitle*/ = (model) =>
+  // @TODO clean up URI and remove protocol stuff
+  model.page && model.page.title && model.page.title !== '' ?
+    model.page.title : model.page.uri;
 
 export const step/*:type.step*/ = (model, action) => {
   // Shell actions
@@ -277,7 +281,11 @@ export const view/*:type.view*/ = (model, address) =>
           style: Style(style.titleContainer)
         }, [
           html.span({className: 'webview-security-icon'}),
-          html.span({className: 'webview-title'})
+          html.span({
+            className: 'webview-title'
+          }, [
+            readTitle(model)
+          ])
         ])
       ]),
       html.div({className: 'webview-show-sidebar-button'})
