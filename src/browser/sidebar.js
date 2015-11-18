@@ -4,9 +4,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {html} from 'reflex';
+import {html, thunk} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
-import {readTitle} from './web-view/page';
+import {readTitle} from './web-view';
 
 const style = StyleSheet.create({
   sidebar: {
@@ -55,21 +55,21 @@ const style = StyleSheet.create({
   }
 });
 
-const viewTab = ({page}, address) =>
+const viewTab = (model, address) =>
   html.div({
     className: 'sidebar-tab',
     style: Style(style.tab)
   }, [
     html.div({
-      src: page.faviconURI,
+      src: model.page.faviconURI,
       style: Style(style.favicon, {
-        backgroundImage: `url(page.faviconURI)`
+        backgroundImage: `url(model.page.faviconURI)`
       })
     }),
     html.div({
       className: 'sidebar-tab-title',
       style: Style(style.title)
-    }, [readTitle(page)])
+    }, [readTitle(model)])
   ]);
 
 export const view = ({entries}, address) =>
@@ -79,7 +79,7 @@ export const view = ({entries}, address) =>
   }, [
     html.div({
       className: 'sidebar-tabs-scrollbox'
-    }, entries.map(entry => viewTab(entry, address))),
+    }, entries.map(entry => thunk(entry.id, viewTab, entry, address))),
     html.div({
       className: 'sidebar-toolbar'
     })

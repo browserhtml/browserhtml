@@ -62,5 +62,3 @@ export type Action
 
 export type initialize = (uri:URI) => Model
 export type step = (model:Model, action:Action) => [Model, Effects<Response>]
-
-export type readTitle = (model:Model) => string
