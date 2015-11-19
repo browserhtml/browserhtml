@@ -253,6 +253,15 @@ const style = StyleSheet.create({
     textOverflow: 'ellipsis'
   },
 
+  // Also has some hover styles defined in theme.css
+  iconSearch: {
+    color: 'rgba(0,0,0,0.7)',
+    fontFamily: 'FontAwesome',
+    fontSize: '14px',
+    left: '5px',
+    position: 'absolute',
+  },
+
   iconSecure: {
     fontFamily: 'FontAwesome',
     color: 'rgba(0,0,0,0.7)',
@@ -334,6 +343,10 @@ export const view/*:type.view*/ = (model, address) =>
         className: 'webview-combobox',
         style: style.combobox
       }, [
+        html.span({
+          className: 'webview-search-icon',
+          style: style.iconSearch
+        }, ['']),
         html.div({
           className: 'webview-title-container',
           style: style.titleContainer

@@ -32,3 +32,11 @@ body {
 .webview-is-dark .webview-combobox:hover {
   background: rgba(255,255,255,0.1);
 }
+
+.webview-combobox .webview-search-icon {
+  opacity: 0;
+}
+
+.webview-combobox:hover .webview-search-icon {
+  opacity: 1;
+}
