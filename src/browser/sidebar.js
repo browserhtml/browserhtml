@@ -8,6 +8,8 @@ import {html, thunk} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
 import {readTitle} from './web-view';
 
+const sidebarToolbarHeight = '50px';
+
 const style = StyleSheet.create({
   sidebar: {
     // WARNING: will slow down animations! (gecko)
@@ -24,6 +26,13 @@ const style = StyleSheet.create({
     transform: 'translateX(380px)',
   },
 
+  scrollbox: {
+    width: '100%',
+    height: `calc(100% - ${sidebarToolbarHeight})`,
+    paddingTop: '35px',
+    overflowY: 'scroll',
+  },
+
   tab: {
     borderRadius: '5px',
     padding: '0 15px',
@@ -35,7 +44,7 @@ const style = StyleSheet.create({
     position: 'relative'
   },
 
-  tabHover: {
+  tabSelected: {
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
 
@@ -73,7 +82,10 @@ const viewImage = (style, uri) =>
 const viewTab = (model, address) =>
   html.div({
     className: 'sidebar-tab',
-    style: Style(style.tab)
+    style: Style(
+      style.tab,
+      model.isSelected && style.tabSelected
+    )
   }, [
     thunk('favicon',
           viewImage,
@@ -81,17 +93,18 @@ const viewTab = (model, address) =>
           model.page && model.page.faviconURI),
     html.div({
       className: 'sidebar-tab-title',
-      style: Style(style.title)
+      style: style.title
     }, [readTitle(model)])
   ]);
 
 export const view = ({entries}, address) =>
   html.div({
     className: 'sidebar',
-    style: Style(style.sidebar),
+    style: style.sidebar,
   }, [
     html.div({
-      className: 'sidebar-tabs-scrollbox'
+      className: 'sidebar-tabs-scrollbox',
+      style: style.scrollbox
     }, entries.map(entry => thunk(entry.id, viewTab, entry, address))),
     html.div({
       className: 'sidebar-toolbar'
