@@ -98,9 +98,6 @@ export const prettify = (input) =>
   // Don't mess with about:x
   isAboutURL(input) ?
     input :
-  // Display https, since that's relevant.
-  getProtocol(input) === 'https:' ?
-    input :
   // If there's a meaningful pathname, keep it.
   getPathname(input) !== '/' ?
     (getHostname(input) + getPathname(input)) :

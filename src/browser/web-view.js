@@ -78,6 +78,9 @@ export const readTitle/*:type.readTitle*/ = (model) =>
     model.page.title :
     URI.prettify(model.navigation.currentURI);
 
+export const isDark/*:type.isDark*/ = (model) =>
+  model.page ? model.page.pallet.isDark : false;
+
 export const step/*:type.step*/ = (model, action) => {
   // Shell actions
   if (action.type === "WebView.Select") {
@@ -228,6 +231,7 @@ const style = StyleSheet.create({
     left: '50%',
     top: 0,
     height: comboboxHeight,
+    lineHeight: comboboxHeight,
     width: comboboxWidth,
     marginTop: `calc(${topBarHeight} / 2 - ${comboboxHeight} / 2)`,
     marginLeft: `calc(${comboboxWidth} / -2)`,
@@ -237,6 +241,7 @@ const style = StyleSheet.create({
   },
 
   titleContainer: {
+    color: 'rgba(0,0,0,0.8)',
     position: 'absolute',
     top: 0,
     left: 0,
@@ -246,6 +251,16 @@ const style = StyleSheet.create({
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis'
+  },
+
+  iconSecure: {
+    fontFamily: 'FontAwesome',
+    color: 'rgba(0,0,0,0.7)',
+    marginRight: '6px'
+  },
+
+  iconInsecure: {
+    display: 'none'
   }
 });
 
@@ -299,7 +314,7 @@ const viewFrame = (model, address) =>
 
 export const view/*:type.view*/ = (model, address) =>
   html.div({
-    className: 'webview',
+    className: isDark(model) ? 'webview webview-is-dark' : 'webview',
     style: Style(
       style.webview,
       !model.isActive && style.webViewInactive
@@ -309,21 +324,25 @@ export const view/*:type.view*/ = (model, address) =>
     html.div({className: 'webview-local-overlay'}),
     html.div({
       className: 'webview-topbar',
-      style: Style(style.topbar)
+      style: style.topbar
     }, [
       html.div({
         className: 'webview-topbar-background',
-        style: Style(style.topbarBackground)
+        style: style.topbarBackground
       }),
       html.div({
         className: 'webview-combobox',
-        style: Style(style.combobox)
+        style: style.combobox
       }, [
         html.div({
           className: 'webview-title-container',
-          style: Style(style.titleContainer)
+          style: style.titleContainer
         }, [
-          html.span({className: 'webview-security-icon'}),
+          html.span({
+            className: 'webview-security-icon',
+            style: model.security.secure ?
+              style.iconSecure : style.iconInsecure
+          }, ['']),
           html.span({
             className: 'webview-title'
           }, [
