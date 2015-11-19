@@ -24,3 +24,7 @@ body {
   height: 100vh;
   overflow: hidden;
 }
+
+.webview-combobox:hover {
+  background: rgba(0,0,0,0.1);
+}
