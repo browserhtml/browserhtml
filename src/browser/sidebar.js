@@ -76,7 +76,7 @@ const viewImage = (style, uri) =>
     src: uri == null ? void(0) : uri,
     style: uri == null ?
             style :
-            Style(style.image, {backgroundImage: `uri(${uri})`})
+            Style(style.image, {backgroundImage: `url(${uri})`})
   });
 
 const viewTab = (model, address) =>
