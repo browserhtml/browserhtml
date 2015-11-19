@@ -42,7 +42,7 @@ export const navigateTo = (model, uri) => {
       Effects.none
     ]
   } else {
-    stepByActive(model, WebView.asLoad(uri))
+    return stepByActive(model, WebView.asLoad(uri))
   }
 }
 
@@ -211,7 +211,7 @@ export const stepByIndex/*:type.stepByIndex*/ = (model, index, action) => {
     return [model, Effects.none];
   } else {
     const [entry, fx] = WebView.step(entries[index], action);
-    return [merge(module, {entries: set(entries, index, entry)}), fx];
+    return [merge(model, {entries: set(entries, index, entry)}), fx];
   }
 }
 
