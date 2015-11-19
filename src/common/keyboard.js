@@ -79,7 +79,6 @@ export const bindings/*:type.keyBindings*/ = bindingTable => {
 
   return event => {
     const combination = writeChord(event);
-    console.log(combination);
     const binding = bindings[combination]
 
     if (binding == null) {
