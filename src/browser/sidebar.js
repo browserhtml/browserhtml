@@ -40,8 +40,11 @@ const style = StyleSheet.create({
     color: '#fff',
     fontSize: '14px',
     margin: '0 35px',
-    padding: '0 33px',
-    position: 'relative'
+    overflow: 'hidden',
+    padding: '0 10px 0 33px',
+    position: 'relative',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
   },
 
   tabSelected: {
