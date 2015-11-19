@@ -78,6 +78,9 @@ export const readTitle/*:type.readTitle*/ = (model) =>
     model.page.title :
     URI.prettify(model.navigation.currentURI);
 
+export const isDark/*:type.isDark*/ = (model) =>
+  model.page ? model.page.pallet.isDark : false;
+
 export const step/*:type.step*/ = (model, action) => {
   // Shell actions
   if (action.type === "WebView.Select") {
@@ -311,7 +314,7 @@ const viewFrame = (model, address) =>
 
 export const view/*:type.view*/ = (model, address) =>
   html.div({
-    className: 'webview',
+    className: isDark(model) ? 'webview webview-is-dark' : 'webview',
     style: Style(
       style.webview,
       !model.isActive && style.webViewInactive
