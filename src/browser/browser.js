@@ -143,14 +143,6 @@ export const view/*:type.view*/ = (model, address) =>
     onFocus: onWindow(forward(address, asFor("shell")), Focusable.asFocus),
     // onUnload: () => address(Session.SaveSession),
   }, [
-    thunk('controls',
-          WindowControls.view,
-          model.shell,
-          forward(address, asFor("shell"))),
-    thunk('input',
-          Input.view,
-          model.input,
-          forward(address, asFor("input"))),
     thunk('web-views',
           WebViews.view,
           model.webViews,
@@ -158,5 +150,17 @@ export const view/*:type.view*/ = (model, address) =>
     thunk('sidebar',
           Sidebar.view,
           model.webViews,
-          forward(address, asFor("webViews")))
+          forward(address, asFor("webViews"))),
+    thunk('input',
+          Input.view,
+          model.input,
+          forward(address, asFor("input"))),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address),
+    thunk('controls',
+      WindowControls.view,
+      model.shell,
+      forward(address, asFor("shell")))
   ]);
