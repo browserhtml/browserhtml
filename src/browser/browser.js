@@ -17,6 +17,7 @@ import {asFor, merge, always} from "../common/prelude";
 import * as Focusable from "../common/focusable";
 import * as OS from '../common/os';
 import * as Keyboard from '../common/keyboard';
+import {Style, StyleSheet} from '../common/style';
 
 import {identity} from "../lang/functional";
 import {updateIn} from "../lang/object";
@@ -133,9 +134,23 @@ export const step/*:type.step*/ = (model, action) =>
     stepFor(action.target, model, action.action) :
     [model, Effects.none];
 
+const style = StyleSheet.create({
+  root: {
+    background: '#24303D',
+    perspective: '1000px',
+    // These styles prevent scrolling with the arrow keys in the root window
+    // when elements move outside of viewport.
+    width: '100vw',
+    height: '100vh',
+    overflow: 'hidden',
+    position: 'absolute'
+  }
+});
+
 export const view/*:type.view*/ = (model, address) =>
   html.div({
-    key: 'root',
+    className: 'root',
+    style: style.root,
     tabIndex: 1,
     onKeyDown: onWindow(forward(address, asFor("Browser.KeyDown")), keyDown),
     onKeyUp: onWindow(forward(address, asFor("Browser.KeyUp")), keyUp),
