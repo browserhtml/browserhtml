@@ -166,7 +166,7 @@ export const step/*:type.step*/ = (model, action) => {
       Effects.none
     ]
   } else if (action.type === "Assistant.Query") {
-    if (module.query === action.input) {
+    if (model.query === action.input) {
       return [model, Effects.none]
     } else {
       return [
