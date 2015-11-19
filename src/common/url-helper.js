@@ -1,8 +1,8 @@
+// @TODO write type signatures
+
 /* this source code form is subject to the terms of the mozilla public
  * license, v. 2.0. if a copy of the mpl was not distributed with this
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
-
-'use strict';
 
 const nullURL = {
   origin: null,
@@ -92,3 +92,17 @@ export const asAboutURI = uri => {
   const about = base.origin === origin ? readAboutTerm(pathname) : null;
   return about != null ? `about:${about}` : null;
 }
+
+// Prettify a URL for display purposes. Will minimize the amount of URL cruft.
+export const prettify = (input) =>
+  // Don't mess with about:x
+  isAboutURL(input) ?
+    input :
+  // Display https, since that's relevant.
+  getProtocol(input) === 'https:' ?
+    input :
+  // If there's a meaningful pathname, keep it.
+  getPathname(input) !== '/' ?
+    (getHostname(input) + getPathname(input)) :
+  // Otherwise, just show the hostname
+  getHostname(input);

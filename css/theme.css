@@ -5,40 +5,12 @@
   font-style: normal;
 }
 
-.location-bar {
-  position: relative;
-}
-
-.location-bar:hover {
-  background-color: rgba(0,0,0,0.1);
-}
-
-.is-dark .location-bar:hover {
-  background-color: rgba(255,255,255,0.15);
-}
-
-.location-search-icon {
-  visibility: hidden;
-}
-
-.location-bar:hover > .location-search-icon {
-  visibility: visible;
-}
-
 * {
   -moz-appearance: none;
-  background-color: transparent;
-  background-image: none;
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  min-width: 0;
   border-width: 0;
-  font-family: "Helvetica", sans-serif;
-  font-size: 12px;
   /* image-rendering: -moz-crisp-edges; */
-  white-space: nowrap;
-  vertical-align: middle;
 }
 
 *::-moz-focus-inner {
@@ -47,17 +19,8 @@
 
 /* Prevents scrollbars to show up with out-of-window elements */
 body {
+  font: 12px/1.5 "Helvetica Neue", sans-serif;
+  width: 100vw;
   height: 100vh;
   overflow: hidden;
-}
-
-@keyframes progressBarLoading {
-  from {
-    transform: translateX(-100vw);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(-40vw);
-    opacity: 1;
-  }
 }

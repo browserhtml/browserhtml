@@ -8,6 +8,8 @@ import {html, thunk} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
 import {readTitle} from './web-view';
 
+const sidebarToolbarHeight = '50px';
+
 const style = StyleSheet.create({
   sidebar: {
     // WARNING: will slow down animations! (gecko)
@@ -24,6 +26,13 @@ const style = StyleSheet.create({
     transform: 'translateX(380px)',
   },
 
+  scrollbox: {
+    width: '100%',
+    height: `calc(100% - ${sidebarToolbarHeight})`,
+    paddingTop: '35px',
+    overflowY: 'scroll',
+  },
+
   tab: {
     borderRadius: '5px',
     padding: '0 15px',
@@ -31,11 +40,14 @@ const style = StyleSheet.create({
     color: '#fff',
     fontSize: '14px',
     margin: '0 35px',
-    padding: '0 33px',
-    position: 'relative'
+    overflow: 'hidden',
+    padding: '0 10px 0 33px',
+    position: 'relative',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
   },
 
-  tabHover: {
+  tabSelected: {
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
 
@@ -44,7 +56,6 @@ const style = StyleSheet.create({
   },
 
   image: {
-    backgroundColor: 'transparent',
     backgroundSize: 'cover',
     backgroundPosition: 'center center',
     backgroundRepeat: 'no-repeat',
@@ -55,7 +66,7 @@ const style = StyleSheet.create({
     borderRadius: '3px',
     left: '9px',
     position: 'absolute',
-    top: '8px',
+    top: '9px',
     width: '16px',
     height: '16px',
   }
@@ -66,14 +77,17 @@ const viewImage = (style, uri) =>
   html.img({
     src: uri == null ? void(0) : uri,
     style: uri == null ?
-            style :
-            Style(style.image, {backgroundImage: `uri(${uri})`})
+            Style(style.image, style, {backgroundColor: 'rgba(255,255,255,0.1)'}) :
+            Style(style.image, style, {backgroundImage: `url(${uri})`})
   });
 
 const viewTab = (model, address) =>
   html.div({
     className: 'sidebar-tab',
-    style: Style(style.tab)
+    style: Style(
+      style.tab,
+      model.isSelected && style.tabSelected
+    )
   }, [
     thunk('favicon',
           viewImage,
@@ -81,17 +95,18 @@ const viewTab = (model, address) =>
           model.page && model.page.faviconURI),
     html.div({
       className: 'sidebar-tab-title',
-      style: Style(style.title)
+      style: style.title
     }, [readTitle(model)])
   ]);
 
 export const view = ({entries}, address) =>
   html.div({
     className: 'sidebar',
-    style: Style(style.sidebar),
+    style: style.sidebar,
   }, [
     html.div({
-      className: 'sidebar-tabs-scrollbox'
+      className: 'sidebar-tabs-scrollbox',
+      style: style.scrollbox
     }, entries.map(entry => thunk(entry.id, viewTab, entry, address))),
     html.div({
       className: 'sidebar-toolbar'

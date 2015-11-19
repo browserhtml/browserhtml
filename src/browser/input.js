@@ -82,9 +82,10 @@ const style = StyleSheet.create({
     position: 'absolute',
     padding: '0 32px',
     top: '40px',
-    width: inputWidth + 'px',
+    width: (inputWidth - (32 * 2)) + 'px',
   },
   field: {
+    background: 'transparent',
     borderWidth: 0,
     fontSize: '14px',
     mozAppearance: 'none',
@@ -119,22 +120,22 @@ const style = StyleSheet.create({
 
 export const view = (model, address) =>
   html.div({
-    key: 'combobox',
+    className: 'input-combobox',
     style: Style(style.combobox)
   }, [
     html.span({
-      key: 'search-icon',
+      className: 'input-search-icon',
       style: Style(style.searchIcon)
     }, ['']),
     html.span({
-      key: 'clear-icon',
+      className: 'input-clear-icon',
       style: Style(
         style.clearIcon,
         model.value === '' && style.clearIconInactive
       )
     }, ['']),
     html.input({
-      key: 'input',
+      className: 'input-field',
       placeholder: 'Search or enter address',
       style: Style(style.field),
       type: 'text',

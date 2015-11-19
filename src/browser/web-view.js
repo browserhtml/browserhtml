@@ -76,7 +76,7 @@ export const readTitle/*:type.readTitle*/ = (model) =>
   // @TODO clean up URI and remove protocol stuff
   (model.page && model.page.title && model.page.title !== '') ?
     model.page.title :
-    model.navigation.currentURI;
+    URI.prettify(model.navigation.currentURI);
 
 export const step/*:type.step*/ = (model, action) => {
   // Shell actions
@@ -243,6 +243,9 @@ const style = StyleSheet.create({
     width: '100%',
     textAlign: 'center',
     fontWeight: 'bold',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   }
 });
 
