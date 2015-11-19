@@ -208,6 +208,9 @@ const style = StyleSheet.create({
     width: '100%',
     textAlign: 'center',
     fontWeight: 'bold',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   }
 });
 
