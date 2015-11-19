@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {identity} from '../../lang/functional'
-import {forward} from 'reflex'
+import {forward, Effects, Task} from 'reflex'
 export {Renderer} from 'reflex-virtual-dom-driver'
 
 // @TODO documentation
@@ -232,24 +232,31 @@ export const navigate = metaProperty((node, next, previous) => {
   }
 });
 
-class Opener {
-  constructor(value) {
-    this.value = values
+class UseElement {
+  constructor() {
+  }
+  use(element) {
+    this.element = element
   }
   hook(target, name, previous) {
-    if (target != this.value) {
-      return transplant(this.value, element)
+    const {element} = this;
+    if (element != null) {
+      this.element = null;
+      if (target != element) {
+        for (let {name, value} of target) {
+          element.setAttribute(name, value);
+        }
+
+        for (let name of target.properties.names) {
+          element[name] = target[name]
+        }
+      }
+      return element;
     }
   }
 }
 
-export const opener = value => {
-  const isBoxed = value != null && typeof(value.unbox) == "function"
-  const unboxed = isBoxed ? value.unbox() : value
-
-  return unboxed != null ? new Opener(unboxed) : unboxed
-}
-
+export const element = new UseElement()
 
 const $onAnimationFrame = Symbol.for('onAnimationFrame')
 class OnAnimationFrame {
@@ -400,3 +407,7 @@ export const onCanGoForwardChange = (address, decode) => {
 
   return address[id]
 }
+
+
+
+export const force = Effects.task(Task.succeed({type: "Driver.Execute"}));

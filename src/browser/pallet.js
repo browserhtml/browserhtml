@@ -40,9 +40,13 @@ export const isDark/*:type.isDark*/ = color => {
   return (tcolor.isDark() || !isHexBright(tcolor.toHex()));
 }
 
+export const blank/*:type.blank*/ = {
+  isDark: false,
+  foreground: null,
+  background: null
+};
+
 export const initialize/*:type.initialize*/ = (background, foreground) => ({
   background, foreground,
   isDark: isDark(background),
 });
-
-// @TODO Service

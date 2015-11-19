@@ -16,7 +16,7 @@ export type Changed = {
 
 export type Action = Changed;
 
-export type asChanged = (state: string, extendedValidation: boolean) => Model;
+export type asChanged = (state: string, extendedValidation: boolean) => Changed;
 
 export type initial = Model;
 export type update = (model:Model, action:Action) => Model;

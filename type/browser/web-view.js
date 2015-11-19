@@ -11,6 +11,15 @@ import * as Page from "./web-view/page"
 import * as Rotation from "./web-view/rotation"
 
 
+export type Activate = {type: "WebView.Activate"}
+export type Close = {type: "WebView.Close"}
+export type Select = {type: "WebView.Select"}
+
+export type ContextMenu = {type: "WebView.ContextMenu", detail: any}
+export type ModalPrompt = {type: "WebView.ModalPrompt", detail: any}
+export type Authentificate = {type: "WebView.Authentificate", detail: any}
+export type Failure = {type: "WebView.Failure", detail: any}
+
 export type Model = {
   id: ID,
   name: string,
@@ -44,6 +53,8 @@ export type Action
   | Navigation.Action
   | Security.Action
   | Page.Action
+  | Select | Activate
+  | ContextMenu | ModalPrompt | Authentificate | Failure
 
 
 export type open = (id:ID, options:NewWebViewOptions) => Model

@@ -38,6 +38,18 @@ const application = start({
 
 const renderer = new Renderer({target: document.body});
 application.view.subscribe(renderer.address);
-application.task.subscribe(Effects.service(application.address));
+
+// Mozbrowser API has cerntain events that need to be handler with-in
+// the same tick otherwise it's not going to work. To handle those events
+// properly we use `Driver.force` effect that sends in special
+// `{type: "Driver.Execute"}` action on which we force a render to run in
+// the same tick.
+application.task.subscribe(Effects.service(action => {
+  if (action.type === "Driver.Execute") {
+    renderer.execute();
+  } else {
+    application.address(action);
+  }
+}));
 
 window.application = application;

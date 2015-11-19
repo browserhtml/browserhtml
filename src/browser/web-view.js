@@ -7,16 +7,26 @@
 /*:: import * as type from "../../type/browser/web-view" */
 
 import {Effects, html} from 'reflex';
-import {merge} from '../common/prelude';
+import {merge, always} from '../common/prelude';
 import {on, onCanGoBackChange, onCanGoForwardChange} from 'driver';
 import {updateIn, stepIn} from '../lang/object';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
-// @TODO navigation
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
 import {Style, StyleSheet} from '../common/style';
+import * as Driver from 'driver';
+import * as URI from '../common/url-helper';
+
+export const Select/*:type.Select*/
+  = {type: "WebView.Select"};
+
+export const Activate/*:type.Activate*/
+  = {type: "WebView.Activate"};
+
+export const Close/*:type.Close*/
+  = {type: "WebView.Close"};
 
 export const open/*:type.open*/ = (id, options) => ({
   id: id,
@@ -70,7 +80,13 @@ export const readTitle/*:type.readTitle*/ = (model) =>
 
 export const step/*:type.step*/ = (model, action) => {
   // Shell actions
-  if (action.type === "Focusable.FocusRequest") {
+  if (action.type === "WebView.Select") {
+    return [select(model), Effects.none];
+  }
+  else if (action.type === "WebView.Activate") {
+    return [activate(model), Effects.none];
+  }
+  else if (action.type === "Focusable.FocusRequest") {
     return [activate(model), Effects.none];
   }
   else if (action.type === "Focusable.Focus") {
@@ -86,30 +102,50 @@ export const step/*:type.step*/ = (model, action) => {
     const [progress, fx] = Progress.update(model.progress, action);
     return [merge(model, {progress}), fx];
   }
-  else if (action.type === 'WebView.Progress.Start'
-        || action.type === 'WebView.Progress.End')
-  {
-    const [progress, progressFx] = Progress.step(model.progress, action);
-    const [security, securityFx] = Security.step(model.security, action);
-    const [page, pageFx] = Page.step(model.page, action);
-    const [navigation, navigationFx] = Navigation.step(model.navigation, action);
+  else if (action.type === 'WebView.Progress.Start') {
+    const [progress, progressFx] = Progress.start(action.timeStamp);
+    const [page, pageFx] = Page.start(model.navigation.currentURI);
+    const security = Security.initial;
 
     return [
-      merge(model, {progress, security, page, navigation}),
-      Effects.batch([progressFx, securityFx, pageFx, navigationFx])
+      merge(model, {progress, page, security}),
+      Effects.batch([
+        progressFx,
+        pageFx
+      ])
     ]
   }
-  else if (action.type === 'WebView.Navigation.Load'
-        || action.type === 'WebView.Loader.LocationChanged'
-        || action.type === 'WebView.Navigation.CanGoBackChanged'
-        || action.type === 'WebView.Navigation.CanGoForwardChanged'
-        || action.type === 'WebView.Navigation.Stop'
-        || action.type === 'WebView.Navigation.Reload'
-        || action.type === 'WebView.Navigation.GoBack'
-        || action.type === 'WebView.Navigation.GoForward')
-  {
+  else if (action.type === 'WebView.Progress.End') {
+    const [progress, fx] = Progress.step(model.progress, action);
+
+    return [merge(model, {progress}), fx];
+  }
+  else if (action.type === 'WebView.Navigation.Stop') {
+    return [model, Navigation.stop(model.id)];
+  }
+  else if (action.type === 'WebView.Navigation.Reload') {
+    return [model, Navigation.reload(model.id)];
+  }
+  else if (action.type === 'WebView.Navigation.GoBack') {
+    return [model, Navigation.goBack(model.id)];
+  }
+  else if (action.type === 'WebView.Navigation.GoForward') {
+    return [model, Navigation.goForward(model.id)];
+  }
+  else if (action.type === 'WebView.Navigation.Load') {
     const [navigation, fx] = Navigation.step(model.navigation, action);
     return [merge(model, {navigation}), fx];
+  }
+  else if (action.type === 'WebView.Navigation.LocationChanged') {
+    const [navigation, fx] = Navigation.step(model.navigation, action);
+    return [
+      merge(model, {navigation}),
+      Effects.batch([
+        fx,
+        Navigation.fetchCanGoBack(model.id),
+        Navigation.fetchCanGoForward(model.id)
+      ])
+    ];
   }
   else if (action.type === 'WebView.Security.Changed') {
     const [security, fx] = Security.step(model.security, action);
@@ -210,49 +246,52 @@ const style = StyleSheet.create({
   }
 });
 
-const viewFrame = ({id, navigation}, address) =>
+const viewFrame = (model, address) =>
   html.iframe({
-    id: `web-view-${id}`,
-    src: navigation.initiatedURI,
-    'data-current-uri': navigation.currentURI,
-    // opener: opener(loader.opener),
+    id: `web-view-${model.id}`,
+    src: model.navigation.initiatedURI,
+    'data-current-uri': model.navigation.currentURI,
+    'data-name': model.name,
+    'data-features': model.features,
+    element: Driver.element,
     style: Style(style.iframe),
     attributes: {
       mozbrowser: true,
       remote: true,
-      // mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : void(0),
+      mozapp: URI.isPrivileged(model.navigation.currentURI) ?
+                URI.getManifestURL().href :
+                void(0),
       mozallowfullscreen: true
     },
-    // isVisible: visiblity(isSelected || !thumbnail),
-    // zoom: zoom(shell.zoom),
-    // navigation: navigate(navigation.state),
-    // isFocused: focus(shell.isFocused),
-    // onBlur: on(address, decodeBlur),
-    // onFocus: on(address, decodeFocus),
+    // isVisible: visiblity(model.isActive),
+    // zoom: zoom(model.shell.zoom),
+
+    isFocused: focus(model.shell.isFocused),
+
+    // Events
+
+    onBlur: on(address, decodeBlur),
+    onFocus: on(address, decodeFocus),
     // onMozbrowserAsyncScroll: on(address, decodeAsyncScroll),
-
-    // onMozBrowserCanGoBackChange: onCanGoBackChange(address, decodeCanGoBackChange),
-    // onMozBrowserCanGoForwardChange: onCanGoForwardChange(address, decodeCanGoForwardChange),
-
-    // onMozBrowserClose: on(address, decodeClose),
-    // onMozBrowserOpenWindow: on(address, decodeOpenWindow),
-    // onMozBrowserOpenTab: on(address, decodeOpenTab),
-    // onMozBrowserContextMenu: on(address, decodeContexMenu),
-    // onMozBrowserError: on(address, decodeError),
-    // onMozBrowserLoadStart: on(address, decodeLoadStart),
-    // onMozBrowserLoadEnd: on(address, decodeLoadEnd),
-    // onMozBrowserFirstPaint: on(address, decodeFirstPaint),
-    // onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
-    // onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
-    // onMozBrowserLocationChange: on(address, decodeLocationChange),
-    // onMozBrowserMetaChange: on(address, decodeMetaChange),
-    // onMozBrowserIconChange: on(address, decodeIconChange),
-    // onMozBrowserLocationChange: on(address, decodeLocationChange),
-    // onMozBrowserSecurityChange: on(address, decodeSecurityChange),
-    // onMozBrowserTitleChange: on(address, decodeTitleChange),
-    // onMozBrowserShowModalPrompt: on(address, decodeShowModalPrompt),
-    // onMozBrowserUserNameAndPasswordRequired: on(address, decodeAuthenticate),
-    // onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
+    onMozBrowserClose: on(address, decodeClose),
+    onMozBrowserOpenWindow: on(address, decodeOpenWindow),
+    onMozBrowserOpenTab: on(address, decodeOpenTab),
+    onMozBrowserContextMenu: on(address, decodeContexMenu),
+    onMozBrowserError: on(address, decodeError),
+    onMozBrowserLoadStart: on(address, decodeLoadStart),
+    onMozBrowserLoadEnd: on(address, decodeLoadEnd),
+    onMozBrowserFirstPaint: on(address, decodeFirstPaint),
+    onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
+    onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
+    onMozBrowserLocationChange: on(address, decodeLocationChange),
+    onMozBrowserMetaChange: on(address, decodeMetaChange),
+    onMozBrowserIconChange: on(address, decodeIconChange),
+    onMozBrowserLocationChange: on(address, decodeLocationChange),
+    onMozBrowserSecurityChange: on(address, decodeSecurityChange),
+    onMozBrowserTitleChange: on(address, decodeTitleChange),
+    onMozBrowserShowModalPrompt: on(address, decodeShowModalPrompt),
+    onMozBrowserUserNameAndPasswordRequired: on(address, decodeAuthenticate),
+    onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
   });
 
 export const view/*:type.view*/ = (model, address) =>
@@ -292,3 +331,91 @@ export const view/*:type.view*/ = (model, address) =>
       html.div({className: 'webview-show-sidebar-button'})
     ])
   ]);
+
+
+
+const decodeClose = always(Close);
+
+
+const decodeOpenWindow = ({detail}) => {
+  Driver.element.use(detail.frameElement);
+  return {
+    type: "WebViews.Open!WithMyIFrameAndInTheCurrentTick",
+    inBackground: false,
+    uri: detail.uri,
+    name: detail.name,
+    features: detail.features
+  };
+};
+
+const decodeOpenTab = ({detail}) => {
+  Driver.element.use(detail.frameElement);
+  return {
+    type: "WebViews.Open!WithMyIFrameAndInTheCurrentTick",
+    inBackground: true,
+    uri: detail.uri,
+    name: detail.name,
+    features: detail.features
+  };
+};
+
+// TODO: Figure out what's in detail
+const decodeContexMenu = ({detail}) =>
+  ({type: "WebView.ContextMenu", detail});
+
+// TODO: Figure out what's in detail
+const decodeShowModalPrompt = ({detail}) =>
+  ({type: "WebView.ModalPrompt", detail});
+
+// TODO: Figure out what's in detail
+const decodeAuthenticate = ({detail}) =>
+  ({type: "WebView.Authentificate", detail});
+
+// TODO: Figure out what's in detail
+const decodeError = ({detail}) =>
+  ({type: "WebView.Failure", detail});
+
+// Shell
+
+const decodeFocus = always(Shell.Focus);
+const decodeBlur = always(Shell.Blur);
+
+// Navigation
+
+const decodeLocationChange = ({detail: uri, timeStamp}) =>
+  Navigation.asLocationChanged(uri, timeStamp);
+
+// Progress
+
+const decodeLoadStart = ({timeStamp}) =>
+  Progress.asStart(timeStamp);
+
+const decodeProgressChange = ({timeStamp}) =>
+  Progress.asChange(timeStamp);
+
+const decodeLoadEnd = ({timeStamp}) =>
+  Progress.asEnd(timeStamp);
+
+// Page
+
+const decodeFirstPaint = always(Page.FirstPaint);
+const decodeDocumentFirstPaint = always(Page.DocumentFirstPaint);
+
+const decodeTitleChange = ({detail: title}) =>
+  Page.asTitleChanged(title);
+
+const decodeIconChange = ({target, detail: icon}) =>
+  Page.asIconChanged(icon);
+
+const decodeMetaChange = ({detail: {content, name}}) =>
+  Page.asMetaChanged(name, content);
+
+// TODO: Figure out what's in detail
+const decodeAsyncScroll = ({detail}) =>
+  Page.asScrolled(detail);
+
+const decodeScrollAreaChange = ({detail, target}) =>
+  Page.asOverflowChanged(detail.height > target.parentNode.clientHeight);
+
+const decodeSecurityChange = ({detail}) =>
+  Security.asChanged(detail.state, detail.extendedValidation);

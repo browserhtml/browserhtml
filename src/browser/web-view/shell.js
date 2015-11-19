@@ -6,7 +6,8 @@
 
 /*:: import * as type from "../../type/browser/web-view/shell" */
 
-import * as Focusable from "../../common/focusable"
+import {Effects} from "reflex";
+import * as Focusable from "../../common/focusable";
 
 export const ZoomIn/*:type.ZoomIn*/ = {type: "WebView.Shell.ZoomIn"};
 export const ZoomOut/*:type.ZoomOut*/ = {type: "WebView.Shell.ZoomOut"};
@@ -24,6 +25,8 @@ export const initial = ({
 
 export const focus = Focusable.focus;
 export const blur = Focusable.blur;
+export const Focus = Focusable.Focus;
+export const Blur = Focusable.Blur;
 
 export const resetZoom/*:type.resetZoom*/ = (model) =>
   merge(model, {zoom: 1});
@@ -54,3 +57,5 @@ export const update/*:type.update*/ = (model, action) =>
     Focusable.update(model, action) :
   // @TODO Do we need to handle Loader.Load?
   model;
+
+export const step = Effects.nofx(update);

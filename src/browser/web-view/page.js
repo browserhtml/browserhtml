@@ -7,6 +7,9 @@
 /*:: import * as type from "../../type/browser/web-view/page" */
 
 import {Effects} from 'reflex';
+import {merge} from '../../common/prelude';
+import * as Favicon from '../../common/favicon';
+import * as Pallet from '../../browser/pallet';
 
 export const DocumentFirstPaint/*:type.DocumentFirstPaint*/ = {
   type: "WebView.Page.DocumentFirstPaint"
@@ -16,48 +19,75 @@ export const FirstPaint/*:type.FirstPaint*/ = {
   type: "WebView.Page.FirstPaint"
 };
 
-export const MetaChanged/*:type.MetaChanged*/ = {
-  type: "WebView.Page.MetaChanged"
-};
+export const asMetaChanged/*:type.asMetaChanged*/ = (name, content) =>
+  ({type: "WebView.Page.MetaChanged", name, content});
 
-// @TODO are we supposed to get a title in the event?
-export const TitleChanged/*:type.TitleChanged*/ = {
-  type: "WebView.Page.TitleChanged"
-};
 
-// @TODO are we supposed to get an icon url in the event?
-export const IconChanged/*:type.IconChanged*/ = {
-  type: "WebView.Page.IconChanged"
-};
+export const asTitleChanged/*:type.asTitleChanged*/ = title =>
+ ({type: "WebView.Page.TitleChanged", title});
 
-export const OverflowChanged/*:type.OverflowChanged*/ = {
-  type: "WebView.Page.OverflowChanged"
-};
+export const asIconChanged/*:type.asIconChanged*/ = icon =>
+  ({type: "WebView.Page.IconChanged", icon});
 
-export const Scrolled/*:type.Scrolled*/ = {
-  type: "WebView.Page.Scrolled"
-};
+export const asOverflowChanged/*:type.asOverflowChanged*/ = isOverflown =>
+  ({type: "WebView.Page.OverflowChanged", isOverflown});
 
-export const initialize/*:type.initialize*/ = uri => ({
+export const asScrolled/*:type.asScrolled*/ = detail =>
+  ({type: "WebView.Page.Scrolled", detail});
+
+export const start/*:type.start*/ = Effects.nofx(uri => ({
   uri: uri,
   title: null,
   faviconURI: null,
-  pallet: {isDark: false}
-});
+  pallet: Pallet.blank
+}));
+
+
+const updateIcon = (model, icon) => {
+  const {bestIcon, faviconURI} = Favicon.getBestIcon([model.icon, icon]);
+  return merge(model, {
+    icon: bestIcon,
+    faviconURI: faviconURI
+  });
+};
+
+const updateMeta = (model, name, content) =>
+  name === 'theme-color' ?
+    merge(model, {themeColor: content}) :
+    model;
+
+const updatePallet = model =>
+  model.curatedColor ?
+    merge(model, {
+      pallet: Pallet.initialize(model.curatedColor.background,
+                                model.curatedColor.foreground)
+    }):
+  model.themeColor ?
+    merge(model, {
+      pallet: Pallet.initialize(...`${model.themeColor}|'`.split('|'))
+    }) :
+    model;
+
 
 export const step/*:type.step*/ = (model, action) =>
-  // @TODO not sure what to do with this one... do we need it?
-  // action.type === 'WebView.Page.ScreenshotUpdate' ?
-  action.type === 'WebView.Page.CuratedColorUpdate' ?
-    [merge(model, {pallet: action.pallet}), Effects.none] :
+  action.type === 'WebView.Page.TitleChanged' ?
+    [merge(model, {title: action.title}), Effects.none] :
+  action.type === 'WebView.Page.IconChanged' ?
+    [updateIcon(model, action.icon), Effects.none] :
+  action.type === 'WebView.Page.MetaChanged' ?
+    [updateMeta(model, action.name, action.content), Effects.none] :
   action.type === 'WebView.Page.ColorScraped' ?
-    [merge(model, {pallet: action.pallet}), Effects.none] :
-  // @TODO what do we do with these?
-  // action.type === 'WebView.Page.DocumentFirstPaint' ?
-  // action.type === 'WebView.Page.FirstPaint' ?
-  // action.type === 'WebView.Page.MetaChanged' ?
-  // action.type === 'WebView.Page.TitleChanged' ?
-  // action.type === 'WebView.Page.IconChanged' ?
-  // action.type === 'WebView.Page.OverflowChanged' ?
-  // action.type === 'WebView.Page.Scrolled' ?
-  [model, Effects.none];
+    [model, Effects.none] :
+  action.type === 'WebView.Page.CuratedColorUpdate' ?
+    [merge(model, {curatedColor: action.color}), Effects.none] :
+  action.type === 'WebView.Page.ScreenshotUpdate' ?
+    [model, Effects.none] :
+  action.type === 'WebView.Page.DocumentFirstPaint' ?
+    [updatePallet(model), Effects.none] :
+  action.type === 'WebView.Page.FirstPaint' ?
+    [model, Effects.none] :
+  action.type === 'WebView.Page.OverflowChanged' ?
+    [model, Effects.none] :
+  action.type === 'WebView.Page.Scrolled' ?
+    [model, Effects.none] :
+    [model, Effects.none];

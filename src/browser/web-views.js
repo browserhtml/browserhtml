@@ -7,7 +7,8 @@
 /*:: import * as type from "../../type/browser/web-views" */
 
 import {html, thunk, Effects, forward} from "reflex";
-import {merge} from "../common/prelude";
+import * as Driver from "driver";
+import {merge, always} from "../common/prelude";
 import * as WebView from "../browser/web-view";
 import {Style, StyleSheet} from "../common/style";
 
@@ -172,10 +173,18 @@ export const closeByID/*:type.closeByID*/ = (model, id) =>
   closeByIndex(model, indexByID(model, id))
 
 export const stepByActive/*:type.stepByActive*/ = (model, action) =>
-  stepByIndex(model, model.active, action);
+  action.type === "WebView.Close" ?
+    closeActive(model) :
+    stepByIndex(model, model.active, action);
 
 export const stepByID/*:type.stepByActive*/ = (model, id, action) =>
-  stepByIndex(model, indexByID(model, id), action);
+  action.type === "WebView.Activate" ?
+    [activateByID(model, id), Effects.none] :
+  action.type === "WebView.Close" ?
+    [closeByID(model, id), Effects.none] :
+  action.type === "WebView.Select" ?
+    [selectByID(model, id), Effects.none] :
+    stepByIndex(model, indexByID(model, id), action);
 
 const remove = (array, index) =>
     index < 0 ?
@@ -197,7 +206,7 @@ const set = (array, index, item) => {
 
 export const stepByIndex/*:type.stepByIndex*/ = (model, index, action) => {
   const {entries} = model;
-  if (index < 0 || entries.length >= index) {
+  if (index < 0 || index >= entries.length) {
     console.warn(`WebView by index: ${index} is not found:`, model);
     return [model, Effects.none];
   } else {
@@ -214,20 +223,11 @@ export const step/*:type.step*/ = (model, action) => {
   else if (action.type === "WebViews.Open") {
     return [open(model, action.options), Effects.none];
   }
-  else if (action.type === "WebViews.CloseActive") {
-    return [closeActive(model, action.id), Effects.none];
-  }
-  else if (action.type === "WebViews.CloseByID") {
-    return [closeByID(model, action.id), Effects.none];
-  }
-  else if (action.type === "WebViews.SelectByID") {
-    return [selectByID(model, action.id), Effects.none];
+  else if (action.type === "WebViews.Open!WithMyIFrameAndInTheCurrentTick") {
+    return [open(model, action.options), Driver.force];
   }
   else if (action.type === "WebViews.ActivateSelected") {
     return [activateSelected(model), Effects.none];
-  }
-  else if (action.type === "WebViews.ActivateByID") {
-    return [activateByID(model, action.id), Effects.none];
   }
   else if (action.type === "WebViews.ByActive") {
     return stepByActive(model, action.action);
@@ -241,11 +241,16 @@ export const step/*:type.step*/ = (model, action) => {
   }
 }
 
+
+
 export const asByID/*:type.asByID*/
   = id => action => ({type: "WebViews.ByID", id, action});
 
 export const asByActive/*:type.asByActive*/
   = action => ({type: "WebViews.ByActive", action});
+
+export const CloseActive = asByActive(WebView.Close);
+export const asCloseActive = always(CloseActive);
 
 export const asNavigateTo/*:type.asNavigateTo*/
   = uri => ({type: "WebViews.NavigateTo", uri});

@@ -73,11 +73,11 @@ export type Request
 export type Response
   = CanGoBackChanged
   | CanGoForwardChanged
-  | void
 
 
 export type Action
   = LocationChanged
+  | Response
   | Request
 
 
