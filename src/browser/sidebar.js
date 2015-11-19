@@ -53,7 +53,6 @@ const style = StyleSheet.create({
   },
 
   image: {
-    backgroundColor: 'transparent',
     backgroundSize: 'cover',
     backgroundPosition: 'center center',
     backgroundRepeat: 'no-repeat',
@@ -64,7 +63,7 @@ const style = StyleSheet.create({
     borderRadius: '3px',
     left: '9px',
     position: 'absolute',
-    top: '8px',
+    top: '9px',
     width: '16px',
     height: '16px',
   }
@@ -75,8 +74,8 @@ const viewImage = (style, uri) =>
   html.img({
     src: uri == null ? void(0) : uri,
     style: uri == null ?
-            style :
-            Style(style.image, {backgroundImage: `url(${uri})`})
+            Style(style.image, style, {backgroundColor: 'rgba(255,255,255,0.1)'}) :
+            Style(style.image, style, {backgroundImage: `url(${uri})`})
   });
 
 const viewTab = (model, address) =>
