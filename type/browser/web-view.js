@@ -62,7 +62,8 @@ export type select = (model:Model) => Model
 export type unselect = (model:Model) => Model
 export type activate = (model:Model) => Model
 export type dectivate = (model:Model) => Model
-export type readTitle = (model:Model) => string
+export type readTitle = (model:Model, fallback: string) => string
+export type readFaviconURI = (model:Model) => URI
 export type isDark = (model:Model) => boolean
 
 export type step = (model:Model, action:Action) => [Model, Effects<Response>]
