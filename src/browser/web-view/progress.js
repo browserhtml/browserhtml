@@ -7,6 +7,7 @@
 /*:: import * as type from "../../type/browser/web-view/progress" */
 
 import {Effects, html} from 'reflex';
+import {ease, easeOutQuart, float} from 'eased';
 import {StyleSheet, Style} from '../../common/style';
 import {merge} from '../../common/prelude';
 
@@ -51,7 +52,7 @@ export const start/*:type.start*/ = (timeStamp) => [
 //    Effects.none
 //  ]
 export const end = (timeStamp, model) => [
-  merge(model, {loadEnd: timeStamp + 300}),
+  merge(model, {loadEnd: timeStamp + 500}),
   Effects.none
 ];
 
@@ -71,9 +72,10 @@ export const step = (model, action) =>
     tick(action.timeStamp, model) :
   [model, Effects.none];
 
-// @TODO currently we're doing naive linear animation. Add easing.
 export const progress/*:type.progress*/ = (model) =>
-  model ? (model.updateTime / model.loadEnd) * 100 : 0;
+  model ?
+    ease(easeOutQuart, float, 0, 100,
+      model.loadEnd - model.loadStart, model.updateTime - model.loadStart) : 0;
 
 const style = StyleSheet.create({
   bar: {
@@ -94,7 +96,7 @@ const style = StyleSheet.create({
 // @TODO bring back color theme
 export const view/*:type.view*/ = (model) =>
   html.div({
-    key: 'progressbar',
+    className: 'progressbar',
     style: Style(style.bar, {
       backgroundColor: '#4A90E2',
       // @TODO this progress treatment is extremely naive and ugly. Fix it.
@@ -102,7 +104,7 @@ export const view/*:type.view*/ = (model) =>
       visibility: progress(model) < 100 ? 'visible' : 'hidden'
     }),
   }, [html.div({
-    key: 'progressbar-arrow',
+    className: 'progressbar-arrow',
     style: Style(style.arrow, {
       backgroundImage: 'linear-gradient(135deg, #4A90E2 50%, transparent 50%)',
     })
