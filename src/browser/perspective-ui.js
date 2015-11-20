@@ -54,16 +54,11 @@ export const isShowTabs = action =>
 export const isEscape = action =>
   action.type === 'Browser.Escape';
 
-export const isSelectNext = action =>
-  action.type === 'WebViews.SelectNext';
-
-export const isSelectPrevious = action =>
-  action.type === 'WebViews.SelectPrevious';
-
 export const isActivateSelected = action =>
   action.type === 'For' &&
   action.target === 'webViews' &&
   action.action.type === 'WebViews.ActivateSelected';
+
 
 export const isFocusWebView = action =>
   isWebViewAction(action) &&
@@ -72,6 +67,10 @@ export const isFocusWebView = action =>
 export const isActivateWebView = action =>
   isWebViewAction(action) &&
   action.action.action.type === 'WebView.Activate';
+
+export const isSelectRelativeWebView = action =>
+  isWebViewAction(action) &&
+  action.action.type === 'WebViews.SelectRelative';
 
 export const asCreateWebView = browser =>
   ({mode: 'create-web-view', browser});
@@ -129,7 +128,7 @@ export const step = (model, action) => {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asShowTabs(browser), fx];
     }
-    else if (isSelectNext(action) || isSelectPrevious(action)) {
+    else if (isSelectRelativeWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asSelectWebView(browser), fx];
     }

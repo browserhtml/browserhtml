@@ -68,11 +68,11 @@ const keyDown = Keyboard.bindings({
   'accel -': always(asByActiveWebView(WebView.RequestZoomOut)),
   'accel =': always(asByActiveWebView(WebView.RequestZoomIn)),
   'accel shift =': always(asByActiveWebView(WebView.RequestZoomIn)),
-  // 'accel w': _ => WebView.BySelected({action: WebView.Close()}),
-  // 'accel shift ]': _ => WebView.Preview({action: Selector.Next()}),
-  // 'accel shift [': _ => WebView.Preview({action: Selector.Previous()}),
-  // 'control tab': _ => WebView.Preview({action: Selector.Next()}),
-  // 'control shift tab': _ => WebView.Preview({action: Selector.Previous()}),
+  'accel w': always(asByActiveWebView(WebView.Close)),
+  'accel shift ]': always(asByWebViews(WebViews.SelectNext)),
+  'accel shift [': always(asByWebViews(WebViews.SelectPrevious)),
+  'control tab': always(asByWebViews(WebViews.SelectNext)),
+  'control shift tab': always(asByWebViews(WebViews.SelectPrevious)),
   // 'accel shift backspace': _ => Session.ResetSession(),
   // 'accel shift s': _ => Session.SaveSession(),
   // 'accel r': _ => WebView.BySelected({action: Navigation.Reload()}),
@@ -88,8 +88,8 @@ const keyDown = Keyboard.bindings({
 });
 
 const keyUp = Keyboard.bindings({
-  // 'control': _ => SynthesisUI.ShowSelected(),
-  // 'accel': _ => SynthesisUI.ShowSelected(),
+  'control': always(asByWebViews(WebViews.ActivateSelected)),
+  'accel': always(asByWebViews(WebViews.ActivateSelected))
 });
 
 // Unbox For actions and route them to their location.
