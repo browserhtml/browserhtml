@@ -25,7 +25,7 @@
     "live-server": "gulp live-server"
   },
   "dependencies": {
-    "eased": "0.0.3",
+    "eased": "0.0.4",
     "immutable": "3.7.0",
     "pouchdb": "4.0.0",
     "reflex": "0.0.50",
