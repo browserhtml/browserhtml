@@ -38,7 +38,7 @@ export const asTick/*:type.asTick*/ = (time) => ({
 export const start/*:type.start*/ = (timeStamp) => [
   {
     loadStart: timeStamp,
-    // Predict a 10s load if we don't know.
+    // Predict a 5s load if we don't know.
     loadEnd: timeStamp + (5 * second),
     updateTime: timeStamp
   },
@@ -51,7 +51,7 @@ export const start/*:type.start*/ = (timeStamp) => [
 //    Effects.none
 //  ]
 export const end = (timeStamp, model) => [
-  merge(model, {loadEnd: timeStamp}),
+  merge(model, {loadEnd: timeStamp + 300}),
   Effects.none
 ];
 
@@ -98,7 +98,7 @@ export const view/*:type.view*/ = (model) =>
     style: Style(style.bar, {
       backgroundColor: '#4A90E2',
       // @TODO this progress treatment is extremely naive and ugly. Fix it.
-      transform: `translateX(${-100 + progress(model)}%);`,
+      transform: `translateX(${-100 + progress(model)}%)`,
       visibility: progress(model) < 100 ? 'visible' : 'hidden'
     }),
   }, [html.div({
