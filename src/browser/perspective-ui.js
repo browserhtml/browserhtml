@@ -7,6 +7,7 @@ import * as Sidebar from './sidebar';
 import * as Browser from './browser';
 import * as WebViews from './web-views';
 import {asFor, merge} from '../common/prelude';
+import {Style, StyleSheet} from '../common/style';
 
 export const initialize/*:type.initialize*/ = () => {
   const [browser, fx] = Browser.initialize();
@@ -169,6 +170,13 @@ export const step = (model, action) => {
   return [merge(model, {browser}), fx];
 }
 
+const styles = StyleSheet.create({
+  sidebarVisible: {},
+  sidebarHidden: {
+    transform: 'translateX(380px)'
+  }
+});
+
 export const view = ({mode, browser}, address) =>
   mode === 'edit-web-view' ?
     viewAsEditWebView(browser, address) :
@@ -181,8 +189,8 @@ export const view = ({mode, browser}, address) =>
   // mode === 'show-tabs' ?
     viewAsShowTabs(browser, address);
 
-const viewAsShowWebView = (model, address) =>
-  Browser.view(model, [
+const viewAsEditWebView = (model, address) =>
+  Browser.view(model, address, [
     thunk('web-views',
           WebViews.view,
           model.webViews,
@@ -190,7 +198,8 @@ const viewAsShowWebView = (model, address) =>
     thunk('sidebar',
           Sidebar.view,
           model.webViews,
-          forward(address, asFor('webViews'))),
+          forward(address, asFor('webViews')),
+          styles.sidebarHidden),
     thunk('input',
           Input.view,
           model.input,
@@ -199,4 +208,88 @@ const viewAsShowWebView = (model, address) =>
           Assistant.view,
           model.suggestions,
           address)
-  ], address);
+  ]);
+
+const viewAsShowWebView = (model, address) =>
+  Browser.view(model, address, [
+    thunk('web-views',
+          WebViews.view,
+          model.webViews,
+          forward(address, asFor('webViews'))),
+    thunk('sidebar',
+          Sidebar.view,
+          model.webViews,
+          forward(address, asFor('webViews')),
+          styles.sidebarHidden),
+    thunk('input',
+          Input.view,
+          model.input,
+          forward(address, asFor('input'))),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address)
+  ]);
+
+const viewAsCreateWebView = (model, address) =>
+  Browser.view(model, address, [
+    thunk('web-views',
+          WebViews.view,
+          model.webViews,
+          forward(address, asFor('webViews'))),
+    thunk('sidebar',
+          Sidebar.view,
+          model.webViews,
+          forward(address, asFor('webViews')),
+          styles.sidebarHidden),
+    thunk('input',
+          Input.view,
+          model.input,
+          forward(address, asFor('input'))),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address)
+  ]);
+
+const viewAsSelectWebView = (model, address) =>
+  Browser.view(model, address, [
+    thunk('web-views',
+          WebViews.view,
+          model.webViews,
+          forward(address, asFor('webViews'))),
+    thunk('sidebar',
+          Sidebar.view,
+          model.webViews,
+          forward(address, asFor('webViews')),
+          styles.sidebarVisible),
+    thunk('input',
+          Input.view,
+          model.input,
+          forward(address, asFor('input'))),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address)
+  ]);
+
+const viewAsShowTabs = (model, address) =>
+  Browser.view(model, address, [
+    thunk('web-views',
+          WebViews.view,
+          model.webViews,
+          forward(address, asFor('webViews'))),
+    thunk('sidebar',
+          Sidebar.view,
+          model.webViews,
+          forward(address, asFor('webViews')),
+          styles.sidebarVisible),
+    thunk('input',
+          Input.view,
+          model.input,
+          forward(address, asFor('input'))),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address)
+  ]);
