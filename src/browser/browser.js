@@ -50,14 +50,26 @@ export const initialize/*:type.initialize*/ = () => {
 }
 
 const asForInput = asFor('input');
+const asForWebViews = asFor('webViews');
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
 
 const FocusInput = asForInput(Focusable.Focus);
 
+export const CreateWebView = ({type: 'Browser.CreateWebView'});
+export const asOpenWebView = uri => asForWebViews({
+  type: "WebViews.Open",
+  options: {
+    uri,
+    inBackground: false,
+    name: '',
+    features: ''
+  }
+});
+
 const keyDown = Keyboard.bindings({
   'accel l': always(asForInput(Focusable.Focus)),
-  // 'accel t': _ => SynthesisUI.OpenNew(),
+  'accel t': always(CreateWebView),
   // 'accel 0': _ => WebView.BySelected({action: Shell.ResetZoom()}),
   // 'accel -': _ => WebView.BySelected({action: Shell.ZoomOut()}),
   // 'accel =': _ => WebView.BySelected({action: Shell.ZoomIn()}),

@@ -36,8 +36,17 @@ export const isFocusInput = action =>
   isInputAction(action) &&
   isFocusAction(action.action);
 
+export const isKeyDown = action =>
+  action.type === 'For' &&
+  action.target === 'Browser.KeyDown';
+
+export const isKeyUp = action =>
+  action.type === 'For' &&
+  action.target === 'Browser.KeyUp';
+
 export const isCreateTab = action =>
-  action.type === 'Browser.CreateWebView';
+  action.type === 'Browser.CreateWebView' ||
+  (isKeyDown(action) && action.action.type === 'Browser.CreateWebView');
 
 export const isShowTabs = action =>
   action.type === 'Browser.ShowTabs';
@@ -92,7 +101,8 @@ export const step = (model, action) => {
       }
     }
     else if (isSubmit(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
+      const open = Browser.asOpenWebView(model.browser.input.value);
+      const [browser, fx] = Browser.step(model.browser, open);
       return [asShowWebView(browser), fx];
     }
     // @TODO: Probably we should prevent input field from loosing a focus

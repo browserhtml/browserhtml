@@ -24,9 +24,10 @@ export type ByActive = {
 
 export type NewWebViewOptions = WebView.NewWebViewOptions
 
-export type Open
-  = {type: "WebViews.Open"}
-  & NewWebViewOptions
+export type Open = {
+  type: "WebViews.Open"
+  options: NewWebViewOptions
+}
 
 export type NavigateTo = {
   type: "WebViews.NavigateTo",
