@@ -37,31 +37,31 @@ export const changeLocation/*:type.changeLocation*/ = (model, uri) =>
 
 
 export const fetchCanGoBack = id => Effects.task(Task.io(deliver => {
-  const target = document.getElementByID(`web-view-${id}`);
+  const target = document.getElementById(`web-view-${id}`);
   if (target && target.getCanGoBack) {
     target.getCanGoBack().onsuccess = request => {
-      deliver({
+      deliver(Task.succeed({
         type: "WebView.Navigation.CanGoBackChanged",
         value: request.target.result
-      })
+      }));
     }
   }
 }));
 
 export const fetchCanGoForward = id => Effects.task(Task.io(deliver => {
-  const target = document.getElementByID(`web-view-${id}`);
+  const target = document.getElementById(`web-view-${id}`);
   if (target && target.getCanGoBack) {
     target.getCanGoBack().onsuccess = request => {
-      deliver({
+      deliver(Task.succeed({
         type: "WebView.Navigation.CanGoForwardChanged",
         value: request.target.result
-      })
+      }));
     }
   }
 }));
 
 const invokefx = name => id => Effects.task(Task.io(deliver => {
-  const target = document.getElementByID(`web-view-${id}`);
+  const target = document.getElementById(`web-view-${id}`);
   if (target && target[id]) {
     target[id]();
   }

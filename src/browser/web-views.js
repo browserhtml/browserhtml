@@ -241,7 +241,15 @@ export const step/*:type.step*/ = (model, action) => {
   }
 }
 
-
+export const asOpen = ({uri, inBackground, name, features}) => ({
+  type: "WebViews.Open",
+  options: {
+    uri,
+    inBackground: inBackground == null ? false : inBackground,
+    name: name == null ? '' : name,
+    features: features == null ? '' : features
+  }
+});
 
 export const asByID/*:type.asByID*/
   = id => action => ({type: "WebViews.ByID", id, action});

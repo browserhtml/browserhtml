@@ -12,6 +12,7 @@ import * as Sidebar from "./sidebar";
 // import * as Updater from "./updater"
 // import * as Devtools from "./devtools"
 import * as WebViews from "./web-views"
+import * as WebView from "./web-view"
 
 import {asFor, merge, always} from "../common/prelude";
 import * as Focusable from "../common/focusable";
@@ -49,31 +50,24 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, Effects.none];
 }
 
-const asForInput = asFor('input');
-const asForWebViews = asFor('webViews');
+const asByInput = asFor('input');
+const asByWebViews = asFor('webViews');
+const asByActiveWebView = action => asByWebViews(WebViews.asByActive(action));
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
 
-const FocusInput = asForInput(Focusable.Focus);
+const FocusInput = asByInput(Focusable.Focus);
 
 export const CreateWebView = ({type: 'Browser.CreateWebView'});
-export const asOpenWebView = uri => asForWebViews({
-  type: "WebViews.Open",
-  options: {
-    uri,
-    inBackground: false,
-    name: '',
-    features: ''
-  }
-});
+export const asOpenWebView = uri => asByWebViews(WebViews.asOpen({uri}));
 
 const keyDown = Keyboard.bindings({
-  'accel l': always(asForInput(Focusable.Focus)),
+  'accel l': always(asByInput(Focusable.Focus)),
   'accel t': always(CreateWebView),
-  // 'accel 0': _ => WebView.BySelected({action: Shell.ResetZoom()}),
-  // 'accel -': _ => WebView.BySelected({action: Shell.ZoomOut()}),
-  // 'accel =': _ => WebView.BySelected({action: Shell.ZoomIn()}),
-  // 'accel shift =': _ => WebView.BySelected({action: Shell.ZoomIn()}),
+  'accel 0': always(asByActiveWebView(WebView.RequestZoomReset)),
+  'accel -': always(asByActiveWebView(WebView.RequestZoomOut)),
+  'accel =': always(asByActiveWebView(WebView.RequestZoomIn)),
+  'accel shift =': always(asByActiveWebView(WebView.RequestZoomIn)),
   // 'accel w': _ => WebView.BySelected({action: WebView.Close()}),
   // 'accel shift ]': _ => WebView.Preview({action: Selector.Next()}),
   // 'accel shift [': _ => WebView.Preview({action: Selector.Previous()}),
