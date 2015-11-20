@@ -9,7 +9,6 @@
 import {Effects, html} from 'reflex';
 import {merge, always} from '../common/prelude';
 import {on, onCanGoBackChange, onCanGoForwardChange} from 'driver';
-import {updateIn, stepIn} from '../lang/object';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
@@ -380,7 +379,8 @@ export const view/*:type.view*/ = (model, address) =>
         ])
       ]),
       html.div({className: 'webview-show-sidebar-button'})
-    ])
+    ]),
+    Progress.view(model.progress, address)
   ]);
 
 
