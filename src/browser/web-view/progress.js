@@ -39,7 +39,7 @@ export const start/*:type.start*/ = (timeStamp) => [
   {
     loadStart: timeStamp,
     // Predict a 10s load if we don't know.
-    loadEnd: timeStamp + (10 * second),
+    loadEnd: timeStamp + (5 * second),
     updateTime: timeStamp
   },
   Effects.tick(asTick)
@@ -69,7 +69,7 @@ export const step = (model, action) =>
     end(action.timeStamp, model) :
   action.type === 'WebView.Progress.Tick' ?
     tick(action.timeStamp, model) :
-    [model, Effects.none];
+  [model, Effects.none];
 
 // @TODO currently we're doing naive linear animation. Add easing.
 export const progress/*:type.progress*/ = (model) =>
