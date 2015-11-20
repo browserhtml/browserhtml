@@ -6,10 +6,10 @@
 
 /*:: import * as type from "../../type/browser/web-view/progress" */
 
-import {Effects} from 'reflex';
-import {html} from 'driver';
+import {Effects, html} from 'reflex';
+import {ease, easeOutQuart, float} from 'eased';
 import {StyleSheet, Style} from '../../common/style';
-import {merge} from '../../lang/object';
+import {merge} from '../../common/prelude';
 
 const second = 1000;
 
@@ -39,8 +39,8 @@ export const asTick/*:type.asTick*/ = (time) => ({
 export const start/*:type.start*/ = (timeStamp) => [
   {
     loadStart: timeStamp,
-    // Predict a 10s load if we don't know.
-    loadEnd: timeStamp + (10 * second),
+    // Predict a 5s load if we don't know.
+    loadEnd: timeStamp + (5 * second),
     updateTime: timeStamp
   },
   Effects.tick(asTick)
@@ -52,16 +52,16 @@ export const start/*:type.start*/ = (timeStamp) => [
 //    Effects.none
 //  ]
 export const end = (timeStamp, model) => [
-  merge(model, {loadEnd: timeStamp}),
+  merge(model, {loadEnd: timeStamp + 500}),
   Effects.none
 ];
 
 // Update the progress and request another tick.
 // Returns a new model and a tick effect.
-export const tick/*:type.tick*/ = (timeStamp, model) => [
-  merge(model, {updateTime: timeStamp}),
-  Effects.tick(asTick)
-];
+export const tick/*:type.tick*/ = (timeStamp, model) =>
+  model.loadEnd > timeStamp ?
+    [merge(model, {updateTime: timeStamp}), Effects.tick(asTick)] :
+    [merge(model, {updateTime: timeStamp}), Effects.none];
 
 export const step = (model, action) =>
   action.type === 'WebView.Progress.Start' ?
@@ -72,14 +72,15 @@ export const step = (model, action) =>
     tick(action.timeStamp, model) :
   [model, Effects.none];
 
-// @TODO currently we're doing naive linear animation. Add easing.
 export const progress/*:type.progress*/ = (model) =>
-  (model.updateTime / model.loadEnd) * 100;
+  model ?
+    ease(easeOutQuart, float, 0, 100,
+      model.loadEnd - model.loadStart, model.updateTime - model.loadStart) : 0;
 
 const style = StyleSheet.create({
   bar: {
     position: 'absolute',
-    top: 0,
+    top: '27px',
     height: '4px',
     width: '100%'
   },
@@ -95,15 +96,15 @@ const style = StyleSheet.create({
 // @TODO bring back color theme
 export const view/*:type.view*/ = (model) =>
   html.div({
-    key: 'progressbar',
+    className: 'progressbar',
     style: Style(style.bar, {
       backgroundColor: '#4A90E2',
       // @TODO this progress treatment is extremely naive and ugly. Fix it.
-      transform: `translateX(${-100 + progress(model)}%);`,
+      transform: `translateX(${-100 + progress(model)}%)`,
       visibility: progress(model) < 100 ? 'visible' : 'hidden'
     }),
   }, [html.div({
-    key: 'progressbar-arrow',
+    className: 'progressbar-arrow',
     style: Style(style.arrow, {
       backgroundImage: 'linear-gradient(135deg, #4A90E2 50%, transparent 50%)',
     })

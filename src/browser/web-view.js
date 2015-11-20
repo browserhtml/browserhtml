@@ -9,7 +9,6 @@
 import {Effects, html} from 'reflex';
 import {merge, always} from '../common/prelude';
 import {on, onCanGoBackChange, onCanGoForwardChange} from 'driver';
-import {updateIn, stepIn} from '../lang/object';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
@@ -18,6 +17,12 @@ import * as Page from './web-view/page';
 import {Style, StyleSheet} from '../common/style';
 import * as Driver from 'driver';
 import * as URI from '../common/url-helper';
+
+export const RequestZoomIn = Shell.asRequest(Shell.ZoomIn);
+export const RequestZoomOut = Shell.asRequest(Shell.ZoomOut);
+export const RequestZoomReset = Shell.asRequest(Shell.ResetZoom);
+export const RequestMakeVisibile = Shell.asRequest(Shell.asChangeVisibility(true));
+export const RequestMakeNotVisibile = Shell.asRequest(Shell.asChangeVisibility(false));
 
 export const Select/*:type.Select*/
   = {type: "WebView.Select"};
@@ -102,7 +107,7 @@ export const step/*:type.step*/ = (model, action) => {
   // Progress actions
   else if (action.type === 'WebView.Progress.Tick')
   {
-    const [progress, fx] = Progress.update(model.progress, action);
+    const [progress, fx] = Progress.step(model.progress, action);
     return [merge(model, {progress}), fx];
   }
   else if (action.type === 'WebView.Progress.Start') {
@@ -168,6 +173,16 @@ export const step/*:type.step*/ = (model, action) => {
   {
     const [page, fx] = Page.step(model.page, action);
     return [merge(model, {page}), fx];
+  }
+  else if (action.type === "WebView.Shell.Request") {
+    const request = Shell.asRequestBy(model.id, action.action);
+    const [shell, fx] = Shell.step(model.shell, request);
+    return [merge(model, {shell}), fx];
+  }
+  else if (action.type === "WebView.Shell.ZoomChanged" ||
+           action.type === "WebView.Shell.VisibilityChanged") {
+    const [shell, fx] = Shell.step(model.shell, action);
+    return [merge(model, {shell}), fx];
   }
   else {
     return [model, Effects.none];
@@ -245,7 +260,9 @@ const style = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: '100%',
+    paddingLeft: '30px',
+    paddingRight: '30px',
+    width: 'calc(100% - 60px)',
     textAlign: 'center',
     fontWeight: 'bold',
     whiteSpace: 'nowrap',
@@ -364,7 +381,8 @@ export const view/*:type.view*/ = (model, address) =>
         ])
       ]),
       html.div({className: 'webview-show-sidebar-button'})
-    ])
+    ]),
+    Progress.view(model.progress, address)
   ]);
 
 
@@ -422,14 +440,18 @@ const decodeLocationChange = ({detail: uri, timeStamp}) =>
 
 // Progress
 
+// @TODO This is not ideal & we should probably convert passed `timeStamp` to
+// the same format as `performance.now()` so that time passed through animation
+// frames is in the same format, but for now we just call `performance.now()`.
+
 const decodeLoadStart = ({timeStamp}) =>
-  Progress.asStart(timeStamp);
+  Progress.asStart(performance.now());
 
 const decodeProgressChange = ({timeStamp}) =>
-  Progress.asChange(timeStamp);
+  Progress.asChange(performance.now());
 
 const decodeLoadEnd = ({timeStamp}) =>
-  Progress.asEnd(timeStamp);
+  Progress.asEnd(performance.now());
 
 // Page
 

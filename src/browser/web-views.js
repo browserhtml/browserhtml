@@ -14,10 +14,26 @@ import {Style, StyleSheet} from "../common/style";
 
 export const initial = {
   nextID: 0,
+  // @TODO selected field should probably live elsewhere and be maintained
+  // by a different component.
   selected: -1,
   active: -1,
   entries: []
 };
+
+export const SelectNext = ({
+  type: "WebViews.SelectRelative",
+  offset: 1
+});
+
+export const SelectPrevious = ({
+  type: "WebViews.SelectRelative",
+  offset: -1
+});
+
+export const ActivateSelected = ({
+  type: "WebViews.ActivateSelected"
+});
 
 export const indexByID/*:type.indexByID*/ = (model, id) =>
   model.entries.findIndex(entry => entry.id === id);
@@ -211,7 +227,10 @@ export const stepByIndex/*:type.stepByIndex*/ = (model, index, action) => {
     return [model, Effects.none];
   } else {
     const [entry, fx] = WebView.step(entries[index], action);
-    return [merge(model, {entries: set(entries, index, entry)}), fx];
+    return [
+      merge(model, {entries: set(entries, index, entry)}),
+      fx.map(asByID(entry.id))
+    ];
   }
 }
 
@@ -225,6 +244,9 @@ export const step/*:type.step*/ = (model, action) => {
   }
   else if (action.type === "WebViews.Open!WithMyIFrameAndInTheCurrentTick") {
     return [open(model, action.options), Driver.force];
+  }
+  else if (action.type === "WebViews.SelectRelative") {
+    return [selectByOffset(model, action.offset), Effects.none];
   }
   else if (action.type === "WebViews.ActivateSelected") {
     return [activateSelected(model), Effects.none];
@@ -241,7 +263,15 @@ export const step/*:type.step*/ = (model, action) => {
   }
 }
 
-
+export const asOpen = ({uri, inBackground, name, features}) => ({
+  type: "WebViews.Open",
+  options: {
+    uri,
+    inBackground: inBackground == null ? false : inBackground,
+    name: name == null ? '' : name,
+    features: features == null ? '' : features
+  }
+});
 
 export const asByID/*:type.asByID*/
   = id => action => ({type: "WebViews.ByID", id, action});

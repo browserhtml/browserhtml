@@ -11,6 +11,7 @@ import * as WindowControls from "./window-controls";
 // import * as Updater from "./updater"
 // import * as Devtools from "./devtools"
 import * as WebViews from "./web-views"
+import * as WebView from "./web-view"
 
 import {asFor, merge, always} from "../common/prelude";
 import * as Focusable from "../common/focusable";
@@ -19,7 +20,6 @@ import * as Keyboard from '../common/keyboard';
 import {Style, StyleSheet} from '../common/style';
 
 import {identity} from "../lang/functional";
-import {updateIn} from "../lang/object";
 
 import {onWindow} from "driver";
 
@@ -48,36 +48,29 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, Effects.none];
 }
 
-const asForInput = asFor('input');
-const asForWebViews = asFor('webViews');
+const asByInput = asFor('input');
+const asByWebViews = asFor('webViews');
+const asByActiveWebView = action => asByWebViews(WebViews.asByActive(action));
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
 
-const FocusInput = asForInput(Focusable.Focus);
+const FocusInput = asByInput(Focusable.Focus);
 
 export const CreateWebView = ({type: 'Browser.CreateWebView'});
-export const asOpenWebView = uri => asForWebViews({
-  type: "WebViews.Open",
-  options: {
-    uri,
-    inBackground: false,
-    name: '',
-    features: ''
-  }
-});
+export const asOpenWebView = uri => asByWebViews(WebViews.asOpen({uri}));
 
 const keyDown = Keyboard.bindings({
-  'accel l': always(asForInput(Focusable.Focus)),
+  'accel l': always(asByInput(Focusable.Focus)),
   'accel t': always(CreateWebView),
-  // 'accel 0': _ => WebView.BySelected({action: Shell.ResetZoom()}),
-  // 'accel -': _ => WebView.BySelected({action: Shell.ZoomOut()}),
-  // 'accel =': _ => WebView.BySelected({action: Shell.ZoomIn()}),
-  // 'accel shift =': _ => WebView.BySelected({action: Shell.ZoomIn()}),
-  // 'accel w': _ => WebView.BySelected({action: WebView.Close()}),
-  // 'accel shift ]': _ => WebView.Preview({action: Selector.Next()}),
-  // 'accel shift [': _ => WebView.Preview({action: Selector.Previous()}),
-  // 'control tab': _ => WebView.Preview({action: Selector.Next()}),
-  // 'control shift tab': _ => WebView.Preview({action: Selector.Previous()}),
+  'accel 0': always(asByActiveWebView(WebView.RequestZoomReset)),
+  'accel -': always(asByActiveWebView(WebView.RequestZoomOut)),
+  'accel =': always(asByActiveWebView(WebView.RequestZoomIn)),
+  'accel shift =': always(asByActiveWebView(WebView.RequestZoomIn)),
+  'accel w': always(asByActiveWebView(WebView.Close)),
+  'accel shift ]': always(asByWebViews(WebViews.SelectNext)),
+  'accel shift [': always(asByWebViews(WebViews.SelectPrevious)),
+  'control tab': always(asByWebViews(WebViews.SelectNext)),
+  'control shift tab': always(asByWebViews(WebViews.SelectPrevious)),
   // 'accel shift backspace': _ => Session.ResetSession(),
   // 'accel shift s': _ => Session.SaveSession(),
   // 'accel r': _ => WebView.BySelected({action: Navigation.Reload()}),
@@ -93,8 +86,8 @@ const keyDown = Keyboard.bindings({
 });
 
 const keyUp = Keyboard.bindings({
-  // 'control': _ => SynthesisUI.ShowSelected(),
-  // 'accel': _ => SynthesisUI.ShowSelected(),
+  'control': always(asByWebViews(WebViews.ActivateSelected)),
+  'accel': always(asByWebViews(WebViews.ActivateSelected))
 });
 
 // Unbox For actions and route them to their location.

@@ -57,11 +57,17 @@ export type ActivateByID = {
   id: ID
 }
 
+export type SelectRelative {
+  type: "WebViews.SelectRelative",
+  offset: number
+}
+
 export type Action
   = ByID | ByActive
   | Open
   | CloseByID | CloseActive
   | SelectByID
+  | SelectRelative
   | ActivateSelected | ActivateByID
 
 export type asByID = (id:ID) => (action:WebView.Action) => ByID

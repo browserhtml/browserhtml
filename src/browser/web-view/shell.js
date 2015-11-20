@@ -6,12 +6,9 @@
 
 /*:: import * as type from "../../type/browser/web-view/shell" */
 
-import {Effects} from "reflex";
+import {Effects, Task} from "reflex";
+import {merge} from "../../common/prelude";
 import * as Focusable from "../../common/focusable";
-
-export const ZoomIn/*:type.ZoomIn*/ = {type: "WebView.Shell.ZoomIn"};
-export const ZoomOut/*:type.ZoomOut*/ = {type: "WebView.Shell.ZoomOut"};
-export const ResetZoom/*:type.ResetZoom*/ = {type: "WebView.Shell.ResetZoom"};
 
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2;
@@ -28,34 +25,61 @@ export const blur = Focusable.blur;
 export const Focus = Focusable.Focus;
 export const Blur = Focusable.Blur;
 
-export const resetZoom/*:type.resetZoom*/ = (model) =>
-  merge(model, {zoom: 1});
+export const asRequestBy = (id, action) =>
+  ({type: "WebView.Shell.RequestBy", id, action});
 
-export const zoomIn/*:type.zoomIn*/ = (model) =>
-  merge(model, {zoom: Math.min(ZOOM_MAX, model.zoom + ZOOM_STEP)});
+export const asRequest = action =>
+  ({type: "WebView.Shell.Request", action})
 
-export const zoomOut/*:type.zoomOut*/ = (model) =>
-  merge(model, {zoom: Math.max(ZOOM_MIN, model.zoom - ZOOM_STEP)});
+export const ZoomIn
+  = {type: "WebView.Shell.ZoomIn"};
 
-export const updateVisibility/*:type.updateVisibility*/ = (value, model) =>
-  merge(model, {isVisible: value});
+export const ZoomOut
+  = {type: "WebView.Shell.ZoomOut"};
 
-export const update/*:type.update*/ = (model, action) =>
-  action.type === 'WebView.Shell.VisibilityChanged' ?
-    updateVisibility(action.value, model) :
+export const ResetZoom
+  = {type: "WebView.Shell.ZoomReset"};
+
+export const asChangeVisibility = (isVisible) =>
+  ({type: "WebView.Shell.ChangeVisibility", isVisible});
+
+export const asZoomChanged = zoom =>
+  ({type: "WebView.Shell.ZoomChanged", zoom});
+
+export const requestZoomChange = (id, level) =>
+  Effects.task(Task.io(deliver => {
+    const target = document.getElementById(`web-view-${id}`);
+    if (target && target.zoom) {
+      target.zoom(level);
+      deliver(Task.succeed(asZoomChanged(level)));
+    }
+  }));
+
+export const requestVisibilityChange = (id, isVisible) =>
+  Effects.task(Task.io(deliver => {
+    const target = document.getElementById(`web-view-${id}`);
+    if (target && target.setVisible) {
+      target.setVisible(isVisible);
+    }
+  }));
+
+
+export const request = (model, {id, action}) =>
   action.type === 'WebView.Shell.ZoomIn' ?
-    zoomIn(model) :
+    requestZoomChange(id, Math.min(ZOOM_MAX, model.zoom + ZOOM_STEP)) :
   action.type === 'WebView.Shell.ZoomOut' ?
-    zoomOut(model) :
-  action.type === 'WebView.Shell.ResetZoom' ?
-    resetZoom(model) :
-  action.type === 'Focusable.Focus' ?
-    Focusable.update(model, action) :
-  action.type === 'Focusable.FocusRequest' ?
-    Focusable.update(model, action) :
-  action.type === 'Focusable.Blur' ?
-    Focusable.update(model, action) :
-  // @TODO Do we need to handle Loader.Load?
-  model;
+    requestZoomChange(id, Math.max(ZOOM_MIN, model.zoom - ZOOM_STEP)) :
+  action.type === 'WebView.Shell.ZoomReset' ?
+    requestZoomChange(id, 1) :
+  action.type === 'WebView.Shell.ChangeVisibility' ?
+    requestVisibilityChange(id, action.isVisible) :
+    Effects.none;
 
-export const step = Effects.nofx(update);
+export const step/*:type.step*/ = (model, action) =>
+  action.type === 'WebView.Shell.VisibilityChanged' ?
+    [merge(model, {isVisible: action.isVisible}), Effects.none] :
+  action.type === 'WebView.Shell.ZoomChanged' ?
+    [merge(model, {zoom: action.zoom}), Effects.none] :
+  action.type === 'WebView.Shell.RequestBy' ?
+    [model, request(model, action)] :
+    [model, Effects.none];
