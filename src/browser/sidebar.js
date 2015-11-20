@@ -6,7 +6,7 @@
 
 import {html, thunk} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
-import {readTitle} from './web-view';
+import {readTitle, readFaviconURI} from './web-view';
 
 const sidebarToolbarHeight = '50px';
 
@@ -86,7 +86,7 @@ const viewTab = (model, address) =>
   }, [
     thunk('favicon',
           viewImage,
-          model.page && model.page.faviconURI,
+          readFaviconURI(model),
           style.favicon),
     html.div({
       className: 'sidebar-tab-title',
