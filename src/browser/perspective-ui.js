@@ -1,91 +1,85 @@
 /* @flow */
 
-import {version} from "../../package.json";
-import {Effects, html, forward, thunk} from "reflex";
+import * as Browser from "./browser";
+import {merge} from "../common/prelude";
 
-import * as Shell from "./shell";
-import * as Input from "./input";
-import * as Assistant from "./assistant";
-import * as WindowControls from "./window-controls";
-import * as Sidebar from "./sidebar";
-
-
-const initialize/*:type.initialize*/ = () => {
-  const [browser, fx] = Browser.initialize()
+export const initialize/*:type.initialize*/ = () => {
+  const [browser, fx] = Browser.initialize();
   return [asCreateWebView(browser), fx];
 };
 
+export const isInputAction = action =>
+  action.type === 'For' &&
+  action.target === 'input';
 
-const isAbort = action
-  => action.type === 'For'
-  && action.target === 'input'
-  && action.action.type === 'Input.Abort';
+export const isWebViewAction = action =>
+  action.type === 'For' &&
+  action.target === 'webViews' &&
+  (
+    action.action.type === 'WebViews.ByActive' ||
+    action.action.type === 'WebViews.ByID'
+  );
 
-const isSubmit = action
-  => action.type === 'For'
-  && action.target === 'input'
-  && action.action.type === 'Input.Submit';
+export const isFocusAction = action =>
+  action.type === 'Focusable.Focus' ||
+  action.type === 'Focusable.RequestFocus';
 
-const isFocusInput = action
-  => action.type === 'For'
-  && action.target === 'input'
-  && (action.action.type === 'Focusable.Focus' ||
-      action.action.type === 'Focusable.RequestFocus';
+export const isAbort = action =>
+  isInputAction(action) &&
+  action.action.type === 'Input.Abort';
 
-const isCreateTab = action
-  => action.type === 'Browser.CreateWebView';
+export const isSubmit = action =>
+  isInputAction(action) &&
+  action.action.type === 'Input.Submit';
 
-const isShowTabs = action
-  => action.type === 'Browser.ShowTabs';
+export const isFocusInput = action =>
+  isInputAction(action) &&
+  isFocusAction(action.action);
 
-const isEscape = action
-  => action.type === 'Browser.Escape';
+export const isCreateTab = action =>
+  action.type === 'Browser.CreateWebView';
 
-const isSelectNext = action
-  => action.type === 'WebViews.SelectNext';
+export const isShowTabs = action =>
+  action.type === 'Browser.ShowTabs';
 
-const isSelectPrevious = action
-  => action.type === 'WebViews.SelectPrevious';
+export const isEscape = action =>
+  action.type === 'Browser.Escape';
 
-const isActivateSelected = action
-  => action.type === 'For'
-  && action.target === 'webViews'
-  && action.action.type === 'WebViews.ActivateSelected';
+export const isSelectNext = action =>
+  action.type === 'WebViews.SelectNext';
 
-const isWebViewAction = action
-  => action.type === 'For'
-  && action.target === 'webViews'
-  && (action.action.type === 'WebViews.ByActive' ||
-      action.action.type === 'WebViews.ByID');
+export const isSelectPrevious = action =>
+  action.type === 'WebViews.SelectPrevious';
 
-const isFocusAction = action
-  => action.type === 'Focusable.Focus'
-  || action.type === 'Focusable.RequestFocus';
+export const isActivateSelected = action =>
+  action.type === 'For' &&
+  action.target === 'webViews' &&
+  action.action.type === 'WebViews.ActivateSelected';
 
-const isFocusWebView = action
-  => isWebViewAction(action)
-  && isFocusAction(action.action.action);
+export const isFocusWebView = action =>
+  isWebViewAction(action) &&
+  isFocusAction(action.action.action);
 
-const isActivateWebView = action
-  => isWebViewAction(action)
-  && action.action.action.type === 'WebView.Activate';
+export const isActivateWebView = action =>
+  isWebViewAction(action) &&
+  action.action.action.type === 'WebView.Activate';
 
-const asCreateWebView = browser =>
+export const asCreateWebView = browser =>
   ({mode: 'create-web-view', browser});
 
-const asShowWebView = browser =>
+export const asShowWebView = browser =>
   ({mode: 'show-web-view', browser});
 
-const asEditWebView = browser =>
+export const asEditWebView = browser =>
   ({mode: 'edit-web-view', browser});
 
-const asShowTabs = browser =>
+export const asShowTabs = browser =>
   ({mode: 'show-tabs', browser});
 
-const asSelectWebView = browser =>
+export const asSelectWebView = browser =>
   ({mode: 'select-web-view', browser});
 
-const step = (model, action) => {
+export const step = (model, action) => {
   if (model.mode === 'create-web-view') {
     if (isAbort(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
@@ -158,5 +152,8 @@ const step = (model, action) => {
 
   // If we reached this then action
   const [browser, fx] = Browser.step(model.browser, action);
-  return [merge(model, {browser}), action];
+  return [merge(model, {browser}), fx];
 }
+
+export const view = (model, address) =>
+  Browser.view(model.browser, address);
