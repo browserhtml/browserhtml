@@ -309,7 +309,7 @@ const viewFrame = (model, address) =>
     // isVisible: visiblity(model.isActive),
     // zoom: zoom(model.shell.zoom),
 
-    isFocused: focus(model.shell.isFocused),
+    isFocused: Driver.focus(model.shell.isFocused),
 
     // Events
 

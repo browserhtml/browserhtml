@@ -1,7 +1,12 @@
 /* @flow */
 
-import * as Browser from "./browser";
-import {merge} from "../common/prelude";
+import {forward, thunk} from 'reflex';
+import * as Input from './input';
+import * as Assistant from './assistant';
+import * as Sidebar from './sidebar';
+import * as Browser from './browser';
+import * as WebViews from './web-views';
+import {asFor, merge} from '../common/prelude';
 
 export const initialize/*:type.initialize*/ = () => {
   const [browser, fx] = Browser.initialize();
@@ -164,5 +169,22 @@ export const step = (model, action) => {
   return [merge(model, {browser}), fx];
 }
 
-export const view = (model, address) =>
-  Browser.view(model.browser, address);
+export const view = ({browser}, address) =>
+  Browser.view(browser, [
+    thunk('web-views',
+          WebViews.view,
+          browser.webViews,
+          forward(address, asFor('webViews'))),
+    thunk('sidebar',
+          Sidebar.view,
+          browser.webViews,
+          forward(address, asFor('webViews'))),
+    thunk('input',
+          Input.view,
+          browser.input,
+          forward(address, asFor('input'))),
+    thunk('suggestions',
+          Assistant.view,
+          browser.suggestions,
+          address)
+  ], address);

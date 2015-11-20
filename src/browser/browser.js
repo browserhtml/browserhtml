@@ -7,7 +7,6 @@ import * as Shell from "./shell";
 import * as Input from "./input";
 import * as Assistant from "./assistant";
 import * as WindowControls from "./window-controls";
-import * as Sidebar from "./sidebar";
 
 // import * as Updater from "./updater"
 // import * as Devtools from "./devtools"
@@ -153,7 +152,7 @@ const style = StyleSheet.create({
   }
 });
 
-export const view/*:type.view*/ = (model, address) =>
+export const view/*:type.view*/ = (model, children, address) =>
   html.div({
     className: 'root',
     style: style.root,
@@ -164,22 +163,7 @@ export const view/*:type.view*/ = (model, address) =>
     onFocus: onWindow(forward(address, asFor("shell")), Focusable.asFocus),
     // onUnload: () => address(Session.SaveSession),
   }, [
-    thunk('web-views',
-          WebViews.view,
-          model.webViews,
-          forward(address, asFor("webViews"))),
-    thunk('sidebar',
-          Sidebar.view,
-          model.webViews,
-          forward(address, asFor("webViews"))),
-    thunk('input',
-          Input.view,
-          model.input,
-          forward(address, asFor("input"))),
-    thunk('suggestions',
-          Assistant.view,
-          model.suggestions,
-          address),
+    ...children,
     thunk('controls',
       WindowControls.view,
       model.shell,
