@@ -14,10 +14,26 @@ import {Style, StyleSheet} from "../common/style";
 
 export const initial = {
   nextID: 0,
+  // @TODO selected field should probably live elsewhere and be maintained
+  // by a different component.
   selected: -1,
   active: -1,
   entries: []
 };
+
+export const SelectNext = ({
+  type: "WebViews.SelectRelative",
+  offset: 1
+});
+
+export const SelectPrevious = ({
+  type: "WebViews.SelectRelative",
+  offset: -1
+});
+
+export const ActivateSelected = ({
+  type: "WebViews.ActivateSelected"
+});
 
 export const indexByID/*:type.indexByID*/ = (model, id) =>
   model.entries.findIndex(entry => entry.id === id);
@@ -228,6 +244,9 @@ export const step/*:type.step*/ = (model, action) => {
   }
   else if (action.type === "WebViews.Open!WithMyIFrameAndInTheCurrentTick") {
     return [open(model, action.options), Driver.force];
+  }
+  else if (action.type === "WebViews.SelectRelative") {
+    return [selectByOffset(model, action.offset), Effects.none];
   }
   else if (action.type === "WebViews.ActivateSelected") {
     return [activateSelected(model), Effects.none];
