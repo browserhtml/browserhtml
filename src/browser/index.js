@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {start, Effects} from "reflex";
-import * as Browser from "./browser";
+import * as UI from "./perspective-ui";
 import * as Runtime from "../common/runtime";
 
 // import * as Session from "./session";
@@ -30,9 +30,9 @@ if (isReload) {
 const application = start({
   initial: isReload ?
             window.application.model.value :
-            Browser.initialize(),
-  step: logger(Browser.step),
-  view: Browser.view
+            UI.initialize(),
+  step: logger(UI.step),
+  view: UI.view
 });
 
 
