@@ -151,7 +151,7 @@ const style = StyleSheet.create({
   }
 });
 
-export const view/*:type.view*/ = (model, children, address) =>
+export const view/*:type.view*/ = (model, address, children) =>
   html.div({
     className: 'root',
     style: style.root,
