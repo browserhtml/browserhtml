@@ -91,7 +91,10 @@ const viewTab = (model, address) =>
     html.div({
       className: 'sidebar-tab-title',
       style: style.title
-    }, [readTitle(model)])
+    }, [
+      // @TODO localize this string
+      readTitle(model, 'Untitled')
+    ])
   ]);
 
 export const view = ({entries}, address) =>
