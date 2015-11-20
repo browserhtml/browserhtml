@@ -81,11 +81,18 @@ export const deactivate/*:type.deactivate*/ = model =>
 
 export const asLoad = Navigation.asLoad;
 
-export const readTitle/*:type.readTitle*/ = (model) =>
-  // @TODO clean up URI and remove protocol stuff
+export const readTitle/*:type.readTitle*/ = (model, fallback) =>
   (model.page && model.page.title && model.page.title !== '') ?
     model.page.title :
-    URI.prettify(model.navigation.currentURI);
+  URI.hasScheme(model.navigation.currentURI) ?
+    URI.prettify(model.navigation.currentURI) :
+  fallback;
+
+export const readFaviconURI/*:type.readFaviconURI*/ = (model) =>
+  model.page && model.page.faviconURI ?
+    model.page.faviconURI :
+  // @TODO use a proper URL.join function. Need to add this to url-helper lib.
+  `${model.navigation.currentURI}/favicon.ico`;
 
 export const isDark/*:type.isDark*/ = (model) =>
   model.page ? model.page.pallet.isDark : false;
@@ -372,7 +379,8 @@ export const view/*:type.view*/ = (model, address) =>
           html.span({
             className: 'webview-title'
           }, [
-            readTitle(model)
+            // @TODO localize this string
+            readTitle(model, 'Untitled')
           ])
         ])
       ]),
