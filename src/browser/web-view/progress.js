@@ -8,7 +8,7 @@
 
 import {Effects, html} from 'reflex';
 import {StyleSheet, Style} from '../../common/style';
-import {merge} from '../../lang/object';
+import {merge} from '../../common/prelude';
 
 const second = 1000;
 

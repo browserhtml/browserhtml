@@ -20,7 +20,6 @@ import * as Keyboard from '../common/keyboard';
 import {Style, StyleSheet} from '../common/style';
 
 import {identity} from "../lang/functional";
-import {updateIn} from "../lang/object";
 
 import {onWindow} from "driver";
 
