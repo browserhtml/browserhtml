@@ -119,12 +119,13 @@ export const activateByIndex/*:type.activateByIndex*/ = (model, index) => {
   else {
     const {selected, active} = model;
     const entries = model.entries.slice(0);
+    const count = entries.length;
 
-    if (selected >= 0 && selected !== index) {
+    if (selected >= 0 && selected !== index && selected < count) {
       entries[selected] = WebView.unselect(entries[selected]);
     }
 
-    if (active >= 0 && active !== index) {
+    if (active >= 0 && active !== index && active < count) {
       entries[active] = WebView.deactivate(entries[active]);
     }
 
@@ -174,9 +175,6 @@ export const closeByIndex/*:type.closeByIndex*/ = (model, index) => {
           // will be different.
           selected - 1;
 
-      const nextActive = nextSelection
-
-
       return activateByIndex(merge(model, {entries: remove(entries, index)}),
                               nextIndex)
   }
@@ -190,7 +188,7 @@ export const closeByID/*:type.closeByID*/ = (model, id) =>
 
 export const stepByActive/*:type.stepByActive*/ = (model, action) =>
   action.type === "WebView.Close" ?
-    closeActive(model) :
+    [closeActive(model), Effects.none] :
     stepByIndex(model, model.active, action);
 
 export const stepByID/*:type.stepByActive*/ = (model, id, action) =>
