@@ -28,6 +28,11 @@ export const getProtocol = url => parse(url).protocol;
 export const getManifestURL = () => new URL('./manifest.webapp', getBaseURI());
 export const getPathname = input => parse(input).pathname;
 
+const isHttpOrHttps = (url) => {
+  const {protocol} = parse(url);
+  return (protocol === 'http:' || protocol === 'https:');
+}
+
 export const isAboutURL = url =>
   parse(url).protocol === 'about:';
 
@@ -95,8 +100,11 @@ export const asAboutURI = uri => {
 
 // Prettify a URL for display purposes. Will minimize the amount of URL cruft.
 export const prettify = (input) =>
-  // Don't mess with about:x
-  isAboutURL(input) ?
+  // Don't mess with non-urls.
+  isNotURL(input) ?
+    input :
+  // Don't mess with `about:`, `data:`, etc.
+  !isHttpOrHttps(input) ?
     input :
   // If there's a meaningful pathname, keep it.
   getPathname(input) !== '/' ?
