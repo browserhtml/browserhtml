@@ -10,7 +10,7 @@ import {readTitle, readFaviconURI} from './web-view';
 
 const sidebarToolbarHeight = '50px';
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   sidebar: {
     // WARNING: will slow down animations! (gecko)
     xBoxShadow: 'rgba(0, 0, 0, 0.5) -80px 0 100px',
@@ -20,10 +20,6 @@ const style = StyleSheet.create({
     right: 0,
     top: 0,
     width: '380px',
-  },
-
-  sidebarHidden: {
-    transform: 'translateX(380px)',
   },
 
   scrollbox: {
@@ -80,31 +76,31 @@ const viewTab = (model, address) =>
   html.div({
     className: 'sidebar-tab',
     style: Style(
-      style.tab,
-      model.isSelected && style.tabSelected
+      styles.tab,
+      model.isSelected && styles.tabSelected
     )
   }, [
     thunk('favicon',
           viewImage,
           readFaviconURI(model),
-          style.favicon),
+          styles.favicon),
     html.div({
       className: 'sidebar-tab-title',
-      style: style.title
+      style: styles.title
     }, [
       // @TODO localize this string
       readTitle(model, 'Untitled')
     ])
   ]);
 
-export const view = ({entries}, address) =>
+export const view = ({entries}, address, style) =>
   html.div({
     className: 'sidebar',
-    style: style.sidebar,
+    style: Style(styles.sidebar, style),
   }, [
     html.div({
       className: 'sidebar-tabs-scrollbox',
-      style: style.scrollbox
+      style: styles.scrollbox
     }, entries.map(entry => thunk(entry.id, viewTab, entry, address))),
     html.div({
       className: 'sidebar-toolbar'

@@ -8,7 +8,7 @@
 
 import {Effects, html} from 'reflex';
 import {merge, always} from '../common/prelude';
-import {on, onCanGoBackChange, onCanGoForwardChange} from 'driver';
+import {on} from 'driver';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
@@ -23,6 +23,10 @@ export const RequestZoomOut = Shell.asRequest(Shell.ZoomOut);
 export const RequestZoomReset = Shell.asRequest(Shell.ResetZoom);
 export const RequestMakeVisibile = Shell.asRequest(Shell.asChangeVisibility(true));
 export const RequestMakeNotVisibile = Shell.asRequest(Shell.asChangeVisibility(false));
+export const RequestStop = Navigation.asRequest(Navigation.Stop);
+export const RequestReload = Navigation.asRequest(Navigation.Reload);
+export const RequestGoBack = Navigation.asRequest(Navigation.GoBack);
+export const RequestGoForward = Navigation.asRequest(Navigation.GoForward);
 
 export const Select/*:type.Select*/
   = {type: "WebView.Select"};
@@ -135,32 +139,24 @@ export const step/*:type.step*/ = (model, action) => {
 
     return [merge(model, {progress}), fx];
   }
-  else if (action.type === 'WebView.Navigation.Stop') {
-    return [model, Navigation.stop(model.id)];
-  }
-  else if (action.type === 'WebView.Navigation.Reload') {
-    return [model, Navigation.reload(model.id)];
-  }
-  else if (action.type === 'WebView.Navigation.GoBack') {
-    return [model, Navigation.goBack(model.id)];
-  }
-  else if (action.type === 'WebView.Navigation.GoForward') {
-    return [model, Navigation.goForward(model.id)];
-  }
-  else if (action.type === 'WebView.Navigation.Load') {
-    const [navigation, fx] = Navigation.step(model.navigation, action);
+  else if (action.type === 'WebView.LocationChanged') {
+    const request = Navigation.asLocationChanged(model.id,
+                                                  action.uri,
+                                                  action.timeStamp);
+    const [navigation, fx] = Navigation.step(model.navigation, request);
     return [merge(model, {navigation}), fx];
   }
-  else if (action.type === 'WebView.Navigation.LocationChanged') {
+  else if (action.type === 'WebView.Navigation.Request') {
+    const request = Navigation.asRequestBy(model.id, action.action);
+    const [navigation, fx] = Navigation.step(model.navigation, request);
+    return [merge(model, {navigation}), fx];
+  }
+  else if (action.type === 'WebView.Navigation.Load' ||
+           action.type === 'WebView.Navigation.CanGoBackChanged' ||
+           action.type === 'WebView.Navigation.CanGoForwardChanged')
+  {
     const [navigation, fx] = Navigation.step(model.navigation, action);
-    return [
-      merge(model, {navigation}),
-      Effects.batch([
-        fx,
-        Navigation.fetchCanGoBack(model.id),
-        Navigation.fetchCanGoForward(model.id)
-      ])
-    ];
+    return [merge(model, {navigation}), fx];
   }
   else if (action.type === 'WebView.Security.Changed') {
     const [security, fx] = Security.step(model.security, action);
@@ -444,7 +440,7 @@ const decodeBlur = always(Shell.Blur);
 // Navigation
 
 const decodeLocationChange = ({detail: uri, timeStamp}) =>
-  Navigation.asLocationChanged(uri, timeStamp);
+  ({type: "WebView.LocationChanged", uri, timeStamp: performance.now()});
 
 // Progress
 
