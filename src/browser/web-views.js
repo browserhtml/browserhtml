@@ -211,7 +211,10 @@ export const stepByIndex/*:type.stepByIndex*/ = (model, index, action) => {
     return [model, Effects.none];
   } else {
     const [entry, fx] = WebView.step(entries[index], action);
-    return [merge(model, {entries: set(entries, index, entry)}), fx];
+    return [
+      merge(model, {entries: set(entries, index, entry)}),
+      fx.map(asByID(entry.id))
+    ];
   }
 }
 
@@ -241,7 +244,15 @@ export const step/*:type.step*/ = (model, action) => {
   }
 }
 
-
+export const asOpen = ({uri, inBackground, name, features}) => ({
+  type: "WebViews.Open",
+  options: {
+    uri,
+    inBackground: inBackground == null ? false : inBackground,
+    name: name == null ? '' : name,
+    features: features == null ? '' : features
+  }
+});
 
 export const asByID/*:type.asByID*/
   = id => action => ({type: "WebViews.ByID", id, action});

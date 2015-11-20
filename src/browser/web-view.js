@@ -19,6 +19,12 @@ import {Style, StyleSheet} from '../common/style';
 import * as Driver from 'driver';
 import * as URI from '../common/url-helper';
 
+export const RequestZoomIn = Shell.asRequest(Shell.ZoomIn);
+export const RequestZoomOut = Shell.asRequest(Shell.ZoomOut);
+export const RequestZoomReset = Shell.asRequest(Shell.ResetZoom);
+export const RequestMakeVisibile = Shell.asRequest(Shell.asChangeVisibility(true));
+export const RequestMakeNotVisibile = Shell.asRequest(Shell.asChangeVisibility(false));
+
 export const Select/*:type.Select*/
   = {type: "WebView.Select"};
 
@@ -102,7 +108,7 @@ export const step/*:type.step*/ = (model, action) => {
   // Progress actions
   else if (action.type === 'WebView.Progress.Tick')
   {
-    const [progress, fx] = Progress.update(model.progress, action);
+    const [progress, fx] = Progress.step(model.progress, action);
     return [merge(model, {progress}), fx];
   }
   else if (action.type === 'WebView.Progress.Start') {
@@ -168,6 +174,16 @@ export const step/*:type.step*/ = (model, action) => {
   {
     const [page, fx] = Page.step(model.page, action);
     return [merge(model, {page}), fx];
+  }
+  else if (action.type === "WebView.Shell.Request") {
+    const request = Shell.asRequestBy(model.id, action.action);
+    const [shell, fx] = Shell.step(model.shell, request);
+    return [merge(model, {shell}), fx];
+  }
+  else if (action.type === "WebView.Shell.ZoomChanged" ||
+           action.type === "WebView.Shell.VisibilityChanged") {
+    const [shell, fx] = Shell.step(model.shell, action);
+    return [merge(model, {shell}), fx];
   }
   else {
     return [model, Effects.none];
@@ -422,14 +438,18 @@ const decodeLocationChange = ({detail: uri, timeStamp}) =>
 
 // Progress
 
+// @TODO This is not ideal & we should probably convert passed `timeStamp` to
+// the same format as `performance.now()` so that time passed through animation
+// frames is in the same format, but for now we just call `performance.now()`.
+
 const decodeLoadStart = ({timeStamp}) =>
-  Progress.asStart(timeStamp);
+  Progress.asStart(performance.now());
 
 const decodeProgressChange = ({timeStamp}) =>
-  Progress.asChange(timeStamp);
+  Progress.asChange(performance.now());
 
 const decodeLoadEnd = ({timeStamp}) =>
-  Progress.asEnd(timeStamp);
+  Progress.asEnd(performance.now());
 
 // Page
 
