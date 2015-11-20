@@ -63,6 +63,7 @@ const writeChord = event => {
                 modifiers;
 
   return keys
+          .map(readKey)
           .join(' ')
           .toLowerCase()
           .split(' ')

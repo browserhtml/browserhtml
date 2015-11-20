@@ -23,10 +23,16 @@ export const initiate/*:type.initiate*/ = (uri) => ({
   currentURI: uri
 });
 
+export const asRequest = action =>
+  ({type: "WebView.Navigation.Request", action});
+
+export const asRequestBy = (id, action) =>
+  ({type: "WebView.Navigation.RequestBy", id, action});
+
 export const asLoad/*:type.asLoad*/ = uri =>
   ({type: "WebView.Navigation.Load", uri});
 
-export const asLocationChanged/*:type.asLocationChanged*/ = (uri, time) =>
+export const asLocationChanged/*:type.asLocationChanged*/ = (id, uri, time) =>
   ({type: "WebView.Loader.LocationChanged", uri, timeStamp: time});
 
 export const load/*:type.load*/ = (model, uri) =>
@@ -62,8 +68,8 @@ export const fetchCanGoForward = id => Effects.task(Task.io(deliver => {
 
 const invokefx = name => id => Effects.task(Task.io(deliver => {
   const target = document.getElementById(`web-view-${id}`);
-  if (target && target[id]) {
-    target[id]();
+  if (target && target[name]) {
+    target[name]();
   }
 }));
 
@@ -72,14 +78,39 @@ export const reload = invokefx('reload');
 export const goBack = invokefx('goBack');
 export const goForward = invokefx('goForward');
 
-export const update/*:type.update*/ = (model, action) =>
-  action.type === "WebView.Loader.LocationChanged" ?
-    merge(model, {currentURI: action.uri}) :
-  action.type === "WebView.Navigation.Load" ?
-    merge(model, {
-      initiatedURI: action.uri,
-      currentURI: action.uri
-    }) :
-    model;
+export const request = (model, {id, action}) =>
+  action.type === "WebView.Navigation.Reload" ?
+    [model, reload(id)] :
+  action.type === "WebView.Navigation.Stop" ?
+    [model, stop(id)] :
+  action.type === "WebView.Navigation.GoBack" ?
+    [model, goBack(id)] :
+  action.type === "WebView.Navigation.GoForward" ?
+    [model, goForward(id)] :
+    [model, Effects.none];
 
-export const step = Effects.nofx(update);
+
+export const step/*:type.step*/ = (model, action) =>
+  action.type === "WebView.Navigation.CanGoForwardChanged" ?
+    [merge(model, {canGoForward: action.value}), Effects.none] :
+  action.type === "WebView.Navigation.CanGoBackChanged" ?
+    [merge(model, {canGoBack: action.vaule}), Effects.none] :
+  action.type === "WebView.Navigation.LocationChanged" ?
+    [
+      merge(model, {currentURI: action.uri}),
+      Effects.batch([
+        fetchCanGoBack(action.id),
+        fetchCanGoForward(action.id)
+      ])
+    ] :
+  action.type === "WebView.Navigation.Load" ?
+    [
+      merge(model, {
+        initiatedURI: action.uri,
+        currentURI: action.uri
+      }),
+      Effects.none
+    ] :
+  action.type === "WebView.Navigation.RequestBy" ?
+    request(model, action) :
+    [model, Effects.none];
