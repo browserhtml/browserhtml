@@ -6,8 +6,7 @@
 
 /*:: import * as type from "../../type/browser/web-view/progress" */
 
-import {Effects} from 'reflex';
-import {html} from 'driver';
+import {Effects, html} from 'reflex';
 import {StyleSheet, Style} from '../../common/style';
 import {merge} from '../../lang/object';
 
@@ -74,7 +73,7 @@ export const step = (model, action) =>
 
 // @TODO currently we're doing naive linear animation. Add easing.
 export const progress/*:type.progress*/ = (model) =>
-  (model.updateTime / model.loadEnd) * 100;
+  model ? (model.updateTime / model.loadEnd) * 100 : 0;
 
 const style = StyleSheet.create({
   bar: {

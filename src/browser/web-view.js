@@ -379,7 +379,8 @@ export const view/*:type.view*/ = (model, address) =>
           ])
         ])
       ]),
-      html.div({className: 'webview-show-sidebar-button'})
+      html.div({className: 'webview-show-sidebar-button'}),
+      Progress.view(model.progress, address)
     ])
   ]);
 
