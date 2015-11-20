@@ -86,7 +86,7 @@ export const readTitle/*:type.readTitle*/ = (model, fallback) =>
 
 export const readFaviconURI/*:type.readFaviconURI*/ = (model) =>
   model.page && model.page.faviconURI ?
-    model.page && model.page.faviconURI :
+    model.page.faviconURI :
   // @TODO use a proper URL.join function. Need to add this to url-helper lib.
   `${model.navigation.currentURI}/favicon.ico`;
 
