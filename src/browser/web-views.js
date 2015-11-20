@@ -64,7 +64,9 @@ export const navigateTo = (model, uri) => {
 
 export const indexOfOffset/*:type.indexByOffset*/ = (index, size, offset, loop) => {
   const position = index + offset;
-  if (loop) {
+  if (size === 0) {
+    return - 1
+  } else if (loop) {
     const index = position - Math.trunc(position / size) * size
     return index < 0 ? index + size :  index
   } else {
