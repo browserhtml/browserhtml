@@ -10,8 +10,8 @@ import * as WindowControls from "./window-controls";
 
 // import * as Updater from "./updater"
 // import * as Devtools from "./devtools"
-import * as WebViews from "./web-views"
-import * as WebView from "./web-view"
+import * as WebViews from "./web-views";
+import * as WebView from "./web-view";
 
 import {asFor, merge, always} from "../common/prelude";
 import * as Focusable from "../common/focusable";
@@ -73,10 +73,10 @@ const keyDown = Keyboard.bindings({
   'control shift tab': always(asByWebViews(WebViews.SelectPrevious)),
   // 'accel shift backspace': _ => Session.ResetSession(),
   // 'accel shift s': _ => Session.SaveSession(),
-  // 'accel r': _ => WebView.BySelected({action: Navigation.Reload()}),
-  // 'escape': _ => WebView.BySelected({action: Navigation.Stop()}),
-  // [`${modifier} left`]: _ => WebView.BySelected({action: Navigation.GoBack()}),
-  // [`${modifier} right`]: _ => WebView.BySelected({action: Navigation.GoForward()}),
+  'accel r': always(asByActiveWebView(WebView.RequestReload)),
+  'escape': always(asByActiveWebView(WebView.RequestStop)),
+  [`${modifier} left`]: always(asByActiveWebView(WebView.RequestGoBack)),
+  [`${modifier} right`]: always(asByActiveWebView(WebView.RequestGoForward)),
 
   // TODO: `meta alt i` generates `accel alt i` on OSX we need to look
   // more closely into this but so declaring both shortcuts should do it.

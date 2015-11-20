@@ -24,9 +24,16 @@ export type Model = {
 // Action is triggered whenever web-view start loading a new URI. Passed URI
 // directly corresponds `currentURI` in the model.
 export type LocationChanged = {
-  type: "WebView.Loader.LocationChanged",
+  type: "WebView.Navigation.LocationChanged",
+  id: ID,
   uri: URI,
   timeStamp: Time
+}
+
+export type Request = {
+  type: "WebView.Navigation.Request",
+  id: ID,
+  action: RequestAction
 }
 
 // When model is updated with above action Effects with following Response
@@ -62,9 +69,8 @@ export type GoBack = {type: "WebView.Navigation.GoBack"}
 export type GoForward = {type: "WebView.Navigation.GoForward"}
 
 
-export type Request
-  = Load
-  | Stop
+export type RequestAction
+  = Stop
   | Reload
   | GoBack
   | GoForward
@@ -77,8 +83,9 @@ export type Response
 
 export type Action
   = LocationChanged
-  | Response
+  | Load
   | Request
+  | Response
 
 
 
