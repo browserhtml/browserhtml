@@ -80,7 +80,7 @@ export const progress/*:type.progress*/ = (model) =>
 const style = StyleSheet.create({
   bar: {
     position: 'absolute',
-    top: 0,
+    top: '27px',
     height: '4px',
     width: '100%'
   },
