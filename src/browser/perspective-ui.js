@@ -65,6 +65,10 @@ export const isActivateSelected = action =>
   action.target === 'webViews' &&
   action.action.type === 'WebViews.ActivateSelected';
 
+export const isActivateSelectedWebView = action =>
+  isActivateSelected(action) ||
+  (isKeyUp(action) && isActivateSelected(action.action));
+
 
 export const isFocusWebView = action =>
   isWebViewAction(action) &&
@@ -75,8 +79,14 @@ export const isActivateWebView = action =>
   action.action.action.type === 'WebView.Activate';
 
 export const isSelectRelativeWebView = action =>
-  isWebViewAction(action) &&
+  action.type === 'For' &&
+  action.target === 'webViews' &&
   action.action.type === 'WebViews.SelectRelative';
+
+export const isSwitchSelectedWebView = action =>
+  isSelectRelativeWebView(action) ||
+  (isKeyDown(action) && isSelectRelativeWebView(action.action));
+
 
 export const asCreateWebView = browser =>
   ({mode: 'create-web-view', browser});
@@ -134,7 +144,7 @@ export const step = (model, action) => {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asShowTabs(browser), fx];
     }
-    else if (isSelectRelativeWebView(action)) {
+    else if (isSwitchSelectedWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asSelectWebView(browser), fx];
     }
@@ -159,7 +169,7 @@ export const step = (model, action) => {
     }
   }
   else if (model.mode === 'select-web-view') {
-    if (isActivateSelected(action)) {
+    if (isActivateSelectedWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asShowWebView(browser), fx];
     }
