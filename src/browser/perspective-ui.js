@@ -170,22 +170,34 @@ export const step = (model, action) => {
   return [merge(model, {browser}), fx];
 }
 
-export const view = ({browser}, address) =>
-  Browser.view(browser, [
+export const view = ({mode, browser}, address) =>
+  mode === 'edit-web-view' ?
+    viewAsEditWebView(browser, address) :
+  mode === 'show-web-view' ?
+    viewAsShowWebView(browser, address) :
+  mode === 'create-web-view' ?
+    viewAsCreateWebView(browser, address) :
+  mode === 'select-web-view' ?
+    viewAsSelectWebView(browser, address) :
+  // mode === 'show-tabs' ?
+    viewAsShowTabs(browser, address);
+
+const viewAsShowWebView = (model, address) =>
+  Browser.view(model, [
     thunk('web-views',
           WebViews.view,
-          browser.webViews,
+          model.webViews,
           forward(address, asFor('webViews'))),
     thunk('sidebar',
           Sidebar.view,
-          browser.webViews,
+          model.webViews,
           forward(address, asFor('webViews'))),
     thunk('input',
           Input.view,
-          browser.input,
+          model.input,
           forward(address, asFor('input'))),
     thunk('suggestions',
           Assistant.view,
-          browser.suggestions,
+          model.suggestions,
           address)
   ], address);
