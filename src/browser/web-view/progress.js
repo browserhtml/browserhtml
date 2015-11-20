@@ -58,10 +58,10 @@ export const end = (timeStamp, model) => [
 
 // Update the progress and request another tick.
 // Returns a new model and a tick effect.
-export const tick/*:type.tick*/ = (timeStamp, model) => [
-  merge(model, {updateTime: timeStamp}),
-  Effects.tick(asTick)
-];
+export const tick/*:type.tick*/ = (timeStamp, model) =>
+  model.loadEnd > timeStamp ?
+    [merge(model, {updateTime: timeStamp}), Effects.tick(asTick)] :
+    [merge(model, {updateTime: timeStamp}), Effects.none];
 
 export const step = (model, action) =>
   action.type === 'WebView.Progress.Start' ?
@@ -70,7 +70,7 @@ export const step = (model, action) =>
     end(action.timeStamp, model) :
   action.type === 'WebView.Progress.Tick' ?
     tick(action.timeStamp, model) :
-  [model, Effects.none];
+    [model, Effects.none];
 
 // @TODO currently we're doing naive linear animation. Add easing.
 export const progress/*:type.progress*/ = (model) =>
