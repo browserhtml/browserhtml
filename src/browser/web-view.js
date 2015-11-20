@@ -9,7 +9,6 @@
 import {Effects, html} from 'reflex';
 import {merge, always} from '../common/prelude';
 import {on} from 'driver';
-import {updateIn, stepIn} from '../lang/object';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
@@ -257,7 +256,9 @@ const style = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: '100%',
+    paddingLeft: '30px',
+    paddingRight: '30px',
+    width: 'calc(100% - 60px)',
     textAlign: 'center',
     fontWeight: 'bold',
     whiteSpace: 'nowrap',
@@ -376,7 +377,8 @@ export const view/*:type.view*/ = (model, address) =>
         ])
       ]),
       html.div({className: 'webview-show-sidebar-button'})
-    ])
+    ]),
+    Progress.view(model.progress, address)
   ]);
 
 

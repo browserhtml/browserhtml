@@ -85,7 +85,7 @@ export type Progress = number // Implied to be 0 - 100 range
 //        float, 0, 100,
 //        model.loadEnd - model.loadStart,
 //        model.updateTime)
-export type progress = (model:Model) => Progress
+export type progress = (model: ?Model) => Progress
 
 
 export type step = (model:Model, action:Action) => [Model, Effects<Response>]
