@@ -84,7 +84,7 @@ export const asLoad = Navigation.asLoad;
 export const readTitle/*:type.readTitle*/ = (model, fallback) =>
   (model.page && model.page.title && model.page.title !== '') ?
     model.page.title :
-  URI.hasScheme(model.navigation.currentURI) ?
+  model.navigation.currentURI.search(/^\s*$/) ?
     URI.prettify(model.navigation.currentURI) :
   fallback;
 
