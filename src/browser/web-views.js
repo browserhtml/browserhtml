@@ -211,7 +211,10 @@ export const stepByIndex/*:type.stepByIndex*/ = (model, index, action) => {
     return [model, Effects.none];
   } else {
     const [entry, fx] = WebView.step(entries[index], action);
-    return [merge(model, {entries: set(entries, index, entry)}), fx];
+    return [
+      merge(model, {entries: set(entries, index, entry)}),
+      fx.map(asByID(entry.id))
+    ];
   }
 }
 
