@@ -118,14 +118,14 @@ const style = StyleSheet.create({
   }
 });
 
-export const view = (model, address) =>
+export const view = (model, address, parentStyle) =>
   html.div({
     className: 'input-combobox',
-    style: Style(style.combobox)
+    style: Style(style.combobox, parentStyle)
   }, [
     html.span({
       className: 'input-search-icon',
-      style: Style(style.searchIcon)
+      style: style.searchIcon
     }, ['']),
     html.span({
       className: 'input-clear-icon',
@@ -137,7 +137,7 @@ export const view = (model, address) =>
     html.input({
       className: 'input-field',
       placeholder: 'Search or enter address',
-      style: Style(style.field),
+      style: style.field,
       type: 'text',
       value: model.value,
       isFocused: focus(model.isFocused),
