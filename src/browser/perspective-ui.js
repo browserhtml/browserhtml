@@ -184,6 +184,12 @@ const styles = StyleSheet.create({
   sidebarVisible: {},
   sidebarHidden: {
     transform: 'translateX(380px)'
+  },
+
+  inputVisible: {},
+  inputHidden: {
+    opacity: 0,
+    pointerEvents: 'none'
   }
 });
 
@@ -213,7 +219,8 @@ const viewAsEditWebView = (model, address) =>
     thunk('input',
           Input.view,
           model.input,
-          forward(address, asFor('input'))),
+          forward(address, asFor('input')),
+          styles.inputVisible),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
@@ -234,7 +241,8 @@ const viewAsShowWebView = (model, address) =>
     thunk('input',
           Input.view,
           model.input,
-          forward(address, asFor('input'))),
+          forward(address, asFor('input')),
+          styles.inputHidden),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
@@ -255,7 +263,8 @@ const viewAsCreateWebView = (model, address) =>
     thunk('input',
           Input.view,
           model.input,
-          forward(address, asFor('input'))),
+          forward(address, asFor('input')),
+          styles.inputVisible),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
@@ -276,7 +285,8 @@ const viewAsSelectWebView = (model, address) =>
     thunk('input',
           Input.view,
           model.input,
-          forward(address, asFor('input'))),
+          forward(address, asFor('input')),
+          styles.inputHidden),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
@@ -297,7 +307,8 @@ const viewAsShowTabs = (model, address) =>
     thunk('input',
           Input.view,
           model.input,
-          forward(address, asFor('input'))),
+          forward(address, asFor('input')),
+          styles.inputHidden),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
