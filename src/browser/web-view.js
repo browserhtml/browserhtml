@@ -7,13 +7,14 @@
 /*:: import * as type from "../../type/browser/web-view" */
 
 import {Effects, html} from 'reflex';
-import {merge, always} from '../common/prelude';
+import {merge, always, asFor} from '../common/prelude';
 import {on} from 'driver';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
+import * as Focusable from '../common/focusable';
 import {Style, StyleSheet} from '../common/style';
 import * as Driver from 'driver';
 import * as URI from '../common/url-helper';
@@ -341,6 +342,8 @@ const viewFrame = (model, address) =>
     onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
   });
 
+const asForInput = asFor('input');
+
 export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: isDark(model) ? 'webview webview-is-dark' : 'webview',
@@ -361,7 +364,8 @@ export const view/*:type.view*/ = (model, address) =>
       }),
       html.div({
         className: 'webview-combobox',
-        style: style.combobox
+        style: style.combobox,
+        onClick: on(address, always(asForInput(Focusable.Focus)))
       }, [
         html.span({
           className: 'webview-search-icon',
