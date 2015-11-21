@@ -298,10 +298,10 @@ const style = StyleSheet.create({
   }
 });
 
-export const view/*:type.view*/ = (model, address) =>
+export const view/*:type.view*/ = (model, address, modeStyle) =>
   html.div({
     className: 'webviews-stack',
-    style: Style(style.webviews)
+    style: Style(style.webviews, modeStyle)
   }, model
       .entries
       .map(entry => thunk(entry.id,
