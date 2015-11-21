@@ -118,10 +118,10 @@ const style = StyleSheet.create({
   }
 });
 
-export const view = (model, address, parentStyle) =>
+export const view = (model, address, modeStyle) =>
   html.div({
     className: 'input-combobox',
-    style: Style(style.combobox, parentStyle)
+    style: Style(style.combobox, modeStyle)
   }, [
     html.span({
       className: 'input-search-icon',
