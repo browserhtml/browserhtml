@@ -9,7 +9,7 @@ import * as Assistant from "./assistant";
 import * as WindowControls from "./window-controls";
 
 // import * as Updater from "./updater"
-// import * as Devtools from "./devtools"
+import * as Devtools from "../common/devtools";
 import * as WebViews from "./web-views";
 import * as WebView from "./web-view";
 
@@ -26,7 +26,7 @@ import {onWindow} from "driver";
 /*:: import * as type from "../../type/browser/browser" */
 
 export const initialize/*:type.initialize*/ = () => {
-  // const [devtools, devtoolsFx] = Devtools.initialize();
+  const [devtools, devtoolsFx] = Devtools.initialize();
   // const [updates, updaterFx] = Updater.initialize();
 
   const model = {
@@ -36,21 +36,21 @@ export const initialize/*:type.initialize*/ = () => {
     suggestions: Assistant.initial,
     webViews: WebViews.initial,
     // updates: updates,
-    // devtools: devtools
+    devtools: devtools
   };
 
-  // @TODO hook up effects
-  // const fx = Effects.batch([
-  //   asFor("Devtools", devtoolsFx),
-  //   asFor("Updater", updaterFx)
-  // ]);
+  const fx = Effects.batch([
+    devtoolsFx.map(asByDevtools)
+    //updaterFx.map(asFor("updater"))
+  ]);
 
-  return [model, Effects.none];
+  return [model, fx];
 }
 
 const asByInput = asFor('input');
 const asByWebViews = asFor('webViews');
 const asByActiveWebView = action => asByWebViews(WebViews.asByActive(action));
+const asByDevtools = asFor('devtools');
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
 
@@ -80,9 +80,9 @@ const keyDown = Keyboard.bindings({
 
   // TODO: `meta alt i` generates `accel alt i` on OSX we need to look
   // more closely into this but so declaring both shortcuts should do it.
-  // 'accel alt i': _ => DevtoolsHUD.ToggleDevtoolsHUD(),
-  // 'accel alt ˆ': _ => DevtoolsHUD.ToggleDevtoolsHUD(),
-  // 'F12': _ => DevtoolsHUD.ToggleDevtoolsHUD()
+  'accel alt i': always(asByDevtools(Devtools.Toggle)),
+  'accel alt ˆ': always(asByDevtools(Devtools.Toggle)),
+  'F12': always(asByDevtools(Devtools.Toggle))
 });
 
 const keyUp = Keyboard.bindings({
@@ -128,6 +128,10 @@ const stepFor = (target, model, action) => {
     const [webViews, fx] = WebViews.step(model.webViews, action);
     return [merge(model, {webViews}), fx.map(asFor('webViews'))];
   }
+  else if (target === 'devtools') {
+    const [devtools, fx] = Devtools.step(model.devtools, action);
+    return [merge(model, {devtools}), fx.map(asByDevtools)];
+  }
   else {
     return [model, Effects.none];
   }
@@ -163,6 +167,10 @@ export const view/*:type.view*/ = (model, address, children) =>
     // onUnload: () => address(Session.SaveSession),
   }, [
     ...children,
+    thunk('devtools',
+          Devtools.view,
+          model.devtools,
+          forward(address, asByDevtools)),
     thunk('controls',
       WindowControls.view,
       model.shell,

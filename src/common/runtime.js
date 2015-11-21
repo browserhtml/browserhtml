@@ -86,3 +86,19 @@ export const toggleFullScreen/*:type.toggleFullScreen*/ = () =>
     // that we got it after a tick.
     return Promise.resolve(FullScreenToggled);
   }));
+
+export const restart/*:type.restart*/ = () =>
+  Effects.task(Task.io((deliver) => {
+    console.warn(`Unsupported runtime task "restart" was triggered`);
+    dispatchRequest({type: "restart"});
+  }));
+
+export const cleanRestart/*:type.cleanRestart*/ = () =>
+  Effects.task(Task.io((deliver) => {
+    dispatchRequest({type: "clear-cache-and-restart"});
+  }));
+
+export const cleanReload/*:type.cleanReload*/ = () =>
+  Effects.task(Task.io((deliver) => {
+    dispatchRequest({type: "clear-cache-and-reload"});
+  }));
