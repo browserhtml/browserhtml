@@ -14,7 +14,6 @@ import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
-import * as Focusable from '../common/focusable';
 import {Style, StyleSheet} from '../common/style';
 import * as Driver from 'driver';
 import * as URI from '../common/url-helper';
