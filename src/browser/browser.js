@@ -47,10 +47,11 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, fx];
 }
 
-const asByInput = asFor('input');
-const asByWebViews = asFor('webViews');
-const asByActiveWebView = action => asByWebViews(WebViews.asByActive(action));
-const asByDevtools = asFor('devtools');
+export const asByInput = asFor('input');
+export const asByWebViews = asFor('webViews');
+export const asByActiveWebView = action =>
+  asByWebViews(WebViews.asByActive(action));
+export const asByDevtools = asFor('devtools');
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
 
@@ -154,6 +155,8 @@ const stepFor = (target, model, action) => {
 export const step/*:type.step*/ = (model, action) =>
   action.type === 'For' ?
     stepFor(action.target, model, action.action) :
+  action.type === 'Browser.CreateWebView' ?
+    stepFor('input', model, Input.Enter) :
     [model, Effects.none];
 
 const style = StyleSheet.create({

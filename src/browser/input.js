@@ -26,6 +26,10 @@ export const Abort/*:type.Abort*/ = {
   type: 'Input.Abort'
 };
 
+export const Enter/*:type.Enter*/ = {
+  type: 'Input.Enter'
+};
+
 export const update/*:type.update*/ = (model, action) =>
   action.type === 'Keyboard.Command' && action.action.type === 'Focusable.Blur' ?
     Focusable.update(model, action.action) :
@@ -33,6 +37,8 @@ export const update/*:type.update*/ = (model, action) =>
     Editable.clear(model) :
   action.type === 'Input.Abort' ?
     Focusable.update(model, Focusable.Blur) :
+  action.type === 'Input.Enter' ?
+    Editable.clear(Focusable.focus(model)) :
   action.type === "Focusable.Blur" ?
     Focusable.update(model, action) :
   action.type === "Focusable.Focus" ?
@@ -45,7 +51,7 @@ export const update/*:type.update*/ = (model, action) =>
     Editable.update(model, action) :
   action.type === "Editable.Change" ?
     Editable.update(model, action) :
-  model;
+    model;
 
 export const step = Effects.nofx(update);
 

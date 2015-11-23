@@ -130,6 +130,10 @@ export const step = (model, action) => {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asShowWebView(browser), fx];
     }
+    else if (isCreateTab(action)) {
+      const [browser, fx] = Browser.step(model.browser, action);
+      return [asCreateWebView(browser), fx];
+    }
   }
   else if (model.mode === 'show-web-view') {
     if (isFocusInput(action)) {
