@@ -14,6 +14,7 @@ import * as Rotation from "./web-view/rotation"
 export type Activate = {type: "WebView.Activate"}
 export type Close = {type: "WebView.Close"}
 export type Select = {type: "WebView.Select"}
+export type EditLocation = {type: "WebView.EditLocation"}
 
 export type ContextMenu = {type: "WebView.ContextMenu", detail: any}
 export type ModalPrompt = {type: "WebView.ModalPrompt", detail: any}

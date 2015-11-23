@@ -38,6 +38,9 @@ export const Activate/*:type.Activate*/
 export const Close/*:type.Close*/
   = {type: "WebView.Close"};
 
+export const EditLocation/*:type.EditLocation*/
+  = {type: 'WebView.EditLocation'};
+
 export const open/*:type.open*/ = (id, options) => ({
   id: id,
   name: options.name,
@@ -342,8 +345,6 @@ const viewFrame = (model, address) =>
     onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
   });
 
-const asForInput = asFor('input');
-
 export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: isDark(model) ? 'webview webview-is-dark' : 'webview',
@@ -365,7 +366,7 @@ export const view/*:type.view*/ = (model, address) =>
       html.div({
         className: 'webview-combobox',
         style: style.combobox,
-        onClick: on(address, always(asForInput(Focusable.Focus)))
+        onClick: on(address, always(EditLocation))
       }, [
         html.span({
           className: 'webview-search-icon',
