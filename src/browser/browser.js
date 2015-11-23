@@ -125,8 +125,14 @@ const stepFor = (target, model, action) => {
     return [merge(model, {shell}), fx.map(asFor('shell'))];
   }
   else if (target === 'webViews') {
-    const [webViews, fx] = WebViews.step(model.webViews, action);
-    return [merge(model, {webViews}), fx.map(asFor('webViews'))];
+    if (action.type === 'WebViews.ByID' && action.action.type === 'WebView.Edit') {
+      const [input, fx] = Input.step(model.input, Focusable.Focus);
+      return [merge(model, {input}), fx.map(asFor('input'))];
+    }
+    else {
+      const [webViews, fx] = WebViews.step(model.webViews, action);
+      return [merge(model, {webViews}), fx.map(asFor('webViews'))];
+    }
   }
   else {
     return [model, Effects.none];
