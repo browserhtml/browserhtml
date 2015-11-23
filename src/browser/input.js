@@ -15,18 +15,24 @@ export const initial/*:type.Model*/ = {
   value: "",
   isFocused: false,
   selection: null
-}
+};
 
 // Create a new input submit action.
-export const Submit/*:type.asSubmit*/ = {
+export const Submit/*:type.Submit*/ = {
   type: 'Input.Submit'
-}
+};
+
+export const Abort/*:type.Abort*/ = {
+  type: 'Input.Abort'
+};
 
 export const update/*:type.update*/ = (model, action) =>
   action.type === 'Keyboard.Command' && action.action.type === 'Focusable.Blur' ?
     Focusable.update(model, action.action) :
   action.type === 'Keyboard.Command' && action.action.type === 'Input.Submit' ?
     Editable.clear(model) :
+  action.type === 'Input.Abort' ?
+    Focusable.update(model, Focusable.Blur) :
   action.type === "Focusable.Blur" ?
     Focusable.update(model, action) :
   action.type === "Focusable.Focus" ?
@@ -49,7 +55,7 @@ const binding = Keyboard.bindings({
   // 'down': _ => Suggestions.SelectNext(),
   // 'control n': _ => Suggestions.SelectNext(),
   'enter': always(Submit),
-  'escape': always(Focusable.Blur)
+  'escape': always(Abort)
 });
 
 // Read a selection model from an event target.

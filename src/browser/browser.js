@@ -115,7 +115,21 @@ const stepFor = (target, model, action) => {
           viewFx.map(asFor('webViews'))
         ])
       ]
-    } else {
+    }
+    else if (action.type === 'Input.Abort') {
+      const [input, inputFx] = Input.step(model.input, action);
+      const [webViews, viewFx] = WebViews.step(model.webViews,
+                                               Focusable.FocusRequest);
+
+      return [
+        merge(model, {input, webViews}),
+        Effects.batch([
+          inputFx.map(asByInput(inputFx)),
+          viewFx.map(asByActiveWebView(viewFx))
+        ])
+      ];
+    }
+    else {
       const [input, fx] = Input.step(model.input, action);
       return [merge(model, {input}), fx.map(asFor('input'))];
     }

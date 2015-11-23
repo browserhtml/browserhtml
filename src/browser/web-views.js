@@ -236,6 +236,9 @@ export const stepByIndex/*:type.stepByIndex*/ = (model, index, action) => {
 
 
 export const step/*:type.step*/ = (model, action) => {
+  if (action.type === "Focusable.FocusRequest") {
+    return stepByActive(model, action);
+  }
   if (action.type === "WebViews.NavigateTo") {
     return navigateTo(model, action.uri);
   }
