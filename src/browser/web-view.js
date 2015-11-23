@@ -7,7 +7,7 @@
 /*:: import * as type from "../../type/browser/web-view" */
 
 import {Effects, html} from 'reflex';
-import {merge, always} from '../common/prelude';
+import {merge, always, asFor} from '../common/prelude';
 import {on} from 'driver';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
@@ -36,6 +36,9 @@ export const Activate/*:type.Activate*/
 
 export const Close/*:type.Close*/
   = {type: "WebView.Close"};
+
+export const Edit/*:type.Edit*/
+  = {type: 'WebView.Edit'};
 
 export const open/*:type.open*/ = (id, options) => ({
   id: id,
@@ -361,7 +364,8 @@ export const view/*:type.view*/ = (model, address) =>
       }),
       html.div({
         className: 'webview-combobox',
-        style: style.combobox
+        style: style.combobox,
+        onClick: on(address, always(Edit))
       }, [
         html.span({
           className: 'webview-search-icon',
