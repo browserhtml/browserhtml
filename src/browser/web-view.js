@@ -64,7 +64,7 @@ export const unselect/*:type.unselect*/ = model =>
     model;
 
 export const activate/*:type.activate*/ = model =>
-  model.isActive ?
+  (model.isActive && model.isFocused) ?
     model :
     merge(model, {
       isActive: true,
