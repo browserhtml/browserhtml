@@ -37,8 +37,8 @@ export const Activate/*:type.Activate*/
 export const Close/*:type.Close*/
   = {type: "WebView.Close"};
 
-export const EditLocation/*:type.EditLocation*/
-  = {type: 'WebView.EditLocation'};
+export const Edit/*:type.Edit*/
+  = {type: 'WebView.Edit'};
 
 export const open/*:type.open*/ = (id, options) => ({
   id: id,

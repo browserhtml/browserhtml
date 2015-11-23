@@ -78,6 +78,10 @@ export const isActivateWebView = action =>
   isWebViewAction(action) &&
   action.action.action.type === 'WebView.Activate';
 
+export const isEditWebview = action =>
+  isWebViewAction(action) &&
+  action.action.action.type === 'WebView.Edit';
+
 export const isSelectRelativeWebView = action =>
   action.type === 'For' &&
   action.target === 'webViews' &&
@@ -147,6 +151,10 @@ export const step = (model, action) => {
     else if (isSwitchSelectedWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asSelectWebView(browser), fx];
+    }
+    else if (isEditWebview(action)) {
+      const [browser, fx] = Browser.step(model.browser, action);
+      return [asEditWebView(browser), fx];
     }
   }
   else if (model.mode === 'show-tabs') {
