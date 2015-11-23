@@ -146,6 +146,9 @@ const style = StyleSheet.create({
   root: {
     background: '#24303D',
     perspective: '1000px',
+    // @TODO this isn't actually doing what we want (centering the webviews
+    // in the available space). We need to do some 3d space math.
+    perspectiveOrigin: 'calc(50% - 380px)',
     // These styles prevent scrolling with the arrow keys in the root window
     // when elements move outside of viewport.
     width: '100vw',
