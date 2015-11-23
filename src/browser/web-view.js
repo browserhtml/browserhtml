@@ -365,7 +365,7 @@ export const view/*:type.view*/ = (model, address) =>
       html.div({
         className: 'webview-combobox',
         style: style.combobox,
-        onClick: on(address, always(EditLocation))
+        onClick: on(address, always(Edit))
       }, [
         html.span({
           className: 'webview-search-icon',
