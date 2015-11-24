@@ -49,8 +49,8 @@ export const open/*:type.open*/ = (id, options) => ({
   shell: Shell.initial,
   security: Security.initial,
   navigation: Navigation.initiate(options.uri),
+  page: Page.initiate(options.uri),
   progress: null,
-  page: null
 })
 
 const selected = {isSelected: true};
@@ -126,7 +126,7 @@ export const step/*:type.step*/ = (model, action) => {
   }
   else if (action.type === 'WebView.Progress.Start') {
     const [progress, progressFx] = Progress.start(action.timeStamp);
-    const [page, pageFx] = Page.start(model.navigation.currentURI);
+    const [page, pageFx] = Page.step(model.page, action);
     const security = Security.initial;
 
     return [
@@ -142,12 +142,21 @@ export const step/*:type.step*/ = (model, action) => {
 
     return [merge(model, {progress}), fx];
   }
+  // Note: WebView dispatches `WebView.LocationChanged` action but `Navigation`
+  // needs to know the id of the web-view to schedule effects. There for
+  // in here we create `WebView.Navigation.LocationChanged` action (name diff is
+  // subtle & would be nice to improve) that also contains id of the web-view.
   else if (action.type === 'WebView.LocationChanged') {
     const request = Navigation.asLocationChanged(model.id,
                                                   action.uri,
                                                   action.timeStamp);
-    const [navigation, fx] = Navigation.step(model.navigation, request);
-    return [merge(model, {navigation}), fx];
+    const [navigation, navigationFx] = Navigation.step(model.navigation,
+                                                        request);
+    const [page, pageFx] = Page.step(model.page, action);
+    return [
+      merge(model, {navigation, page}),
+      Effects.batch([navigationFx, pageFx])
+    ];
   }
   else if (action.type === 'WebView.Navigation.Request') {
     const request = Navigation.asRequestBy(model.id, action.action);
