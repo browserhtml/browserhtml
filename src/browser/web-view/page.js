@@ -75,12 +75,14 @@ const updatePallet = model =>
     merge(model, {
       pallet: Pallet.initialize(model.curatedColor.background,
                                 model.curatedColor.foreground)
-    }):
+    }) :
   model.themeColor ?
     merge(model, {
       pallet: Pallet.initialize(...`${model.themeColor}|'`.split('|'))
     }) :
-    model;
+  merge(model, {
+    pallet: Pallet.blank
+  });
 
 export const step/*:type.step*/ = (model, action) =>
   action.type === 'WebView.Progress.LoadStart' ?
