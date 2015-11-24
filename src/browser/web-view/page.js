@@ -85,7 +85,7 @@ const updatePallet = model =>
   });
 
 export const step/*:type.step*/ = (model, action) =>
-  action.type === 'WebView.Progress.LoadStart' ?
+  action.type === 'WebView.Progress.Start' ?
     start(model) :
   action.type === 'WebView.Page.TitleChanged' ?
     [merge(model, {title: action.title}), Effects.none] :
