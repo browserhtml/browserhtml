@@ -201,6 +201,14 @@ export const step/*:type.step*/ = (model, action) => {
 }
 
 const style = StyleSheet.create({
+  assistant: {
+    background: '#fff',
+    left: 0,
+    position: 'absolute',
+    top: 0,
+    width: '100vw'
+  },
+
   icon: {
     color: 'rgba(0,0,0,0.7)',
     fontFamily: 'FontAwesome',
@@ -215,7 +223,7 @@ const style = StyleSheet.create({
 
   results: {
     listStyle: 'none',
-    margin: '115px auto 0',
+    margin: '120px auto 0',
     padding: 0,
     width: '460px'
   },
@@ -343,9 +351,10 @@ const viewResult = (model, index, selected, address) =>
   // model.type === 'Search.Match' ?
     viewSearch(model, index, selected, address);
 
-export const view/*:type.view*/ = (model, address) =>
+export const view/*:type.view*/ = (model, address, modeStyle) =>
   html.div({
-    className: 'assistant'
+    className: 'assistant',
+    style: Style(style.assistant, modeStyle)
   }, [
     html.ol({
       className: 'assistant-results',
