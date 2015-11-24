@@ -9,6 +9,7 @@ import * as Updater from "./updater"
 import * as WebViews from "./web-views"
 import * as Input from "./input"
 import * as Assistant from "./assistant"
+import * as Overlay from "./overlay"
 
 
 export type Model = {
@@ -16,6 +17,7 @@ export type Model = {
   shell: Shell.Model,
   input: Input.Model,
   suggestions: Assistant.Model,
+  overlay: Overlay.Model,
   webViews: WebViews.Model,
 
   updates: Updater.Model,
@@ -29,6 +31,7 @@ export type Action
   | For<"input", Input.Action>
   | For<"suggestions", Assistant.Action>
   | For<"devtools", Devtools.Action>
+  | For<"overlay", Overlay.Action>
 
 export type Response
   = For<"webViews", WebViews.Action>

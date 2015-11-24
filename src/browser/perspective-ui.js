@@ -6,6 +6,7 @@ import * as Assistant from './assistant';
 import * as Sidebar from './sidebar';
 import * as Browser from './browser';
 import * as WebViews from './web-views';
+import * as Overlay from './overlay';
 import {asFor, merge} from '../common/prelude';
 import {Style, StyleSheet} from '../common/style';
 
@@ -244,6 +245,10 @@ const viewAsEditWebView = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
@@ -267,6 +272,10 @@ const viewAsShowWebView = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
@@ -291,6 +300,10 @@ const viewAsCreateWebView = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
@@ -315,6 +328,10 @@ const viewAsSelectWebView = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarVisible),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
@@ -339,6 +356,10 @@ const viewAsShowTabs = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarVisible),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.suggestions,
