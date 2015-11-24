@@ -7,6 +7,7 @@ import * as Sidebar from './sidebar';
 import * as Browser from './browser';
 import * as WebViews from './web-views';
 import {asFor, merge} from '../common/prelude';
+import * as URI from '../common/url-helper';
 import {Style, StyleSheet} from '../common/style';
 
 export const initialize/*:type.initialize*/ = () => {
@@ -120,7 +121,7 @@ export const step = (model, action) => {
       }
     }
     else if (isSubmit(action)) {
-      const open = Browser.asOpenWebView(model.browser.input.value);
+      const open = Browser.asOpenWebView(URI.read(model.browser.input.value));
       const [browser, fx] = Browser.step(model.browser, open);
       return [asShowWebView(browser), fx];
     }
