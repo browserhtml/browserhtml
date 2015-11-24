@@ -209,6 +209,14 @@ const style = StyleSheet.create({
     transform: 'translate3d(0, 0, -600px) rotateY(10deg)',
     transformOrigin: 'left center',
     pointerEvents: 'none'
+  },
+
+  assistantHidden: {
+    display: 'none'
+  },
+
+  assistantFull: {
+    height: '100vh'
   }
 });
 
@@ -236,15 +244,15 @@ const viewAsEditWebView = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address),
     thunk('input',
           Input.view,
           model.input,
           forward(address, asFor('input')),
-          style.inputVisible),
-    thunk('suggestions',
-          Assistant.view,
-          model.suggestions,
-          address)
+          style.inputVisible)
   ]);
 
 const viewAsShowWebView = (model, address) =>
@@ -259,15 +267,16 @@ const viewAsShowWebView = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address,
+          style.assistantHidden),
     thunk('input',
           Input.view,
           model.input,
           forward(address, asFor('input')),
-          style.inputHidden),
-    thunk('suggestions',
-          Assistant.view,
-          model.suggestions,
-          address)
+          style.inputHidden)
   ]);
 
 const viewAsCreateWebView = (model, address) =>
@@ -282,15 +291,16 @@ const viewAsCreateWebView = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address,
+          style.assistantFull),
     thunk('input',
           Input.view,
           model.input,
           forward(address, asFor('input')),
-          style.inputVisible),
-    thunk('suggestions',
-          Assistant.view,
-          model.suggestions,
-          address)
+          style.inputVisible)
   ]);
 
 const viewAsSelectWebView = (model, address) =>
@@ -305,15 +315,16 @@ const viewAsSelectWebView = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarVisible),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address,
+          style.assistantHidden),
     thunk('input',
           Input.view,
           model.input,
           forward(address, asFor('input')),
-          style.inputHidden),
-    thunk('suggestions',
-          Assistant.view,
-          model.suggestions,
-          address)
+          style.inputHidden)
   ]);
 
 const viewAsShowTabs = (model, address) =>
@@ -328,13 +339,14 @@ const viewAsShowTabs = (model, address) =>
           model.webViews,
           forward(address, asFor('webViews')),
           style.sidebarVisible),
+    thunk('suggestions',
+          Assistant.view,
+          model.suggestions,
+          address,
+          style.assistantHidden),
     thunk('input',
           Input.view,
           model.input,
           forward(address, asFor('input')),
-          style.inputHidden),
-    thunk('suggestions',
-          Assistant.view,
-          model.suggestions,
-          address)
+          style.inputHidden)
   ]);
