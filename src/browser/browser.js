@@ -61,7 +61,7 @@ export const CreateWebView = ({type: 'Browser.CreateWebView'});
 export const asOpenWebView = uri => asByWebViews(WebViews.asOpen({uri}));
 
 const keyDown = Keyboard.bindings({
-  'accel l': always(asByInput(Focusable.Focus)),
+  'accel l': always(asByActiveWebView(WebView.Edit)),
   'accel t': always(CreateWebView),
   'accel 0': always(asByActiveWebView(WebView.RequestZoomReset)),
   'accel -': always(asByActiveWebView(WebView.RequestZoomOut)),
@@ -140,8 +140,19 @@ const stepFor = (target, model, action) => {
     return [merge(model, {shell}), fx.map(asFor('shell'))];
   }
   else if (target === 'webViews') {
-    if (action.type === 'WebViews.ByID' && action.action.type === 'WebView.Edit') {
-      const [input, fx] = Input.step(model.input, Focusable.Focus);
+    if ((action.type === 'WebViews.ByID' ||
+          action.type === 'WebViews.ByActive') &&
+        action.action.type === 'WebView.Edit')
+    {
+
+      const webView = action.type === 'WebViews.ByID' ?
+                        WebViews.getByID(model.webViews, action.id) :
+                        WebViews.getActive(model.webViews);
+      const uri = webView ?
+        webView.navigation.currentURI :
+        '';
+
+      const [input, fx] = Input.step(model.input, Input.asEditSelection(uri));
       return [merge(model, {input}), fx.map(asFor('input'))];
     }
     else {
