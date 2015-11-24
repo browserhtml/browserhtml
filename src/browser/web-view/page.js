@@ -54,7 +54,14 @@ export const start/*:type.start*/ = Effects.nofx(model => merge(model, {
 }));
 
 export const changeLocation/*:type.changeLocation*/ = (model, uri) =>
-  [merge(model, {uri}), Pallet.requestCuratedColor(uri)];
+  [
+    merge(model, {
+      uri,
+      curatedColor: null,
+      themeColor: null
+    }),
+    Pallet.requestCuratedColor(uri)
+  ];
 
 
 const updateIcon = (model, icon) => {
@@ -100,6 +107,11 @@ export const step/*:type.step*/ = (model, action) =>
   action.type === 'WebView.Page.ScreenshotUpdate' ?
     [model, Effects.none] :
   action.type === 'WebView.Page.DocumentFirstPaint' ?
+    [updatePallet(model), Effects.none] :
+  // If you go back / forward `DocumentFirstPaint` is not fired there for
+  // we updatePallet once again on `LoadEnded` in order to cover that case as
+  // well.
+  action.type === 'WebView.Progress.End' ?
     [updatePallet(model), Effects.none] :
   action.type === 'WebView.Page.FirstPaint' ?
     [model, Effects.none] :

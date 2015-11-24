@@ -135,12 +135,20 @@ export const step/*:type.step*/ = (model, action) => {
         progressFx,
         pageFx
       ])
-    ]
+    ];
+
   }
   else if (action.type === 'WebView.Progress.End') {
-    const [progress, fx] = Progress.step(model.progress, action);
+    const [progress, progressFx] = Progress.step(model.progress, action);
+    const [page, pageFx] = Page.step(model.page, action);
 
-    return [merge(model, {progress}), fx];
+    return [
+      merge(model, {progress, page}),
+      Effects.batch([
+        progressFx,
+        pageFx
+      ])
+    ];
   }
   // Note: WebView dispatches `WebView.LocationChanged` action but `Navigation`
   // needs to know the id of the web-view to schedule effects. There for
