@@ -118,8 +118,11 @@ export const step/*:type.step*/ = (model, action) =>
   action.type === 'WebView.Page.DocumentFirstPaint' ?
     [updatePallet(model), Effects.none] :
   // If you go back / forward `DocumentFirstPaint` is not fired there for
-  // we updatePallet once again on `LoadEnded` in order to cover that case as
-  // well.
+  // we schedule a `WebView.Page.DocumentFakePaint` action to be send back
+  // in asynchronously on `LoadEnded` that gives us an opportunity to
+  // re-generate pallet when going back / forward. Also we schedule async
+  // action because colors to generate pallet from are fetched async and
+  // LoadEnded seems to fire occasionaly sooner that colors are feteched.
   action.type === 'WebView.Progress.End' ?
     [model, requestDocumentFakePaint()] :
   action.type === 'WebView.Page.DocumentFakePaint' ?
@@ -130,8 +133,6 @@ export const step/*:type.step*/ = (model, action) =>
     [model, Effects.none] :
   action.type === 'WebView.Page.Scrolled' ?
     [model, Effects.none] :
-  // @TODO: Right now if you go back or forward we do not get LoadStart event
-  // which means non of the
   action.type === 'WebView.LocationChanged' ?
     changeLocation(model, action.uri) :
     [model, Effects.none];
