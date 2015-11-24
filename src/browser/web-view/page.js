@@ -6,7 +6,7 @@
 
 /*:: import * as type from "../../type/browser/web-view/page" */
 
-import {Effects} from 'reflex';
+import {Effects, Task} from 'reflex';
 import {merge} from '../../common/prelude';
 import * as Favicon from '../../common/favicon';
 import * as Pallet from '../../browser/pallet';
@@ -18,6 +18,11 @@ export const DocumentFirstPaint/*:type.DocumentFirstPaint*/ = {
 export const FirstPaint/*:type.FirstPaint*/ = {
   type: "WebView.Page.FirstPaint"
 };
+
+export const DocumentFakePaint/*:type.DocumentFakePaint*/ = {
+  type: "WebView.Page.DocumentFakePaint"
+};
+
 
 export const asMetaChanged/*:type.asMetaChanged*/ = (name, content) =>
   ({type: "WebView.Page.MetaChanged", name, content});
@@ -34,6 +39,10 @@ export const asOverflowChanged/*:type.asOverflowChanged*/ = isOverflown =>
 
 export const asScrolled/*:type.asScrolled*/ = detail =>
   ({type: "WebView.Page.Scrolled", detail});
+
+
+export const requestDocumentFakePaint = () =>
+  Effects.task(Task.future(() => Promise.resolve(DocumentFakePaint)));
 
 export const initiate/*:type.initiate*/ = uri => ({
   uri,
@@ -54,7 +63,14 @@ export const start/*:type.start*/ = Effects.nofx(model => merge(model, {
 }));
 
 export const changeLocation/*:type.changeLocation*/ = (model, uri) =>
-  [merge(model, {uri}), Pallet.requestCuratedColor(uri)];
+  [
+    merge(model, {
+      uri,
+      curatedColor: null,
+      themeColor: null
+    }),
+    Pallet.requestCuratedColor(uri)
+  ];
 
 
 const updateIcon = (model, icon) => {
@@ -101,14 +117,22 @@ export const step/*:type.step*/ = (model, action) =>
     [model, Effects.none] :
   action.type === 'WebView.Page.DocumentFirstPaint' ?
     [updatePallet(model), Effects.none] :
+  // If you go back / forward `DocumentFirstPaint` is not fired there for
+  // we schedule a `WebView.Page.DocumentFakePaint` action to be send back
+  // in asynchronously on `LoadEnded` that gives us an opportunity to
+  // re-generate pallet when going back / forward. Also we schedule async
+  // action because colors to generate pallet from are fetched async and
+  // LoadEnded seems to fire occasionaly sooner that colors are feteched.
+  action.type === 'WebView.Progress.End' ?
+    [model, requestDocumentFakePaint()] :
+  action.type === 'WebView.Page.DocumentFakePaint' ?
+    [updatePallet(model), Effects.none] :
   action.type === 'WebView.Page.FirstPaint' ?
     [model, Effects.none] :
   action.type === 'WebView.Page.OverflowChanged' ?
     [model, Effects.none] :
   action.type === 'WebView.Page.Scrolled' ?
     [model, Effects.none] :
-  // @TODO: Right now if you go back or forward we do not get LoadStart event
-  // which means non of the
   action.type === 'WebView.LocationChanged' ?
     changeLocation(model, action.uri) :
     [model, Effects.none];
