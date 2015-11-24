@@ -223,7 +223,7 @@ const style = StyleSheet.create({
 
   results: {
     listStyle: 'none',
-    margin: '115px auto 0',
+    margin: '120px auto 0',
     padding: 0,
     width: '460px'
   },
