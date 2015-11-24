@@ -301,6 +301,7 @@ export const asNavigateTo/*:type.asNavigateTo*/
 
 const style = StyleSheet.create({
   webviews: {
+    boxShadow: '0 50px 80px rgba(0,0,0,0.25)',
     height: '100vh',
     left: 0,
     overflow: 'hidden', // necessary to clip the radius
