@@ -205,7 +205,6 @@ export const step/*:type.step*/ = (model, action) => {
 }
 
 const topBarHeight = '27px';
-const topBarMaxHeight = '66vh';
 const comboboxHeight = '21px';
 const comboboxWidth = '250px';
 
@@ -239,21 +238,12 @@ const style = StyleSheet.create({
   },
 
   topbar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: topBarHeight + 'px',
-  },
-
-  topbarBackground: {
-    position: 'absolute',
-    height: topBarMaxHeight,
-    width: '100%',
-    top: 0,
-    left: 0,
-    transform: `translateY(calc(-1 * ${topBarMaxHeight} + ${topBarHeight}))`,
     backgroundColor: 'white', // dynamic
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: topBarHeight,
   },
 
   combobox: {
@@ -265,13 +255,19 @@ const style = StyleSheet.create({
     width: comboboxWidth,
     marginTop: `calc(${topBarHeight} / 2 - ${comboboxHeight} / 2)`,
     marginLeft: `calc(${comboboxWidth} / -2)`,
-    color: 'rgba(0, 0, 0, 0.8)',
     borderRadius: '5px',
     cursor: 'text',
   },
 
+  lightText: {
+    color: 'rgba(0, 0, 0, 0.8)',
+  },
+
+  darkText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+
   titleContainer: {
-    color: 'rgba(0,0,0,0.8)',
     position: 'absolute',
     top: 0,
     left: 0,
@@ -287,7 +283,6 @@ const style = StyleSheet.create({
 
   // Also has some hover styles defined in theme.css
   iconSearch: {
-    color: 'rgba(0,0,0,0.7)',
     fontFamily: 'FontAwesome',
     fontSize: '14px',
     left: '5px',
@@ -296,7 +291,6 @@ const style = StyleSheet.create({
 
   iconSecure: {
     fontFamily: 'FontAwesome',
-    color: 'rgba(0,0,0,0.7)',
     marginRight: '6px'
   },
 
@@ -362,18 +356,19 @@ export const view/*:type.view*/ = (model, address) =>
     )
   }, [
     viewFrame(model, address),
-    html.div({className: 'webview-local-overlay'}),
     html.div({
       className: 'webview-topbar',
-      style: style.topbar
+      style: Style(
+        style.topbar,
+        model.page.pallet.background && {backgroundColor: model.page.pallet.background}
+      )
     }, [
       html.div({
-        className: 'webview-topbar-background',
-        style: style.topbarBackground
-      }),
-      html.div({
         className: 'webview-combobox',
-        style: style.combobox,
+        style: Style(
+          style.combobox,
+          isDark(model) ? style.darkText : style.lightText
+        ),
         onClick: on(address, always(Edit))
       }, [
         html.span({
