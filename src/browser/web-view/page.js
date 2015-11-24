@@ -35,12 +35,26 @@ export const asOverflowChanged/*:type.asOverflowChanged*/ = isOverflown =>
 export const asScrolled/*:type.asScrolled*/ = detail =>
   ({type: "WebView.Page.Scrolled", detail});
 
-export const start/*:type.start*/ = Effects.nofx(uri => ({
-  uri: uri,
+export const initiate/*:type.initiate*/ = uri => ({
+  uri,
   title: null,
+  icon: null,
   faviconURI: null,
+  themeColor: null,
+  curatedColor: null,
   pallet: Pallet.blank
+});
+
+export const start/*:type.start*/ = Effects.nofx(model => merge(model, {
+  title: null,
+  icon: null,
+  faviconURI: null,
+  themeColor: null,
+  curatedColor: null
 }));
+
+export const changeLocation/*:type.changeLocation*/ = (model, uri) =>
+  [merge(model, {uri}), Pallet.requestCuratedColor(uri)];
 
 
 const updateIcon = (model, icon) => {
@@ -68,8 +82,9 @@ const updatePallet = model =>
     }) :
     model;
 
-
 export const step/*:type.step*/ = (model, action) =>
+  action.type === 'WebView.Progress.LoadStart' ?
+    start(model) :
   action.type === 'WebView.Page.TitleChanged' ?
     [merge(model, {title: action.title}), Effects.none] :
   action.type === 'WebView.Page.IconChanged' ?
@@ -90,4 +105,8 @@ export const step/*:type.step*/ = (model, action) =>
     [model, Effects.none] :
   action.type === 'WebView.Page.Scrolled' ?
     [model, Effects.none] :
+  // @TODO: Right now if you go back or forward we do not get LoadStart event
+  // which means non of the
+  action.type === 'WebView.LocationChanged' ?
+    changeLocation(model, action.uri) :
     [model, Effects.none];
