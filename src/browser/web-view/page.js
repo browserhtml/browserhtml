@@ -6,7 +6,7 @@
 
 /*:: import * as type from "../../type/browser/web-view/page" */
 
-import {Effects} from 'reflex';
+import {Effects, Task} from 'reflex';
 import {merge} from '../../common/prelude';
 import * as Favicon from '../../common/favicon';
 import * as Pallet from '../../browser/pallet';
@@ -18,6 +18,11 @@ export const DocumentFirstPaint/*:type.DocumentFirstPaint*/ = {
 export const FirstPaint/*:type.FirstPaint*/ = {
   type: "WebView.Page.FirstPaint"
 };
+
+export const DocumentFakePaint/*:type.DocumentFakePaint*/ = {
+  type: "WebView.Page.DocumentFakePaint"
+};
+
 
 export const asMetaChanged/*:type.asMetaChanged*/ = (name, content) =>
   ({type: "WebView.Page.MetaChanged", name, content});
@@ -34,6 +39,10 @@ export const asOverflowChanged/*:type.asOverflowChanged*/ = isOverflown =>
 
 export const asScrolled/*:type.asScrolled*/ = detail =>
   ({type: "WebView.Page.Scrolled", detail});
+
+
+export const requestDocumentFakePaint = () =>
+  Effects.task(Task.future(() => Promise.resolve(DocumentFakePaint)));
 
 export const initiate/*:type.initiate*/ = uri => ({
   uri,
@@ -112,6 +121,8 @@ export const step/*:type.step*/ = (model, action) =>
   // we updatePallet once again on `LoadEnded` in order to cover that case as
   // well.
   action.type === 'WebView.Progress.End' ?
+    [model, requestDocumentFakePaint()] :
+  action.type === 'WebView.Page.DocumentFakePaint' ?
     [updatePallet(model), Effects.none] :
   action.type === 'WebView.Page.FirstPaint' ?
     [model, Effects.none] :

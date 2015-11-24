@@ -188,6 +188,7 @@ export const step/*:type.step*/ = (model, action) => {
         || action.type === 'WebView.Page.ColorScraped'
         || action.type === 'WebView.Page.DocumentFirstPaint'
         || action.type === 'WebView.Page.FirstPaint'
+        || action.type === 'WebView.Page.DocumentFakePaint'
         || action.type === 'WebView.Page.MetaChanged'
         || action.type === 'WebView.Page.TitleChanged'
         || action.type === 'WebView.Page.IconChanged'

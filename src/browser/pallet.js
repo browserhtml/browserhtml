@@ -62,14 +62,13 @@ export const asCuratedColorUpdate = theme => ({
   color: theme
 });
 
-export const requestCuratedColor = uri => Effects.task(Task.io((deliver) => {
+export const requestCuratedColor = uri => Effects.task(Task.future(() => {
   const hostname = URI.getDomainName(uri);
   const theme = hostname == null ?
                   null :
                   curated[hostname];
-  const response = theme ?
-    asCuratedColorUpdate(theme) :
-    CuratedColorNotFound;
 
-  deliver(Task.succeed(response));
+  return Promise.resolve(theme ?
+                          asCuratedColorUpdate(theme) :
+                          CuratedColorNotFound);
 }));
