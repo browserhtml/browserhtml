@@ -280,8 +280,9 @@ export const step = (model, action) => {
   else if (model.mode === 'select-web-view') {
     if (isActivateSelectedWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      const fade = Overlay.asFade(performance.now());
-      const [overlay, overlayFx] = Overlay.step(model.overlay, fade);
+      const hide = Overlay.asHide(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
+
       return [
         merge(model, {browser, overlay, mode: 'show-web-view'}),
         Effects.batch([
