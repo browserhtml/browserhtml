@@ -56,7 +56,8 @@ export const isCreateTab = action =>
   (isKeyDown(action) && action.action.type === 'Browser.CreateWebView');
 
 export const isShowTabs = action =>
-  action.type === 'Browser.ShowTabs';
+  action.type === 'Browser.ShowTabs' ||
+  (isWebViewAction(action) && action.action.action.type === 'WebView.RequestShowTabs');
 
 export const isEscape = action =>
   action.type === 'Browser.Escape';
