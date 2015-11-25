@@ -317,7 +317,7 @@ const style = StyleSheet.create({
     backgroundSize: '50px auto',
     position: 'absolute',
     height: '13px',
-    right: '7px',
+    right: '8px',
     top: '7px',
     width: '14px'
   },
