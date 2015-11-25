@@ -133,7 +133,7 @@ export const step = (model, action) => {
     // `select-web-view`.
   }
   else if (model.mode === 'edit-web-view') {
-    if (isAbort(action) || isSubmit(action)) {
+    if (isAbort(action) || isSubmit(action) || isEscape(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asShowWebView(browser), fx];
     }
