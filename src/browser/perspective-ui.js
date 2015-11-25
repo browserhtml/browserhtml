@@ -1,6 +1,6 @@
 /* @flow */
 
-import {forward, thunk} from 'reflex';
+import {forward, thunk, Effects} from 'reflex';
 import * as Input from './input';
 import * as Assistant from './assistant';
 import * as Sidebar from './sidebar';
@@ -13,7 +13,13 @@ import {Style, StyleSheet} from '../common/style';
 
 export const initialize/*:type.initialize*/ = () => {
   const [browser, fx] = Browser.initialize();
-  return [asCreateWebView(browser), fx];
+  const model = {
+    mode: 'create-web-view',
+    browser,
+    overlay: Overlay.shown
+  };
+
+  return [model, fx];
 };
 
 export const isInputAction = action =>
@@ -94,21 +100,6 @@ export const isSwitchSelectedWebView = action =>
   (isKeyDown(action) && isSelectRelativeWebView(action.action));
 
 
-export const asCreateWebView = browser =>
-  ({mode: 'create-web-view', browser});
-
-export const asShowWebView = browser =>
-  ({mode: 'show-web-view', browser});
-
-export const asEditWebView = browser =>
-  ({mode: 'edit-web-view', browser});
-
-export const asShowTabs = browser =>
-  ({mode: 'show-tabs', browser});
-
-export const asSelectWebView = browser =>
-  ({mode: 'select-web-view', browser});
-
 export const step = (model, action) => {
   if (model.mode === 'create-web-view') {
     if (isAbort(action)) {
@@ -118,13 +109,19 @@ export const step = (model, action) => {
       // escape key clear the input or whatever it is that it is supposed
       // to do.
       if (model.browser.webViews.entries.length > 0) {
-        return [asShowWebView(browser), fx];
+        return [
+          merge(model, {browser, mode: 'show-web-view'}),
+          fx
+        ];
       }
     }
     else if (isSubmit(action)) {
       const open = Browser.asOpenWebView(URI.read(model.browser.input.value));
       const [browser, fx] = Browser.step(model.browser, open);
-      return [asShowWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'show-web-view'}),
+        fx
+      ];
     }
     // @TODO: Probably we should prevent input field from loosing a focus
     // by sendig in FocusRequest on Blur. Also we may want to ignore tab
@@ -134,33 +131,59 @@ export const step = (model, action) => {
   else if (model.mode === 'edit-web-view') {
     if (isAbort(action) || isSubmit(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asShowWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'show-web-view'}),
+        fx
+      ];
     }
     else if (isCreateTab(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asCreateWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'create-web-view'}),
+        fx
+      ];
     }
   }
   else if (model.mode === 'show-web-view') {
     if (isFocusInput(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
-      return [asEditWebView(browser), fx];
+      const [browser, browserFx] = Browser.step(model.browser, action);
+      const [overlay, overlayFx] = Overlay.show(model.overlay, performance.now());
+
+      return [
+        merge(model, {browser, overlay, mode: 'edit-web-view'}),
+        Effects.batch([
+          browserFx,
+          overlayFx.map(asFor('overaly'))
+        ])
+      ]
     }
     else if (isCreateTab(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asCreateWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'create-web-view'}),
+        fx
+      ];
     }
     else if (isShowTabs(action) || isEscape(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asShowTabs(browser), fx];
+      return [
+        merge(model, {browser, mode: 'show-tabs'}),
+        fx
+      ];
     }
     else if (isSwitchSelectedWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asSelectWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'select-web-view'}),
+        fx
+      ];
     }
     else if (isEditWebview(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asEditWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'edit-web-view'}),
+        fx
+      ];
     }
   }
   else if (model.mode === 'show-tabs') {
@@ -169,23 +192,35 @@ export const step = (model, action) => {
         isActivateWebView(action))
     {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asShowWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'show-web-view'}),
+        fx
+      ];
     }
     else if (isCreateTab(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asCreateWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'create-web-view'}),
+        fx
+      ];
     }
     // @TODO: Find out if we should handle this as it's not in the control
     // flow diagram, but presumably `meta l` should still trigger this.
     else if (isFocusInput(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asEditWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'edit-web-view'}),
+        fx
+      ];
     }
   }
   else if (model.mode === 'select-web-view') {
     if (isActivateSelectedWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      return [asShowWebView(browser), fx];
+      return [
+        merge(model, {browser, mode: 'show-web-view'}),
+        fx
+      ];
     }
   }
 
@@ -222,28 +257,28 @@ const style = StyleSheet.create({
   }
 });
 
-export const view = ({mode, browser}, address) =>
-  mode === 'edit-web-view' ?
-    viewAsEditWebView(browser, address) :
-  mode === 'show-web-view' ?
-    viewAsShowWebView(browser, address) :
-  mode === 'create-web-view' ?
-    viewAsCreateWebView(browser, address) :
-  mode === 'select-web-view' ?
-    viewAsSelectWebView(browser, address) :
+export const view = (model, address) =>
+  model.mode === 'edit-web-view' ?
+    viewAsEditWebView(model, address) :
+  model.mode === 'show-web-view' ?
+    viewAsShowWebView(model, address) :
+  model.mode === 'create-web-view' ?
+    viewAsCreateWebView(model, address) :
+  model.mode === 'select-web-view' ?
+    viewAsSelectWebView(model, address) :
   // mode === 'show-tabs' ?
-    viewAsShowTabs(browser, address);
+    viewAsShowTabs(model, address);
 
 const viewAsEditWebView = (model, address) =>
-  Browser.view(model, address, [
+  Browser.view(model.browser, address, [
     thunk('web-views',
           WebViews.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedIn),
     thunk('sidebar',
           Sidebar.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
     thunk('overlay',
@@ -252,25 +287,25 @@ const viewAsEditWebView = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
-          model.suggestions,
+          model.browser.suggestions,
           address),
     thunk('input',
           Input.view,
-          model.input,
+          model.browser.input,
           forward(address, asFor('input')),
           style.inputVisible)
   ]);
 
 const viewAsShowWebView = (model, address) =>
-  Browser.view(model, address, [
+  Browser.view(model.browser, address, [
     thunk('web-views',
           WebViews.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedIn),
     thunk('sidebar',
           Sidebar.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
     thunk('overlay',
@@ -279,26 +314,26 @@ const viewAsShowWebView = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
-          model.suggestions,
+          model.browser.suggestions,
           address,
           style.assistantHidden),
     thunk('input',
           Input.view,
-          model.input,
+          model.browser.input,
           forward(address, asFor('input')),
           style.inputHidden)
   ]);
 
 const viewAsCreateWebView = (model, address) =>
-  Browser.view(model, address, [
+  Browser.view(model.browser, address, [
     thunk('web-views',
           WebViews.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedIn),
     thunk('sidebar',
           Sidebar.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
     thunk('overlay',
@@ -307,26 +342,26 @@ const viewAsCreateWebView = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
-          model.suggestions,
+          model.browser.suggestions,
           address,
           style.assistantFull),
     thunk('input',
           Input.view,
-          model.input,
+          model.browser.input,
           forward(address, asFor('input')),
           style.inputVisible)
   ]);
 
 const viewAsSelectWebView = (model, address) =>
-  Browser.view(model, address, [
+  Browser.view(model.browser, address, [
     thunk('web-views',
           WebViews.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedOut),
     thunk('sidebar',
           Sidebar.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarVisible),
     thunk('overlay',
@@ -335,26 +370,26 @@ const viewAsSelectWebView = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
-          model.suggestions,
+          model.browser.suggestions,
           address,
           style.assistantHidden),
     thunk('input',
           Input.view,
-          model.input,
+          model.browser.input,
           forward(address, asFor('input')),
           style.inputHidden)
   ]);
 
 const viewAsShowTabs = (model, address) =>
-  Browser.view(model, address, [
+  Browser.view(model.browser, address, [
     thunk('web-views',
           WebViews.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedOut),
     thunk('sidebar',
           Sidebar.view,
-          model.webViews,
+          model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarVisible),
     thunk('overlay',
@@ -363,12 +398,12 @@ const viewAsShowTabs = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
-          model.suggestions,
+          model.browser.suggestions,
           address,
           style.assistantHidden),
     thunk('input',
           Input.view,
-          model.input,
+          model.browser.input,
           forward(address, asFor('input')),
           style.inputHidden)
   ]);

@@ -7,42 +7,112 @@
 import {Effects, html} from 'reflex';
 import {merge} from '../common/prelude';
 import {Style, StyleSheet} from '../common/style';
+import * as Animation from '../common/animation';
 
 /*:: import * as type from "../../type/browser/overlay" */
 
-export const shown/*:type.Model*/ = {opacity: 1};
-export const hidden/*:type.Model*/ = {opacity: 0};
-export const initial/*:type.Model*/ = hidden;
+const visible/*:type.Visible*/ = 0.1;
+const invisible/*:type.Invisible*/ = 0;
+const duration = 100;
 
-export const Show/*:type.Show*/ = {type: 'Overlay.Show'};
-export const Hide/*:type.Hide*/ = {type: 'Overlay.Hide'};
+export const shown = {
+  opacity: visible,
+  isCapturing: true,
+  animation: null
+};
 
-export const show/*:type.show*/ = model => merge(model, shown);
-export const hide/*:type.hide*/ = model => merge(model, hidden);
+export const hidden = {
+  opacity: invisible,
+  isCapturing: false,
+  animation: null
+};
 
-export const update/*:type.update*/ = (model, action) =>
-  action.type === 'Overlay.Show' ?
-    show(model) :
-  action.type === 'Overlay.Hide' ?
-    hide(model) :
-  model;
+export const faded = {
+  opacity: invisible,
+  isCapturing: true,
+  animation: null
+};
 
-export const step = Effects.nofx(update);
+
+
+export const asShown/*:type.asShow*/ = time =>
+  ({type: 'Overlay.Show', time});
+
+export const asHide/*:type.asHide*/ = time =>
+  ({type: 'Overlay.Hide', time});
+
+export const asFade/*:type.asFade*/ = time =>
+  ({type: 'Overlay.Fade', time});
+
+
+export const patch = ({isCapturing, opacity}) => (model, time) => {
+  const [animation, fx] = model.opacity === opacity ?
+                            [model.animation, Effects.none] :
+                          // If not animating start fresh animation.
+                          model.animation == null ?
+                            Animation.initialize(time, duration) :
+                            // If was animating towards opposite opacity then
+                            // duration of inverse animation should take as much
+                            // time as a duration of animation to get to this opacity.
+                            // Also since animation already exists there is
+                            // scheduled tick so we don't need to requset new one.
+                            [
+                              Animation.create(time, model.animation.now -
+                                                      model.animation.start),
+                              Effects.none
+                            ];
+  return [merge({isCapturing, opacity, animation}), fx];
+};
+
+export const show/*:type.show*/ = patch(shown);
+export const hide/*:type.hide*/ = patch(hidden);
+export const fade/*:type.fade*/ = patch(faded);
+export const tick/*:type.tick*/ = (model, action) => {
+  if (action.time >= model.animation.end) {
+    return [merge({animation: null}), Effects.none];
+  } else {
+    const [animation, fx] = Animation.step(model.animation, action);
+    return [merge({animation}), fx];
+  }
+}
+
+
+export const step/*:type.step*/ = (model, action) =>
+  action.type === "Overlay.Show" ?
+    show(model, action.time) :
+  action.type === "Overlay.Hide" ?
+    hide(model, action.time) :
+  action.type === "Overlay.Fade" ?
+    fade(model, action.time) :
+  action.type === "Animation.Tick" ?
+    tick(model, action) :
+    // We do not handle Animation.End right now but
+    // we could though.
+    [model, Effects.none];
 
 const style = StyleSheet.create({
   overlay: {
-    background: 'rgba(39, 51, 64, 0.1)',
+    background: 'rgb(39, 51, 64)',
     position: 'absolute',
     width: '100vw',
     height: '100vh'
   }
 });
 
-export const view = ({opacity}, address, modeStyle) =>
+const opacity = model =>
+  model.animation == null ?
+    model.opacity :
+    ease(easeOutQuad, float,
+          model.opacity === visible ? invisible : visible,
+          model.opacity,
+          animation.end - animation.start,
+          animation.update - animation.start);
+
+export const view = (model, address, modeStyle) =>
   html.div({
     className: 'overlay',
     style: Style(style.overlay, {
-      opacity,
-      pointerEvents: opacity < 100 ? 'none' : 'all'
+      opacity: opacity(model),
+      pointerEvents: model.isCapturing ? 'all' : 'none'
     })
   });
