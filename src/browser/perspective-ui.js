@@ -16,7 +16,7 @@ export const initialize/*:type.initialize*/ = () => {
   const model = {
     mode: 'create-web-view',
     browser,
-    overlay: Overlay.shown
+    overlay: Overlay.hidden
   };
 
   return [model, fx];
@@ -101,8 +101,19 @@ export const isSwitchSelectedWebView = action =>
   (isKeyDown(action) && isSelectRelativeWebView(action.action));
 
 
+export const asByOverlay = asFor('overlay');
+
 export const step = (model, action) => {
-  if (model.mode === 'create-web-view') {
+  // @TODO We should stick to the pattern and tag both browser and
+  // overlay actions, but at that would mean more refactoring so instead
+  // we just treat untagged actions as for browser.
+  // @TODO Consider dispatching overlay actions as effects instead of
+  // trying to process both actions in the same step.
+  if (action.type === 'For' && action.target === 'overlay') {
+    const [overlay, fx] = Overlay.step(model.overlay, action.action);
+    return [merge(model, {overlay}), fx.map(asByOverlay)];
+  }
+  else if (model.mode === 'create-web-view') {
     if (isAbort(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       // Only switch to show-web-view mode if there is a web view
@@ -132,29 +143,40 @@ export const step = (model, action) => {
   else if (model.mode === 'edit-web-view') {
     if (isAbort(action) || isSubmit(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
+      const hide = Overlay.asHide(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
       return [
-        merge(model, {browser, mode: 'show-web-view'}),
-        fx
+        merge(model, {browser, overlay, mode: 'show-web-view'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
     else if (isCreateTab(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
+      const hide = Overlay.asHide(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
       return [
-        merge(model, {browser, mode: 'create-web-view'}),
-        fx
+        merge(model, {browser, overlay, mode: 'create-web-view'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
   }
   else if (model.mode === 'show-web-view') {
     if (isFocusInput(action)) {
-      const [browser, browserFx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.show(model.overlay, performance.now());
+      const [browser, fx] = Browser.step(model.browser, action);
+      const show = Overlay.asShow(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, show);
 
       return [
         merge(model, {browser, overlay, mode: 'edit-web-view'}),
         Effects.batch([
-          browserFx,
-          overlayFx.map(asFor('overaly'))
+          fx,
+          overlayFx.map(asByOverlay)
         ])
       ]
     }
@@ -167,23 +189,40 @@ export const step = (model, action) => {
     }
     else if (isShowTabs(action) || isEscape(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
+      const fade = Overlay.asFade(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, fade);
       return [
-        merge(model, {browser, mode: 'show-tabs'}),
-        fx
+        merge(model, {browser, overlay, mode: 'show-tabs'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
     else if (isSwitchSelectedWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
+      const fade = Overlay.asFade(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, fade);
+
       return [
-        merge(model, {browser, mode: 'select-web-view'}),
-        fx
+        merge(model, {browser, overlay, mode: 'select-web-view'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
     else if (isEditWebview(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
+      const show = Overlay.asShow(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, show);
+
       return [
-        merge(model, {browser, mode: 'edit-web-view'}),
-        fx
+        merge(model, {browser, overlay, mode: 'edit-web-view'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
   }
@@ -193,34 +232,55 @@ export const step = (model, action) => {
         isActivateWebView(action))
     {
       const [browser, fx] = Browser.step(model.browser, action);
+      const hide = Overlay.asHide(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
+
       return [
-        merge(model, {browser, mode: 'show-web-view'}),
-        fx
+        merge(model, {browser, overlay, mode: 'show-web-view'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
     else if (isCreateTab(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
+      const hide = Overlay.asHide(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
       return [
-        merge(model, {browser, mode: 'create-web-view'}),
-        fx
+        merge(model, {browser, overlay, mode: 'create-web-view'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
     // @TODO: Find out if we should handle this as it's not in the control
     // flow diagram, but presumably `meta l` should still trigger this.
     else if (isFocusInput(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
+      const show = Overlay.asShow(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, show);
       return [
-        merge(model, {browser, mode: 'edit-web-view'}),
-        fx
+        merge(model, {browser, overlay, mode: 'edit-web-view'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
   }
   else if (model.mode === 'select-web-view') {
     if (isActivateSelectedWebView(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
+      const fade = Overlay.asFade(performance.now());
+      const [overlay, overlayFx] = Overlay.step(model.overlay, fade);
       return [
-        merge(model, {browser, mode: 'show-web-view'}),
-        fx
+        merge(model, {browser, overlay, mode: 'show-web-view'}),
+        Effects.batch([
+          fx,
+          overlayFx.map(asByOverlay)
+        ])
       ];
     }
   }

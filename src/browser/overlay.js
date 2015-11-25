@@ -7,13 +7,14 @@
 import {Effects, html} from 'reflex';
 import {merge} from '../common/prelude';
 import {Style, StyleSheet} from '../common/style';
+import {ease, easeOutQuad, float} from 'eased';
 import * as Animation from '../common/animation';
 
 /*:: import * as type from "../../type/browser/overlay" */
 
 const visible/*:type.Visible*/ = 0.1;
 const invisible/*:type.Invisible*/ = 0;
-const duration = 100;
+const duration = 300;
 
 export const shown = {
   opacity: visible,
@@ -35,7 +36,7 @@ export const faded = {
 
 
 
-export const asShown/*:type.asShow*/ = time =>
+export const asShow/*:type.asShow*/ = time =>
   ({type: 'Overlay.Show', time});
 
 export const asHide/*:type.asHide*/ = time =>
@@ -61,7 +62,7 @@ export const patch = ({isCapturing, opacity}) => (model, time) => {
                                                       model.animation.start),
                               Effects.none
                             ];
-  return [merge({isCapturing, opacity, animation}), fx];
+  return [merge(model, {isCapturing, opacity, animation}), fx];
 };
 
 export const show/*:type.show*/ = patch(shown);
@@ -69,10 +70,10 @@ export const hide/*:type.hide*/ = patch(hidden);
 export const fade/*:type.fade*/ = patch(faded);
 export const tick/*:type.tick*/ = (model, action) => {
   if (action.time >= model.animation.end) {
-    return [merge({animation: null}), Effects.none];
+    return [merge(model, {animation: null}), Effects.none];
   } else {
     const [animation, fx] = Animation.step(model.animation, action);
-    return [merge({animation}), fx];
+    return [merge(model, {animation}), fx];
   }
 }
 
@@ -99,14 +100,14 @@ const style = StyleSheet.create({
   }
 });
 
-const opacity = model =>
-  model.animation == null ?
-    model.opacity :
+const opacity = ({animation, opacity}) =>
+  animation == null ?
+    opacity :
     ease(easeOutQuad, float,
-          model.opacity === visible ? invisible : visible,
-          model.opacity,
+          opacity === visible ? invisible : visible,
+          opacity,
           animation.end - animation.start,
-          animation.update - animation.start);
+          animation.now - animation.start);
 
 export const view = (model, address, modeStyle) =>
   html.div({

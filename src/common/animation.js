@@ -31,7 +31,7 @@ export const initialize/*:type.initialize*/ = (time, duration) =>
 
 
 export const step/*:type.step*/ = (model, tick) => {
-  if (action.type === "Animation.Tick") {
+  if (tick.type === "Animation.Tick") {
     return [
       merge(model, {now: tick.time}),
       model.end > tick.time ?

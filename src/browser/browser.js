@@ -171,21 +171,11 @@ const stepFor = (target, model, action) => {
   }
 }
 
-const advance = ([previous, effect], action) => {
-  const [next, fx] = step(previous, action);
-  return [next, Effects.batch([effect, fx])];
-};
-
-export const asBatch = (actions) =>
-  ({type: 'Browser.Batch', actions});
-
 export const step/*:type.step*/ = (model, action) =>
   action.type === 'For' ?
     stepFor(action.target, model, action.action) :
   action.type === 'Browser.CreateWebView' ?
     stepFor('input', model, Input.Enter) :
-  action.type === 'Browser.Batch' ?
-    action.actions.reduce(advance, [model, Effects.none]) :
     [model, Effects.none];
 
 const style = StyleSheet.create({
