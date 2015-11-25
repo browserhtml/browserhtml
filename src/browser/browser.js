@@ -58,6 +58,7 @@ const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
 const FocusInput = asByInput(Focusable.Focus);
 
 export const CreateWebView = ({type: 'Browser.CreateWebView'});
+export const Escape = ({type: 'Browser.Escape'});
 export const asOpenWebView = uri => asByWebViews(WebViews.asOpen({uri}));
 
 const keyDown = Keyboard.bindings({
@@ -75,7 +76,7 @@ const keyDown = Keyboard.bindings({
   // 'accel shift backspace': _ => Session.ResetSession(),
   // 'accel shift s': _ => Session.SaveSession(),
   'accel r': always(asByActiveWebView(WebView.RequestReload)),
-  'escape': always(asByActiveWebView(WebView.RequestStop)),
+  'escape': always(Escape),
   [`${modifier} left`]: always(asByActiveWebView(WebView.RequestGoBack)),
   [`${modifier} right`]: always(asByActiveWebView(WebView.RequestGoForward)),
 
