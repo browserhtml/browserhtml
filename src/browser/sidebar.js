@@ -4,7 +4,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {html, thunk} from 'reflex';
+import {html, thunk, forward} from 'reflex';
+import {asByID} from './web-views';
+import * as WebView from './web-view';
 import {Style, StyleSheet} from '../common/style';
 import {readTitle, readFaviconURI} from './web-view';
 
@@ -78,7 +80,8 @@ const viewTab = (model, address) =>
     style: Style(
       styles.tab,
       model.isSelected && styles.tabSelected
-    )
+    ),
+    onClick: () => address(WebView.Activate)
   }, [
     thunk('favicon',
           viewImage,
@@ -101,7 +104,8 @@ export const view = ({entries}, address, style) =>
     html.div({
       className: 'sidebar-tabs-scrollbox',
       style: styles.scrollbox
-    }, entries.map(entry => thunk(entry.id, viewTab, entry, address))),
+    }, entries.map(entry =>
+        thunk(entry.id, viewTab, entry, forward(address, asByID(entry.id))))),
     html.div({
       className: 'sidebar-toolbar'
     })
