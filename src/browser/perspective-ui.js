@@ -60,7 +60,8 @@ export const isShowTabs = action =>
   (isWebViewAction(action) && action.action.action.type === 'WebView.RequestShowTabs');
 
 export const isEscape = action =>
-  action.type === 'Browser.Escape';
+  isKeyDown(action) &&
+  action.action.type === 'Browser.Escape';
 
 export const isActivateSelected = action =>
   action.type === 'For' &&
@@ -150,6 +151,12 @@ export const step = (model, action) => {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asCreateWebView(browser), fx];
     }
+    // @TODO we should also wire up esc to cancel current webview loading if
+    // 1) webview is loading 2) current mode is show webview.
+    // When current webview is loading, esc should cancel load. Hitting esc
+    // again should transition to show-tabs view.
+    // When current webview is not loading, esc should go direct to
+    // show-tabs view.
     else if (isShowTabs(action) || isEscape(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       return [asShowTabs(browser), fx];
