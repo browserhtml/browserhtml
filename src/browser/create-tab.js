@@ -5,7 +5,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html} from 'reflex';
-import {Style, StyleSheet} from '../common/style';
+import {StyleSheet} from '../common/style';
+import {CreateWebView} from './browser';
 
 const iconWidth = '30px';
 const iconHeight = '32px';
@@ -27,5 +28,6 @@ const style = StyleSheet.create({
 export const render = address =>
   html.div({
     className: 'global-create-tab-icon',
-    style: style.icon
+    style: style.icon,
+    onClick: () => address(CreateWebView)
   }, ['']);
