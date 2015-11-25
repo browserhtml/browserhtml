@@ -129,6 +129,8 @@ export const step = (model, action) => {
       }
     }
     else if (isSubmit(action)) {
+      // @TODO we also normalize in Browser for editing location. In future
+      // we should create a single entry point for the URL.
       const open = Browser.asOpenWebView(URI.read(model.browser.input.value));
       const [browser, fx] = Browser.step(model.browser, open);
       return [
