@@ -40,6 +40,9 @@ export const Close/*:type.Close*/
 export const Edit/*:type.Edit*/
   = {type: 'WebView.Edit'};
 
+export const RequestShowTabs/*:type.RequestShowTabs*/
+ = {type: 'WebView.RequestShowTabs'};
+
 export const open/*:type.open*/ = (id, options) => ({
   id: id,
   name: options.name,
@@ -305,6 +308,22 @@ const style = StyleSheet.create({
 
   iconInsecure: {
     display: 'none'
+  },
+
+  iconShowTabs: {
+    backgroundImage: 'url(css/hamburger.sprite.png)',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: '0 0',
+    backgroundSize: '50px auto',
+    position: 'absolute',
+    height: '13px',
+    right: '7px',
+    top: '7px',
+    width: '14px'
+  },
+
+  iconShowTabsDark: {
+    backgroundPosition: '0 -50px'
   }
 });
 
@@ -401,7 +420,14 @@ export const view/*:type.view*/ = (model, address) =>
           ])
         ])
       ]),
-      html.div({className: 'webview-show-sidebar-button'})
+      html.div({
+        className: 'webview-show-tabs-icon',
+        style: Style(
+          style.iconShowTabs,
+          isDark(model) && style.iconShowTabsDark
+        ),
+        onClick: on(address, always(RequestShowTabs))
+      })
     ]),
     Progress.view(model.progress, address)
   ]);
