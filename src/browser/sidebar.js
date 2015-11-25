@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   },
 
   tabSelected: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#3D5166',
   },
 
   title: {

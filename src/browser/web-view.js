@@ -49,8 +49,8 @@ export const open/*:type.open*/ = (id, options) => ({
   shell: Shell.initial,
   security: Security.initial,
   navigation: Navigation.initiate(options.uri),
+  page: Page.initiate(options.uri),
   progress: null,
-  page: null
 })
 
 const selected = {isSelected: true};
@@ -126,7 +126,7 @@ export const step/*:type.step*/ = (model, action) => {
   }
   else if (action.type === 'WebView.Progress.Start') {
     const [progress, progressFx] = Progress.start(action.timeStamp);
-    const [page, pageFx] = Page.start(model.navigation.currentURI);
+    const [page, pageFx] = Page.step(model.page, action);
     const security = Security.initial;
 
     return [
@@ -135,19 +135,36 @@ export const step/*:type.step*/ = (model, action) => {
         progressFx,
         pageFx
       ])
-    ]
+    ];
+
   }
   else if (action.type === 'WebView.Progress.End') {
-    const [progress, fx] = Progress.step(model.progress, action);
+    const [progress, progressFx] = Progress.step(model.progress, action);
+    const [page, pageFx] = Page.step(model.page, action);
 
-    return [merge(model, {progress}), fx];
+    return [
+      merge(model, {progress, page}),
+      Effects.batch([
+        progressFx,
+        pageFx
+      ])
+    ];
   }
+  // Note: WebView dispatches `WebView.LocationChanged` action but `Navigation`
+  // needs to know the id of the web-view to schedule effects. There for
+  // in here we create `WebView.Navigation.LocationChanged` action (name diff is
+  // subtle & would be nice to improve) that also contains id of the web-view.
   else if (action.type === 'WebView.LocationChanged') {
     const request = Navigation.asLocationChanged(model.id,
                                                   action.uri,
                                                   action.timeStamp);
-    const [navigation, fx] = Navigation.step(model.navigation, request);
-    return [merge(model, {navigation}), fx];
+    const [navigation, navigationFx] = Navigation.step(model.navigation,
+                                                        request);
+    const [page, pageFx] = Page.step(model.page, action);
+    return [
+      merge(model, {navigation, page}),
+      Effects.batch([navigationFx, pageFx])
+    ];
   }
   else if (action.type === 'WebView.Navigation.Request') {
     const request = Navigation.asRequestBy(model.id, action.action);
@@ -171,6 +188,7 @@ export const step/*:type.step*/ = (model, action) => {
         || action.type === 'WebView.Page.ColorScraped'
         || action.type === 'WebView.Page.DocumentFirstPaint'
         || action.type === 'WebView.Page.FirstPaint'
+        || action.type === 'WebView.Page.DocumentFakePaint'
         || action.type === 'WebView.Page.MetaChanged'
         || action.type === 'WebView.Page.TitleChanged'
         || action.type === 'WebView.Page.IconChanged'
@@ -196,7 +214,6 @@ export const step/*:type.step*/ = (model, action) => {
 }
 
 const topBarHeight = '27px';
-const topBarMaxHeight = '66vh';
 const comboboxHeight = '21px';
 const comboboxWidth = '250px';
 
@@ -230,21 +247,12 @@ const style = StyleSheet.create({
   },
 
   topbar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: topBarHeight + 'px',
-  },
-
-  topbarBackground: {
-    position: 'absolute',
-    height: topBarMaxHeight,
-    width: '100%',
-    top: 0,
-    left: 0,
-    transform: `translateY(calc(-1 * ${topBarMaxHeight} + ${topBarHeight}))`,
     backgroundColor: 'white', // dynamic
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: topBarHeight,
   },
 
   combobox: {
@@ -256,13 +264,19 @@ const style = StyleSheet.create({
     width: comboboxWidth,
     marginTop: `calc(${topBarHeight} / 2 - ${comboboxHeight} / 2)`,
     marginLeft: `calc(${comboboxWidth} / -2)`,
-    color: 'rgba(0, 0, 0, 0.8)',
     borderRadius: '5px',
     cursor: 'text',
   },
 
+  lightText: {
+    color: 'rgba(0, 0, 0, 0.8)',
+  },
+
+  darkText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+
   titleContainer: {
-    color: 'rgba(0,0,0,0.8)',
     position: 'absolute',
     top: 0,
     left: 0,
@@ -278,7 +292,6 @@ const style = StyleSheet.create({
 
   // Also has some hover styles defined in theme.css
   iconSearch: {
-    color: 'rgba(0,0,0,0.7)',
     fontFamily: 'FontAwesome',
     fontSize: '14px',
     left: '5px',
@@ -287,7 +300,6 @@ const style = StyleSheet.create({
 
   iconSecure: {
     fontFamily: 'FontAwesome',
-    color: 'rgba(0,0,0,0.7)',
     marginRight: '6px'
   },
 
@@ -353,18 +365,19 @@ export const view/*:type.view*/ = (model, address) =>
     )
   }, [
     viewFrame(model, address),
-    html.div({className: 'webview-local-overlay'}),
     html.div({
       className: 'webview-topbar',
-      style: style.topbar
+      style: Style(
+        style.topbar,
+        model.page.pallet.background && {backgroundColor: model.page.pallet.background}
+      )
     }, [
       html.div({
-        className: 'webview-topbar-background',
-        style: style.topbarBackground
-      }),
-      html.div({
         className: 'webview-combobox',
-        style: style.combobox,
+        style: Style(
+          style.combobox,
+          isDark(model) ? style.darkText : style.lightText
+        ),
         onClick: on(address, always(Edit))
       }, [
         html.span({

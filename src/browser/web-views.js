@@ -219,6 +219,17 @@ const set = (array, index, item) => {
   return items
 }
 
+export const getByID = (model, id) =>
+  getByIndex(model, id);
+
+export const getActive = (model) =>
+  getByIndex(model, model.active);
+
+export const getByIndex = (model, index) =>
+  index < 0 ? null :
+  index >= model.entries.length ? null :
+  model.entries[index];
+
 
 export const stepByIndex/*:type.stepByIndex*/ = (model, index, action) => {
   const {entries} = model;
@@ -290,6 +301,7 @@ export const asNavigateTo/*:type.asNavigateTo*/
 
 const style = StyleSheet.create({
   webviews: {
+    boxShadow: '0 50px 80px rgba(0,0,0,0.25)',
     height: '100vh',
     left: 0,
     overflow: 'hidden', // necessary to clip the radius

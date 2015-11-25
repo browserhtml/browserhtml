@@ -30,6 +30,9 @@ export const Enter/*:type.Enter*/ = {
   type: 'Input.Enter'
 };
 
+export const asEditSelection/*:type.asEditSelection*/ = text =>
+  ({type: 'Input.EditSelection', text});
+
 export const update/*:type.update*/ = (model, action) =>
   action.type === 'Keyboard.Command' && action.action.type === 'Focusable.Blur' ?
     Focusable.update(model, action.action) :
@@ -39,6 +42,11 @@ export const update/*:type.update*/ = (model, action) =>
     Focusable.update(model, Focusable.Blur) :
   action.type === 'Input.Enter' ?
     Editable.clear(Focusable.focus(model)) :
+  action.type === 'Input.EditSelection' ?
+    Editable.change(Focusable.focus(model), {
+      value: action.text,
+      selection: {start: 0, end: action.text.length, direction: 'forward'}
+    }) :
   action.type === "Focusable.Blur" ?
     Focusable.update(model, action) :
   action.type === "Focusable.Focus" ?
@@ -159,5 +167,11 @@ export const view = (model, address, modeStyle) =>
       onFocus: on(address, Focusable.asFocus),
       onBlur: on(address, Focusable.asBlur),
       onKeyDown: on(address, binding),
+      // DOM does not fire selection events when you hit arrow
+      // keys or when you click in the input field. There for we
+      // need to handle those events to keep our model in sync with
+      // actul input field state.
+      onKeyUp: on(address, readSelect),
+      onMouseOut: on(address, readSelect)
     })
   ]);
