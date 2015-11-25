@@ -118,7 +118,7 @@ export const on = (address, decode, options, getTarget) => {
   return address[id]
 }
 
-const getRoot = target => target.ownerDocument.documentElement
+const getRoot = target => target.ownerDocument
 export const onWindow = (address, decode, options) =>
   on(address, decode, options, getRoot)
 
