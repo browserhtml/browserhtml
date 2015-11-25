@@ -6,7 +6,6 @@ import {Effects, html, forward, thunk} from "reflex";
 import * as Shell from "./shell";
 import * as Input from "./input";
 import * as Assistant from "./assistant";
-import * as Overlay from "./overlay";
 import * as WindowControls from "./window-controls";
 
 // import * as Updater from "./updater"
@@ -35,7 +34,6 @@ export const initialize/*:type.initialize*/ = () => {
     shell: Shell.initial,
     input: Input.initial,
     suggestions: Assistant.initial,
-    overlay: Overlay.initial,
     webViews: WebViews.initial,
     // updates: updates,
     devtools: devtools
