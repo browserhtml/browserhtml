@@ -22,6 +22,21 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, fx];
 };
 
+export const isOverlayAction = action =>
+  action.type === 'For' &&
+  action.target === 'overlay';
+
+export const isOverlayAnimation = action =>
+  isOverlayAction(action) &&
+  (action.action.type === 'Overlay.Show' ||
+   action.action.type === 'Overlay.Hide' ||
+   action.action.type === 'Animation.Tick' ||
+   action.action.type === 'Overlay.Fade');
+
+export const isOverlayClick = action =>
+  isOverlayAction(action) &&
+  action.action.type === 'Overlay.Click';
+
 export const isInputAction = action =>
   action.type === 'For' &&
   action.target === 'input';
@@ -112,7 +127,7 @@ export const step = (model, action) => {
   // we just treat untagged actions as for browser.
   // @TODO Consider dispatching overlay actions as effects instead of
   // trying to process both actions in the same step.
-  if (action.type === 'For' && action.target === 'overlay') {
+  if (isOverlayAnimation(action)) {
     const [overlay, fx] = Overlay.step(model.overlay, action.action);
     return [merge(model, {overlay}), fx.map(asByOverlay)];
   }
@@ -146,7 +161,7 @@ export const step = (model, action) => {
     // `select-web-view`.
   }
   else if (model.mode === 'edit-web-view') {
-    if (isAbort(action) || isSubmit(action) || isEscape(action)) {
+    if (isAbort(action) || isSubmit(action) || isEscape(action) || isOverlayClick(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       const hide = Overlay.asHide(performance.now());
       const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
