@@ -117,7 +117,7 @@ export const step = (model, action) => {
     return [merge(model, {overlay}), fx.map(asByOverlay)];
   }
   else if (model.mode === 'create-web-view') {
-    if (isAbort(action)) {
+    if (isAbort(action) || isEscape(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       // Only switch to show-web-view mode if there is a web view
       // to show. Otherwise remain in 'create-web-view' just let the
