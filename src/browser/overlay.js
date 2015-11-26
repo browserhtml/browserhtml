@@ -34,7 +34,7 @@ export const faded = {
   animation: null
 };
 
-
+export const Click/*:type.Click*/ = {type: 'Overlay.Click'};
 
 export const asShow/*:type.asShow*/ = time =>
   ({type: 'Overlay.Show', time});
@@ -115,5 +115,6 @@ export const view = (model, address, modeStyle) =>
     style: Style(style.overlay, {
       opacity: opacity(model),
       pointerEvents: model.isCapturing ? 'all' : 'none'
-    })
+    }),
+    onClick: () => address(Click)
   });

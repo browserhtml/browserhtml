@@ -22,6 +22,7 @@ export type Model = {
 export type Show = {type: "Overlay.Show", time: Time}
 export type Hide = {type: "Overlay.Hide", time: Time}
 export type Fade = {type: "Overlay.Fade", time: Time}
+export type Click = {type: "Overlay.Click"}
 
 export type asShow = (time:Time) => Show
 export type asHide = (time:Time) => Hide
