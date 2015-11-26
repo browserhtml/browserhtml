@@ -255,7 +255,8 @@ export const step = (model, action) => {
   else if (model.mode === 'show-tabs') {
     if (isEscape(action) ||
         isFocusWebView(action) ||
-        isActivateWebView(action))
+        isActivateWebView(action) ||
+        isOverlayClick(action))
     {
       const [browser, fx] = Browser.step(model.browser, action);
       const hide = Overlay.asHide(performance.now());
