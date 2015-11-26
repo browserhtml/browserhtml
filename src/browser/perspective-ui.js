@@ -7,7 +7,6 @@ import * as Sidebar from './sidebar';
 import * as Browser from './browser';
 import * as WebViews from './web-views';
 import * as Overlay from './overlay';
-import * as CreateTab from './create-tab';
 import {asFor, merge} from '../common/prelude';
 import * as URI from '../common/url-helper';
 import {Style, StyleSheet} from '../common/style';
@@ -60,8 +59,10 @@ export const isKeyUp = action =>
   action.target === 'Browser.KeyUp';
 
 export const isCreateTab = action =>
-  action.type === 'Browser.CreateWebView' ||
-  (isKeyDown(action) && action.action.type === 'Browser.CreateWebView');
+  (isWebViewAction(action) &&
+   action.action.action.type === 'WebView.Create') ||
+  (action.type === 'Browser.CreateWebView' ||
+   (isKeyDown(action) && action.action.type === 'Browser.CreateWebView'));
 
 export const isShowTabs = action =>
   action.type === 'Browser.ShowTabs' ||
@@ -357,9 +358,6 @@ const viewAsEditWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
-    thunk('create-tab',
-          CreateTab.render,
-          address),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -387,9 +385,6 @@ const viewAsShowWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
-    thunk('create-tab',
-          CreateTab.render,
-          address),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -418,9 +413,6 @@ const viewAsCreateWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
-    thunk('create-tab',
-          CreateTab.render,
-          address),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -449,9 +441,6 @@ const viewAsSelectWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarVisible),
-    thunk('create-tab',
-          CreateTab.render,
-          address),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -485,9 +474,6 @@ const viewAsShowTabs = (model, address) =>
           model.browser.suggestions,
           address,
           style.assistantHidden),
-    thunk('create-tab',
-          CreateTab.render,
-          address),
     thunk('input',
           Input.view,
           model.browser.input,
