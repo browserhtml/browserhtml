@@ -39,11 +39,13 @@ export const step/*:type.step*/ = (model, tick) => {
         endfx
     ]
   } else {
-    console.warn(`Animation module does not handle passed action:`, action);
+    console.warn(`Animation module does not handle passed action:`, tick);
+    return [model, Effects.none];
   }
 };
 
 export const progress/*type.progress*/ = (model) =>
-  model == null ?
-    1 :
-    now / (start - end);
+  model.now - model.start;
+
+export const duration/*:type.duration*/ = (model) =>
+  model.end - model.start;

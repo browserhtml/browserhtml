@@ -10,12 +10,15 @@ import * as Overlay from './overlay';
 import {asFor, merge} from '../common/prelude';
 import * as URI from '../common/url-helper';
 import {Style, StyleSheet} from '../common/style';
+import * as Animation from '../common/animation';
+import {ease, easeOutQuad, float} from 'eased';
 
 export const initialize/*:type.initialize*/ = () => {
   const [browser, fx] = Browser.initialize();
   const model = {
     mode: 'create-web-view',
     browser,
+    animation: null,
     overlay: Overlay.hidden
   };
 
@@ -103,6 +106,10 @@ export const isSwitchSelectedWebView = action =>
 
 
 export const asByOverlay = asFor('overlay');
+export const asByAnimation = asFor('animation');
+
+export const modeTransitionDuration = 500;
+
 
 export const step = (model, action) => {
   // @TODO We should stick to the pattern and tag both browser and
@@ -110,9 +117,32 @@ export const step = (model, action) => {
   // we just treat untagged actions as for browser.
   // @TODO Consider dispatching overlay actions as effects instead of
   // trying to process both actions in the same step.
-  if (action.type === 'For' && action.target === 'overlay') {
+
+  if(action.type === 'For' && action.target === 'overlay') {
     const [overlay, fx] = Overlay.step(model.overlay, action.action);
     return [merge(model, {overlay}), fx.map(asByOverlay)];
+  }
+  else if (action.type === 'For' && action.target === 'animation') {
+    // @TODO Right now we set animation to null whet it is not running but
+    // that makes delegation to Animation.step little tricky since animation
+    // can be null. Furthermore `Animation.step` itself does not handle
+    // `Animation.End` action so we need to check incoming actions before
+    // delegation. We should out better API for `Animation` module or stop
+    // settings `animation` to `null`.
+    if (action.action.type === 'Animation.Tick') {
+      const [animation, fx] = Animation.step(model.animation, action.action);
+      return [
+        merge(model, {
+          animation: animation.now <= animation.end ?
+                      animation :
+                      null
+        }),
+        fx.map(asByAnimation)
+      ];
+    }
+    else {
+      return [model, Effects.none];
+    }
   }
   else if (model.mode === 'create-web-view') {
     if (isAbort(action)) {
@@ -198,10 +228,14 @@ export const step = (model, action) => {
       const [browser, fx] = Browser.step(model.browser, action);
       const fade = Overlay.asFade(performance.now());
       const [overlay, overlayFx] = Overlay.step(model.overlay, fade);
+      const [animation, animationFx]
+        = Animation.initialize(performance.now(), modeTransitionDuration);
+
       return [
-        merge(model, {browser, overlay, mode: 'show-tabs'}),
+        merge(model, {browser, overlay, animation, mode: 'show-tabs'}),
         Effects.batch([
           fx,
+          animationFx.map(asByAnimation),
           overlayFx.map(asByOverlay)
         ])
       ];
@@ -296,6 +330,42 @@ export const step = (model, action) => {
   // If we reached this then action
   const [browser, fx] = Browser.step(model.browser, action);
   return [merge(model, {browser}), fx];
+}
+
+const zoom = (from, to, progress) => merge(from, {
+  angle: float(from.angle, to.angle, progress),
+  depth: float(from.depth, to.depth, progress)
+})
+
+const transition = {
+  webViewZoomOut(model) {
+    const {angle, depth}
+      = model == null ?
+          {angle: 10, depth: -600} :
+          ease(easeOutQuad,
+                zoom,
+                {angle: 0, depth: 0},
+                {angle: 10, depth: -600},
+                Animation.duration(model),
+                Animation.progress(model));
+    return {
+      transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
+    }
+  },
+  sidebarShow(model) {
+    const x = model == null ?
+      0 :
+      ease(easeOutQuad,
+           float,
+           380,
+           0,
+           Animation.duration(model),
+           Animation.progress(model));
+
+    return {
+      transform: `translateX(${x}px)`
+    };
+  }
 }
 
 const style = StyleSheet.create({
@@ -455,12 +525,14 @@ const viewAsShowTabs = (model, address) =>
           WebViews.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.webViewZoomedOut),
+          Style(style.webViewZoomedOut,
+                transition.webViewZoomOut(model.animation))),
     thunk('sidebar',
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.sidebarVisible),
+          Style(style.sidebarVisible,
+                transition.sidebarShow(model.animation))),
     thunk('overlay',
           Overlay.view,
           model.overlay,
