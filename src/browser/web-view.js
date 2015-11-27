@@ -43,6 +43,8 @@ export const Edit/*:type.Edit*/
 export const RequestShowTabs/*:type.RequestShowTabs*/
  = {type: 'WebView.RequestShowTabs'};
 
+export const Create = ({type: 'WebView.Create'});
+
 export const open/*:type.open*/ = (id, options) => ({
   id: id,
   name: options.name,
@@ -317,13 +319,30 @@ const style = StyleSheet.create({
     backgroundSize: '50px auto',
     position: 'absolute',
     height: '13px',
-    right: '7px',
+    right: '8px',
     top: '7px',
     width: '14px'
   },
 
   iconShowTabsDark: {
     backgroundPosition: '0 -50px'
+  },
+
+  iconCreateTab: {
+    color: 'rgba(0,0,0,0.8)',
+    fontFamily: 'FontAwesome',
+    fontSize: '18px',
+    lineHeight: '32px',
+    position: 'absolute',
+    textAlign: 'center',
+    bottom: 0,
+    right: 0,
+    width: '30px',
+    height: '32px',
+  },
+
+  iconCreateTabDark: {
+    color: 'rgba(255,255,255,0.8)',
   }
 });
 
@@ -375,9 +394,10 @@ const viewFrame = (model, address) =>
     onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
   });
 
-export const view/*:type.view*/ = (model, address) =>
-  html.div({
-    className: isDark(model) ? 'webview webview-is-dark' : 'webview',
+export const view/*:type.view*/ = (model, address) => {
+  const isModelDark = isDark(model);
+  return html.div({
+    className: isModelDark ? 'webview webview-is-dark' : 'webview',
     style: Style(
       style.webview,
       !model.isActive && style.webViewInactive
@@ -395,7 +415,7 @@ export const view/*:type.view*/ = (model, address) =>
         className: 'webview-combobox',
         style: Style(
           style.combobox,
-          isDark(model) ? style.darkText : style.lightText
+          isModelDark ? style.darkText : style.lightText
         ),
         onClick: on(address, always(Edit))
       }, [
@@ -424,14 +444,22 @@ export const view/*:type.view*/ = (model, address) =>
         className: 'webview-show-tabs-icon',
         style: Style(
           style.iconShowTabs,
-          isDark(model) && style.iconShowTabsDark
+          isModelDark && style.iconShowTabsDark
         ),
         onClick: on(address, always(RequestShowTabs))
       })
     ]),
-    Progress.view(model.progress, address)
+    Progress.view(model.progress, address),
+    html.div({
+      className: 'global-create-tab-icon',
+      style: Style(
+        style.iconCreateTab,
+        isModelDark && style.iconCreateTabDark
+      ),
+      onClick: () => address(Create)
+    }, [''])
   ]);
-
+};
 
 
 const decodeClose = always(Close);

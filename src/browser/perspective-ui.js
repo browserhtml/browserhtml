@@ -25,6 +25,21 @@ export const initialize/*:type.initialize*/ = () => {
   return [model, fx];
 };
 
+export const isOverlayAction = action =>
+  action.type === 'For' &&
+  action.target === 'overlay';
+
+export const isOverlayAnimation = action =>
+  isOverlayAction(action) &&
+  (action.action.type === 'Overlay.Show' ||
+   action.action.type === 'Overlay.Hide' ||
+   action.action.type === 'Animation.Tick' ||
+   action.action.type === 'Overlay.Fade');
+
+export const isOverlayClick = action =>
+  isOverlayAction(action) &&
+  action.action.type === 'Overlay.Click';
+
 export const isInputAction = action =>
   action.type === 'For' &&
   action.target === 'input';
@@ -62,8 +77,10 @@ export const isKeyUp = action =>
   action.target === 'Browser.KeyUp';
 
 export const isCreateTab = action =>
-  action.type === 'Browser.CreateWebView' ||
-  (isKeyDown(action) && action.action.type === 'Browser.CreateWebView');
+  (isWebViewAction(action) &&
+   action.action.action.type === 'WebView.Create') ||
+  (action.type === 'Browser.CreateWebView' ||
+   (isKeyDown(action) && action.action.type === 'Browser.CreateWebView'));
 
 export const isShowTabs = action =>
   action.type === 'Browser.ShowTabs' ||
@@ -117,8 +134,7 @@ export const step = (model, action) => {
   // we just treat untagged actions as for browser.
   // @TODO Consider dispatching overlay actions as effects instead of
   // trying to process both actions in the same step.
-
-  if(action.type === 'For' && action.target === 'overlay') {
+  if (isOverlayAnimation(action)) {
     const [overlay, fx] = Overlay.step(model.overlay, action.action);
     return [merge(model, {overlay}), fx.map(asByOverlay)];
   }
@@ -145,7 +161,7 @@ export const step = (model, action) => {
     }
   }
   else if (model.mode === 'create-web-view') {
-    if (isAbort(action)) {
+    if (isAbort(action) || isEscape(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       // Only switch to show-web-view mode if there is a web view
       // to show. Otherwise remain in 'create-web-view' just let the
@@ -159,6 +175,8 @@ export const step = (model, action) => {
       }
     }
     else if (isSubmit(action)) {
+      // @TODO we also normalize in Browser for editing location. In future
+      // we should create a single entry point for the URL.
       const open = Browser.asOpenWebView(URI.read(model.browser.input.value));
       const [browser, fx] = Browser.step(model.browser, open);
       return [
@@ -172,7 +190,7 @@ export const step = (model, action) => {
     // `select-web-view`.
   }
   else if (model.mode === 'edit-web-view') {
-    if (isAbort(action) || isSubmit(action) || isEscape(action)) {
+    if (isAbort(action) || isSubmit(action) || isEscape(action) || isOverlayClick(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
       const hide = Overlay.asHide(performance.now());
       const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
@@ -270,7 +288,8 @@ export const step = (model, action) => {
   else if (model.mode === 'show-tabs') {
     if (isEscape(action) ||
         isFocusWebView(action) ||
-        isActivateWebView(action))
+        isActivateWebView(action) ||
+        isOverlayClick(action))
     {
       const [browser, fx] = Browser.step(model.browser, action);
       const hide = Overlay.asHide(performance.now());
@@ -415,15 +434,15 @@ const viewAsEditWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedIn),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -442,15 +461,15 @@ const viewAsShowWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedIn),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -470,15 +489,15 @@ const viewAsCreateWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedIn),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarHidden),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -498,15 +517,15 @@ const viewAsSelectWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.webViewZoomedOut),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
           style.sidebarVisible),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -527,16 +546,16 @@ const viewAsShowTabs = (model, address) =>
           forward(address, asFor('webViews')),
           Style(style.webViewZoomedOut,
                 transition.webViewZoomOut(model.animation))),
+    thunk('overlay',
+          Overlay.view,
+          model.overlay,
+          forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
           Style(style.sidebarVisible,
                 transition.sidebarShow(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, asFor('overlay'))),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,

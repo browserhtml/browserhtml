@@ -10,6 +10,7 @@ import * as WindowControls from "./window-controls";
 
 // import * as Updater from "./updater"
 import * as Devtools from "../common/devtools";
+import * as URI from '../common/url-helper';
 import * as WebViews from "./web-views";
 import * as WebView from "./web-view";
 
@@ -107,7 +108,7 @@ const stepFor = (target, model, action) => {
     if (action.type === 'Input.Submit') {
       const [input, inputFx] = Input.step(model.input, action);
 
-      const navigate = WebViews.asNavigateTo(model.input.value);
+      const navigate = WebViews.asNavigateTo(URI.read(model.input.value));
       const [webViews, viewFx] = WebViews.step(model.webViews, navigate);
       // more things need to happen here.
       return [
