@@ -11,7 +11,7 @@ import {asFor, merge} from '../common/prelude';
 import * as URI from '../common/url-helper';
 import {Style, StyleSheet} from '../common/style';
 import * as Animation from '../common/animation';
-import {ease, easeOutQuad, float} from 'eased';
+import {ease, easeOutCubic, float} from 'eased';
 
 export const initialize/*:type.initialize*/ = () => {
   const [browser, fx] = Browser.initialize();
@@ -125,7 +125,7 @@ export const isSwitchSelectedWebView = action =>
 export const asByOverlay = asFor('overlay');
 export const asByAnimation = asFor('animation');
 
-export const modeTransitionDuration = 500;
+export const modeTransitionDuration = 600;
 
 
 export const step = (model, action) => {
@@ -356,12 +356,17 @@ const zoom = (from, to, progress) => merge(from, {
   depth: float(from.depth, to.depth, progress)
 })
 
+const flipSlide = (from, to, progress) => merge(from, {
+  angle: float(from.angle, to.angle, progress),
+  x: float(from.x, to.x, progress)
+});
+
 const transition = {
   webViewZoomOut(model) {
     const {angle, depth}
       = model == null ?
           {angle: 10, depth: -600} :
-          ease(easeOutQuad,
+          ease(easeOutCubic,
                 zoom,
                 {angle: 0, depth: 0},
                 {angle: 10, depth: -600},
@@ -372,17 +377,17 @@ const transition = {
     }
   },
   sidebarShow(model) {
-    const x = model == null ?
+    const {angle, x} = model == null ?
       0 :
-      ease(easeOutQuad,
-           float,
-           380,
-           0,
+      ease(easeOutCubic,
+           flipSlide,
+           {angle: -45, x: 380},
+           {angle: 0, x: 0},
            Animation.duration(model),
            Animation.progress(model));
 
     return {
-      transform: `translateX(${x}px)`
+      transform: `translateX(${x}px) rotateY(${angle}deg)`
     };
   }
 }
