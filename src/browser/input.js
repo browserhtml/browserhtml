@@ -90,28 +90,32 @@ const readChange = ({target}) =>
 const readSelect = ({target}) =>
   Editable.asSelect(readSelection(target));
 
-const inputWidth = 460;
+const inputWidth = '460px';
+const inputHeight = '40px';
 
 const style = StyleSheet.create({
   combobox: {
     background: '#EBEEF2',
     borderRadius: '5px',
-    height: '40px',
+    height: inputHeight,
     left: '50%',
-    marginLeft: (-1 * (inputWidth / 2)) + 'px',
+    marginLeft: `calc(-1 * (${inputWidth} / 2))`,
     position: 'absolute',
     padding: '0 32px',
     top: '40px',
-    width: (inputWidth - (32 * 2)) + 'px',
+    width: `calc(${inputWidth} - ${32 * 2}px)`
   },
   field: {
     background: 'transparent',
     borderWidth: 0,
+    display: 'block',
     fontSize: '14px',
-    mozAppearance: 'none',
-    height: '100%',
+    MozAppearance: 'none',
+    height: inputHeight,
+    lineHeight: inputHeight,
+    margin: 0,
     padding: 0,
-    width: '100%'
+    width: `calc(${inputWidth} - ${32 * 2}px)`
   },
   inactive: {
     opacity: 0,
@@ -123,7 +127,8 @@ const style = StyleSheet.create({
     fontSize: '16px',
     left: '10px',
     lineHeight: '40px',
-    position: 'absolute'
+    position: 'absolute',
+    top: 0
   },
   clearIcon: {
     color: 'rgba(0,0,0,0.5)',
