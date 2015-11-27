@@ -125,7 +125,8 @@ export const isSwitchSelectedWebView = action =>
 export const asByOverlay = asFor('overlay');
 export const asByAnimation = asFor('animation');
 
-export const modeTransitionDuration = 600;
+export const showTabsTransitionDuration = 600;
+export const hideTabsTransitionDuration = 400;
 
 
 export const step = (model, action) => {
@@ -247,7 +248,7 @@ export const step = (model, action) => {
       const fade = Overlay.asFade(performance.now());
       const [overlay, overlayFx] = Overlay.step(model.overlay, fade);
       const [animation, animationFx]
-        = Animation.initialize(performance.now(), modeTransitionDuration);
+        = Animation.initialize(performance.now(), showTabsTransitionDuration);
 
       return [
         merge(model, {browser, overlay, animation, mode: 'show-tabs'}),
@@ -259,15 +260,20 @@ export const step = (model, action) => {
       ];
     }
     else if (isSwitchSelectedWebView(action)) {
+      const time = performance.now();
       const [browser, fx] = Browser.step(model.browser, action);
-      const fade = Overlay.asFade(performance.now());
+      const fade = Overlay.asFade(time);
       const [overlay, overlayFx] = Overlay.step(model.overlay, fade);
+      const [animation, animationFx]
+        = Animation.initialize(time, showTabsTransitionDuration);
 
       return [
-        merge(model, {browser, overlay, mode: 'select-web-view'}),
+        merge(model, {browser, overlay, animation, mode: 'select-web-view'}),
         Effects.batch([
           fx,
-          overlayFx.map(asByOverlay)
+          overlayFx.map(asByOverlay),
+          // If animation was running no need for another tick.
+          model.animation ? Effects.none : animationFx.map(asByAnimation)
         ])
       ];
     }
@@ -291,15 +297,21 @@ export const step = (model, action) => {
         isActivateWebView(action) ||
         isOverlayClick(action))
     {
+      const time = performance.now();
       const [browser, fx] = Browser.step(model.browser, action);
-      const hide = Overlay.asHide(performance.now());
+      const hide = Overlay.asHide(time);
       const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
+      // TODO: Handle already running animation case (see #747).
+      const [animation, animationFx]
+        = Animation.initialize(time, hideTabsTransitionDuration);
 
       return [
-        merge(model, {browser, overlay, mode: 'show-web-view'}),
+        merge(model, {browser, overlay, animation, mode: 'show-web-view'}),
         Effects.batch([
           fx,
-          overlayFx.map(asByOverlay)
+          overlayFx.map(asByOverlay),
+          // If animation was running no need for another tick.
+          model.animation ? Effects.none : animationFx.map(asByAnimation)
         ])
       ];
     }
@@ -325,22 +337,29 @@ export const step = (model, action) => {
         merge(model, {browser, overlay, mode: 'edit-web-view'}),
         Effects.batch([
           fx,
-          overlayFx.map(asByOverlay)
+          overlayFx.map(asByOverlay),
+          // If animation was running no need for another tick.
+          model.animation ? Effects.none : animationFx.map(asByAnimation)
         ])
       ];
     }
   }
   else if (model.mode === 'select-web-view') {
     if (isActivateSelectedWebView(action)) {
+      const time = performance.now();
       const [browser, fx] = Browser.step(model.browser, action);
-      const hide = Overlay.asHide(performance.now());
+      const hide = Overlay.asHide(time);
       const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
+      const [animation, animationFx]
+        = Animation.initialize(time, hideTabsTransitionDuration);
 
       return [
-        merge(model, {browser, overlay, mode: 'show-web-view'}),
+        merge(model, {browser, overlay, animation, mode: 'show-web-view'}),
         Effects.batch([
           fx,
-          overlayFx.map(asByOverlay)
+          overlayFx.map(asByOverlay),
+          // If animation was running no need for another tick.
+          model.animation ? Effects.none : animationFx.map(asByAnimation)
         ])
       ];
     }
@@ -376,13 +395,42 @@ const transition = {
       transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
     }
   },
+  webViewZoomIn(model) {
+    const {angle, depth}
+      = model == null ?
+          {angle: 0, depth: 0} :
+          ease(easeOutCubic,
+                zoom,
+                {angle: 10, depth: -600},
+                {angle: 0, depth: 0},
+                Animation.duration(model),
+                Animation.progress(model));
+    return {
+      transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
+    }
+  },
   sidebarShow(model) {
     const {angle, x} = model == null ?
-      0 :
+      {angle: 0, x: 0} :
       ease(easeOutCubic,
            flipSlide,
            {angle: -45, x: 380},
            {angle: 0, x: 0},
+           Animation.duration(model),
+           Animation.progress(model));
+
+    return {
+      transform: `translateX(${x}px) rotateY(${angle}deg)`
+    };
+  },
+  sidebarHide(model) {
+    const hidden = {angle: -15, x: 420};
+    const {angle, x} = model == null ?
+      hidden :
+      ease(easeOutCubic,
+           flipSlide,
+           {angle: 0, x: 0},
+           hidden,
            Animation.duration(model),
            Animation.progress(model));
 
@@ -465,7 +513,8 @@ const viewAsShowWebView = (model, address) =>
           WebViews.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.webViewZoomedIn),
+          Style(style.webViewZoomedOut,
+                transition.webViewZoomIn(model.animation))),
     thunk('overlay',
           Overlay.view,
           model.overlay,
@@ -474,7 +523,8 @@ const viewAsShowWebView = (model, address) =>
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.sidebarHidden),
+          Style(style.sidebarHidden,
+                transition.sidebarHide(model.animation))),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -493,7 +543,8 @@ const viewAsCreateWebView = (model, address) =>
           WebViews.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.webViewZoomedIn),
+          Style(style.webViewZoomedOut,
+                transition.webViewZoomIn(model.animation))),
     thunk('overlay',
           Overlay.view,
           model.overlay,
@@ -502,7 +553,8 @@ const viewAsCreateWebView = (model, address) =>
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.sidebarHidden),
+          Style(style.sidebarHidden,
+                transition.sidebarHide(model.animation))),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
@@ -521,7 +573,8 @@ const viewAsSelectWebView = (model, address) =>
           WebViews.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.webViewZoomedOut),
+          Style(style.webViewZoomedOut,
+                transition.webViewZoomOut(model.animation))),
     thunk('overlay',
           Overlay.view,
           model.overlay,
@@ -530,7 +583,8 @@ const viewAsSelectWebView = (model, address) =>
           Sidebar.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.sidebarVisible),
+          Style(style.sidebarVisible,
+                transition.sidebarShow(model.animation))),
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
