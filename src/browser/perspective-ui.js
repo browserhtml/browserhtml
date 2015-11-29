@@ -424,7 +424,7 @@ const transition = {
     };
   },
   sidebarHide(model) {
-    const hidden = {angle: -15, x: 420};
+    const hidden = {angle: -15, x: 500};
     const {angle, x} = model == null ?
       hidden :
       ease(easeOutCubic,
