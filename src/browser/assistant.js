@@ -206,7 +206,9 @@ const style = StyleSheet.create({
     left: 0,
     position: 'absolute',
     top: 0,
-    width: '100vw'
+    // @WORKAROUND use percent instead of vw/vh to work around
+    // https://github.com/servo/servo/issues/8754
+    width: '100%'
   },
 
   icon: {

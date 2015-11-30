@@ -464,7 +464,9 @@ const style = StyleSheet.create({
   },
 
   assistantFull: {
-    height: '100vh'
+    // @WORKAROUND use percent instead of vw/vh to work around
+    // https://github.com/servo/servo/issues/8754
+    height: '100%'
   }
 });
 
