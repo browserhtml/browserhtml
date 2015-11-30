@@ -13,13 +13,27 @@ npm install --no-optional
 npm start
 ```
 
-#### Runtime
+#### Runtime (Gecko)
 
 Browser.html needs a special build of B2G desktop called *Graphene*.
 Build this branch: https://hg.mozilla.org/projects/larch with
 `--enable-application=b2g/graphene`.
 
 In the future, we want `browser.html` to be able to run on top of Servo.
+
+
+#### Running in Servo
+
+First, build [Servo](https://github.com/servo/servo).
+
+Then, start the front-end local server:
+
+    npm run build-server
+
+Finally, start Servo with the browser.html flags turned on in either debug (`-d`) or release (`-r`) mode:
+
+    ./mach run -r -- -b --pref dom.mozbrowser.enabled http://localhost:6060
+
 
 #### Using WebIDE
 
