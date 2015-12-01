@@ -18,7 +18,7 @@
     "live": "gulp live",
     "start": "gulp develop",
     "server": "gulp server",
-    "client": "gulp client",
+    "application": "gulp application",
     "deploy": "./.bin/deploy.sh",
     "build": "NODE_ENV=production gulp build",
     "build-server": "gulp build-server",
