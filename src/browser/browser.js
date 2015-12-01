@@ -10,6 +10,7 @@ import * as WindowControls from "./window-controls";
 
 // import * as Updater from "./updater"
 import * as Devtools from "../common/devtools";
+import * as Runtime from "../common/runtime";
 import * as URI from '../common/url-helper';
 import * as WebViews from "./web-views";
 import * as WebView from "./web-view";
@@ -85,7 +86,9 @@ const keyDown = Keyboard.bindings({
   // more closely into this but so declaring both shortcuts should do it.
   'accel alt i': always(asByDevtools(Devtools.Toggle)),
   'accel alt ˆ': always(asByDevtools(Devtools.Toggle)),
-  'F12': always(asByDevtools(Devtools.Toggle))
+  'F12': always(asByDevtools(Devtools.Toggle)),
+  'F5': always(Runtime.Reload),
+  'meta control r': always(Runtime.Reload)
 });
 
 const keyUp = Keyboard.bindings({
@@ -174,6 +177,8 @@ const stepFor = (target, model, action) => {
 export const step/*:type.step*/ = (model, action) =>
   action.type === 'For' ?
     stepFor(action.target, model, action.action) :
+  action.type === 'Runtime.Reload' ?
+    [model, Runtime.reload()] :
   action.type === 'Browser.CreateWebView' ?
     stepFor('input', model, Input.Enter) :
     [model, Effects.none];
