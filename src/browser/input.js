@@ -176,7 +176,10 @@ export const view = (model, address, modeStyle) =>
       // keys or when you click in the input field. There for we
       // need to handle those events to keep our model in sync with
       // actul input field state.
-      onKeyUp: on(address, readSelect),
+
+      // @HACK In servo input event does not seem to fire as expected
+      // so we use onKeyUp instead here.
+      onKeyUp: on(address, readChange),
       onMouseOut: on(address, readSelect)
     })
   ]);
