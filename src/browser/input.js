@@ -157,7 +157,8 @@ export const view = (model, address, modeStyle) =>
       style: Style(
         style.clearIcon,
         model.value === '' && style.clearIconInactive
-      )
+      ),
+      onClick: () => address(Editable.Clear)
     }, ['']),
     html.input({
       className: 'input-field',
