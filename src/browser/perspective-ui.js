@@ -204,7 +204,7 @@ export const step = (model, action) => {
       ];
     }
     else if (isCreateTab(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
+      const [browser, fx] = Browser.step(model.browser, Browser.CreateWebView);
       const hide = Overlay.asHide(performance.now());
       const [overlay, overlayFx] = Overlay.step(model.overlay, hide);
       return [
@@ -231,7 +231,7 @@ export const step = (model, action) => {
       ]
     }
     else if (isCreateTab(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
+      const [browser, fx] = Browser.step(model.browser, Browser.CreateWebView);
       return [
         merge(model, {browser, mode: 'create-web-view'}),
         fx
