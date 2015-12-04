@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
   },
 
   tab: {
+    MozWindowDragging: 'no-drag',
     borderRadius: '5px',
     padding: '0 15px',
     lineHeight: '35px',
