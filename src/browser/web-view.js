@@ -62,7 +62,7 @@ export const open/*:type.open*/ = (id, options) => ({
 })
 
 const unselectTransitionDuration = 300;
-const selectTarnsitionDuration = 400;
+const selectTransitionDuration = 400;
 
 export const select/*:type.select*/ = model => {
   if (model.isSelected) {
@@ -70,7 +70,7 @@ export const select/*:type.select*/ = model => {
   }
   else {
     const [animation, fx]
-      = Animation.initialize(performance.now(), selectTarnsitionDuration);
+      = Animation.initialize(performance.now(), selectTransitionDuration);
 
     return [
       merge(model, {isSelected: true, animation}),
