@@ -61,7 +61,7 @@ export const open/*:type.open*/ = (id, options) => ({
   animation: null
 })
 
-const unselectTransitionDuration = 400;
+const unselectTransitionDuration = 300;
 const selectTarnsitionDuration = 400;
 
 export const select/*:type.select*/ = model => {
@@ -260,7 +260,7 @@ const comboboxWidth = '250px';
 const transition = {
   select(animation) {
     return animation == null
-      ? {opacity: 1}
+      ? null
       : {opacity: ease(easeOutCubic,
                         float,
                         0,
@@ -270,7 +270,7 @@ const transition = {
   },
   unselect(animation) {
     return animation == null
-      ? {opacity: 0}
+      ? style.webViewInactive
       : {opacity: ease(easeOutCubic,
                         float,
                         1,
@@ -289,13 +289,15 @@ const style = StyleSheet.create({
     height: '100%',
     mozUserSelect: 'none',
     cursor: 'default',
-    opacity: 1
+    opacity: 1,
+    zIndex: 2
   },
 
   webViewInactive: {
     pointerEvents: 'none',
     visibility: 'hidden',
     opacity: 0,
+    zIndex: 1
   },
 
   iframe: {
@@ -463,9 +465,6 @@ export const view/*:type.view*/ = (model, address) => {
     className: isModelDark ? 'webview webview-is-dark' : 'webview',
     style: Style(
       style.webview,
-      model.isSelected
-        ? null
-        : style.webViewInactive,
       model.isSelected
         ? transition.select(model.animation)
         : transition.unselect(model.animation)
