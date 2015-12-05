@@ -77,12 +77,12 @@ export const indexOfOffset/*:type.indexByOffset*/ = (index, size, offset, loop) 
 export const selectByIndex/*:type.selectByIndex*/ = (model, index) => {
   // If selection does not change return model back.
   if (index === model.selected) {
-    return model;
+    return [model, Effects.none];
   }
   // if selection is out of the bound log warning and return model back.
   else if (index < 0 || index >= model.entries.length) {
     console.warn(`Can not select WebView under ${index} index as it does not exists`, model);
-    return model;
+    return [model, Effects.none];
   }
   else {
     const {selected} = model;
@@ -91,13 +91,28 @@ export const selectByIndex/*:type.selectByIndex*/ = (model, index) => {
     // Initially there are no web-views and there for none is selected, we need
     // in such case nothing needs to be unselected.
     if (selected >= 0) {
-      entries[selected] = WebView.unselect(entries[selected]);
+      const [unselect, unselectFx] = WebView.unselect(entries[selected]);
+      const [select, selectFx] = WebView.select(entries[index]);
+      entries[selected] = unselect
+      entries[index] = select
+
+      return [
+        merge(model, {selected: index, entries}),
+        Effects.batch([
+          unselectFx.map(asByID(unselect.id)),
+          selectFx.map(asByID(select.id))
+        ])
+      ]
     }
-
-    // Mark web-view we intend to select as selected.
-    entries[index] = WebView.select(entries[index]);
-
-    return merge(model, {selected: index, entries})
+    else {
+      // Mark web-view we intend to select as selected.
+      const [select, fx] = WebView.select(entries[index])
+      entries[index] = selected
+      return [
+        merge(model, {selected: index, entries}),
+        fx.map(asByID(select.id))
+      ];
+    }
   }
 }
 
@@ -124,14 +139,14 @@ export const activateByIndex/*:type.activateByIndex*/ = (model, index) => {
     const count = entries.length;
 
     if (selected >= 0 && selected !== index && selected < count) {
-      entries[selected] = WebView.unselect(entries[selected]);
+      entries[selected] = merge(entries[selected], {isSelected: false});
     }
 
     if (active >= 0 && active !== index && active < count) {
       entries[active] = WebView.deactivate(entries[active]);
     }
 
-    entries[index] = WebView.select(WebView.activate(entries[index]))
+    entries[index] = WebView.activate(merge(entries[index], {isSelected: true}));
 
     return merge(model, {selected: index, active: index, entries});
   }
@@ -199,7 +214,7 @@ export const stepByID/*:type.stepByActive*/ = (model, id, action) =>
   action.type === "WebView.Close" ?
     [closeByID(model, id), Effects.none] :
   action.type === "WebView.Select" ?
-    [selectByID(model, id), Effects.none] :
+    selectByID(model, id) :
     stepByIndex(model, indexByID(model, id), action);
 
 const remove = (array, index) =>
@@ -260,7 +275,7 @@ export const step/*:type.step*/ = (model, action) => {
     return [open(model, action.options), Driver.force];
   }
   else if (action.type === "WebViews.SelectRelative") {
-    return [selectByOffset(model, action.offset), Effects.none];
+    return selectByOffset(model, action.offset);
   }
   else if (action.type === "WebViews.ActivateSelected") {
     return [activateSelected(model), Effects.none];

@@ -82,7 +82,8 @@ const viewTab = (model, address) =>
       styles.tab,
       model.isSelected && styles.tabSelected
     ),
-    onClick: () => address(WebView.Activate)
+    onMouseDown: () => address(WebView.Select),
+    onMouseUp: () => address(WebView.Activate)
   }, [
     thunk('favicon',
           viewImage,
