@@ -9,6 +9,7 @@ import * as Navigation from "./web-view/navigation"
 import * as Security from "./web-view/security"
 import * as Page from "./web-view/page"
 import * as Rotation from "./web-view/rotation"
+import * as Animation from "../common/animation"
 
 
 export type Activate = {type: "WebView.Activate"}
@@ -32,7 +33,8 @@ export type Model = {
   progress: ?Progress.Model,
   navigation: Navigation.Model,
   security: Security.Model,
-  page: ?Page.Model
+  page: ?Page.Model,
+  animation: ?Animation.Model
 }
 
 export type NewWebViewOptions = {
@@ -47,6 +49,7 @@ export type Response
   = Navigation.Response
   | Page.Response
   | Rotation.Response
+  | Animation.Action
 
 
 export type Action
@@ -60,8 +63,8 @@ export type Action
 
 
 export type open = (id:ID, options:NewWebViewOptions) => Model
-export type select = (model:Model) => Model
-export type unselect = (model:Model) => Model
+export type select = (model:Model) => [Model, Effects<Animation.Action>]
+export type unselect = (model:Model) => [Model, Effects<Animation.Action>]
 export type activate = (model:Model) => Model
 export type dectivate = (model:Model) => Model
 export type readTitle = (model:Model, fallback: string) => string

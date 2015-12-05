@@ -17,6 +17,8 @@ import * as Page from './web-view/page';
 import {Style, StyleSheet} from '../common/style';
 import * as Driver from 'driver';
 import * as URI from '../common/url-helper';
+import * as Animation from '../common/animation';
+import {ease, easeOutCubic, float} from 'eased';
 
 export const RequestZoomIn = Shell.asRequest(Shell.ZoomIn);
 export const RequestZoomOut = Shell.asRequest(Shell.ZoomOut);
@@ -56,20 +58,40 @@ export const open/*:type.open*/ = (id, options) => ({
   navigation: Navigation.initiate(options.uri),
   page: Page.initiate(options.uri),
   progress: null,
+  animation: null
 })
 
-const selected = {isSelected: true};
-const unselected = {isSelected: false};
+const unselectTransitionDuration = 400;
+const selectTarnsitionDuration = 400;
 
-export const select/*:type.select*/ = model =>
-  model.isSelected ?
-    model :
-    merge(model, selected);
+export const select/*:type.select*/ = model => {
+  if (model.isSelected) {
+    return [model, Effects.none];
+  }
+  else {
+    const [animation, fx]
+      = Animation.initialize(performance.now(), selectTarnsitionDuration);
 
-export const unselect/*:type.unselect*/ = model =>
-  model.isSelected ?
-    merge(model, unselected) :
-    model;
+    return [
+      merge(model, {isSelected: true, animation}),
+      fx
+    ]
+  }
+}
+
+export const unselect/*:type.unselect*/ = model => {
+  if (model.isSelected) {
+    const [animation, fx]
+      = Animation.initialize(performance.now(), unselectTransitionDuration);
+
+    return [
+      merge(model, {isSelected: false, animation}),
+      fx
+    ]
+  } else {
+    return [model, Effects.none];
+  }
+}
 
 export const activate/*:type.activate*/ = model =>
   (model.isActive && model.isFocused) ?
@@ -108,7 +130,7 @@ export const isDark/*:type.isDark*/ = (model) =>
 export const step/*:type.step*/ = (model, action) => {
   // Shell actions
   if (action.type === "WebView.Select") {
-    return [select(model), Effects.none];
+    return select(model);
   }
   else if (action.type === "WebView.Activate") {
     return [activate(model), Effects.none];
@@ -213,6 +235,19 @@ export const step/*:type.step*/ = (model, action) => {
     const [shell, fx] = Shell.step(model.shell, action);
     return [merge(model, {shell}), fx];
   }
+  else if (action.type === "Animation.Tick") {
+    // @TODO: Find out how do we end up in case where we have removed
+    // unimation but still get a tick.
+    if (model.animation) {
+      const [animation, fx] = Animation.step(model.animation, action);
+      return [merge(model, {animation}), fx];
+    } {
+      return [model, Effects.none];
+    }
+  }
+  else if (action.type === "Animation.End") {
+    return [merge(model, {animation: null}), Effects.none]
+  }
   else {
     return [model, Effects.none];
   }
@@ -221,6 +256,29 @@ export const step/*:type.step*/ = (model, action) => {
 const topBarHeight = '27px';
 const comboboxHeight = '21px';
 const comboboxWidth = '250px';
+
+const transition = {
+  select(animation) {
+    return animation == null
+      ? {opacity: 1}
+      : {opacity: ease(easeOutCubic,
+                        float,
+                        0,
+                        1,
+                        Animation.duration(animation),
+                        Animation.progress(animation))};
+  },
+  unselect(animation) {
+    return animation == null
+      ? {opacity: 0}
+      : {opacity: ease(easeOutCubic,
+                        float,
+                        1,
+                        0,
+                        Animation.duration(animation),
+                        Animation.progress(animation))};
+  }
+}
 
 const style = StyleSheet.create({
   webview: {
@@ -231,6 +289,7 @@ const style = StyleSheet.create({
     height: '100%',
     mozUserSelect: 'none',
     cursor: 'default',
+    opacity: 1
   },
 
   webViewInactive: {
@@ -404,7 +463,12 @@ export const view/*:type.view*/ = (model, address) => {
     className: isModelDark ? 'webview webview-is-dark' : 'webview',
     style: Style(
       style.webview,
-      !model.isActive && style.webViewInactive
+      model.isSelected
+        ? null
+        : style.webViewInactive,
+      model.isSelected
+        ? transition.select(model.animation)
+        : transition.unselect(model.animation)
     )
   }, [
     viewFrame(model, address),
