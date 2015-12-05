@@ -41,9 +41,9 @@ export const indexByID/*:type.indexByID*/ = (model, id) =>
 export const open/*:type.open*/ = (model, options) => {
   const next = merge(model, {
     nextID: model.nextID + 1,
-    entries: model.entries.concat([
-      WebView.open(model.nextID, options)
-    ])
+    selected: model.selected + 1,
+    active: model.active + 1,
+    entries: [WebView.open(model.nextID, options), ...model.entries]
   });
 
   return options.inBackground ?
