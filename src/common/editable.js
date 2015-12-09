@@ -1,68 +1,37 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-  'use strict';
+/* @flow */
 
-  const {Record, Union, Maybe} = require('typed-immutable');
-  const Focusable = require('./focusable');
+import {merge} from "../common/prelude"
 
-  // Model
+/*:: import * as type from "../../type/common/editable" */
 
-  const Selection = Record({
-    start: 0,
-    end: 0,
-    direction: 'forward'
-  }, 'Editable.Selection');
-  exports.Selection = Selection;
+export const initial/*:type.Model*/ = {
+  value: "",
+  selection: null
+}
 
-  const Model = Record({
-    isFocused: false,
-    value: Maybe(String),
-    selection: Selection
-  }, 'Editable.Model');
-  exports.Model = Model;
+export const asSelect/*:type.asSelect*/ = range =>
+  ({type: "Editable.Select", range})
 
-  // Actions
+export const asChange/*:type.asChange*/ = (value, selection) =>
+  ({type: "Editable.Change", value, selection})
 
-  const Select = Record({
-    range: Selection
-  }, 'Editable.Select');
-  Select.All = () => Select({end: Infinity});
-  exports.Select = Select;
+export const Clear/*:type.Clear*/ = {type: "Editable.Clear"}
+export const asClear/*:type.asClear*/ = () => Clear
 
+export const select/*:type.select*/ = (model, action) =>
+  merge(model, {selection: action.range})
 
-  const Change = Record({
-    description: 'Input value / selection has changed',
-    value: String,
-    selection: Selection
-  }, 'Editable.Change');
-  exports.Change = Change;
+export const change/*:type.change*/ = (model, action) =>
+  merge(model, {selection: action.selection, value: action.value})
 
-  const Action = Union(Change, Select);
-  exports.Action = Action;
+export const clear/*:type.clear*/ = model =>
+  merge(model, initial)
 
-  // Update
-
-  const select = (state, range) =>
-    state.set('selection', Selection(range));
-  exports.select = select;
-
-  const selectAll = state =>
-    state.set('selection', Selection({end: Infinity, direction: 'backward'}));
-  exports.selectAll = selectAll;
-
-  const change = (state, action) =>
-    state.merge({value: action.value,
-                 selection: action.selection});
-  exports.change = change;
-
-  const clear = state =>
-    state.remove('value');
-  exports.clear = clear;
-
-  const update = (state, action) =>
-    action instanceof Change ? change(state, action) :
-    action instanceof Select ? select(state, action.range) :
-    action;
-
-  exports.update = update;
+export const update/*:type.update*/ = (model, action) =>
+  action.type === "Editable.Clear" ?
+    clear(model) :
+  action.type === "Editable.Select" ?
+    select(model, action) :
+  action.type === "Editable.Change" ?
+    change(model, action) :
+  model;

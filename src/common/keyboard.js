@@ -1,158 +1,105 @@
+/* @flow */
+
 /* this source code form is subject to the terms of the mozilla public
  * license, v. 2.0. if a copy of the mpl was not distributed with this
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
-  'use strict';
 
-  const platform = require('../common/os').platform();
+/*:: import * as type from "../../type/common/keyboard" */
 
-  const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
-    const modifiers = [];
-    // Modifier fields indicate if relevant modifier is pressed, in case
-    // of 'keyup' event including those does not make sense.
-    if (type != 'keyup') {
-      if (metaKey) {
-        modifiers.push('Meta');
-      }
-      if (ctrlKey) {
-        modifiers.push('Control');
-      }
-      if (altKey) {
-        modifiers.push('Alt');
-      }
-      if (shiftKey) {
-        modifiers.push('Shift');
-      }
+import {Effects} from "reflex";
+import * as OS from './os';
+
+const platform = OS.platform();
+
+
+const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
+  const modifiers = [];
+  // Modifier fields indicate if relevant modifier is pressed, in case
+  // of 'keyup' event including those does not make sense.
+  if (type != 'keyup') {
+    if (metaKey) {
+      modifiers.push('Meta');
     }
-    return modifiers;
-  };
+    if (ctrlKey) {
+      modifiers.push('Control');
+    }
+    if (altKey) {
+      modifiers.push('Alt');
+    }
+    if (shiftKey) {
+      modifiers.push('Shift');
+    }
+  }
+  return modifiers;
+};
 
 
-  const readKey = key => readKey.table[key] || key;
-  readKey.table = Object.assign(Object.create(null), {
-    'ctrl': 'control',
-    'accel': platform == 'darwin' ? 'meta' : 'control',
-    'ArrowLeft': 'left',
-    'ArrowRight': 'right',
-    'ArrowUp': 'up',
-    'ArrowDown': 'down',
-    'esc': 'escape'
-  });
+const readKey = key => readKey.table[key] || key;
 
-  const readChord = input =>
-    input.trim()
-    .toLowerCase()
+readKey.table = Object.assign(Object.create(null), {
+  'ctrl': 'Control',
+  'accel': platform == 'darwin' ? 'meta' : 'control',
+  'ArrowLeft': 'Left',
+  'ArrowRight': 'Right',
+  'ArrowUp': 'Up',
+  'ArrowDown': 'Down',
+  'esc': 'Escape'
+});
+
+const readChord = input =>
+  input
     .split(/\s+/)
     .map(readKey)
     .sort()
-    .join(' ');
+    .join(' ')
+    .trim()
+    .toLowerCase();
 
-  const writeChord = event =>
-    [...new Set([...readModifiers(event), readKey(event.key)])]
-      .join(' ')
-      .toLowerCase()
-      .split(' ')
-      .sort()
-      .join(' ');
+const writeChord = event => {
+  const key = event.key
+  const modifiers = readModifiers(event)
+  const keys = modifiers.indexOf(key) < 0 ?
+                [...modifiers, key] :
+                modifiers;
 
-  class KeyBinding {
-    constructor({chord, metaKey, shiftKey, altKey, ctrlKey, key, action}) {
-      this.chord = chord
-      this.key = key
-      this.metaKey = metaKey
-      this.shiftKey = shiftKey
-      this.altKey = altKey
-      this.ctrlKey = ctrlKey
-      this.action = action
-    }
-    toJSON() {
-      const {chord, key, metaKey, shiftKey, altKey, ctrlKey} = this;
-      return {chord, key, metaKey, shiftKey, altKey, ctrlKey};
-    }
-    toString() {
-      return `KeyBinding(${JSON.stringify(this)})`
-    }
-  }
+  return keys
+          .map(readKey)
+          .join(' ')
+          .toLowerCase()
+          .split(' ')
+          .sort()
+          .join(' ');
+};
 
-  class KeyboardAction {
-    constructor(options) {
-      this.label = options.label || 'Keyboard.Action'
 
-      this.chord = options.chord
-      this.key = options.key
+export const bindings/*:type.keyBindings*/ = bindingTable => {
+  const bindings = Object.create(null);
+  Object.keys(bindingTable).forEach(key => {
+    bindings[readChord(key)] = bindingTable[key];
+  });
 
-      this.metaKey = options.metaKey
-      this.shiftKey = options.shiftKey
-      this.altKey = options.altKey
-      this.ctrlKey = options.ctrlKey
-      this.action = options.action || null
-    }
-    toJSON() {
-      const {action, chord, key, metaKey, shiftKey, altKey, ctrlKey} = this;
-      return {action, chord, key, metaKey, shiftKey, altKey, ctrlKey};
-    }
-    toString() {
-      return `${this.label}(${JSON.stringify(this)})`
-    }
-  };
+  return event => {
+    const combination = writeChord(event);
+    const binding = bindings[combination]
 
-  const KeyBindings = (bindingTable, label) => {
-    const bindings = Object.create(null);
-    Object.keys(bindingTable).forEach(key => {
-      bindings[readChord(key)] = bindingTable[key];
-    });
-
-    const Binding = (...args) => {
-      const event = args[args.length - 1];
-      const chord = writeChord(event);
-      const read = bindings[chord] ||
-                   bindings[`@${event.type} ${chord}`];
-
-      if (read) {
-        event.preventDefault();
-        event.stopPropagation();
-        return new KeyboardAction({
-          action: read(...args),
-          chord, label,
-
-          metaKey: event.metaKey,
-          shiftKey: event.shiftKey,
-          altKey: event.altKey,
-          ctrlKey: event.ctrlKey,
-          key: event.key
-        });
+    if (binding == null) {
+      return {
+        type: event.type === "keyup" ?
+                "Keyboard.KeyUp" :
+              event.type === "keydown" ?
+                "Keyboard.KeyDown" :
+                "Keyboard.KeyPress",
+        combination: combination,
+        key: event.key,
+        metaKey: event.metaKey,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey
       }
-
-      return null;
-    };
-    Binding.Action = KeyboardAction;
-
-    return Binding;
-  }
-  KeyBindings.Stop = read => {
-    event.stopPropagation();
-    return read(event);
-  }
-  KeyBindings.Cancel = read => {
-    event.preventDefault();
-    return read(event);
-  }
-  KeyBindings.Abort = read => {
-    event.preventDefault();
-    event.stopPropagation();
-    return read(event);
-  }
-
-  const service = address => action => {
-    if (action instanceof KeyboardAction) {
-      address(action.action);
+    } else {
+      event.stopPropagation();
+      event.preventDefault();
+      return binding(event);
     }
   }
-  exports.service = service;
-
-  // Exports:
-
-  exports.readModifiers = readModifiers;
-  exports.readKey = readKey;
-  exports.readChord = readChord;
-  exports.writeChord = writeChord;
-  exports.KeyBindings = KeyBindings;
+}

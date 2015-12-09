@@ -1,638 +1,620 @@
+/* @flow */
+
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-  'use strict';
 
-  const {Record, Union, List, Maybe, Any} = require('typed-immutable');
-  const {html, thunk:render, forward} = require('reflex');
-  const {StyleSheet, Style} = require('../common/style');
-  const URI = require('../common/url-helper');
-  const Editable = require('../common/editable');
-  const Focusable = require('../common/focusable');
-  const Progress = require('./web-progress');
-  const Shell = require('./web-shell');
-  const Navigation = require('./web-navigation');
-  const Security = require('./web-security');
-  const Page = require('./web-page');
-  const Loader = require('./web-loader');
-  const Selector = require('../common/selector');
-  const Force = require('../service/force');
-  const Card = require('./web-card');
-  const Sheet = require('./web-sheet');
-  const {onAnimationFrame, on, focus, visiblity, zoom, opener, navigate,
-         onCanGoBackChange, onCanGoForwardChange} = require('driver');
+/*:: import * as type from "../../type/browser/web-view" */
 
+import {Effects, html} from 'reflex';
+import {merge, always, asFor} from '../common/prelude';
+import {on} from 'driver';
+import * as Shell from './web-view/shell';
+import * as Progress from './web-view/progress';
+import * as Navigation from './web-view/navigation';
+import * as Security from './web-view/security';
+import * as Page from './web-view/page';
+import {Style, StyleSheet} from '../common/style';
+import * as Driver from 'driver';
+import * as URI from '../common/url-helper';
+import * as Animation from '../common/animation';
+import {ease, easeOutCubic, float} from 'eased';
 
-  // Model
-  const Model = Record({
-    selected: Maybe(Number),
-    previewed: Maybe(Number),
-    nextID: 0,
+export const RequestZoomIn = Shell.asRequest(Shell.ZoomIn);
+export const RequestZoomOut = Shell.asRequest(Shell.ZoomOut);
+export const RequestZoomReset = Shell.asRequest(Shell.ResetZoom);
+export const RequestMakeVisibile = Shell.asRequest(Shell.asChangeVisibility(true));
+export const RequestMakeNotVisibile = Shell.asRequest(Shell.asChangeVisibility(false));
+export const RequestStop = Navigation.asRequest(Navigation.Stop);
+export const RequestReload = Navigation.asRequest(Navigation.Reload);
+export const RequestGoBack = Navigation.asRequest(Navigation.GoBack);
+export const RequestGoForward = Navigation.asRequest(Navigation.GoForward);
 
-    loader: List(Loader.Model),
-    shell: List(Shell.Model),
-    page: List(Page.Model),
-    progress: List(Progress.Model),
-    navigation: List(Navigation.Model),
-    security: List(Security.Model),
-    card: List(Card.Model),
-    sheet: List(Sheet.Model)
-  }, 'WebViews');
-  exports.Model = Model;
+export const Select/*:type.Select*/
+  = {type: "WebView.Select"};
 
-  const get = (state, index) => ({
-    loader: state.loader.get(index),
-    shell: state.shell.get(index),
-    page: state.page.get(index),
-    progress: state.progress.get(index),
-    navigation: state.navigation.get(index),
-    security: state.security.get(index),
-    card: state.card.get(index),
-    sheet: state.sheet.get(index)
-  });
-  exports.get = get;
+export const Activate/*:type.Activate*/
+  = {type: "WebView.Activate"};
 
-  // Actions
+export const Close/*:type.Close*/
+  = {type: "WebView.Close"};
 
-  const Failure = Record({
-    description: 'WebView failure',
-    detail: Any
-  }, 'WebView.Failure');
-  exports.Failure = Failure;
+export const Edit/*:type.Edit*/
+  = {type: 'WebView.Edit'};
 
-  const ContextMenu = Record({
-    description: 'WebView requested a context menu',
-  }, 'WebView.ContextMenu');
-  exports.ContextMenu = ContextMenu;
+export const RequestShowTabs/*:type.RequestShowTabs*/
+ = {type: 'WebView.RequestShowTabs'};
 
-  const ModalPrompt = Record({
-    description: 'WebView requested a modal prompt'
-  }, 'WebView.ModalPrompt');
-  exports.ModalPrompt = ModalPrompt;
+export const Create = ({type: 'WebView.Create'});
 
-  const Authentificate = Record({
-    description: 'WebView requested an authentification'
-  }, 'WebView.Authentificate');
-  exports.Authentificate = Authentificate;
+export const open/*:type.open*/ = (id, options) => ({
+  id: id,
+  name: options.name,
+  features: options.name,
+  isSelected: !options.inBackground,
+  isActive: !options.inBackground,
+  shell: Shell.initial,
+  security: Security.initial,
+  navigation: Navigation.initiate(options.uri),
+  page: Page.initiate(options.uri),
+  progress: null,
+  animation: null
+})
 
-  const Open = Record({
-    opener: Any,
-    uri: Maybe(String),
-    name: '_blank',
-    features: ''
-  }, 'WebViews.Open');
-  exports.Open = Open;
+const unselectTransitionDuration = 300;
+const selectTransitionDuration = 400;
 
-  const OpenInBackground = Record({
-    uri: String,
-    inBackground: true
-  }, 'WebView.OpenInBackground');
-  exports.OpenInBackground = OpenInBackground;
+export const select/*:type.select*/ = model => {
+  if (model.isSelected) {
+    return [model, Effects.none];
+  }
+  else {
+    const [animation, fx]
+      = Animation.initialize(performance.now(), selectTransitionDuration);
 
-  const Close = Record({
-    description: 'close selected web view'
-  }, 'WebView.Close');
-  exports.Close = Close;
+    return [
+      merge(model, {isSelected: true, animation}),
+      fx
+    ]
+  }
+}
 
-  const SelectByID = Record({
-    description: 'Select web-view by an id',
-    id: String
-  }, 'WebViews.SelectByID');
-  exports.SelectByID = SelectByID;
+export const unselect/*:type.unselect*/ = model => {
+  if (model.isSelected) {
+    const [animation, fx]
+      = Animation.initialize(performance.now(), unselectTransitionDuration);
 
-  const None = Record({
-    description: 'This is like a null action'
-  }, 'WebView.None');
-  exports.None = None;
+    return [
+      merge(model, {isSelected: false, animation}),
+      fx
+    ]
+  } else {
+    return [model, Effects.none];
+  }
+}
 
+export const activate/*:type.activate*/ = model =>
+  (model.isActive && model.isFocused) ?
+    model :
+    merge(model, {
+      isActive: true,
+      shell: Shell.focus(model.shell)
+    });
 
-  // Just a union type for all possible actions that are targeted at specific
-  // web view.
-  const Action = Union(
-    Close, Open, OpenInBackground, None,
-    Loader.Action, Progress.Action, Navigation.Action, Focusable.Action,
-    Page.Action, Security.Action, Shell.Action, Card.Action, Sheet.Action,
-    Failure, ContextMenu, ModalPrompt, Authentificate);
-  exports.Action = Action;
+export const deactivate/*:type.deactivate*/ = model =>
+  model.isActive ?
+    merge(model, {
+      isActive: false,
+      shell: Shell.blur(model.shell)
+    }) :
+    model;
 
-  // Type contains `id` of the web-view and an `action` that is targeted
-  // the web-view that has matching `id`. If `id` is `null` targets currently
-  // selected web-view.
-  const ByID = Record({
-    id: String,
-    action: Action
-  }, 'WebView.ByID');
-  exports.ByID = ByID;
+export const asLoad = Navigation.asLoad;
 
-  const BySelected = Record({
-    action: Action
-  }, 'WebView.BySelected');
-  exports.BySelected = BySelected;
+export const readTitle/*:type.readTitle*/ = (model, fallback) =>
+  (model.page && model.page.title && model.page.title !== '') ?
+    model.page.title :
+  model.navigation.currentURI.search(/^\s*$/) ?
+    URI.prettify(model.navigation.currentURI) :
+  fallback;
 
-  const Select = Record({
-    action: Selector.Action
-  }, 'WebView.Select');
-  exports.Select = Select;
+export const readFaviconURI/*:type.readFaviconURI*/ = (model) =>
+  model.page && model.page.faviconURI ?
+    model.page.faviconURI :
+  // @TODO use a proper URL.join function. Need to add this to url-helper lib.
+  `${model.navigation.currentURI}/favicon.ico`;
 
-  const Preview = Record({
-    action: Selector.Action
-  }, 'WebView.Preview');
-  exports.Preview = Preview;
+export const isDark/*:type.isDark*/ = (model) =>
+  model.page ? model.page.pallet.isDark : false;
 
+export const step/*:type.step*/ = (model, action) => {
+  // Shell actions
+  if (action.type === "WebView.Select") {
+    return select(model);
+  }
+  else if (action.type === "WebView.Activate") {
+    return [activate(model), Effects.none];
+  }
+  else if (action.type === "Focusable.FocusRequest") {
+    return [activate(model), Effects.none];
+  }
+  else if (action.type === "Focusable.Focus") {
+    return [activate(model), Effects.none];
+  }
+  else if (action.type === "Focusable.Blur") {
+    const [shell, fx] = Shell.step(model.shell, action);
+    return [merge(model, {shell}), fx];
+  }
+  // Progress actions
+  else if (action.type === 'WebView.Progress.Tick')
+  {
+    const [progress, fx] = Progress.step(model.progress, action);
+    return [merge(model, {progress}), fx];
+  }
+  else if (action.type === 'WebView.Progress.Start') {
+    const [progress, progressFx] = Progress.start(action.timeStamp);
+    const [page, pageFx] = Page.step(model.page, action);
+    const security = Security.initial;
 
-  // Update
+    return [
+      merge(model, {progress, page, security}),
+      Effects.batch([
+        progressFx,
+        pageFx
+      ])
+    ];
 
+  }
+  else if (action.type === 'WebView.Progress.End') {
+    const [progress, progressFx] = Progress.step(model.progress, action);
+    const [page, pageFx] = Page.step(model.page, action);
 
-  const indexByID = (state, id) => {
-    const index = state.loader.findIndex(loader => loader.id === id);
-    return index < 0 ? null : index;
-  };
-  exports.indexByID = indexByID;
-
-  // Transformers
-
-  const open = (state, {uri, inBackground, opener}) => activate(state.merge({
-    nextID: state.nextID + 1,
-    previewed: inBackground ? state.selected + 1 : 0,
-    loader: state.loader.unshift(Loader.Model({
-      uri, opener, src: uri,
-      id: String(state.nextID),
-    })),
-    shell: state.shell.unshift(Shell.Model({isFocused: !inBackground})),
-    page: state.page.unshift(Page.Model()),
-    progress: state.progress.unshift(Progress.Model()),
-    navigation: state.navigation.unshift(Navigation.Model()),
-    security: state.security.unshift(Security.Model()),
-    card: state.card.unshift(Card.Model()),
-    sheet: state.sheet.unshift(Sheet.init())
-  }));
-  exports.open = open;
-
-  const closeByIndex = (state, index) =>
-    index == null ? state : activate(state.merge({
-      previewed: // If view closed is to the right of the previewed one
-                 // everything stays as is.
-                 index > state.previewed ? state.previewed :
-                 // If view closed is to the left of the previewed one
-                 // then index of previewed is positive (given that index
-                 // is at min 0) so previewed is decremented.
-                 index < state.previewed ? state.previewed - 1 :
-
-                 // Otherwise previewed view is being closed.
-
-                 // If it is only view there is no more previewed view so
-                 // it is `null`.
-                 state.loader.size === 1 ?  null :
-                 // If it is a first view new previewed is still the first.
-                 index === 0 ? 0 :
-                 // otherwise to keep the same view previewed we decrement
-                 // (index althoug here it's same as previewd).
-                 index - 1,
-      loader: state.loader.remove(index),
-      shell: state.shell.remove(index),
-      page: state.page.remove(index),
-      progress: state.progress.remove(index),
-      navigation: state.navigation.remove(index),
-      security: state.security.remove(index),
-      card: state.card.remove(index),
-      sheet: state.sheet.remove(index)
-    }));
-  exports.closeByIndex = closeByIndex;
-
-
-  const loadByIndex = (state, index, action) => {
-    const loader = state.loader.get(index);
-    return !loader ?
-            open(state, action) :
-            changeByIndex(state, index, action);
-  };
-  exports.loadByIndex = loadByIndex;
-
-  const updateByIndex = (state, n, action) =>
-    action instanceof Loader.Load ? loadByIndex(state, n, action) :
-    action instanceof Close ? closeByIndex(state, n, action) :
-    action instanceof Open ? open(state, action) :
-    action instanceof OpenInBackground ? open(state, action) :
-    changeByIndex(state, n, action);
-  exports.updateByIndex = updateByIndex;
-
-  const changeByIndex = (state, n, action) => {
-    const {loader, shell, page, progress, navigation, security, card, sheet} = state;
-    return n == null ? state : activate(state.merge({
-      selected: action instanceof Focusable.Focus ? n :
-               action instanceof Focusable.Focused ? n :
-               state.selected,
-      loader: loader.set(n, Loader.update(loader.get(n), action)),
-      shell: shell.set(n, Shell.update(shell.get(n), action)),
-      page: page.set(n, Page.update(page.get(n), action)),
-      progress: progress.set(n, Progress.update(progress.get(n), action)),
-      security: security.set(n, Security.update(security.get(n), action)),
-      navigation: navigation.set(n, Navigation.update(navigation.get(n), action)),
-      card: card.set(n, Card.update(card.get(n), action)),
-      sheet: sheet.set(n, Sheet.update(sheet.get(n), action))
-    }));
-  };
-
-
-
-  const updateSelected = (state, action) =>
-    updateByIndex(state, state.selected, action);
-
-  const activate = state =>
-    state.set('selected', state.previewed);
-  exports.activate = activate;
-
-  exports.focus = state =>
-    state.setIn(['shell', state.selected, 'isFocused'], true)
-
-  const select = (state, action) =>
-    activate(state.set('previewed',
-                       Selector.indexOf(state.selected,
-                                        state.loader.size,
-                                        action)));
-  exports.select = select;
-
-  const preview = (state, action) =>
-    state.set('previewed', Selector.indexOf(state.previewed,
-                                            state.loader.size,
-                                            action));
-  exports.preview = preview;
-
-  const update = (state, action) =>
-    action instanceof Select ?
-      select(state, action.action) :
-    action instanceof Preview ?
-      preview(state, action.action) :
-    action instanceof ByID ?
-      updateByIndex(state, indexByID(state, action.id), action.action) :
-    action instanceof BySelected ?
-      updateByIndex(state, state.selected, action.action) :
-    action instanceof Open ?
-      open(state, action) :
-    action instanceof OpenInBackground ?
-      open(state, action) :
-    state;
-  exports.update = update;
-
-
-  // View
-
-  const webviewStyle = StyleSheet.create({
-    base: {
-      position: 'absolute',
-      MozUserSelect: 'none',
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#fff',
-      zIndex: 2
-    },
-    motion: {
-      boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.4)',
-    },
-
-    navigationArrow: {
-      position: 'absolute',
-      zIndex: 1,
-      fontFamily: 'FontAwesome',
-      fontSize: '60px',
-      lineHeight: '60px',
-      display: 'inline',
-      top: '50%',
-      marginTop: '-60px'
-    },
-    forwardArrow: {
-      right: '60px',
-      content: '\uf054'
-    },
-    backArrow: {
-      left: '60px',
-      content: '\uf053'
-    },
-
-    active: {
-      zIndex: 2,
-    },
-    inactive: {
-      display: 'none',
-    },
-    passive: {
-      visibility: 'hidden',
-    },
-    perspective: {
-      perspective: '100vw',
-      transformStyle: 'preserve-3d',
-      height: 'inherit',
-      width: 'inherit'
-    }
-  });
-
-  // See: https://dxr.mozilla.org/mozilla-central/source/dom/interfaces/events/nsIDOMSimpleGestureEvent.idl?offset=100#108-109
-  const DIRECTION_LEFT = 4;
-  const DIRECTION_RIGHT = 8;
-
-
-  const decodeSwapeGestureStart = event => {
-    if (event.direction === DIRECTION_LEFT ||
-        event.direction === DIRECTION_RIGHT)
-    {
-      event.allowedDirections = DIRECTION_LEFT | DIRECTION_RIGHT;
-      event.preventDefault();
-
-
-      return Sheet.BeginSwipe({
-        delta: event.delta,
-        timeStamp: performance.now()
-      });
-    } else {
-      return None();
+    return [
+      merge(model, {progress, page}),
+      Effects.batch([
+        progressFx,
+        pageFx
+      ])
+    ];
+  }
+  // Note: WebView dispatches `WebView.LocationChanged` action but `Navigation`
+  // needs to know the id of the web-view to schedule effects. There for
+  // in here we create `WebView.Navigation.LocationChanged` action (name diff is
+  // subtle & would be nice to improve) that also contains id of the web-view.
+  else if (action.type === 'WebView.LocationChanged') {
+    const request = Navigation.asLocationChanged(model.id,
+                                                  action.uri,
+                                                  action.timeStamp);
+    const [navigation, navigationFx] = Navigation.step(model.navigation,
+                                                        request);
+    const [page, pageFx] = Page.step(model.page, action);
+    return [
+      merge(model, {navigation, page}),
+      Effects.batch([navigationFx, pageFx])
+    ];
+  }
+  else if (action.type === 'WebView.Navigation.Request') {
+    const request = Navigation.asRequestBy(model.id, action.action);
+    const [navigation, fx] = Navigation.step(model.navigation, request);
+    return [merge(model, {navigation}), fx];
+  }
+  else if (action.type === 'WebView.Navigation.Load' ||
+           action.type === 'WebView.Navigation.CanGoBackChanged' ||
+           action.type === 'WebView.Navigation.CanGoForwardChanged')
+  {
+    const [navigation, fx] = Navigation.step(model.navigation, action);
+    return [merge(model, {navigation}), fx];
+  }
+  else if (action.type === 'WebView.Security.Changed') {
+    const [security, fx] = Security.step(model.security, action);
+    return [merge(model, {security}), fx];
+  }
+  // Page actions
+ else if (action.type === 'WebView.Page.ScreenshotUpdate'
+        || action.type === 'WebView.Page.CuratedColorUpdate'
+        || action.type === 'WebView.Page.ColorScraped'
+        || action.type === 'WebView.Page.DocumentFirstPaint'
+        || action.type === 'WebView.Page.FirstPaint'
+        || action.type === 'WebView.Page.DocumentFakePaint'
+        || action.type === 'WebView.Page.MetaChanged'
+        || action.type === 'WebView.Page.TitleChanged'
+        || action.type === 'WebView.Page.IconChanged'
+        || action.type === 'WebView.Page.OverflowChanged'
+        || action.type === 'WebView.Page.Scrolled')
+  {
+    const [page, fx] = Page.step(model.page, action);
+    return [merge(model, {page}), fx];
+  }
+  else if (action.type === "WebView.Shell.Request") {
+    const request = Shell.asRequestBy(model.id, action.action);
+    const [shell, fx] = Shell.step(model.shell, request);
+    return [merge(model, {shell}), fx];
+  }
+  else if (action.type === "WebView.Shell.ZoomChanged" ||
+           action.type === "WebView.Shell.VisibilityChanged") {
+    const [shell, fx] = Shell.step(model.shell, action);
+    return [merge(model, {shell}), fx];
+  }
+  else if (action.type === "Animation.Tick") {
+    // @TODO: Find out how do we end up in case where we have removed
+    // unimation but still get a tick.
+    if (model.animation) {
+      const [animation, fx] = Animation.step(model.animation, action);
+      return [merge(model, {animation}), fx];
+    } {
+      return [model, Effects.none];
     }
   }
+  else if (action.type === "Animation.End") {
+    return [merge(model, {animation: null}), Effects.none]
+  }
+  else {
+    return [model, Effects.none];
+  }
+}
 
-  const decodeSwipeGestureUpdate = event => Sheet.ContinueSwipe({
-    delta: event.delta,
-    timeStamp: performance.now()
-  })
+const topBarHeight = '27px';
+const comboboxHeight = '21px';
+const comboboxWidth = '250px';
 
-  const decodeSwipeGestureEnd = event => Sheet.ContinueSwipe({
-    delta: event.delta,
-    timeStamp: performance.now()
+const transition = {
+  select(animation) {
+    return animation == null
+      ? null
+      : {opacity: ease(easeOutCubic,
+                        float,
+                        0,
+                        1,
+                        Animation.duration(animation),
+                        Animation.progress(animation))};
+  },
+  unselect(animation) {
+    return animation == null
+      ? style.webViewInactive
+      : {opacity: ease(easeOutCubic,
+                        float,
+                        1,
+                        0,
+                        Animation.duration(animation),
+                        Animation.progress(animation))};
+  }
+}
+
+const style = StyleSheet.create({
+  webview: {
+    position: 'absolute', // to stack webview on top of each other
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    mozUserSelect: 'none',
+    cursor: 'default',
+    opacity: 1,
+    zIndex: 2
+  },
+
+  webViewInactive: {
+    pointerEvents: 'none',
+    visibility: 'hidden',
+    opacity: 0,
+    zIndex: 1
+  },
+
+  iframe: {
+    display: 'block', // iframe are inline by default
+    position: 'absolute',
+    top: topBarHeight,
+    left: 0,
+    width: '100%',
+    height: `calc(100% - ${topBarHeight})`,
+    mozUserSelect: 'none', // necessary to pass text drag to iframe's content
+    borderWidth: 0,
+    backgroundColor: 'white',
+    MozWindowDragging: 'no-drag'
+  },
+
+  topbar: {
+    backgroundColor: 'white', // dynamic
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: topBarHeight,
+  },
+
+  combobox: {
+    MozWindowDragging: 'no-drag',
+    position: 'absolute',
+    left: '50%',
+    top: 0,
+    height: comboboxHeight,
+    lineHeight: comboboxHeight,
+    width: comboboxWidth,
+    marginTop: `calc(${topBarHeight} / 2 - ${comboboxHeight} / 2)`,
+    marginLeft: `calc(${comboboxWidth} / -2)`,
+    borderRadius: '5px',
+    cursor: 'text',
+  },
+
+  lightText: {
+    color: 'rgba(0, 0, 0, 0.8)',
+  },
+
+  darkText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+
+  titleContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    paddingLeft: '30px',
+    paddingRight: '30px',
+    width: 'calc(100% - 60px)',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
+  },
+
+  // Also has some hover styles defined in theme.css
+  iconSearch: {
+    fontFamily: 'FontAwesome',
+    fontSize: '14px',
+    left: '5px',
+    position: 'absolute',
+  },
+
+  iconSecure: {
+    fontFamily: 'FontAwesome',
+    marginRight: '6px'
+  },
+
+  iconInsecure: {
+    display: 'none'
+  },
+
+  iconShowTabs: {
+    MozWindowDragging: 'no-drag',
+    backgroundImage: 'url(css/hamburger.sprite.png)',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: '0 0',
+    backgroundSize: '50px auto',
+    position: 'absolute',
+    height: '13px',
+    right: '8px',
+    top: '7px',
+    width: '14px'
+  },
+
+  iconShowTabsDark: {
+    backgroundPosition: '0 -50px'
+  },
+
+  iconCreateTab: {
+    MozWindowDragging: 'no-drag',
+    color: 'rgba(0,0,0,0.8)',
+    fontFamily: 'FontAwesome',
+    fontSize: '18px',
+    lineHeight: '32px',
+    position: 'absolute',
+    textAlign: 'center',
+    bottom: 0,
+    right: 0,
+    width: '30px',
+    height: '32px',
+  },
+
+  iconCreateTabDark: {
+    color: 'rgba(255,255,255,0.8)',
+  }
+});
+
+const viewFrame = (model, address) =>
+  html.iframe({
+    id: `web-view-${model.id}`,
+    src: model.navigation.initiatedURI,
+    'data-current-uri': model.navigation.currentURI,
+    'data-name': model.name,
+    'data-features': model.features,
+    element: Driver.element,
+    style: Style(style.iframe),
+    attributes: {
+      mozbrowser: true,
+      remote: true,
+      mozapp: URI.isPrivileged(model.navigation.currentURI) ?
+                URI.getManifestURL().href :
+                void(0),
+      mozallowfullscreen: true
+    },
+    // isVisible: visiblity(model.isActive),
+    // zoom: zoom(model.shell.zoom),
+
+    isFocused: Driver.focus(model.shell.isFocused),
+
+    // Events
+
+    onBlur: on(address, decodeBlur),
+    onFocus: on(address, decodeFocus),
+    // onMozbrowserAsyncScroll: on(address, decodeAsyncScroll),
+    onMozBrowserClose: on(address, decodeClose),
+    onMozBrowserOpenWindow: on(address, decodeOpenWindow),
+    onMozBrowserOpenTab: on(address, decodeOpenTab),
+    onMozBrowserContextMenu: on(address, decodeContexMenu),
+    onMozBrowserError: on(address, decodeError),
+    onMozBrowserLoadStart: on(address, decodeLoadStart),
+    onMozBrowserLoadEnd: on(address, decodeLoadEnd),
+    onMozBrowserFirstPaint: on(address, decodeFirstPaint),
+    onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
+    onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
+    onMozBrowserLocationChange: on(address, decodeLocationChange),
+    onMozBrowserMetaChange: on(address, decodeMetaChange),
+    onMozBrowserIconChange: on(address, decodeIconChange),
+    onMozBrowserLocationChange: on(address, decodeLocationChange),
+    onMozBrowserSecurityChange: on(address, decodeSecurityChange),
+    onMozBrowserTitleChange: on(address, decodeTitleChange),
+    onMozBrowserShowModalPrompt: on(address, decodeShowModalPrompt),
+    onMozBrowserUserNameAndPasswordRequired: on(address, decodeAuthenticate),
+    onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
   });
 
-  const decodeSwipeGestureStop = event => Sheet.EndSwipe({
-    timeStamp: performance.now()
-  });
-
-  const viewWebView = (loader, shell, navigation, thumbnail, sheet, isSelected, address) => {
-    return html.div({
-      key: 'web-view',
-      style: Style(webviewStyle.perspective,
-                    isSelected ? webviewStyle.active :
-                    !thumbnail ? webviewStyle.passive :
-                    webviewStyle.inactive),
-      MozSwipeGestureStart: on(address, decodeSwapeGestureStart),
-      MozSwipeGestureUpdate: on(address, decodeSwipeGestureUpdate),
-      MozSwipeGestureEnd: on(address, decodeSwipeGestureEnd),
-      MozSwipeGesture: on(address, decodeSwipeGestureStop),
-      onAnimationFrame: sheet.isInMotion && onAnimationFrame(timeStamp => {
-        if (sheet.action != null) {
-          address(sheet.action);
-        }
-        address(Sheet.AnimationFrame({timeStamp}));
-      })
-    }, [
-      html.figure({
-        key: 'goBack',
-        style: Style(webviewStyle.navigationArrow,
-                     webviewStyle.backArrow,
-                     navigation.canGoBack ?
-                      {opacity: Math.abs(sheet.value)} :
-                      webviewStyle.inactive)
-      }, [webviewStyle.backArrow.content]),
-      html.figure({
-        key: 'goForward',
-        style: Style(webviewStyle.navigationArrow,
-                     webviewStyle.forwardArrow,
-                     navigation.canGoForward ?
-                      {opacity: Math.abs(sheet.value)} :
-                      webviewStyle.inactive)
-      }, [webviewStyle.forwardArrow.content]),
-      html.div({
-        key: 'perspective',
-        style: Style(webviewStyle.base,
-                     sheet.isInMotion ? webviewStyle.motion : null,
-                     sheet.isInMotion ? {
-                        transform: `rotateY(${sheet.angle}deg)
-                                    translateZ(${sheet.z}px)
-                                    translateX(${sheet.x}px)`
-                     } : null,
-                     (sheet.isInMotion && !sheet.isForced) ? {
-                       transition: `${sheet.releaseDuration}ms transform ease-out`
-                     } : null),
-      }, [
-        viewWebFrame(loader, shell, navigation, thumbnail, isSelected, address)
-      ])
-    ]);
-  };
-
-  const viewWebFrame = (loader, shell, navigation, thumbnail, isSelected, address) => {
-    // Do not render anything unless viewer has an `uri`
-    if (loader.uri == null) return null;
-
-    const action = forward(address, Event);
-    const location = URI.resolve(loader.src);
-
-    return html.iframe({
-      id: `web-view-${loader.id}`,
-      src: location,
-      'data-uri': loader.uri,
-      opener: opener(loader.opener),
-      className: `web-view ${isSelected ? 'selected' : ''}`,
-      style: webviewStyle.base,
-      attributes: {
-        mozbrowser: true,
-        remote: true,
-        mozapp: URI.isPrivileged(location) ? URI.getManifestURL().href : void(0),
-        mozallowfullscreen: true
-      },
-      isVisible: visiblity(isSelected || !thumbnail),
-      zoom: zoom(shell.zoom),
-      navigation: navigate(navigation.state),
-
-      isFocused: focus(shell.isFocused),
-
-      onBlur: on(address, decodeBlur),
-      onFocus: on(address, decodeFocus),
-      // onMozbrowserAsyncScroll: on(address, decodeAsyncScroll),
-
-      onMozBrowserCanGoBackChange: onCanGoBackChange(address, decodeCanGoBackChange),
-      onMozBrowserCanGoForwardChange: onCanGoForwardChange(address, decodeCanGoForwardChange),
-
-      onMozBrowserClose: on(address, decodeClose),
-      onMozBrowserOpenWindow: on(address, decodeOpenWindow),
-      onMozBrowserOpenTab: on(address, decodeOpenTab),
-      onMozBrowserContextMenu: on(address, decodeContexMenu),
-      onMozBrowserError: on(address, decodeError),
-      onMozBrowserLoadStart: on(address, decodeLoadStart),
-      onMozBrowserLoadEnd: on(address, decodeLoadEnd),
-      onMozBrowserFirstPaint: on(address, decodeFirstPaint),
-      onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
-      // onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
-      onMozBrowserLocationChange: on(address, decodeLocationChange),
-      onMozBrowserMetaChange: on(address, decodeMetaChange),
-      onMozBrowserIconChange: on(address, decodeIconChange),
-      onMozBrowserLocationChange: on(address, decodeLocationChange),
-      onMozBrowserSecurityChange: on(address, decodeSecurityChange),
-      onMozBrowserTitleChange: on(address, decodeTitleChange),
-      onMozBrowserShowModalPrompt: on(address, decodeShowModalPrompt),
-      onMozBrowserUserNameAndPasswordRequired: on(address, decodeAuthenticate),
-      onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
-    });
-  };
-  exports.viewWebView = viewWebView;
-
-  const webviewsStyle = StyleSheet.create({
-    base: {
-      width: '100%',
-      height: '100%',
-      position: 'relative',
-    },
-    fadeIn: {
-      transition: 'opacity 100ms linear',
-      transform: 'scale(1)',
-      opacity: 1,
-    },
-    fadeOut: {
-      transition: 'transform 0ms linear 100ms, opacity 100ms linear',
-      transform: 'scale(0)',
-      opacity: 0,
-      pointerEvents: 'none',
-    },
-    grow: {
-      transition: 'transform 200ms linear, opacity 200ms linear',
-      transform: 'scale(1)',
-      opacity: 1,
-    },
-    shrink: {
-      transition: 'transform 200ms linear, opacity 150ms linear',
-      transform: 'scale(0)',
-      opacity: 0,
-      pointerEvents: 'none',
-    },
-    hide: {
-      transform: 'scale(0)',
-      opacity: 0,
-      pointerEvents: 'none'
-    }
-  });
-
-  // Given a mode and transition, returns appropriate style object.
-  const getModeStyle =  (mode, transition) =>
-    (mode === 'show-web-view' && transition === 'fade') ?
-      webviewsStyle.fadeIn :
-    (mode === 'show-web-view' && transition === 'zoom') ?
-      webviewsStyle.grow :
-    (mode === 'create-web-view' && transition === 'fade') ?
-      webviewsStyle.fadeOut :
-    mode === 'select-web-view' ?
-      webviewsStyle.fadeOut :
-    (mode === 'edit-web-view' && !transition) ?
-      webviewsStyle.hide :
-    (mode === 'edit-web-view' && transition === 'fade') ?
-      webviewsStyle.fadeOut :
-    webviewsStyle.shrink;
-
-  const view = (mode, transition, loader, shell, navigation, page, sheet, address, selected) =>
+export const view/*:type.view*/ = (model, address) => {
+  const isModelDark = isDark(model);
+  return html.div({
+    className: isModelDark ? 'webview webview-is-dark' : 'webview',
+    style: Style(
+      style.webview,
+      model.isSelected
+        ? transition.select(model.animation)
+        : transition.unselect(model.animation)
+    )
+  }, [
+    viewFrame(model, address),
     html.div({
-      key: 'web-views',
-      style: Style(webviewsStyle.base, getModeStyle(mode, transition)),
-    }, [...loader.map((loader, index) =>
-      render(`web-view@${loader.id}`, viewWebView,
-              loader,
-              shell.get(index),
-              navigation.get(index),
-              page.get(index).thumbnail,
-              sheet.get(index),
-              index === selected,
-              forward(address, action =>
-                // If action is boxed in Force.Action we want to keep it
-                // that way.
-                action instanceof Force.Action ?
-                  action.set('action', ByID({
-                    id: loader.id,
-                    action: action.action
-                  })) :
-                  ByID({id: loader.id, action}))))]);
-  exports.view = view;
-
-  // Actions that web-view produces but `update` does not handles.
-
-
-  const decodeDocumentFirstPaint = event =>
-    Page.DocumentFirstPaint();
-
-  const decodeFirstPaint = event =>
-    Page.FirstPaint();
-
-  const decodeLocationChange = ({target, detail: uri, timeStamp}) =>
-    Loader.LocationChanged({uri, timeStamp});
-
-  // TODO: Figure out what's in detail
-  const decodeClose = ({detail}) =>
-    Close();
-
-  const decodeOpenWindow = ({detail}) =>
-    Force.Action({
-      action: Open({
-        uri: detail.url,
-        opener: IFrame.Opener(detail.frameElement),
-        name: detail.name,
-        features: detail.features
+      className: 'webview-topbar',
+      style: Style(
+        style.topbar,
+        model.page.pallet.background && {backgroundColor: model.page.pallet.background}
+      )
+    }, [
+      html.div({
+        className: 'webview-combobox',
+        style: Style(
+          style.combobox,
+          isModelDark ? style.darkText : style.lightText
+        ),
+        onClick: on(address, always(Edit))
+      }, [
+        html.span({
+          className: 'webview-search-icon',
+          style: style.iconSearch
+        }, ['']),
+        html.div({
+          className: 'webview-title-container',
+          style: style.titleContainer
+        }, [
+          html.span({
+            className: 'webview-security-icon',
+            style: model.security.secure ?
+              style.iconSecure : style.iconInsecure
+          }, ['']),
+          html.span({
+            className: 'webview-title'
+          }, [
+            // @TODO localize this string
+            readTitle(model, 'Untitled')
+          ])
+        ])
+      ]),
+      html.div({
+        className: 'webview-show-tabs-icon',
+        style: Style(
+          style.iconShowTabs,
+          isModelDark && style.iconShowTabsDark
+        ),
+        onClick: on(address, always(RequestShowTabs))
       })
-    });
-
-  const decodeOpenTab = ({detail}) =>
-    Force.Action({
-      action: OpenInBackground({
-        uri: detail.url,
-        opener: IFrame.Opener(detail.frameElement),
-      })
-    });
-
-  // TODO: Figure out what's in detail
-  const decodeContexMenu = ({detail}) =>
-    ContextMenu();
-
-  // TODO: Figure out what's in detail
-  const decodeShowModalPrompt = ({detail}) =>
-    ModalPrompt();
-
-  // TODO: Figure out what's in detail
-  const decodeAuthenticate = ({detail}) =>
-    Authentificate();
-
-  // TODO: Figure out what's in detail
-  const decodeError = ({detail}) =>
-    Failure({detail});
+    ]),
+    Progress.view(model.progress, address),
+    html.div({
+      className: 'global-create-tab-icon',
+      style: Style(
+        style.iconCreateTab,
+        isModelDark && style.iconCreateTabDark
+      ),
+      onClick: () => address(Create)
+    }, [''])
+  ]);
+};
 
 
-  const decodeFocus = (_) =>
-    Focusable.Focused();
+const decodeClose = always(Close);
 
-  const decodeBlur = (_) =>
-    Focusable.Blured();
 
-  const decodeCanGoBackChange = ({detail: value}) =>
-    Navigation.CanGoBackChanged({value});
+const decodeOpenWindow = ({detail}) => {
+  Driver.element.use(detail.frameElement);
+  return {
+    type: "WebViews.Open!WithMyIFrameAndInTheCurrentTick",
+    inBackground: false,
+    uri: detail.uri,
+    name: detail.name,
+    features: detail.features
+  };
+};
 
-  const decodeCanGoForwardChange = ({detail: value}) =>
-    Navigation.CanGoForwardChanged({value});
+const decodeOpenTab = ({detail}) => {
+  Driver.element.use(detail.frameElement);
+  return {
+    type: "WebViews.Open!WithMyIFrameAndInTheCurrentTick",
+    inBackground: true,
+    uri: detail.uri,
+    name: detail.name,
+    features: detail.features
+  };
+};
 
-  const decodeLoadStart = ({target, timeStamp}) =>
-    Progress.LoadStarted({uri: target.dataset.uri, timeStamp});
+// TODO: Figure out what's in detail
+const decodeContexMenu = ({detail}) =>
+  ({type: "WebView.ContextMenu", detail});
 
-  const decodeLoadEnd = ({target, timeStamp}) =>
-    Progress.LoadEnded({uri: target.dataset.uri, timeStamp});
+// TODO: Figure out what's in detail
+const decodeShowModalPrompt = ({detail}) =>
+  ({type: "WebView.ModalPrompt", detail});
 
-  const decodeTitleChange = ({target, detail: title}) =>
-    Page.TitleChanged({uri: target.dataset.uri, title});
+// TODO: Figure out what's in detail
+const decodeAuthenticate = ({detail}) =>
+  ({type: "WebView.Authentificate", detail});
 
-  const decodeIconChange = ({target, detail: icon}) =>
-    Page.IconChanged({uri: target.dataset.uri, icon});
+// TODO: Figure out what's in detail
+const decodeError = ({detail}) =>
+  ({type: "WebView.Failure", detail});
 
-  const decodeMetaChange = ({detail: {content, name}}) =>
-    Page.MetaChanged({content, name});
+// Shell
 
-  // TODO: Figure out what's in detail
-  const decodeAsyncScroll = ({detail}) =>
-    Page.Scrolled();
+const decodeFocus = always(Shell.Focus);
+const decodeBlur = always(Shell.Blur);
 
-  const decodeScrollAreaChange = ({target, detail}) =>
-    Page.OverflowChanged({
-      overflow: detail.height > target.parentNode.clientHeight
-    });
+// Navigation
 
-  const decodeSecurityChange = ({detail}) =>
-    Security.SecurityChanged({
-      state: detail.state,
-      extendedValidation: detail.extendedValidation
-    });
+const decodeLocationChange = ({detail: uri, timeStamp}) =>
+  ({type: "WebView.LocationChanged", uri, timeStamp: performance.now()});
+
+// Progress
+
+// @TODO This is not ideal & we should probably convert passed `timeStamp` to
+// the same format as `performance.now()` so that time passed through animation
+// frames is in the same format, but for now we just call `performance.now()`.
+
+const decodeLoadStart = ({timeStamp}) =>
+  Progress.asStart(performance.now());
+
+const decodeProgressChange = ({timeStamp}) =>
+  Progress.asChange(performance.now());
+
+const decodeLoadEnd = ({timeStamp}) =>
+  Progress.asEnd(performance.now());
+
+// Page
+
+const decodeFirstPaint = always(Page.FirstPaint);
+const decodeDocumentFirstPaint = always(Page.DocumentFirstPaint);
+
+const decodeTitleChange = ({detail: title}) =>
+  Page.asTitleChanged(title);
+
+const decodeIconChange = ({target, detail: icon}) =>
+  Page.asIconChanged(icon);
+
+const decodeMetaChange = ({detail: {content, name}}) =>
+  Page.asMetaChanged(name, content);
+
+// TODO: Figure out what's in detail
+const decodeAsyncScroll = ({detail}) =>
+  Page.asScrolled(detail);
+
+const decodeScrollAreaChange = ({detail, target}) =>
+  Page.asOverflowChanged(detail.height > target.parentNode.clientHeight);
+
+const decodeSecurityChange = ({detail}) =>
+  Security.asChanged(detail.state, detail.extendedValidation);

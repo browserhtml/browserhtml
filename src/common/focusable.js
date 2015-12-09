@@ -1,53 +1,30 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-  'use strict';
+/* @flow */
 
-  const {Record, Union} = require('typed-immutable');
+import {merge} from "../common/prelude";
 
-  // Model
+/*:: import * as type from "../../type/common/focusable" */
 
-  const Model = Record({
-    isFocused: Boolean
-  });
-  exports.Model = Model;
+export const blured/*:type.Model*/ = {isFocused: false};
+export const focused/*:type.Model*/ = {isFocused: true};
 
-  // Action
+export const initial = blured;
 
-  const Focus = Record({
-    description: 'Request a focus'
-  }, 'Focusable.Focus');
-  exports.Focus = Focus;
+export const Focus/*:type.Focus*/ = {type:"Focusable.Focus"};
+export const Blur/*:type.Blur*/ = {type: "Focusable.Blur"};
+export const FocusRequest/*:type.FocusRequest*/ = {type: "Focusable.FocusRequest"};
 
-  const Blur = Record({
-    description: 'Request a blur'
-  }, 'Focusable.Blur');
-  exports.Blur = Blur;
+export const asFocus/*:type.asFocus*/ = () => Focus;
+export const asBlur/*:type.asBlur*/ = () => Blur;
+export const asFocusRequest/*:type.asFocusRequest*/ = () => FocusRequest;
 
-  const Focused = Record({
-    description: 'Element gained focus'
-  }, 'Focusable.Focused');
-  exports.Focused = Focused;
+export const focus/*:type.focus*/ = model => merge(model, focused);
+export const blur/*:type.blur*/ = model => merge(model, blured);
 
-  const Blured = Record({
-    description: 'Element lost focus'
-  }, 'Focusable.Blured');
-  exports.Blured = Blured;
-
-  const Action = Union(Focus, Blur, Focused, Blured);
-  exports.Action = Action;
-  // Update
-
-  const focus = state => state.set('isFocused', true);
-  exports.focus = focus;
-
-  const blur = state => state.set('isFocused', false);
-  exports.blur = blur;
-
-  const update = (state, action) =>
-    action instanceof Focus ? focus(state) :
-    action instanceof Focused ? focus(state) :
-    action instanceof Blur ? blur(state) :
-    action instanceof Blured ? blur(state) :
-    state;
-  exports.update = update;
+export const update/*:type.update*/ = (model, action) =>
+  action.type === "Focusable.Focus" ?
+    focus(model) :
+  action.type === "Focusable.FocusRequest" ?
+    focus(model) :
+  action.type === "Focusable.Blur" ?
+    blur(model) :
+  model;
