@@ -1,186 +1,225 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-  'use strict';
+/* @flow */
 
-  const {html, node, thunk: render, forward} = require('reflex');
-  const {Record, Maybe} = require('typed-immutable');
-  const {inspect} = require('../common/debug');
-  const {StyleSheet, Style} = require('../common/style');
-  const WindowBar = require('./window-bar');
-  const WindowControls = require('./window-controls');
-  const WindowShell = require('./window-shell');
-  const LocationBar = require('./location-bar');
-  const Progress = require('./web-progress');
-  const Theme = require('./theme');
-  const {KeyBindings} = require('../common/keyboard');
-  const Focusable = require('../common/focusable');
-  const Updates = require('./update-banner');
-  const WebView = require('./web-view');
-  const Shell = require('./web-shell');
-  const Input = require('./web-input');
-  const Loader = require('./web-loader');
-  const Preview = require('./web-preview');
-  const Navigation = require('./web-navigation');
-  const Session = require('./session');
-  const OS = require('../common/os');
-  const Suggestions = require('./suggestion-box');
-  const URI = require('../common/url-helper');
-  const SynthesisUI = require('./synthesis-ui');
-  const DevtoolsHUD = require('./devtools-hud');
-  const Selector = require('../common/selector');
-  const {on, onWindow, title, scrollGrab} = require('driver');
-  const {identity} = require('../lang/functional');
+import {version} from "../../package.json";
+import {Effects, html, forward, thunk} from "reflex";
 
+import * as Shell from "./shell";
+import * as Input from "./input";
+import * as Assistant from "./assistant";
+import * as WindowControls from "./window-controls";
 
-  const getOwnerWindow = node => node.ownerDocument.defaultView;
+// import * as Updater from "./updater"
+import * as Devtools from "../common/devtools";
+import * as Runtime from "../common/runtime";
+import * as URI from '../common/url-helper';
+import * as WebViews from "./web-views";
+import * as WebView from "./web-view";
 
-  // Model
-  const Model = Record({
-    version: require('../../package.json').version,
-    mode: 'create-web-view', // or show-web-view, edit-web-view, choose-web-view
-    transition: Maybe(String), // zoom, fade, or null (no transition)
-    shell: WindowShell.Model,
-    updates: Updates.Model,
-    webViews: WebView.Model,
-    input: Input.Model,
-    suggestions: Suggestions.Model,
-    devtoolsHUD: DevtoolsHUD.Model
-  });
-  exports.Model = Model;
+import {asFor, merge, always} from "../common/prelude";
+import * as Focusable from "../common/focusable";
+import * as OS from '../common/os';
+import * as Keyboard from '../common/keyboard';
+import {Style, StyleSheet} from '../common/style';
 
-  const initialize = () => Model({
-    shell: WindowShell.initialize(true)
-  });
-  exports.initialize = initialize;
+import {identity} from "../lang/functional";
 
-  // Actions
+import {onWindow} from "driver";
 
-  const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
-  const KeyDown = KeyBindings({
-    'accel l': _ => Input.Action({action: Focusable.Focus()}),
-    'accel t': _ => SynthesisUI.OpenNew(),
-    'accel 0': _ => WebView.BySelected({action: Shell.ResetZoom()}),
-    'accel -': _ => WebView.BySelected({action: Shell.ZoomOut()}),
-    'accel =': _ => WebView.BySelected({action: Shell.ZoomIn()}),
-    'accel shift =': _ => WebView.BySelected({action: Shell.ZoomIn()}),
-    'accel w': _ => WebView.BySelected({action: WebView.Close()}),
-    'accel shift ]': _ => WebView.Preview({action: Selector.Next()}),
-    'accel shift [': _ => WebView.Preview({action: Selector.Previous()}),
-    'control tab': _ => WebView.Preview({action: Selector.Next()}),
-    'control shift tab': _ => WebView.Preview({action: Selector.Previous()}),
-    'accel shift backspace': _ => Session.ResetSession(),
-    'accel shift s': _ => Session.SaveSession(),
-    'accel r': _ => WebView.BySelected({action: Navigation.Reload()}),
-    'escape': _ => WebView.BySelected({action: Navigation.Stop()}),
-    [`${modifier} left`]: _ => WebView.BySelected({action: Navigation.GoBack()}),
-    [`${modifier} right`]: _ => WebView.BySelected({action: Navigation.GoForward()}),
+/*:: import * as type from "../../type/browser/browser" */
 
-    // TODO: `meta alt i` generates `accel alt i` on OSX we need to look
-    // more closely into this but so declaring both shortcuts should do it.
-    'accel alt i': _ => DevtoolsHUD.ToggleDevtoolsHUD(),
-    'accel alt ˆ': _ => DevtoolsHUD.ToggleDevtoolsHUD(),
-    'F12': _ => DevtoolsHUD.ToggleDevtoolsHUD()
-  }, 'Browser.KeyDown.Action');
+export const initialize/*:type.initialize*/ = () => {
+  const [devtools, devtoolsFx] = Devtools.initialize();
+  // const [updates, updaterFx] = Updater.initialize();
 
-  const KeyUp = KeyBindings({
-    'control': _ => SynthesisUI.ShowSelected(),
-    'accel': _ => SynthesisUI.ShowSelected(),
-  }, 'Browser.KeyUp.Action');
-
-
-  // Update
-
-  const update = SynthesisUI.update;
-  exports.update = update;
-
-
-  // Style
-
-  const style = StyleSheet.create({
-    shell: {
-      color: null,
-      backgroundColor: null,
-      height: '100vh',
-      width: '100vw',
-      overflow: 'hidden'
-    },
-    webviewsContainer: {
-      height: 'calc(100vh - 28px)',
-    },
-  });
-
-  // View
-
-  const OpenWindow = event =>
-    WebView.Open({uri: event.detail.url});
-
-  const view = (state, address) => {
-    const {shell, webViews, input, suggestions, mode} = state;
-    const {loader, page, security} = WebView.get(webViews, webViews.selected);
-    const id = loader && loader.id;
-    const theme =
-      (mode === 'show-web-view' && page) ?
-        Theme.read(page.pallet) :
-      mode === 'show-web-view' ?
-        Theme.default :
-      Theme.dashboard;
-
-    return html.div({
-      key: 'root',
-      title: title(!loader ? '' :
-                   !page ? loader.uri :
-                   page.title || loader.uri),
-      onKeyDown: onWindow(forward(address, KeyDown), identity),
-      onKeyUp: onWindow(forward(address, KeyUp), identity),
-      onBlur: onWindow(forward(address, Focusable.Blured)),
-      onFocus: onWindow(forward(address, Focusable.Focused)),
-      onUnload: onWindow(forward(address, Session.SaveSession)),
-      onMozBrowserOpenWindow: onWindow(address, OpenWindow),
-      tabIndex: 1,
-      className: theme.isDark ? 'is-dark' : '',
-      style: Style(style.shell, {
-        color: theme.shellText,
-        backgroundColor: theme.shell,
-      })
-    }, [
-      render('WindowControls', WindowControls.view,
-        shell.isFocused, shell.controls.isHovering, theme, address),
-      render('WindowBar', WindowBar.view,
-        state.mode, id, shell, theme, address),
-      render('ProgressBars', Progress.view,
-        state.mode,
-        webViews.loader,
-        webViews.progress,
-        webViews.selected,
-        theme),
-      render('LocationBar', LocationBar.view,
-        state.mode, loader, security, page, input, suggestions, address),
-      render('Preview', Preview.view,
-        state.mode, webViews.loader, webViews.page, webViews.card,
-        webViews.previewed, address),
-      render('Suggestions', Suggestions.view,
-        state.mode, suggestions, input, address),
-      html.div({
-        // The webviews should not require knowing the layout of external components.
-        // Its size is always height:100%,width:100%.
-        // We use this container to position it properly.
-        style: style.webviewsContainer,
-        key: 'web-views-container',
-      }, [
-        render('WebViews', WebView.view,
-          state.mode,
-          state.transition,
-          webViews.loader,
-          webViews.shell,
-          webViews.navigation,
-          webViews.page,
-          webViews.sheet,
-          address,
-          webViews.selected)
-      ]),
-      render('DevtoolsHUD', DevtoolsHUD.view, state.devtoolsHUD, address),
-      render('Updater', Updates.view, state.updates, address)
-    ])
+  const model = {
+    version,
+    shell: Shell.initial,
+    input: Input.initial,
+    suggestions: Assistant.initial,
+    webViews: WebViews.initial,
+    // updates: updates,
+    devtools: devtools
   };
-  exports.view = view;
+
+  const fx = Effects.batch([
+    devtoolsFx.map(asByDevtools)
+    //updaterFx.map(asFor("updater"))
+  ]);
+
+  return [model, fx];
+}
+
+export const asByInput = asFor('input');
+export const asByWebViews = asFor('webViews');
+export const asByActiveWebView = action =>
+  asByWebViews(WebViews.asByActive(action));
+export const asByDevtools = asFor('devtools');
+
+const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
+
+const FocusInput = asByInput(Focusable.Focus);
+
+export const CreateWebView = ({type: 'Browser.CreateWebView'});
+export const Escape = ({type: 'Browser.Escape'});
+export const asOpenWebView = uri => asByWebViews(WebViews.asOpen({uri}));
+
+const keyDown = Keyboard.bindings({
+  'accel l': always(asByActiveWebView(WebView.Edit)),
+  'accel t': always(CreateWebView),
+  'accel 0': always(asByActiveWebView(WebView.RequestZoomReset)),
+  'accel -': always(asByActiveWebView(WebView.RequestZoomOut)),
+  'accel =': always(asByActiveWebView(WebView.RequestZoomIn)),
+  'accel shift =': always(asByActiveWebView(WebView.RequestZoomIn)),
+  'accel w': always(asByActiveWebView(WebView.Close)),
+  'accel shift ]': always(asByWebViews(WebViews.SelectNext)),
+  'accel shift [': always(asByWebViews(WebViews.SelectPrevious)),
+  'control tab': always(asByWebViews(WebViews.SelectNext)),
+  'control shift tab': always(asByWebViews(WebViews.SelectPrevious)),
+  // 'accel shift backspace': _ => Session.ResetSession(),
+  // 'accel shift s': _ => Session.SaveSession(),
+  'accel r': always(asByActiveWebView(WebView.RequestReload)),
+  'escape': always(Escape),
+  [`${modifier} left`]: always(asByActiveWebView(WebView.RequestGoBack)),
+  [`${modifier} right`]: always(asByActiveWebView(WebView.RequestGoForward)),
+
+  // TODO: `meta alt i` generates `accel alt i` on OSX we need to look
+  // more closely into this but so declaring both shortcuts should do it.
+  'accel alt i': always(asByDevtools(Devtools.Toggle)),
+  'accel alt ˆ': always(asByDevtools(Devtools.Toggle)),
+  'F12': always(asByDevtools(Devtools.Toggle)),
+  'F5': always(Runtime.Reload),
+  'meta control r': always(Runtime.Reload)
+});
+
+const keyUp = Keyboard.bindings({
+  'control': always(asByWebViews(WebViews.ActivateSelected)),
+  'accel': always(asByWebViews(WebViews.ActivateSelected))
+});
+
+// Unbox For actions and route them to their location.
+const stepFor = (target, model, action) => {
+  if (target === 'Browser.KeyUp' || target === 'Browser.KeyDown') {
+    if (action.type === 'Keyboard.KeyUp' ||
+        action.type === 'Keyborad.KeyDown' ||
+        action.type === 'Keyboard.KeyPress') {
+      return [model, Effects.none];
+    } else {
+      return step(model, action);
+    }
+  }
+  else if (target === 'input') {
+    if (action.type === 'Input.Submit') {
+      const [input, inputFx] = Input.step(model.input, action);
+
+      const navigate = WebViews.asNavigateTo(URI.read(model.input.value));
+      const [webViews, viewFx] = WebViews.step(model.webViews, navigate);
+      // more things need to happen here.
+      return [
+        merge(model, {input, webViews}),
+        Effects.batch([
+          inputFx.map(asFor('input')),
+          viewFx.map(asFor('webViews'))
+        ])
+      ]
+    }
+    else if (action.type === 'Input.Abort') {
+      const [input, inputFx] = Input.step(model.input, action);
+      const [webViews, viewFx] = WebViews.step(model.webViews,
+                                               Focusable.FocusRequest);
+
+      return [
+        merge(model, {input, webViews}),
+        Effects.batch([
+          inputFx.map(asByInput(inputFx)),
+          viewFx.map(asByActiveWebView(viewFx))
+        ])
+      ];
+    }
+    else {
+      const [input, fx] = Input.step(model.input, action);
+      return [merge(model, {input}), fx.map(asFor('input'))];
+    }
+  }
+  else if (target === 'shell') {
+    const [shell, fx] = Shell.step(model.shell, action);
+    return [merge(model, {shell}), fx.map(asFor('shell'))];
+  }
+  else if (target === 'webViews') {
+    if ((action.type === 'WebViews.ByID' ||
+          action.type === 'WebViews.ByActive') &&
+        action.action.type === 'WebView.Edit')
+    {
+
+      const webView = action.type === 'WebViews.ByID' ?
+                        WebViews.getByID(model.webViews, action.id) :
+                        WebViews.getActive(model.webViews);
+      const uri = webView ?
+        webView.navigation.currentURI :
+        '';
+
+      const [input, fx] = Input.step(model.input, Input.asEditSelection(uri));
+      return [merge(model, {input}), fx.map(asFor('input'))];
+    }
+    else {
+      const [webViews, fx] = WebViews.step(model.webViews, action);
+      return [merge(model, {webViews}), fx.map(asFor('webViews'))];
+    }
+  }
+  else if (target === 'devtools') {
+    const [devtools, fx] = Devtools.step(model.devtools, action);
+    return [merge(model, {devtools}), fx.map(asByDevtools)];
+  }
+  else {
+    return [model, Effects.none];
+  }
+}
+
+export const step/*:type.step*/ = (model, action) =>
+  action.type === 'For' ?
+    stepFor(action.target, model, action.action) :
+  action.type === 'Runtime.Reload' ?
+    [model, Runtime.reload()] :
+  action.type === 'Browser.CreateWebView' ?
+    stepFor('input', model, Input.Enter) :
+    [model, Effects.none];
+
+const style = StyleSheet.create({
+  root: {
+    background: '#24303D',
+    perspective: '1000px',
+    // @TODO this isn't actually doing what we want (centering the webviews
+    // in the available space). We need to do some 3d space math.
+    perspectiveOrigin: 'calc(50% - 380px)',
+    // These styles prevent scrolling with the arrow keys in the root window
+    // when elements move outside of viewport.
+    // @WORKAROUND Use percent, not vw and vh to work around
+    // https://github.com/servo/servo/issues/8754
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+    position: 'absolute',
+    MozWindowDragging: 'drag',
+  }
+});
+
+export const view/*:type.view*/ = (model, address, children) =>
+  html.div({
+    className: 'root',
+    style: style.root,
+    tabIndex: 1,
+    onKeyDown: onWindow(forward(address, asFor("Browser.KeyDown")), keyDown),
+    onKeyUp: onWindow(forward(address, asFor("Browser.KeyUp")), keyUp),
+    onBlur: onWindow(forward(address, asFor("shell")), Focusable.asBlur),
+    onFocus: onWindow(forward(address, asFor("shell")), Focusable.asFocus),
+    // onUnload: () => address(Session.SaveSession),
+  }, [
+    ...children,
+    thunk('devtools',
+          Devtools.view,
+          model.devtools,
+          forward(address, asByDevtools)),
+    thunk('controls',
+      WindowControls.view,
+      model.shell,
+      forward(address, asFor("shell")))
+  ]);
