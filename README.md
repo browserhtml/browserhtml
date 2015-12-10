@@ -7,8 +7,10 @@
 
 This repository is for Browser.html (the front-end). Active development of Graphene happens in the [Servo](https://github.com/servo/servo) repository.
 
+We welcome contributions from anyone. See our [contribution wiki page](https://github.com/mozilla/browser.html/wiki/Contributing) for help getting started.
 
-#### Prerequisites and Setup
+
+### Prerequisites and Setup
 
 You'll need [Node](https://nodejs.org/) and NPM to develop and run the UI locally.
 
@@ -18,7 +20,7 @@ npm start
 ```
 
 
-#### Running in Servo
+### Running in Servo
 
 First, [build Servo](https://github.com/servo/servo#prerequisites).
 
@@ -31,12 +33,12 @@ Finally, start Servo with the browser.html flags turned on in either debug (`-d`
     ./mach run -r -- -b --pref dom.mozbrowser.enabled http://localhost:6060
 
 
-#### Running in Gecko
+### Running in Gecko
 
 Browser.html can also be run on top of a Gecko-based version of Graphene. Browser.html was originally prototyped on top of this variant, and we sometimes use it to test and debug missing platform features while Servo undergoes rapid development. Build instructions for Gecko-flavored Graphene can be found [on the wiki](https://github.com/mozilla/browser.html/wiki/Building-Graphene-%28Gecko-flavor%29).
 
 
-#### Using WebIDE
+### Using WebIDE
 
 The easiest way to use developer tools with Browser.html is to select the "Remote Runtime" option in WebIDE while using the Gecko Graphene runtime.
 
