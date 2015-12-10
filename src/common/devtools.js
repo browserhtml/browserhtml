@@ -31,6 +31,22 @@ const descriptions = {
   'layers.async-pan-zoom.enabled': 'Enable APZC (restart required)'
 };
 
+const writeValue = (key, value) =>
+    key === 'debugger.remote-mode'
+  ? ( value === true
+    ? 'adb-devtools'
+    : 'disabled'
+    )
+  : value
+
+const readValue = (key, value) =>
+    key === 'debugger.remote-mode'
+  ? ( value === 'adb-devtools'
+    ? true
+    : false
+    )
+  : value
+
 const settings = Object.keys(descriptions);
 
 export const Toggle =
@@ -152,19 +168,23 @@ const style = StyleSheet.create({
   },
 });
 
-export const viewSetting = (key, value, address) =>
-  html.label({
+export const viewSetting = (key, value, address) => {
+  const isChecked = readValue(key, value);
+
+  return html.label({
     key: key,
     style: style.label,
   }, [
     html.input({
       type: 'checkbox',
-      checked: value ? true : void(0),
+      checked: isChecked ? true : void(0),
       style: style.checkbox,
-      onChange: _ => address(asRequestSettingUpdate(key, !value))
+      onChange: _ =>
+        address(asRequestSettingUpdate(key, writeValue(key, !isChecked)))
     }),
     descriptions[key]
   ]);
+};
 
 export const viewSettings = (settings, address) =>
   html.div({
