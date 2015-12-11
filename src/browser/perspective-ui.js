@@ -126,7 +126,7 @@ export const asByOverlay = asFor('overlay');
 export const asByAnimation = asFor('animation');
 
 export const showTabsTransitionDuration = 600;
-export const hideTabsTransitionDuration = 400;
+export const hideTabsTransitionDuration = 200;
 
 
 export const step = (model, action) => {
