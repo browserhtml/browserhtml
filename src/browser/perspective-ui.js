@@ -7,23 +7,43 @@ import * as Sidebar from './sidebar';
 import * as Browser from './browser';
 import * as WebViews from './web-views';
 import * as Overlay from './overlay';
-import {asFor, merge} from '../common/prelude';
+import {asFor, merge, cursor} from '../common/prelude';
 import * as URI from '../common/url-helper';
 import {Style, StyleSheet} from '../common/style';
 import * as Animation from '../common/animation';
 import {ease, easeOutCubic, float} from 'eased';
 
 export const initialize/*:type.initialize*/ = () => {
-  const [browser, fx] = Browser.initialize();
+  const [browser, browserFx] = Browser.initialize();
+  const [sidebar, sidebarFx] = Sidebar.init();
   const model = {
     mode: 'create-web-view',
     browser,
+    sidebar,
     animation: null,
     overlay: Overlay.hidden
   };
 
-  return [model, fx];
+  return [
+    model,
+    Effects.batch([
+      browserFx,
+      sidebarFx.map(asSidebar)
+    ])
+  ];
 };
+
+const asSidebar = action =>
+    action.type === "Tabs"
+  ? asByWebViews(action.action)
+  : ({type: "Sidebar", action});;
+
+const sidebar = cursor({
+  get: model => model.sidebar,
+  set: (model, sidebar) => merge(model, {sidebar}),
+  tag: asSidebar,
+  update: Sidebar.step
+});
 
 export const isOverlayAction = action =>
   action.type === 'For' &&
@@ -124,18 +144,22 @@ export const isSwitchSelectedWebView = action =>
 
 export const asByOverlay = asFor('overlay');
 export const asByAnimation = asFor('animation');
+export const asByWebViews = asFor('webViews');
 
 export const showTabsTransitionDuration = 600;
 export const hideTabsTransitionDuration = 400;
 
 
 export const step = (model, action) => {
+  if (action.type === "Sidebar") {
+    return sidebar(model, action.action);
+  }
   // @TODO We should stick to the pattern and tag both browser and
   // overlay actions, but at that would mean more refactoring so instead
   // we just treat untagged actions as for browser.
   // @TODO Consider dispatching overlay actions as effects instead of
   // trying to process both actions in the same step.
-  if (isOverlayAnimation(action)) {
+  else if (isOverlayAnimation(action)) {
     const [overlay, fx] = Overlay.step(model.overlay, action.action);
     return [merge(model, {overlay}), fx.map(asByOverlay)];
   }
@@ -495,8 +519,9 @@ const viewAsEditWebView = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
+          model.sidebar,
           model.browser.webViews,
-          forward(address, asFor('webViews')),
+          forward(address, asSidebar),
           style.sidebarHidden),
     thunk('suggestions',
           Assistant.view,
@@ -522,8 +547,9 @@ const viewAsShowWebView = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
+          model.sidebar,
           model.browser.webViews,
-          forward(address, asFor('webViews')),
+          forward(address, asSidebar),
           Style(style.sidebarHidden,
                 transition.sidebarHide(model.animation))),
     thunk('suggestions',
@@ -552,8 +578,9 @@ const viewAsCreateWebView = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
+          model.sidebar,
           model.browser.webViews,
-          forward(address, asFor('webViews')),
+          forward(address, asSidebar),
           Style(style.sidebarHidden,
                 transition.sidebarHide(model.animation))),
     thunk('suggestions',
@@ -582,8 +609,9 @@ const viewAsSelectWebView = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
+          model.sidebar,
           model.browser.webViews,
-          forward(address, asFor('webViews')),
+          forward(address, asSidebar),
           Style(style.sidebarVisible,
                 transition.sidebarShow(model.animation))),
     thunk('suggestions',
@@ -612,8 +640,9 @@ const viewAsShowTabs = (model, address) =>
           forward(address, asFor('overlay'))),
     thunk('sidebar',
           Sidebar.view,
+          model.sidebar,
           model.browser.webViews,
-          forward(address, asFor('webViews')),
+          forward(address, asSidebar),
           Style(style.sidebarVisible,
                 transition.sidebarShow(model.animation))),
     thunk('suggestions',
