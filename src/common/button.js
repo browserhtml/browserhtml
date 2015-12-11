@@ -61,7 +61,7 @@ export const step = (model, action) =>
   ? [model, Effects.none]
   : action.type === "Point"
   ? point(model, action.action)
-  : aciton.type === "Focus"
+  : action.type === "Focus"
   ? focus(model, action.action)
   : Unknown.step(model, action)
 

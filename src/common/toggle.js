@@ -74,7 +74,7 @@ export const step = (model, action) =>
   ? hold(model, action.action)
   : action.type === "Point"
   ? point(model, action.action)
-  : aciton.type === "Focuse"
+  : action.type === "Focus"
   ? focus(model, action.action)
   : Unknown.step(model, action);
 
