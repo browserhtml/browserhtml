@@ -15,8 +15,8 @@ const sidebarToolbarHeight = '50px';
 const styles = StyleSheet.create({
   sidebar: {
     // WARNING: will slow down animations! (gecko)
-    xBoxShadow: 'rgba(0, 0, 0, 0.5) -80px 0 100px',
-    backgroundColor: '#2E3D4D',
+    boxShadow: 'rgba(0, 0, 0, 0.5) -50px 0 80px',
+    backgroundColor: '#24303D',
     height: '100vh',
     position: 'absolute',
     right: 0,

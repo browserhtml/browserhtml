@@ -370,72 +370,62 @@ export const step = (model, action) => {
   return [merge(model, {browser}), fx];
 }
 
-const zoom = (from, to, progress) => merge(from, {
-  angle: float(from.angle, to.angle, progress),
-  depth: float(from.depth, to.depth, progress)
-})
-
-const flipSlide = (from, to, progress) => merge(from, {
-  angle: float(from.angle, to.angle, progress),
-  x: float(from.x, to.x, progress)
-});
-
 const transition = {
   webViewZoomOut(model) {
-    const {angle, depth}
+    const depth
       = model == null ?
-          {angle: 10, depth: -600} :
+          -200 :
           ease(easeOutCubic,
-                zoom,
-                {angle: 0, depth: 0},
-                {angle: 10, depth: -600},
+                float,
+                0,
+                -200,
                 Animation.duration(model),
                 Animation.progress(model));
     return {
-      transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
+      transform: `translate3d(0, 0, ${depth}px)`
     }
   },
   webViewZoomIn(model) {
-    const {angle, depth}
+    const depth
       = model == null ?
-          {angle: 0, depth: 0} :
+          0 :
           ease(easeOutCubic,
-                zoom,
-                {angle: 10, depth: -600},
-                {angle: 0, depth: 0},
+                float,
+                -200,
+                0,
                 Animation.duration(model),
                 Animation.progress(model));
     return {
-      transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
+      transform: `translate3d(0, 0, ${depth}px)`
     }
   },
   sidebarShow(model) {
-    const {angle, x} = model == null ?
-      {angle: 0, x: 0} :
+    const x = model == null ?
+      0 :
       ease(easeOutCubic,
-           flipSlide,
-           {angle: -45, x: 380},
-           {angle: 0, x: 0},
+           float,
+           380,
+           0,
            Animation.duration(model),
            Animation.progress(model));
 
     return {
-      transform: `translateX(${x}px) rotateY(${angle}deg)`
+      transform: `translateX(${x}px)`
     };
   },
   sidebarHide(model) {
-    const hidden = {angle: -15, x: 500};
-    const {angle, x} = model == null ?
+    const hidden = 500;
+    const x = model == null ?
       hidden :
       ease(easeOutCubic,
-           flipSlide,
-           {angle: 0, x: 0},
+           float,
+           0,
            hidden,
            Animation.duration(model),
            Animation.progress(model));
 
     return {
-      transform: `translateX(${x}px) rotateY(${angle}deg)`
+      transform: `translateX(${x}px)`
     };
   }
 }
@@ -454,8 +444,6 @@ const style = StyleSheet.create({
 
   webViewZoomedIn: {},
   webViewZoomedOut: {
-    transform: 'translate3d(0, 0, -600px) rotateY(10deg)',
-    transformOrigin: 'left center',
     pointerEvents: 'none'
   },
 
