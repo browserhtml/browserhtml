@@ -88,12 +88,12 @@ export const view = (key, styleSheet) => (model, address, contextStyle) =>
           styleSheet.base
 
       ,   model.isFocused
-        ? model.focused
-        : model.blured
+        ? styleSheet.focused
+        : styleSheet.blured
 
       ,  model.isPointerOver
-        ? model.over
-        : model.out
+        ? styleSheet.over
+        : styleSheet.out
 
       ,  model.isActive
         ? styleSheet.active
@@ -108,7 +108,7 @@ export const view = (key, styleSheet) => (model, address, contextStyle) =>
         : styleSheet.unchecked
 
       , contextStyle
-      ),
+    ),
 
     onFocus: () => address(Focus(Focusable.Focus)),
     onBlur: () => address(Focus(Focusable.Blur)),

@@ -9,8 +9,8 @@ import {Style, StyleSheet} from '../../common/style';
 import * as Toggle from "../../common/toggle";
 import {merge, cursor} from "../../common/prelude";
 
-const Attach = {type: "Attach"};
-const Detach = {type: "Detach"};
+export const Attach = {type: "Attach"};
+export const Detach = {type: "Detach"};
 
 const Pin = action =>
     action.type === "Check"
@@ -34,6 +34,8 @@ export const init = () => {
   ]
 }
 
+export const Model = ({pin}) => ({pin});
+
 export const step = (model, action) =>
     action.type === "Attach"
   ? pin(model, Toggle.Check)
@@ -56,6 +58,7 @@ export const styleSheet = StyleSheet.create({
 
 const viewPin = Toggle.view('pin-button', StyleSheet.create({
   base: {
+    cursor: 'pointer',
     height: styleSheet.toolbar.height,
     width: styleSheet.toolbar.height,
     backgroundRepeat: 'no-repeat',
@@ -66,6 +69,9 @@ const viewPin = Toggle.view('pin-button', StyleSheet.create({
         window.devicePixelRatio == null
       ? '24px 36px'
       : `${24 / window.devicePixelRatio}px ${36 / window.devicePixelRatio}px`
+  },
+  checked: {
+    backgroundColor: '#3D91F2'
   }
 }));
 
@@ -75,5 +81,5 @@ export const view = (model, address) =>
     className: 'sidebar-toolbar',
     style: styleSheet.toolbar
   }, [
-    thunk('pin', viewPin, model, forward(address, Pin))
+    thunk('pin', viewPin, model.pin, forward(address, Pin))
   ]);
