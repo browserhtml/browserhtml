@@ -4,11 +4,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {Effects, html} from 'reflex';
-import {merge} from '../common/prelude';
-import {Style, StyleSheet} from '../common/style';
-import {ease, easeOutQuad, float} from 'eased';
-import * as Animation from '../common/animation';
+import {Effects, html, forward} from "reflex";
+import {merge, always, cursor} from "../common/prelude";
+import {Style, StyleSheet} from "../common/style";
+import * as Easing from "eased";
+import * as Stopwatch from "../common/stopwatch";
+import * as Unknown from "../common/unknown";
 
 /*:: import * as type from "../../type/browser/overlay" */
 
@@ -16,80 +17,116 @@ const visible/*:type.Visible*/ = 0.1;
 const invisible/*:type.Invisible*/ = 0;
 const duration = 300;
 
-export const shown = {
-  opacity: visible,
-  isCapturing: true,
-  animation: null
-};
+export const Model
+  = ({isCapturing, isVisible}) =>
+  ({isCapturing
+  , isVisible
+  , animation: null
+  , display
+      : isVisible
+      ? {opacity: visible}
+      : {opacity: invisible}
+  });
 
-export const hidden = {
-  opacity: invisible,
-  isCapturing: false,
-  animation: null
-};
+export const Click = always({type: "Click"});
+export const Show = {type: "Show"};
+export const Hide = {type: "Hide"};
+export const Fade = {type: "Fade"};
 
-export const faded = {
-  opacity: invisible,
-  isCapturing: true,
-  animation: null
-};
-
-export const Click/*:type.Click*/ = {type: 'Overlay.Click'};
-
-export const asShow/*:type.asShow*/ = time =>
-  ({type: 'Overlay.Show', time});
-
-export const asHide/*:type.asHide*/ = time =>
-  ({type: 'Overlay.Hide', time});
-
-export const asFade/*:type.asFade*/ = time =>
-  ({type: 'Overlay.Fade', time});
+const Animation = action => ({type: "Animation", action});
+const Showed = always({type: "Showed"});
+const Hided = always({type: "Hided"});
+const Faded = always({type: "Faded"});
 
 
-export const patch = ({isCapturing, opacity}) => (model, time) => {
-  const [animation, fx] = model.opacity === opacity ?
-                            [model.animation, Effects.none] :
-                          // If not animating start fresh animation.
-                          model.animation == null ?
-                            Animation.initialize(time, duration) :
-                            // If was animating towards opposite opacity then
-                            // duration of inverse animation should take as much
-                            // time as a duration of animation to get to this opacity.
-                            // Also since animation already exists there is
-                            // scheduled tick so we don't need to requset new one.
-                            [
-                              Animation.create(time, model.animation.now -
-                                                      model.animation.start),
-                              Effects.none
-                            ];
-  return [merge(model, {isCapturing, opacity, animation}), fx];
-};
+export const init = (isVisible, isCapturing) =>
+  [Model(isVisible, isCapturing), Effects.none];
 
-export const show/*:type.show*/ = patch(shown);
-export const hide/*:type.hide*/ = patch(hidden);
-export const fade/*:type.fade*/ = patch(faded);
-export const tick/*:type.tick*/ = (model, action) => {
-  if (action.time >= model.animation.end) {
-    return [merge(model, {animation: null}), Effects.none];
-  } else {
-    const [animation, fx] = Animation.step(model.animation, action);
-    return [merge(model, {animation}), fx];
-  }
+
+const stopwatch = cursor({
+  tag: Animation,
+  get: model => model.animation,
+  set: (model, animation) => merge(model, {animation}),
+  update: Stopwatch.step
+});
+
+
+const animate = (model, action) => {
+  const [{animation}, fx] = stopwatch(model, action.action);
+
+  // @TODO: We should not be guessing what is the starnig point
+  // that makes no sense & is likely to be incorrect at a times.
+  // To fix it we need to ditch this easing library in favor of
+  // something that will give us more like spring physics.
+  const begin
+    = model.isVisible
+    ? invisible
+    : visible;
+
+  const end
+    = model.isVisible
+    ? visible
+    : invisible;
+
+  return duration > animation.elapsed
+    ? [ merge(model, {
+          animation,
+          display: {
+            opacity:
+              Easing.ease
+              ( Easing.easeOutQuad
+              , Easing.float
+              , begin
+              , end
+              , duration
+              , animation.elapsed
+              )
+          }
+        })
+      , fx
+      ]
+    : [ merge(model, {animation, display: {opacity: end}})
+      , fx.map
+          ( model.isVisible
+          ? Showed
+          : model.isCapturing
+          ? Faded
+          : Hided
+          )
+      ]
 }
 
 
 export const step/*:type.step*/ = (model, action) =>
-  action.type === "Overlay.Show" ?
-    show(model, action.time) :
-  action.type === "Overlay.Hide" ?
-    hide(model, action.time) :
-  action.type === "Overlay.Fade" ?
-    fade(model, action.time) :
-  action.type === "Animation.Tick" ?
-    tick(model, action) :
-    // We do not handle Animation.End right now but
-    // we could though.
-    [model, Effects.none];
+    action.type === "Animation"
+  ? animate(model, action)
+  : action.type === "Showed"
+  ? stopwatch(model, Stopwatch.End)
+  : action.type === "Hided"
+  ? stopwatch(model, Stopwatch.End)
+  : action.type === "Faded"
+  ? stopwatch(model, Stopwatch.End)
+  : action.type === "Show"
+  ? ( model.isVisible
+    ? [merge(model, {isCapturing: true}), Effects.none]
+    : stopwatch(merge(model, {isVisible: true, isCapturing: true}),
+                Stopwatch.Start)
+    )
+  : action.type === "Hide"
+  ? ( model.isVisible
+    ? stopwatch(merge(model, {isVisible: false, isCapturing: false}),
+                Stopwatch.Start)
+    : [merge(model, {isCapturing: false}), Effects.none]
+    )
+  : action.type === "Fade"
+  ? ( model.isVisible
+    ? stopwatch(merge(model, {isVisible: false, isCapturing: true}),
+                Stopwatch.Start)
+    : [merge(model, {isCapturing: true}), Effects.none]
+    )
+  : action.type === "Click"
+  ? [model, Effects.none]
+  : Unknown.step(model, action);
 
 const style = StyleSheet.create({
   overlay: {
@@ -102,21 +139,12 @@ const style = StyleSheet.create({
   }
 });
 
-const opacity = ({animation, opacity}) =>
-  animation == null ?
-    opacity :
-    ease(easeOutQuad, float,
-          opacity === visible ? invisible : visible,
-          opacity,
-          animation.end - animation.start,
-          animation.now - animation.start);
-
-export const view = (model, address, modeStyle) =>
+export const view = (model, address) =>
   html.div({
     className: 'overlay',
     style: Style(style.overlay, {
-      opacity: opacity(model),
+      opacity: model.display.opacity,
       pointerEvents: model.isCapturing ? 'all' : 'none'
     }),
-    onClick: () => address(Click)
+    onClick: forward(address, Click)
   });
