@@ -1,6 +1,7 @@
 /* @flow */
 
 import {merge} from "../common/prelude";
+import {Effects} from "reflex";
 
 /*:: import * as type from "../../type/common/focusable" */
 
@@ -28,3 +29,5 @@ export const update/*:type.update*/ = (model, action) =>
   action.type === "Focusable.Blur" ?
     blur(model) :
   model;
+
+export const step = Effects.nofx(update);

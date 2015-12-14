@@ -73,3 +73,22 @@ export const always = /*::<a>*/(a/*:a*/)/*:(...args:Array<any>)=>a*/ => {
   f.toString = Always.toString
   return f
 }
+
+export const lift = (tag, [model, fx]) =>
+  ([model, fx.map(tag)]);
+
+
+export const cursor = ({get, set, tag, update}) => (model, action) => {
+  const previous
+    = get == null
+    ? model
+    : get(model);
+
+  const [next, fx] = update(previous, action);
+  const state
+    = set == null
+    ? next
+    : set(model, next);
+
+  return [state, tag == null ? fx : fx.map(tag)]
+}

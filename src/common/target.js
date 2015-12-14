@@ -1,6 +1,7 @@
 /* @flow */
 
 import {merge} from "../common/prelude"
+import {Effects} from "reflex"
 
 /*:: import * as type from "../../type/common/target" */
 
@@ -29,3 +30,5 @@ export const update/*:type.update*/ = (model, action) =>
     over(model) :
   // action.type == "Target.Out" ?
     out(model)
+
+export const step = Effects.nofx(update)
