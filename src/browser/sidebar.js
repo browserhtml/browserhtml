@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     width: '380px',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    zIndex: 2 // @TODO This is a hack to avoid resizing new tab / edit tab views.
   },
 
   scrollbox: {

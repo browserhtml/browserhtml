@@ -461,6 +461,14 @@ const style = StyleSheet.create({
     pointerEvents: 'none'
   },
 
+  webViewShrink: {
+    width: 'calc(100% - 50px)'
+  },
+
+  webViewExpand: {
+
+  },
+
   assistantHidden: {
     display: 'none'
   },
@@ -490,7 +498,10 @@ const viewAsEditWebView = (model, address) =>
           WebViews.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          style.webViewZoomedIn),
+          Style(  model.sidebar.isAttached
+                ? style.webViewShrink
+                : style.webViewExpand,
+                  style.webViewZoomedIn)),
     thunk('overlay',
           Overlay.view,
           model.overlay,
@@ -517,7 +528,10 @@ const viewAsShowWebView = (model, address) =>
           WebViews.view,
           model.browser.webViews,
           forward(address, asFor('webViews')),
-          transition.webViewZoomIn(model.animation)),
+          Style(  model.sidebar.isAttached
+                ? style.webViewShrink
+                : style.webViewExpand,
+                transition.webViewZoomIn(model.animation))),
     thunk('overlay',
           Overlay.view,
           model.overlay,
@@ -546,6 +560,9 @@ const viewAsCreateWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           Style(style.webViewZoomedOut,
+                  model.sidebar.isAttached
+                ? style.webViewShrink
+                : style.webViewExpand,
                 transition.webViewZoomIn(model.animation))),
     thunk('overlay',
           Overlay.view,
@@ -575,6 +592,9 @@ const viewAsSelectWebView = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           Style(style.webViewZoomedOut,
+                  model.sidebar.isAttached
+                ? style.webViewShrink
+                : style.webViewExpand,
                 transition.webViewZoomOut(model.animation))),
     thunk('overlay',
           Overlay.view,
@@ -604,6 +624,9 @@ const viewAsShowTabs = (model, address) =>
           model.browser.webViews,
           forward(address, asFor('webViews')),
           Style(style.webViewZoomedOut,
+                  model.sidebar.isAttached
+                ? style.webViewShrink
+                : style.webViewExpand,
                 transition.webViewZoomOut(model.animation))),
     thunk('overlay',
           Overlay.view,
