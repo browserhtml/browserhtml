@@ -72,12 +72,12 @@ export const view = (key, styleSheet) => (model, address, contextStyle) =>
     className: key,
     style: Style
       (   model.isFocused
-        ? model.focused
-        : model.blured
+        ? styleSheet.focused
+        : styleSheet.blured
 
       ,  model.isPointerOver
-        ? model.over
-        : model.out
+        ? styleSheet.over
+        : styleSheet.out
 
       ,  model.isActive
         ? styleSheet.active
