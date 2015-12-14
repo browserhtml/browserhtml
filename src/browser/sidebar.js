@@ -138,6 +138,18 @@ const animationDuration = model =>
 const animate = (model, action) => {
   const [{animation}, fx] = stopwatch(model, action.action)
   const duration = animationDuration(model)
+
+  // @TODO: We should not be guessing what is the starnig point
+  // that makes no sense & is likely to be incorrect at a times.
+  // To fix it we need to ditch this easing library in favor of
+  // something that will give us more like spring physics.
+  const begin
+    = !model.isOpen
+    ? {angle: 0, x: 0}
+    : model.isAttached
+    ? {angle: 0, x: 330}
+    : {angle: -15, x: 500};
+
   const projection = animationProjection(model)
 
 
@@ -147,7 +159,7 @@ const animate = (model, action) => {
           display: Easing.ease
             ( Easing.easeOutCubic
             , interpolate
-            , model.display
+            , begin
             , projection
             , duration
             , animation.elapsed
