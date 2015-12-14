@@ -34,8 +34,8 @@ export const Hide = {type: "Hide"};
 export const Fade = {type: "Fade"};
 
 const Animation = action => ({type: "Animation", action});
-const Showed = always({type: "Showed"});
-const Hided = always({type: "Hided"});
+const Shown = always({type: "Shown"});
+const Hidden = always({type: "Hidden"});
 const Faded = always({type: "Faded"});
 
 
@@ -58,15 +58,10 @@ const animate = (model, action) => {
   // that makes no sense & is likely to be incorrect at a times.
   // To fix it we need to ditch this easing library in favor of
   // something that will give us more like spring physics.
-  const begin
+  const [begin, end]
     = model.isVisible
-    ? invisible
-    : visible;
-
-  const end
-    = model.isVisible
-    ? visible
-    : invisible;
+    ? [invisible, visible]
+    : [visible, invisible];
 
   return duration > animation.elapsed
     ? [ merge(model, {
@@ -88,10 +83,10 @@ const animate = (model, action) => {
     : [ merge(model, {animation, display: {opacity: end}})
       , fx.map
           ( model.isVisible
-          ? Showed
+          ? Shown
           : model.isCapturing
           ? Faded
-          : Hided
+          : Hidden
           )
       ]
 }
@@ -100,9 +95,9 @@ const animate = (model, action) => {
 export const step/*:type.step*/ = (model, action) =>
     action.type === "Animation"
   ? animate(model, action)
-  : action.type === "Showed"
+  : action.type === "Shown"
   ? stopwatch(model, Stopwatch.End)
-  : action.type === "Hided"
+  : action.type === "Hidden"
   ? stopwatch(model, Stopwatch.End)
   : action.type === "Faded"
   ? stopwatch(model, Stopwatch.End)
