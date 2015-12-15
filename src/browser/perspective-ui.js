@@ -455,6 +455,14 @@ const style = StyleSheet.create({
 
   },
 
+  suggestionsShrink: {
+    width: 'calc(100% - 50px)'
+  },
+
+  suggestionsExpand: {
+
+  },
+
   assistantHidden: {
     display: 'none'
   },
@@ -500,7 +508,11 @@ const viewAsEditWebView = (model, address) =>
     thunk('suggestions',
           Assistant.view,
           model.browser.suggestions,
-          address),
+          address,
+          Style(
+                model.sidebar.isAttached
+                ? style.suggestionsShrink
+                : style.suggestionsExpand)),
     thunk('input',
           Input.view,
           model.browser.input,
