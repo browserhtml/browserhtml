@@ -242,7 +242,6 @@ const viewTab = (model, address) =>
 const viewSidebar = (key) => (model, {entries}, address) => {
   const tabs = forward(address, Tabs);
   const {display} = model;
-  console.log('Fooooooo!!!', display.shadow);
   return html.div({
     key: key,
     className: key,
