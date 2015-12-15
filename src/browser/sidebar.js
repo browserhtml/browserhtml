@@ -26,15 +26,16 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     width: '380px',
-    padding: '0 34px',
     boxSizing: 'border-box',
+    paddingLeft: '34px',
+    paddingRight: '34px',
     zIndex: 2 // @TODO This is a hack to avoid resizing new tab / edit tab views.
   },
 
   scrollbox: {
     width: '100%',
     height: `calc(100% - ${Toolbar.styleSheet.toolbar.height})`,
-    paddingTop: '35px',
+    paddingTop: '34px',
     overflowY: 'scroll',
     boxSizing: 'border-box'
   },
@@ -42,14 +43,12 @@ const styles = StyleSheet.create({
   tab: {
     MozWindowDragging: 'no-drag',
     borderRadius: '5px',
+    height: '34px',
     lineHeight: '34px',
     color: '#fff',
     fontSize: '14px',
     overflow: 'hidden',
-    padding: '0 10px 0 33px',
     position: 'relative',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap'
   },
 
   tabSelected: {
@@ -57,14 +56,19 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    display: 'inline'
+    display: 'block',
+    margin: '0 10px 0 34px',
+    overflow: 'hidden',
+    width: '270px',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
   },
 
   favicon: {
     borderRadius: '3px',
     left: '9px',
     position: 'absolute',
-    top: '10px',
+    top: '9px',
     width: '16px',
     height: '16px',
   }
@@ -78,7 +82,7 @@ export const init = () => {
       isAttached: false,
       isOpen: false,
       animation: null,
-      display: {x: 500, shadow: 0.5},
+      display: {x: 500, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312},
       toolbar
     },
     fx.map(ToolbarAction)
@@ -114,15 +118,18 @@ const stopwatch = cursor({
 
 const interpolate = (from, to, progress) => merge(from, {
   x: Easing.float(from.x, to.x, progress),
-  shadow: Easing.float(from.shadow, to.shadow, progress)
+  shadow: Easing.float(from.shadow, to.shadow, progress),
+  spacing: Easing.float(from.spacing, to.spacing, progress),
+  titleOpacity: Easing.float(from.titleOpacity, to.titleOpacity, progress),
+  tabWidth: Easing.float(from.tabWidth, to.tabWidth, progress)
 })
 
 const animationProjection = model =>
     model.isOpen
-  ? {x: 0, shadow: 0.5}
+  ? {x: 0, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312}
   : model.isAttached
-  ? {x: 330, shadow: 0}
-  : {x: 500, shadow: 0.5}
+  ? {x: 330, shadow: 0, spacing: 8, titleOpacity: 0, tabWidth: 34}
+  : {x: 500, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312}
 
 const animationDuration = model =>
     model.isOpen
@@ -147,10 +154,10 @@ const animate = (model, action) => {
   // something that will give us more like spring physics.
   const begin
     = !model.isOpen
-    ? {x: 0, shadow: 0.5}
+    ? {x: 0, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312}
     : model.isAttached
-    ? {x: 330, shadow: 0}
-    : {x: 500, shadow: 0.5};
+    ? {x: 330, shadow: 0, spacing: 8, titleOpacity: 0, tabWidth: 34}
+    : {x: 500, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312};
 
   const projection = animationProjection(model)
 
@@ -215,12 +222,13 @@ const viewImage = (uri, style) =>
     }, style)
   });
 
-const viewTab = (model, address) =>
+const viewTab = (model, address, {tabWidth, titleOpacity}) =>
   html.div({
     className: 'sidebar-tab',
     style: Style(
       styles.tab,
-      model.isSelected && styles.tabSelected
+      model.isSelected && styles.tabSelected,
+      {width: `${tabWidth}px`}
     ),
     onMouseDown: () => address(WebView.Select),
     onMouseUp: () => address(WebView.Activate)
@@ -231,7 +239,10 @@ const viewTab = (model, address) =>
           styles.favicon),
     html.div({
       className: 'sidebar-tab-title',
-      style: styles.title
+      style: Style(
+        styles.title,
+        {opacity: titleOpacity}
+      )
     }, [
       // @TODO localize this string
       readTitle(model, 'Untitled')
@@ -250,6 +261,8 @@ const viewSidebar = (key) => (model, {entries}, address) => {
       , {
           transform: `translateX(${display.x}px)`,
           boxShadow: `rgba(0, 0, 0, ${display.shadow}) -50px 0 80px`,
+          paddingLeft: `${display.spacing}px`,
+          paddingRight: `${display.spacing}px`
         }
       )
   }, [
@@ -257,7 +270,7 @@ const viewSidebar = (key) => (model, {entries}, address) => {
       className: 'sidebar-tabs-scrollbox',
       style: styles.scrollbox
     }, entries.map(entry =>
-        thunk(entry.id, viewTab, entry, forward(tabs, asByID(entry.id))))),
+        thunk(entry.id, viewTab, entry, forward(tabs, asByID(entry.id)), display))),
     thunk('sidebar-toolbar',
           Toolbar.view,
           model.toolbar,
