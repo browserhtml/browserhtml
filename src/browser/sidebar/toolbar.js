@@ -51,18 +51,19 @@ export const styleSheet = StyleSheet.create({
     height: '50px',
     position: 'absolute',
     bottom: '0',
-    width: '100%',
-    background: '#364759'
+    width: '100%'
   }
 });
 
 const viewPin = Toggle.view('pin-button', StyleSheet.create({
   base: {
     cursor: 'pointer',
-    height: styleSheet.toolbar.height,
-    width: styleSheet.toolbar.height,
+    borderRadius: '5px',
+    height: '34px',
+    width: '34px',
+    margin: '8px',
     backgroundRepeat: 'no-repeat',
-    backgroundColor: '#3E5166',
+    backgroundColor: 'transparent',
     backgroundPosition: 'center',
     backgroundImage: 'url(css/pin.png)',
     backgroundSize:

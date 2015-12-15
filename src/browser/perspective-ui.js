@@ -274,7 +274,7 @@ export const step = (model, action) => {
     // show-tabs view.
     else if (isShowTabs(action) || isEscape(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Fade);
+      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Show);
       const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Open);
       const [animation, animationFx]
         = Animation.initialize(performance.now(), showTabsTransitionDuration);
@@ -292,7 +292,7 @@ export const step = (model, action) => {
     else if (isSwitchSelectedWebView(action)) {
       const time = performance.now();
       const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Fade);
+      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Show);
       const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Open);
       const [animation, animationFx]
         = Animation.initialize(time, showTabsTransitionDuration);
@@ -404,43 +404,33 @@ export const step = (model, action) => {
   return [merge(model, {browser}), fx];
 }
 
-const zoom = (from, to, progress) => merge(from, {
-  angle: float(from.angle, to.angle, progress),
-  depth: float(from.depth, to.depth, progress)
-})
-
-const flipSlide = (from, to, progress) => merge(from, {
-  angle: float(from.angle, to.angle, progress),
-  x: float(from.x, to.x, progress)
-});
-
 const transition = {
   webViewZoomOut(model) {
-    const {angle, depth}
+    const depth
       = model == null ?
-          {angle: 10, depth: -600} :
+          -200 :
           ease(easeOutCubic,
-                zoom,
-                {angle: 0, depth: 0},
-                {angle: 10, depth: -600},
+                float,
+                0,
+                -200,
                 Animation.duration(model),
                 Animation.progress(model));
     return {
-      transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
+      transform: `translate3d(0, 0, ${depth}px)`
     }
   },
   webViewZoomIn(model) {
-    const {angle, depth}
+    const depth
       = model == null ?
-          {angle: 0, depth: 0} :
+          0 :
           ease(easeOutCubic,
-                zoom,
-                {angle: 10, depth: -600},
-                {angle: 0, depth: 0},
+                float,
+                -200,
+                0,
                 Animation.duration(model),
                 Animation.progress(model));
     return {
-      transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
+      transform: `translate3d(0, 0, ${depth}px)`
     }
   }
 }
@@ -454,8 +444,6 @@ const style = StyleSheet.create({
 
   webViewZoomedIn: {},
   webViewZoomedOut: {
-    transform: 'translate3d(0, 0, -600px) rotateY(10deg)',
-    transformOrigin: 'left center',
     pointerEvents: 'none'
   },
 
