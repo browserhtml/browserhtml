@@ -274,7 +274,7 @@ export const step = (model, action) => {
     // show-tabs view.
     else if (isShowTabs(action) || isEscape(action)) {
       const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Fade);
+      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Show);
       const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Open);
       const [animation, animationFx]
         = Animation.initialize(performance.now(), showTabsTransitionDuration);
@@ -292,7 +292,7 @@ export const step = (model, action) => {
     else if (isSwitchSelectedWebView(action)) {
       const time = performance.now();
       const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Fade);
+      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Show);
       const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Open);
       const [animation, animationFx]
         = Animation.initialize(time, showTabsTransitionDuration);
