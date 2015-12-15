@@ -78,7 +78,7 @@ export const init = () => {
       isAttached: false,
       isOpen: false,
       animation: null,
-      display: {x: 500, shadow: 0},
+      display: {x: 500, shadow: 0.5},
       toolbar
     },
     fx.map(ToolbarAction)
@@ -122,7 +122,7 @@ const animationProjection = model =>
   ? {x: 0, shadow: 0.5}
   : model.isAttached
   ? {x: 330, shadow: 0}
-  : {x: 500, shadow: 0}
+  : {x: 500, shadow: 0.5}
 
 const animationDuration = model =>
     model.isOpen
@@ -150,7 +150,7 @@ const animate = (model, action) => {
     ? {x: 0, shadow: 0.5}
     : model.isAttached
     ? {x: 330, shadow: 0}
-    : {x: 500, shadow: 0};
+    : {x: 500, shadow: 0.5};
 
   const projection = animationProjection(model)
 
