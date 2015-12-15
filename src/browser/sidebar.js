@@ -19,13 +19,14 @@ import * as Easing from "eased";
 const styles = StyleSheet.create({
   sidebar: {
     // WARNING: will slow down animations! (gecko)
-    boxShadow: 'rgba(0, 0, 0, 0.5) -50px 0 80px',
+    // boxShadow: 'rgba(0, 0, 0, 0.5) -50px 0 80px',
     backgroundColor: '#24303D',
     height: '100%',
     position: 'absolute',
     right: 0,
     top: 0,
     width: '380px',
+    padding: '0 34px',
     boxSizing: 'border-box',
     zIndex: 2 // @TODO This is a hack to avoid resizing new tab / edit tab views.
   },
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
   tab: {
     MozWindowDragging: 'no-drag',
     borderRadius: '5px',
-    lineHeight: '35px',
+    lineHeight: '34px',
     color: '#fff',
     fontSize: '14px',
     overflow: 'hidden',
@@ -113,15 +114,16 @@ const stopwatch = cursor({
 
 const interpolate = (from, to, progress) => merge(from, {
   angle: Easing.float(from.angle, to.angle, progress),
-  x: Easing.float(from.x, to.x, progress)
+  x: Easing.float(from.x, to.x, progress),
+  shadow: Easing.float(from.shadow, to.shadow, progress)
 })
 
 const animationProjection = model =>
     model.isOpen
-  ? {angle: 0, x: 0}
+  ? {angle: 0, x: 0, shadow: 0.5}
   : model.isAttached
-  ? {angle: 0, x: 330}
-  : {angle: -15, x: 500}
+  ? {angle: 0, x: 330, shadow: 0}
+  : {angle: -15, x: 500, shadow: 0}
 
 const animationDuration = model =>
     model.isOpen
@@ -146,10 +148,10 @@ const animate = (model, action) => {
   // something that will give us more like spring physics.
   const begin
     = !model.isOpen
-    ? {angle: 0, x: 0}
+    ? {angle: 0, x: 0, shadow: 0}
     : model.isAttached
-    ? {angle: 0, x: 330}
-    : {angle: -15, x: 500};
+    ? {angle: 0, x: 330, shadow: 0}
+    : {angle: -15, x: 500, shadow: 0};
 
   const projection = animationProjection(model)
 
@@ -238,22 +240,18 @@ const viewTab = (model, address) =>
   ]);
 
 
-const viewSidebar = (key, styleSheet) => (model, {entries}, address) => {
+const viewSidebar = (key) => (model, {entries}, address) => {
   const tabs = forward(address, Tabs);
   const {display} = model;
+  console.log('Fooooooo!!!', display.shadow);
   return html.div({
     key: key,
     className: key,
     style: Style
-      ( styleSheet.base
-
-
-      ,   model.isAttached
-        ? styleSheet.attached
-        : styleSheet.detached
-
+      ( styles.sidebar
       , {
-          transform:`translateX(${display.x}px) rotateY(${display.angle}deg)`
+          transform: `translateX(${display.x}px) rotateY(${display.angle}deg)`,
+          boxShadow: `rgba(0, 0, 0, ${display.shadow}) -50px 0 80px`,
         }
       )
   }, [
@@ -269,13 +267,4 @@ const viewSidebar = (key, styleSheet) => (model, {entries}, address) => {
   ]);
 }
 
-export const view = viewSidebar('sidebar', StyleSheet.create({
-  base: styles.sidebar,
-  attached: {
-    padding: '0 18px'
-  },
-  detached: {
-    width: '380px',
-    padding: '0 35px'
-  }
-}));
+export const view = viewSidebar('sidebar');

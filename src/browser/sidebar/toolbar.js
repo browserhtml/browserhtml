@@ -59,9 +59,9 @@ const viewPin = Toggle.view('pin-button', StyleSheet.create({
   base: {
     cursor: 'pointer',
     borderRadius: '5px',
-    height: '35px',
-    width: '35px',
-    margin: '6px 6px 8px',
+    height: '34px',
+    width: '34px',
+    margin: '8px',
     backgroundRepeat: 'no-repeat',
     backgroundColor: 'transparent',
     backgroundPosition: 'center',
