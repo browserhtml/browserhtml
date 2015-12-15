@@ -78,7 +78,7 @@ export const init = () => {
       isAttached: false,
       isOpen: false,
       animation: null,
-      display: {angle: -15, x: 500},
+      display: {x: 500, shadow: 0},
       toolbar
     },
     fx.map(ToolbarAction)
@@ -113,17 +113,16 @@ const stopwatch = cursor({
 });
 
 const interpolate = (from, to, progress) => merge(from, {
-  angle: Easing.float(from.angle, to.angle, progress),
   x: Easing.float(from.x, to.x, progress),
   shadow: Easing.float(from.shadow, to.shadow, progress)
 })
 
 const animationProjection = model =>
     model.isOpen
-  ? {angle: 0, x: 0, shadow: 0.5}
+  ? {x: 0, shadow: 0.5}
   : model.isAttached
-  ? {angle: 0, x: 330, shadow: 0}
-  : {angle: -15, x: 500, shadow: 0}
+  ? {x: 330, shadow: 0}
+  : {x: 500, shadow: 0}
 
 const animationDuration = model =>
     model.isOpen
@@ -148,10 +147,10 @@ const animate = (model, action) => {
   // something that will give us more like spring physics.
   const begin
     = !model.isOpen
-    ? {angle: 0, x: 0, shadow: 0}
+    ? {x: 0, shadow: 0.5}
     : model.isAttached
-    ? {angle: 0, x: 330, shadow: 0}
-    : {angle: -15, x: 500, shadow: 0};
+    ? {x: 330, shadow: 0}
+    : {x: 500, shadow: 0};
 
   const projection = animationProjection(model)
 
@@ -250,7 +249,7 @@ const viewSidebar = (key) => (model, {entries}, address) => {
     style: Style
       ( styles.sidebar
       , {
-          transform: `translateX(${display.x}px) rotateY(${display.angle}deg)`,
+          transform: `translateX(${display.x}px)`,
           boxShadow: `rgba(0, 0, 0, ${display.shadow}) -50px 0 80px`,
         }
       )
