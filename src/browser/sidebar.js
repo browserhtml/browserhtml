@@ -155,18 +155,7 @@ const animationProjection = model =>
      titleOpacity: 1,
      tabWidth: 312}
 
-const animationDuration = model =>
-    model.isOpen
-  ? ( model.isAttached
-    ? 500
-    : 600
-    )
-  : ( model.isAttached
-    ? 350
-    : 400
-    );
-
-
+const animationDuration = model => model.isOpen ? 500 : 200;
 
 const animate = (model, action) => {
   const [{animation}, fx] = stopwatch(model, action.action)
