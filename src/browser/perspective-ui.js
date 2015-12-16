@@ -509,8 +509,7 @@ const viewAsEditWebView = (model, address) =>
           Assistant.view,
           model.browser.suggestions,
           address,
-          Style(
-                model.sidebar.isAttached
+          Style(  model.sidebar.isAttached
                 ? style.suggestionsShrink
                 : style.suggestionsExpand)),
     thunk('input',
