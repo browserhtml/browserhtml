@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
     // WARNING: will slow down animations! (gecko)
     // boxShadow: 'rgba(0, 0, 0, 0.5) -50px 0 80px',
     backgroundColor: '#24303D',
+    willChange: 'box-shadow',
     height: '100%',
     position: 'absolute',
     right: 0,
