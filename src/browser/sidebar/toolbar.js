@@ -76,11 +76,14 @@ const viewPin = Toggle.view('pin-button', StyleSheet.create({
   }
 }));
 
-export const view = (model, address) =>
+export const view = (model, address, {toolbarOpacity}) =>
   html.div({
     key: 'sidebar-toolbar',
     className: 'sidebar-toolbar',
-    style: styleSheet.toolbar
+    style: Style(
+      styleSheet.toolbar,
+      {opacity: toolbarOpacity}
+    )
   }, [
     thunk('pin', viewPin, model.pin, forward(address, Pin))
   ]);

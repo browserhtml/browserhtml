@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
     // WARNING: will slow down animations! (gecko)
     // boxShadow: 'rgba(0, 0, 0, 0.5) -50px 0 80px',
     backgroundColor: '#24303D',
+    willChange: 'box-shadow',
     height: '100%',
     position: 'absolute',
     right: 0,
@@ -82,7 +83,14 @@ export const init = () => {
       isAttached: false,
       isOpen: false,
       animation: null,
-      display: {x: 500, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312},
+      display: {
+        x: 500,
+        shadow: 0.5,
+        spacing: 34,
+        toolbarOpacity: 1,
+        titleOpacity: 1,
+        tabWidth: 312
+      },
       toolbar
     },
     fx.map(ToolbarAction)
@@ -120,29 +128,34 @@ const interpolate = (from, to, progress) => merge(from, {
   x: Easing.float(from.x, to.x, progress),
   shadow: Easing.float(from.shadow, to.shadow, progress),
   spacing: Easing.float(from.spacing, to.spacing, progress),
+  toolbarOpacity: Easing.float(from.toolbarOpacity, to.toolbarOpacity, progress),
   titleOpacity: Easing.float(from.titleOpacity, to.titleOpacity, progress),
   tabWidth: Easing.float(from.tabWidth, to.tabWidth, progress)
 })
 
 const animationProjection = model =>
     model.isOpen
-  ? {x: 0, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312}
+  ? {x: 0,
+     shadow: 0.5,
+     spacing: 34,
+     toolbarOpacity: 1,
+     titleOpacity: 1,
+     tabWidth: 312}
   : model.isAttached
-  ? {x: 330, shadow: 0, spacing: 8, titleOpacity: 0, tabWidth: 34}
-  : {x: 500, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312}
+  ? {x: 330,
+     shadow: 0,
+     spacing: 8,
+     toolbarOpacity: 0,
+     titleOpacity: 0,
+     tabWidth: 34}
+  : {x: 500,
+     shadow: 0.5,
+     spacing: 34,
+     toolbarOpacity: 1,
+     titleOpacity: 1,
+     tabWidth: 312}
 
-const animationDuration = model =>
-    model.isOpen
-  ? ( model.isAttached
-    ? 500
-    : 600
-    )
-  : ( model.isAttached
-    ? 350
-    : 400
-    );
-
-
+const animationDuration = model => model.isOpen ? 500 : 200;
 
 const animate = (model, action) => {
   const [{animation}, fx] = stopwatch(model, action.action)
@@ -154,10 +167,25 @@ const animate = (model, action) => {
   // something that will give us more like spring physics.
   const begin
     = !model.isOpen
-    ? {x: 0, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312}
+    ? {x: 0,
+       shadow: 0.5,
+       spacing: 34,
+       toolbarOpacity: 1,
+       titleOpacity: 1,
+       tabWidth: 312}
     : model.isAttached
-    ? {x: 330, shadow: 0, spacing: 8, titleOpacity: 0, tabWidth: 34}
-    : {x: 500, shadow: 0.5, spacing: 34, titleOpacity: 1, tabWidth: 312};
+    ? {x: 330,
+       shadow: 0,
+       spacing: 8,
+       toolbarOpacity: 0,
+       titleOpacity: 0,
+       tabWidth: 34}
+    : {x: 500,
+       shadow: 0.5,
+       spacing: 34,
+       toolbarOpacity: 0,
+       titleOpacity: 1,
+       tabWidth: 312};
 
   const projection = animationProjection(model)
 
@@ -274,7 +302,8 @@ const viewSidebar = (key) => (model, {entries}, address) => {
     thunk('sidebar-toolbar',
           Toolbar.view,
           model.toolbar,
-          forward(address, ToolbarAction))
+          forward(address, ToolbarAction),
+          display)
   ]);
 }
 

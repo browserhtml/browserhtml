@@ -151,7 +151,7 @@ export const isSwitchSelectedWebView = action =>
 export const asByAnimation = asFor('animation');
 export const asByWebViews = asFor('webViews');
 
-export const showTabsTransitionDuration = 600;
+export const showTabsTransitionDuration = 500;
 export const hideTabsTransitionDuration = 200;
 
 
