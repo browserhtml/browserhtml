@@ -1,6 +1,6 @@
 /* @flow */
 
-import {forward, thunk, Effects} from 'reflex';
+import {forward, html, thunk, Effects} from 'reflex';
 import * as Input from './input';
 import * as Assistant from './assistant';
 import * as Sidebar from './sidebar';
@@ -455,6 +455,21 @@ const style = StyleSheet.create({
 
   },
 
+  content: {
+    position: 'absolute',
+    perspective: '1000px',
+    height: '100%',
+    width: '100%',
+  },
+
+  contentShrink: {
+    width: 'calc(100% - 50px)'
+  },
+
+  contentExpand: {
+    width: '100%'
+  },
+
   assistantHidden: {
     display: 'none'
   },
@@ -480,157 +495,187 @@ export const view = (model, address) =>
 
 const viewAsEditWebView = (model, address) =>
   Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, asFor('webViews')),
-          Style(  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
-                  style.webViewZoomedIn)),
-    thunk('overlay',
+    html.div({
+      className: 'content',
+      style: Style(
+        style.content,
+        model.sidebar.isAttached ?
+          style.contentShrink : style.contentExpand
+      )
+    }, [
+      thunk('web-views',
+            WebViews.view,
+            model.browser.webViews,
+            forward(address, asFor('webViews')),
+            style.webViewZoomedIn),
+      thunk('overlay',
           Overlay.view,
           model.overlay,
           forward(address, OverlayAction)),
+      thunk('suggestions',
+            Assistant.view,
+            model.browser.suggestions,
+            address),
+      thunk('input',
+            Input.view,
+            model.browser.input,
+            forward(address, asFor('input')),
+            style.inputVisible)
+    ]),
     thunk('sidebar',
           Sidebar.view,
           model.sidebar,
           model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, asFor('input')),
-          style.inputVisible)
+          forward(address, SidebarAction))
   ]);
 
 const viewAsShowWebView = (model, address) =>
   Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, asFor('webViews')),
-          Style(  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
-                transition.webViewZoomIn(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, OverlayAction)),
+    html.div({
+      className: 'content',
+      style: Style(
+        style.content,
+        model.sidebar.isAttached ?
+          style.contentShrink : style.contentExpand
+      )
+    }, [
+      thunk('web-views',
+            WebViews.view,
+            model.browser.webViews,
+            forward(address, asFor('webViews')),
+            transition.webViewZoomIn(model.animation)),
+      thunk('overlay',
+            Overlay.view,
+            model.overlay,
+            forward(address, OverlayAction)),
+      thunk('suggestions',
+            Assistant.view,
+            model.browser.suggestions,
+            address,
+            style.assistantHidden),
+      thunk('input',
+            Input.view,
+            model.browser.input,
+            forward(address, asFor('input')),
+            style.inputHidden)
+    ]),
     thunk('sidebar',
           Sidebar.view,
           model.sidebar,
           model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address,
-          style.assistantHidden),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, asFor('input')),
-          style.inputHidden)
+          forward(address, SidebarAction))
   ]);
 
 const viewAsCreateWebView = (model, address) =>
   Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, asFor('webViews')),
-          Style(style.webViewZoomedOut,
-                  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
-                transition.webViewZoomIn(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, OverlayAction)),
+    html.div({
+      className: 'content',
+      style: Style(
+        style.content,
+        model.sidebar.isAttached ?
+          style.contentShrink : style.contentExpand
+      )
+    }, [
+      thunk('web-views',
+            WebViews.view,
+            model.browser.webViews,
+            forward(address, asFor('webViews')),
+            Style(style.webViewZoomedOut,
+                  transition.webViewZoomIn(model.animation))),
+      thunk('overlay',
+            Overlay.view,
+            model.overlay,
+            forward(address, OverlayAction)),
+      thunk('suggestions',
+            Assistant.view,
+            model.browser.suggestions,
+            address,
+            style.assistantFull),
+      thunk('input',
+            Input.view,
+            model.browser.input,
+            forward(address, asFor('input')),
+            style.inputVisible)
+    ]),
     thunk('sidebar',
           Sidebar.view,
           model.sidebar,
           model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address,
-          style.assistantFull),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, asFor('input')),
-          style.inputVisible)
+          forward(address, SidebarAction))
   ]);
 
 const viewAsSelectWebView = (model, address) =>
   Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, asFor('webViews')),
-          Style(style.webViewZoomedOut,
-                  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
-                transition.webViewZoomOut(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, OverlayAction)),
+    html.div({
+      className: 'content',
+      style: Style(
+        style.content,
+        model.sidebar.isAttached ?
+          style.contentShrink : style.contentExpand
+      )
+    }, [
+      thunk('web-views',
+            WebViews.view,
+            model.browser.webViews,
+            forward(address, asFor('webViews')),
+            Style(style.webViewZoomedOut,
+                  transition.webViewZoomOut(model.animation))),
+      thunk('overlay',
+            Overlay.view,
+            model.overlay,
+            forward(address, OverlayAction)),
+      thunk('suggestions',
+            Assistant.view,
+            model.browser.suggestions,
+            address,
+            style.assistantHidden),
+      thunk('input',
+            Input.view,
+            model.browser.input,
+            forward(address, asFor('input')),
+            style.inputHidden)
+    ]),
     thunk('sidebar',
           Sidebar.view,
           model.sidebar,
           model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address,
-          style.assistantHidden),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, asFor('input')),
-          style.inputHidden)
+          forward(address, SidebarAction))
   ]);
 
 const viewAsShowTabs = (model, address) =>
   Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, asFor('webViews')),
-          Style(style.webViewZoomedOut,
-                  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
-                transition.webViewZoomOut(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, OverlayAction)),
+    html.div({
+      className: 'content',
+      style: Style(
+        style.content,
+        model.sidebar.isAttached ?
+          style.contentShrink : style.contentExpand
+      )
+    }, [
+      thunk('web-views',
+            WebViews.view,
+            model.browser.webViews,
+            forward(address, asFor('webViews')),
+            Style(style.webViewZoomedOut,
+                  transition.webViewZoomOut(model.animation))),
+      thunk('overlay',
+            Overlay.view,
+            model.overlay,
+            forward(address, OverlayAction)),
+      thunk('suggestions',
+            Assistant.view,
+            model.browser.suggestions,
+            address,
+            style.assistantHidden),
+      thunk('input',
+            Input.view,
+            model.browser.input,
+            forward(address, asFor('input')),
+            style.inputHidden)
+    ]),
     thunk('sidebar',
           Sidebar.view,
           model.sidebar,
           model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address,
-          style.assistantHidden),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, asFor('input')),
-          style.inputHidden)
+          forward(address, SidebarAction))
   ]);
