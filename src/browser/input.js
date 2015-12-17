@@ -99,7 +99,7 @@ export const update = (model, action) =>
   : Unknown.update(model, action)
 
 
-const binding = Keyboard.bindings({
+const decodeKeyDown = Keyboard.bindings({
   // 'up': _ => Suggestions.SelectPrevious(),
   // 'control p': _ => Suggestions.SelectPrevious(),
   // 'down': _ => Suggestions.SelectNext(),
@@ -225,7 +225,7 @@ export const view = (model, address) =>
       onSelect: on(address, readSelect),
       onFocus: on(address, always(Focus)),
       onBlur: on(address, always(Blur)),
-      onKeyDown: on(address, binding),
+      onKeyDown: on(address, decodeKeyDown),
       // DOM does not fire selection events when you hit arrow
       // keys or when you click in the input field. There for we
       // need to handle those events to keep our model in sync with

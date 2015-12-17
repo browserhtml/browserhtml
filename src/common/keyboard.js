@@ -72,7 +72,7 @@ const writeChord = event => {
 };
 
 
-export const bindings/*:type.keyBindings*/ = bindingTable => {
+export const bindings/*:type.keyBindings*/ = (bindingTable) => {
   const bindings = Object.create(null);
   Object.keys(bindingTable).forEach(key => {
     bindings[readChord(key)] = bindingTable[key];
@@ -82,24 +82,29 @@ export const bindings/*:type.keyBindings*/ = bindingTable => {
     const combination = writeChord(event);
     const binding = bindings[combination]
 
-    if (binding == null) {
-      return {
-        type: event.type === "keyup" ?
-                "Keyboard.KeyUp" :
-              event.type === "keydown" ?
-                "Keyboard.KeyDown" :
-                "Keyboard.KeyPress",
-        combination: combination,
-        key: event.key,
-        metaKey: event.metaKey,
-        shiftKey: event.shiftKey,
-        altKey: event.altKey,
-        ctrlKey: event.ctrlKey
-      }
-    } else {
+    if (binding != null) {
       event.stopPropagation();
       event.preventDefault();
       return binding(event);
     }
-  }
-}
+    else {
+      return {
+        type: "AbortEvent"
+      , action:
+        { type
+            : event.type === "keyup"
+            ? "KeyUp"
+            : event.type === "keydown"
+            ? "KeyDown"
+            : "KeyPress"
+        , combination: combination
+        , key: event.key
+        , metaKey: event.metaKey
+        , shiftKey: event.shiftKey
+        , altKey: event.altKey
+        , ctrlKey: event.ctrlKey
+        }
+      };
+    }
+  };
+};
