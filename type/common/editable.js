@@ -1,5 +1,6 @@
 /* @flow */
 
+import type {Effects} from "reflex/type/effects"
 
 export type Direction
   = "forward"
@@ -12,45 +13,36 @@ export type Selection = {
   direction: Direction
 }
 
-export type Model = {
+export type Editable = {
   selection: ?Selection,
   value: string
 }
 
 export type Clear = {
-  type: "Editable.Clear",
+  type: "Clear",
 }
 
-export type Select = {
-  type: "Editable.Select",
+export type SelectType = {
+  type: "Select",
   range: Selection
 }
 
-export type Change = {
-  type: "Editable.Change",
+export type Select = (range:Selection) => SelectType
+
+export type ChangeType = {
+  type: "Change",
   value: string,
   selection: Selection
 }
 
+export type Change = (value:string, selection:Selection) => ChangeType
+
 export type Action
-  = Select
-  | Change
+  = SelectType
+  | ChangeType
   | Clear
-
-export type asSelect = (selection:Selection) => Select
-export type asChange = (value:string, selection:Selection) => Change
-export type asClear = () => Clear
-
-// All editable models must intersect with `Model` type.
-export type Editable <model>
-  = Model
-  & model
 
 // Define generic `Update` method type as rest of the operations will be
 // concretetions over it.
-export type Update <model, action> = (state:Editable<model>, action:action) => Editable<model>
-
-export type clear <model> = (state:Editable<model>) => Editable<model>
-export type select <model> = Update<model, Select>
-export type change <model> = Update<model, Change>
-export type update <model> = Update<model, Action>
+export type update <model:Editable> = (model:model, action:Action) =>
+  [model, Effects<Action>]

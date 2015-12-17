@@ -149,7 +149,7 @@ export const query/*:type.query*/ = (input, limit) => Effects.batch([
 ]);
 
 
-export const step/*:type.step*/ = (model, action) => {
+export const update/*:type.update*/ = (model, action) => {
   if (action.type === "Assistant.Reset") {
     return [
       initial,

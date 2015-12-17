@@ -23,14 +23,14 @@ const endfx = Effects.task(Task.future(always(Promise.resolve(End))));
 export const create/*:type.create*/ = (time, duration) =>
   ({start: time, now: time, end: time + duration});
 
-export const initialize/*:type.initialize*/ = (time, duration) =>
+export const init/*:type.init*/ = (time, duration) =>
   [
     create(time, duration),
     Effects.tick(asTick)
   ];
 
 
-export const step/*:type.step*/ = (model, tick) => {
+export const update/*:type.update*/ = (model, tick) => {
   if (tick.type === "Animation.Tick") {
     return [
       merge(model, {now: tick.time}),

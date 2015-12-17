@@ -55,7 +55,7 @@ export type MetaChanged = {
   name: string,
   content: string
 }
-export typee asMetaChanged = (name:string, content:string) => MetaChanged
+export type asMetaChanged = (name:string, content:string) => MetaChanged
 
 export type TitleChanged = {
   type: "WebView.Page.TitleChanged",
@@ -67,7 +67,8 @@ export type IconChanged = {
   type: "WebView.Page.IconChanged",
   icon: Icon
 }
-export type asIconChanged = icon => IconChanged
+
+export type asIconChanged = (icon:Icon) => IconChanged
 
 export type OverflowChanged = {
   type: "WebView.Page.OverflowChanged",
@@ -93,5 +94,5 @@ export type Action
   | CuratedColorUpdate
   | ColorScraped
 
-export type initialize = (uri:URI) => Model
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type init = (uri:URI) => Model
+export type update = (model:Model, action:Action) => [Model, Effects<Response>]

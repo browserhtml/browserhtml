@@ -88,7 +88,7 @@ export type Progress = number // Implied to be 0 - 100 range
 export type progress = (model: ?Model) => Progress
 
 
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type update = (model:Model, action:Action) => [Model, Effects<Response>]
 
 
 export type view = (model:Model) => VirtualTree

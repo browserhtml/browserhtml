@@ -16,7 +16,7 @@ export const Tick = time => ({type: "Tick", time});
 
 export const start = () => [null, Effects.tick(Tick)];
 
-export const step = (model, action) =>
+export const update = (model, action) =>
     action.type === "End"
   ? [null, Effects.none]
   : action.type === "Start"
@@ -36,4 +36,4 @@ export const step = (model, action) =>
       , Effects.tick(Tick)
       ]
     )
-  : Unknown.step(model, action);
+  : Unknown.update(model, action);

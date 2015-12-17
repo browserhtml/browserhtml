@@ -1,6 +1,7 @@
 /* @flow */
 
 import {merge} from "../common/prelude";
+import * as Unknown from "../common/unknown";
 import {Effects} from "reflex";
 
 /*:: import * as type from "../../type/common/focusable" */
@@ -10,24 +11,12 @@ export const focused/*:type.Model*/ = {isFocused: true};
 
 export const initial = blured;
 
-export const Focus/*:type.Focus*/ = {type:"Focusable.Focus"};
-export const Blur/*:type.Blur*/ = {type: "Focusable.Blur"};
-export const FocusRequest/*:type.FocusRequest*/ = {type: "Focusable.FocusRequest"};
-
-export const asFocus/*:type.asFocus*/ = () => Focus;
-export const asBlur/*:type.asBlur*/ = () => Blur;
-export const asFocusRequest/*:type.asFocusRequest*/ = () => FocusRequest;
-
-export const focus/*:type.focus*/ = model => merge(model, focused);
-export const blur/*:type.blur*/ = model => merge(model, blured);
+export const Focus/*:type.Focus*/ = {type:"Focus"};
+export const Blur/*:type.Blur*/ = {type: "Blur"};
 
 export const update/*:type.update*/ = (model, action) =>
-  action.type === "Focusable.Focus" ?
-    focus(model) :
-  action.type === "Focusable.FocusRequest" ?
-    focus(model) :
-  action.type === "Focusable.Blur" ?
-    blur(model) :
-  model;
-
-export const step = Effects.nofx(update);
+    action.type === "Focus"
+  ? [merge(model, {isFocused: true}), Effects.none]
+  : action.type === "Blur"
+  ? [merge(model, {isFocused: false}), Effects.none]
+  : Unknown.update(model, action);

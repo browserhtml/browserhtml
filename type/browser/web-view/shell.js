@@ -34,4 +34,4 @@ export type updateVisibility = (value:boolean, model:Model) => Model
 
 export type blank = Model
 export type update = (model:Model, action:Action) => Model
-export type step = (model:Model, action:Action) => [Model, Effects<Action>]
+export type update = (model:Model, action:Action) => [Model, Effects<Action>]

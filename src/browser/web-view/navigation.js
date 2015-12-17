@@ -90,7 +90,7 @@ export const request = (model, {id, action}) =>
     [model, Effects.none];
 
 
-export const step/*:type.step*/ = (model, action) =>
+export const update/*:type.update*/ = (model, action) =>
   action.type === "WebView.Navigation.CanGoForwardChanged" ?
     [merge(model, {canGoForward: action.value}), Effects.none] :
   action.type === "WebView.Navigation.CanGoBackChanged" ?

@@ -1,76 +1,90 @@
 /* @flow */
 
-export type Unknown = {
-  type: "Runtime.Unknown"
+import type {Never} from "reflex/type/effects"
+import type {Task} from "reflex/type"
+
+export type UnknownType <detail> = {
+  type: "Unknown",
+  detail: detail
 }
 
 // Action is triggered when application JS is hot swapped
 export type LiveReload = {
-  type: "Runtime.LiveReload"
+  type: "LiveReload"
 }
 
-
-export type asUnknown <model> = (state:Unknown<model>) => Unknown<model>
+export type Unknown = <detail> (detail:detail) => UnknownType<detail>
 
 export type RemoteDebugRequest = {
-  type: "Runtime.RemoteDebugRequest",
+  type: "RemoteDebugRequest",
 }
 
 export type UpdateAvailable = {
-  type: "Runtime.UpdateAvailable",
+  type: "UpdateAvailable",
 }
 
 export type UpdateDownloaded = {
-  type: "Runtime.UpdateDownloaded",
+  type: "UpdateDownloaded",
 }
 
 export type CheckUpdate = {
-  type: "Runtime.CheckUpdate",
+  type: "CheckUpdate",
 }
 
-export type RemoteDebugResponse = {
-  type: "Runtime.RemoteDebugResponse",
+export type RemoteDebugResponseType = {
+  type: "RemoteDebugResponse",
   value: boolean
 }
 
-export type asRemoteDebugResponse = (value: boolean) => RemoteDebugResponse
+export type RemoteDebugResponse = (value:boolean) => RemoteDebugResponseType
 
 type download = string
 
-export type DownloadUpdate = {
-  type: "Runtime.DownloadUpdate",
+export type DownloadUpdateType = {
+  type: "DownloadUpdate",
   result: download
 }
 
-export type asDownloadUpdate = (result: download) => DownloadUpdate
+export type DownloadUpdate = (result: download) => DownloadUpdateType
 
 export type Restart = {
-  type: "Runtime.Restart"
+  type: "Restart"
+}
+
+export type Reload = {
+  type: "Reload"
 }
 
 export type CleanRestart = {
-  type: "Runtime.CleanRestart"
+  type: "CleanRestart"
 }
 
 export type CleanReload = {
-  type: "Runtime.CleanReload"
+  type: "CleanReload"
 }
 
-export type RequestShutdown = {
-  type: "Runtime.RequestShutdown"
-}
 
 export type Minimized = {
-  type: "Runtime.Minimized"
+  type: "Minimized"
 }
 
-export type FullScreenToggled = {
-  type: "Runtime.FullScreenToggled"
+export type FullscreenToggled = {
+  type: "FullscreenToggled"
+}
+
+export type Quit = {
+  type: "Quit"
 }
 
 
 // @TODO: need to be notified when unminimized.
 
-export type shutdown = () => Effects<void>;
-export type minimize = () => Effects<Minimized>;
-export type toggleFullScreen = () => Effects<FullScreenToggled>;
+export type quit = () => Task<Never, Quit>;
+export type minimize = Task<Never, Minimized>;
+export type toggleFullscreen = Task<Never, FullscreenToggled>;
+
+export type reload = Task<Never, Reload>;
+export type restart = Task<Never, Restart>;
+
+export type cleanReload = Task<Never, CleanReload>;
+export type cleanRestart = Task<Never, CleanRestart>;

@@ -49,5 +49,5 @@ export type fade = (model:Model, time:Time) =>
 export type tick = (model:Model, action:Animation.Tick) =>
   [Model, Effect]
 
-export type step = (model:Model, action:Action) =>
+export type update = (model:Model, action:Action) =>
   [Model, Effect]

@@ -5,7 +5,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {Effects, html, forward} from "reflex";
-import {merge, always, cursor} from "../common/prelude";
+import {merge, always} from "../common/prelude";
+import {cursor} from "../common/cursor";
 import {Style, StyleSheet} from "../common/style";
 import * as Easing from "eased";
 import * as Stopwatch from "../common/stopwatch";
@@ -33,7 +34,7 @@ export const Show = {type: "Show"};
 export const Hide = {type: "Hide"};
 export const Fade = {type: "Fade"};
 
-const Animation = action => ({type: "Animation", action});
+const AnimationAction = action => ({type: "Animation", action});
 const Shown = always({type: "Shown"});
 const Hidden = always({type: "Hidden"});
 const Faded = always({type: "Faded"});
@@ -43,16 +44,16 @@ export const init = (isVisible, isCapturing) =>
   [Model(isVisible, isCapturing), Effects.none];
 
 
-const stopwatch = cursor({
-  tag: Animation,
+const updateStopwatch = cursor({
+  tag: AnimationAction,
   get: model => model.animation,
   set: (model, animation) => merge(model, {animation}),
-  update: Stopwatch.step
+  update: Stopwatch.update
 });
 
 
-const animate = (model, action) => {
-  const [{animation}, fx] = stopwatch(model, action.action);
+const animationUpdate = (model, action) => {
+  const [{animation}, fx] = updateStopwatch(model, action.action);
 
   // @TODO: We should not be guessing what is the starnig point
   // that makes no sense & is likely to be incorrect at a times.
@@ -92,36 +93,36 @@ const animate = (model, action) => {
 }
 
 
-export const step/*:type.step*/ = (model, action) =>
+export const update/*:type.update*/ = (model, action) =>
     action.type === "Animation"
-  ? animate(model, action)
+  ? animationUpdate(model, action)
   : action.type === "Shown"
-  ? stopwatch(model, Stopwatch.End)
+  ? updateStopwatch(model, Stopwatch.End)
   : action.type === "Hidden"
-  ? stopwatch(model, Stopwatch.End)
+  ? updateStopwatch(model, Stopwatch.End)
   : action.type === "Faded"
-  ? stopwatch(model, Stopwatch.End)
+  ? updateStopwatch(model, Stopwatch.End)
   : action.type === "Show"
   ? ( model.isVisible
     ? [merge(model, {isCapturing: true}), Effects.none]
-    : stopwatch(merge(model, {isVisible: true, isCapturing: true}),
+    : updateStopwatch(merge(model, {isVisible: true, isCapturing: true}),
                 Stopwatch.Start)
     )
   : action.type === "Hide"
   ? ( model.isVisible
-    ? stopwatch(merge(model, {isVisible: false, isCapturing: false}),
+    ? updateStopwatch(merge(model, {isVisible: false, isCapturing: false}),
                 Stopwatch.Start)
     : [merge(model, {isCapturing: false}), Effects.none]
     )
   : action.type === "Fade"
   ? ( model.isVisible
-    ? stopwatch(merge(model, {isVisible: false, isCapturing: true}),
+    ? updateStopwatch(merge(model, {isVisible: false, isCapturing: true}),
                 Stopwatch.Start)
     : [merge(model, {isCapturing: true}), Effects.none]
     )
   : action.type === "Click"
   ? [model, Effects.none]
-  : Unknown.step(model, action);
+  : Unknown.update(model, action);
 
 const style = StyleSheet.create({
   overlay: {

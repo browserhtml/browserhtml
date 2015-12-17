@@ -6,7 +6,6 @@ import {Effects, html, forward, thunk} from "reflex";
 import * as Shell from "./shell";
 import * as Input from "./input";
 import * as Assistant from "./assistant";
-import * as WindowControls from "./window-controls";
 
 // import * as Updater from "./updater"
 import * as Devtools from "../common/devtools";
@@ -14,27 +13,30 @@ import * as Runtime from "../common/runtime";
 import * as URI from '../common/url-helper';
 import * as WebViews from "./web-views";
 import * as WebView from "./web-view";
-
+import * as Unknown from "../common/unknown";
 import {asFor, merge, always} from "../common/prelude";
+import {cursor} from "../common/cursor";
 import * as Focusable from "../common/focusable";
 import * as OS from '../common/os';
 import * as Keyboard from '../common/keyboard';
 import {Style, StyleSheet} from '../common/style';
 
-import {identity} from "../lang/functional";
+import {identity, compose} from "../lang/functional";
 
 import {onWindow} from "driver";
 
 /*:: import * as type from "../../type/browser/browser" */
 
-export const initialize/*:type.initialize*/ = () => {
-  const [devtools, devtoolsFx] = Devtools.initialize();
-  // const [updates, updaterFx] = Updater.initialize();
+export const init/*:type.init*/ = () => {
+  const [devtools, devtoolsFx] = Devtools.init();
+  // const [updates, updaterFx] = Updater.init();
+  const [input, inputFx] = Input.init(false, false, "");
+  const [shell, shellFx] = Shell.init();
 
   const model = {
     version,
-    shell: Shell.initial,
-    input: Input.initial,
+    shell: shell,
+    input: input,
     suggestions: Assistant.initial,
     webViews: WebViews.initial,
     // updates: updates,
@@ -42,146 +44,186 @@ export const initialize/*:type.initialize*/ = () => {
   };
 
   const fx = Effects.batch([
-    devtoolsFx.map(asByDevtools)
+    devtoolsFx.map(DevtoolsAction),
+    inputFx.map(InputAction),
+    shellFx.map(ShellAction)
     //updaterFx.map(asFor("updater"))
   ]);
 
   return [model, fx];
 }
 
-export const asByInput = asFor('input');
-export const asByWebViews = asFor('webViews');
-export const asByActiveWebView = action =>
-  asByWebViews(WebViews.asByActive(action));
-export const asByDevtools = asFor('devtools');
+
+export const InputAction = action =>
+    action.type === 'Submit'
+  ? SubmitInput
+  : action.type === 'Abort'
+  ? ExitInput
+  : {type: 'Input', action};
+
+export const WebViewsAction = action =>
+  ({type: 'WebViews', action});
+
+export const ShellAction = action =>
+  ({type: 'Shell', action});
+
+export const DevtoolsAction = action =>
+  ({type: 'Devtools', action});
+
+const updateInput = cursor({
+  get: model => model.input,
+  set: (model, input) => merge(model, {input}),
+  update: Input.update,
+  tag: InputAction
+});
+
+const updateWebViews = cursor({
+  get: model => model.webViews,
+  set: (model, webViews) => merge(model, {webViews}),
+  update: WebViews.update,
+  tag: WebViewsAction
+});
+
+const updateShell = cursor({
+  get: model => model.shell,
+  set: (model, shell) => merge(model, {shell}),
+  update: Shell.update,
+  tag: ShellAction
+});
+
+const updateDevtools = cursor({
+  get: model => model.devtools,
+  set: (model, devtools) => merge(model, {devtools}),
+  update: Devtools.update,
+  tag: DevtoolsAction
+});
+
+// Following Browser actions end up updating several components of the
+// browser and there for they are defined separately.
+export const CreateWebView = {type: 'CreateWebView'};
+export const EditWebView = {type: 'EditWebView'};
+export const ExitInput = {type: 'ExitInput'};
+export const SubmitInput = {type: 'SubmitInput'};
+export const Escape = {type: 'Escape'};
+export const Unload = {type: 'Unload'};
+export const ReloadRuntime = {type: 'ReloadRuntime'};
+
+// Following Browser actions directly delegate to a `WebViews` module, there for
+// they are just tagged versions of `WebViews` actions, but that is Just an
+// implementation detail.
+export const ZoomIn = WebViewsAction(WebViews.ZoomIn);
+export const ZoomOut = WebViewsAction(WebViews.ZoomOut);
+export const ResetZoom = WebViewsAction(WebViews.ResetZoom);
+export const Reload = WebViewsAction(WebViews.Reload);
+export const CloseWebView = WebViewsAction(WebViews.Close);
+export const GoBack = WebViewsAction(WebViews.GoBack);
+export const GoForward = WebViewsAction(WebViews.GoForward);
+export const SelectNext = WebViewsAction(WebViews.SelectNext);
+export const SelectPrevious = WebViewsAction(WebView.SelectPrevious);
+export const ActivateSeleted = WebViewsAction(WebViews.ActivateSelected);
+export const FocusWebView = WebViewsAction(WebViews.Focus);
+export const NavigateTo = compose(WebViewsAction, WebViews.NavigateTo);
+
+// Following browser actions directly delegate to one of the existing modules
+// there for we define them by just wrapping actions from that module to avoid
+// additional wiring (which is implementation detail that may change).
+export const ToggleDevtools = DevtoolsAction(Devtools.Toggle);
+export const Blur = ShellAction(Shell.Blur);
+export const Focus = ShellAction(Shell.Focus);
+
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
-
-const FocusInput = asByInput(Focusable.Focus);
-
-export const CreateWebView = ({type: 'Browser.CreateWebView'});
-export const Escape = ({type: 'Browser.Escape'});
-export const asOpenWebView = uri => asByWebViews(WebViews.asOpen({uri}));
-
-const keyDown = Keyboard.bindings({
-  'accel l': always(asByActiveWebView(WebView.Edit)),
+const decodeKeyDown = Keyboard.bindings({
+  'accel l': always(EditWebView),
   'accel t': always(CreateWebView),
-  'accel 0': always(asByActiveWebView(WebView.RequestZoomReset)),
-  'accel -': always(asByActiveWebView(WebView.RequestZoomOut)),
-  'accel =': always(asByActiveWebView(WebView.RequestZoomIn)),
-  'accel shift =': always(asByActiveWebView(WebView.RequestZoomIn)),
-  'accel w': always(asByActiveWebView(WebView.Close)),
-  'accel shift ]': always(asByWebViews(WebViews.SelectNext)),
-  'accel shift [': always(asByWebViews(WebViews.SelectPrevious)),
-  'control tab': always(asByWebViews(WebViews.SelectNext)),
-  'control shift tab': always(asByWebViews(WebViews.SelectPrevious)),
-  // 'accel shift backspace': _ => Session.ResetSession(),
-  // 'accel shift s': _ => Session.SaveSession(),
-  'accel r': always(asByActiveWebView(WebView.RequestReload)),
+  'accel 0': always(ResetZoom),
+  'accel -': always(ZoomOut),
+  'accel =': always(ZoomIn),
+  'accel shift =': always(ZoomIn),
+  'accel w': always(CloseWebView),
+  'accel shift ]': always(SelectNext),
+  'accel shift [': always(SelectPrevious),
+  'control tab': always(SelectNext),
+  'control shift tab': always(SelectPrevious),
+  // 'accel shift backspace':  always(ResetBrowserSession),
+  // 'accel shift s': always(SaveBrowserSession),
+  'accel r': always(Reload),
   'escape': always(Escape),
-  [`${modifier} left`]: always(asByActiveWebView(WebView.RequestGoBack)),
-  [`${modifier} right`]: always(asByActiveWebView(WebView.RequestGoForward)),
+  [`${modifier} left`]: always(GoBack),
+  [`${modifier} right`]: always(GoForward),
 
   // TODO: `meta alt i` generates `accel alt i` on OSX we need to look
   // more closely into this but so declaring both shortcuts should do it.
-  'accel alt i': always(asByDevtools(Devtools.Toggle)),
-  'accel alt ˆ': always(asByDevtools(Devtools.Toggle)),
-  'F12': always(asByDevtools(Devtools.Toggle)),
-  'F5': always(Runtime.Reload),
-  'meta control r': always(Runtime.Reload)
+  'accel alt i': always(ToggleDevtools),
+  'accel alt ˆ': always(ToggleDevtools),
+  'F12': always(ToggleDevtools),
+  'F5': always(ReloadRuntime),
+  'meta control r': always(ReloadRuntime)
 });
 
-const keyUp = Keyboard.bindings({
-  'control': always(asByWebViews(WebViews.ActivateSelected)),
-  'accel': always(asByWebViews(WebViews.ActivateSelected))
+const decodeKeyUp = Keyboard.bindings({
+  'control': always(ActivateSeleted),
+  'accel': always(ActivateSeleted)
 });
+
+
+const addFx = ([model, fx], extraFx) =>
+  [model, Effects.batch([fx, extraFx])];
+
 
 // Unbox For actions and route them to their location.
-const stepFor = (target, model, action) => {
-  if (target === 'Browser.KeyUp' || target === 'Browser.KeyDown') {
-    if (action.type === 'Keyboard.KeyUp' ||
-        action.type === 'Keyborad.KeyDown' ||
-        action.type === 'Keyboard.KeyPress') {
-      return [model, Effects.none];
-    } else {
-      return step(model, action);
-    }
-  }
-  else if (target === 'input') {
-    if (action.type === 'Input.Submit') {
-      const [input, inputFx] = Input.step(model.input, action);
+export const update = (model, action) =>
+  // Keybindings module triggers following three actions when
+  // matching binding isn't found, which we ignore as we don't
+  // do anything with them. @TODO Consider updating keybindings
+  // code to avoid sending no actions if bindings are not found.
+    action.type === 'Keyboard.KeyUp'
+  ? [model, Effects.none]
+  : action.type === 'Keyboard.KeyDown'
+  ? [model, Effects.none]
+  : action.type === 'Keyboard.KeyPress'
+  ? [model, Effects.none]
 
-      const navigate = WebViews.asNavigateTo(URI.read(model.input.value));
-      const [webViews, viewFx] = WebViews.step(model.webViews, navigate);
-      // more things need to happen here.
-      return [
-        merge(model, {input, webViews}),
-        Effects.batch([
-          inputFx.map(asFor('input')),
-          viewFx.map(asFor('webViews'))
-        ])
-      ]
-    }
-    else if (action.type === 'Input.Abort') {
-      const [input, inputFx] = Input.step(model.input, action);
-      const [webViews, viewFx] = WebViews.step(model.webViews,
-                                               Focusable.FocusRequest);
+  // If location bar triggered submit action we delegate to it
+  // and also receive `NavigateTo` containing currenly entered
+  // URI, which we'll handle in a separate branch.
+  : action.type === 'SubmitInput'
+  ? addFx(updateInput(model, Input.Submit),
+          Effects.receive(NavigateTo(URI.read(model.input.value))))
+  // If location bar triggert abort action (happens when user hits
+  // Escape key) we delegate to input to do it's thing & also receive
+  // `FocusWebView` action to give the focus back to the active
+  // web-view in a next update.
+  : action.type === 'ExitInput'
+  ? addFx(updateInput(model, Input.Abort),
+          Effects.receive(FocusWebView))
+  // When new web view is created we just enter an Input field.
+  : action.type === 'CreateWebView'
+  ? updateInput(model, Input.Enter)
+  // When web view is closed forward that to WebViews module.
+  : action.type === 'CloseWebView'
+  ? updateWebViews(model, WebViews.Close)
+  // When EditWebView action is triggered we delegate to Input module to
+  // give it a focus and to select a given input.
+  : action.type === 'EditWebView'
+  ? updateInput
+    ( model
+    , Input.EnterSelection(WebViews.getActiveURI(model.webViews, ''))
+    )
 
-      return [
-        merge(model, {input, webViews}),
-        Effects.batch([
-          inputFx.map(asByInput(inputFx)),
-          viewFx.map(asByActiveWebView(viewFx))
-        ])
-      ];
-    }
-    else {
-      const [input, fx] = Input.step(model.input, action);
-      return [merge(model, {input}), fx.map(asFor('input'))];
-    }
-  }
-  else if (target === 'shell') {
-    const [shell, fx] = Shell.step(model.shell, action);
-    return [merge(model, {shell}), fx.map(asFor('shell'))];
-  }
-  else if (target === 'webViews') {
-    if ((action.type === 'WebViews.ByID' ||
-          action.type === 'WebViews.ByActive') &&
-        action.action.type === 'WebView.Edit')
-    {
+  : action.type === 'ReloadRuntime'
+  ? [model, Effects.task(Runtime.reload)]
 
-      const webView = action.type === 'WebViews.ByID' ?
-                        WebViews.getByID(model.webViews, action.id) :
-                        WebViews.getActive(model.webViews);
-      const uri = webView ?
-        webView.navigation.currentURI :
-        '';
-
-      const [input, fx] = Input.step(model.input, Input.asEditSelection(uri));
-      return [merge(model, {input}), fx.map(asFor('input'))];
-    }
-    else {
-      const [webViews, fx] = WebViews.step(model.webViews, action);
-      return [merge(model, {webViews}), fx.map(asFor('webViews'))];
-    }
-  }
-  else if (target === 'devtools') {
-    const [devtools, fx] = Devtools.step(model.devtools, action);
-    return [merge(model, {devtools}), fx.map(asByDevtools)];
-  }
-  else {
-    return [model, Effects.none];
-  }
-}
-
-export const step/*:type.step*/ = (model, action) =>
-  action.type === 'For' ?
-    stepFor(action.target, model, action.action) :
-  action.type === 'Runtime.Reload' ?
-    [model, Runtime.reload()] :
-  action.type === 'Browser.CreateWebView' ?
-    stepFor('input', model, Input.Enter) :
-    [model, Effects.none];
+  // Delegate to the appropriate module
+  : action.type === 'Input'
+  ? updateInput(model, action.action)
+  : action.type === 'WebViews'
+  ? updateWebViews(model, action.action)
+  : action.type === 'Shell'
+  ? updateShell(model, action.action)
+  : action.type === 'Devtools'
+  ? updateDevtools(model, action.action)
+  : Unknown.update(model, action);
 
 const style = StyleSheet.create({
   root: {
@@ -207,19 +249,19 @@ export const view/*:type.view*/ = (model, address, children) =>
     className: 'root',
     style: style.root,
     tabIndex: 1,
-    onKeyDown: onWindow(forward(address, asFor("Browser.KeyDown")), keyDown),
-    onKeyUp: onWindow(forward(address, asFor("Browser.KeyUp")), keyUp),
-    onBlur: onWindow(forward(address, asFor("shell")), Focusable.asBlur),
-    onFocus: onWindow(forward(address, asFor("shell")), Focusable.asFocus),
-    // onUnload: () => address(Session.SaveSession),
+    onKeyDown: onWindow(address, decodeKeyDown),
+    onKeyUp: onWindow(address, decodeKeyUp),
+    onBlur: onWindow(address, always(Blur)),
+    onFocus: onWindow(address, always(Focus)),
+    onUnload: onWindow(address, always(Unload))
   }, [
     ...children,
     thunk('devtools',
           Devtools.view,
           model.devtools,
-          forward(address, asByDevtools)),
-    thunk('controls',
-      WindowControls.view,
+          forward(address, DevtoolsAction)),
+    thunk('shell',
+      Shell.view,
       model.shell,
-      forward(address, asFor("shell")))
+      forward(address, ShellAction))
   ]);

@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from "../../type/browser/web-view/page" */
+/*:: import * as type from "../../../type/browser/web-view/page" */
 
 import {Effects, Task} from 'reflex';
 import {merge} from '../../common/prelude';
@@ -89,18 +89,18 @@ const updateMeta = (model, name, content) =>
 const updatePallet = model =>
   model.curatedColor ?
     merge(model, {
-      pallet: Pallet.initialize(model.curatedColor.background,
+      pallet: Pallet.init(model.curatedColor.background,
                                 model.curatedColor.foreground)
     }) :
   model.themeColor ?
     merge(model, {
-      pallet: Pallet.initialize(...`${model.themeColor}|'`.split('|'))
+      pallet: Pallet.init(...`${model.themeColor}|'`.split('|'))
     }) :
   merge(model, {
     pallet: Pallet.blank
   });
 
-export const step/*:type.step*/ = (model, action) =>
+export const update/*:type.update*/ = (model, action) =>
   action.type === 'WebView.Progress.Start' ?
     start(model) :
   action.type === 'WebView.Page.TitleChanged' ?

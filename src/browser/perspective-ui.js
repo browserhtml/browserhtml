@@ -1,13 +1,14 @@
 /* @flow */
 
-import {forward, thunk, Effects} from 'reflex';
+import {forward, thunk, Effects, Task} from 'reflex';
 import * as Input from './input';
 import * as Assistant from './assistant';
 import * as Sidebar from './sidebar';
 import * as Browser from './browser';
 import * as WebViews from './web-views';
 import * as Overlay from './overlay';
-import {asFor, merge, cursor} from '../common/prelude';
+import {asFor, merge} from '../common/prelude';
+import {cursor} from '../common/cursor';
 import * as URI from '../common/url-helper';
 import {Style, StyleSheet} from '../common/style';
 import * as Animation from '../common/animation';
@@ -16,8 +17,8 @@ import {ease, easeOutCubic, float} from 'eased';
 
 export const OverlayClicked = {type: "OverlayClicked"};
 
-export const initialize/*:type.initialize*/ = () => {
-  const [browser, browserFx] = Browser.initialize();
+export const init/*:type.init*/ = () => {
+  const [browser, browserFx] = Browser.init();
   const [sidebar, sidebarFx] = Sidebar.init();
   const [overlay, overlayFx] = Overlay.init(false, false);
   const model = {
@@ -32,6 +33,7 @@ export const initialize/*:type.initialize*/ = () => {
     model,
     Effects.batch([
       browserFx,
+      Effects.task(Task.succeed(Browser.CreateWebView)),
       overlayFx.map(OverlayAction),
       sidebarFx.map(SidebarAction)
     ])
@@ -49,18 +51,21 @@ const OverlayAction = action =>
   ? OverlayClicked
   : ({type: "Overlay", action});
 
-const sidebar = cursor({
+const InputAction = action =>
+  ({type: "Input", action});
+
+const updateSidebar = cursor({
   get: model => model.sidebar,
   set: (model, sidebar) => merge(model, {sidebar}),
   tag: SidebarAction,
-  update: Sidebar.step
+  update: Sidebar.update
 });
 
-const overlay = cursor({
+const updateOverlay = cursor({
   get: model => model.overlay,
   set: (model, overlay) => merge(model, {overlay}),
   tag: OverlayAction,
-  update: Overlay.step
+  update: Overlay.update
 });
 
 export const isOverlayClick = action =>
@@ -155,22 +160,22 @@ export const showTabsTransitionDuration = 600;
 export const hideTabsTransitionDuration = 200;
 
 
-export const step = (model, action) => {
+export const update = (model, action) => {
   if (action.type === "Sidebar") {
-    return sidebar(model, action.action);
+    return updateSidebar(model, action.action);
   }
   else if (action.type === "Overlay") {
-    return overlay(model, action.action);
+    return updateOverlay(model, action.action);
   }
   else if (action.type === 'For' && action.target === 'animation') {
     // @TODO Right now we set animation to null whet it is not running but
-    // that makes delegation to Animation.step little tricky since animation
-    // can be null. Furthermore `Animation.step` itself does not handle
+    // that makes delegation to Animation.update little tricky since animation
+    // can be null. Furthermore `Animation.update` itself does not handle
     // `Animation.End` action so we need to check incoming actions before
     // delegation. We should out better API for `Animation` module or stop
     // settings `animation` to `null`.
     if (action.action.type === 'Animation.Tick') {
-      const [animation, fx] = Animation.step(model.animation, action.action);
+      const [animation, fx] = Animation.update(model.animation, action.action);
       return [
         merge(model, {
           animation: animation.now <= animation.end ?
@@ -186,8 +191,8 @@ export const step = (model, action) => {
   }
   else if (model.mode === 'create-web-view') {
     if (isAbort(action) || isEscape(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Hide);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
       // Only switch to show-web-view mode if there is a web view
       // to show. Otherwise remain in 'create-web-view' just let the
       // escape key clear the input or whatever it is that it is supposed
@@ -206,8 +211,8 @@ export const step = (model, action) => {
       // @TODO we also normalize in Browser for editing location. In future
       // we should create a single entry point for the URL.
       const open = Browser.asOpenWebView(URI.read(model.browser.input.value));
-      const [browser, fx] = Browser.step(model.browser, open);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Hide);
+      const [browser, fx] = Browser.update(model.browser, open);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
       return [
         merge(model, {browser, overlay, mode: 'show-web-view'}),
         Effects.batch([
@@ -223,8 +228,8 @@ export const step = (model, action) => {
   }
   else if (model.mode === 'edit-web-view') {
     if (isAbort(action) || isSubmit(action) || isEscape(action) || isOverlayClick(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Hide);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
       return [
         merge(model, {browser, overlay, mode: 'show-web-view'}),
         Effects.batch([
@@ -234,8 +239,8 @@ export const step = (model, action) => {
       ];
     }
     else if (isCreateTab(action)) {
-      const [browser, fx] = Browser.step(model.browser, Browser.CreateWebView);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Hide);
+      const [browser, fx] = Browser.update(model.browser, Browser.CreateWebView);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
       return [
         merge(model, {browser, overlay, mode: 'create-web-view'}),
         Effects.batch([
@@ -247,8 +252,8 @@ export const step = (model, action) => {
   }
   else if (model.mode === 'show-web-view') {
     if (isFocusInput(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Show);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Show);
 
       return [
         merge(model, {browser, overlay, mode: 'edit-web-view'}),
@@ -259,8 +264,8 @@ export const step = (model, action) => {
       ]
     }
     else if (isCreateTab(action)) {
-      const [browser, fx] = Browser.step(model.browser, Browser.CreateWebView);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Hide);
+      const [browser, fx] = Browser.update(model.browser, Browser.CreateWebView);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
       return [
         merge(model, {browser, mode: 'create-web-view'}),
         fx
@@ -273,11 +278,11 @@ export const step = (model, action) => {
     // When current webview is not loading, esc should go direct to
     // show-tabs view.
     else if (isShowTabs(action) || isEscape(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Fade);
-      const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Open);
+      const [browser, fx] = Browser.updates(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Fade);
+      const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Open);
       const [animation, animationFx]
-        = Animation.initialize(performance.now(), showTabsTransitionDuration);
+        = Animation.init(performance.now(), showTabsTransitionDuration);
 
       return [
         merge(model, {browser, overlay, sidebar, animation, mode: 'show-tabs'}),
@@ -291,11 +296,11 @@ export const step = (model, action) => {
     }
     else if (isSwitchSelectedWebView(action)) {
       const time = performance.now();
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Fade);
-      const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Open);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Fade);
+      const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Open);
       const [animation, animationFx]
-        = Animation.initialize(time, showTabsTransitionDuration);
+        = Animation.init(time, showTabsTransitionDuration);
 
       return [
         merge(model, {browser, sidebar, overlay, animation, mode: 'select-web-view'}),
@@ -309,8 +314,8 @@ export const step = (model, action) => {
       ];
     }
     else if (isEditWebview(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Show);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Show);
 
       return [
         merge(model, {browser, overlay, mode: 'edit-web-view'}),
@@ -328,12 +333,12 @@ export const step = (model, action) => {
         isOverlayClick(action))
     {
       const time = performance.now();
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Hide);
-      const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Close);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
+      const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Close);
       // TODO: Handle already running animation case (see #747).
       const [animation, animationFx]
-        = Animation.initialize(time, hideTabsTransitionDuration);
+        = Animation.init(time, hideTabsTransitionDuration);
 
       return [
         merge(model, {browser, sidebar, overlay, animation, mode: 'show-web-view'}),
@@ -347,9 +352,9 @@ export const step = (model, action) => {
       ];
     }
     else if (isCreateTab(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Hide);
-      const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Close);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
+      const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Close);
       return [
         merge(model, {browser, sidebar, overlay, mode: 'create-web-view'}),
         Effects.batch([
@@ -362,9 +367,9 @@ export const step = (model, action) => {
     // @TODO: Find out if we should handle this as it's not in the control
     // flow diagram, but presumably `meta l` should still trigger this.
     else if (isFocusInput(action)) {
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Show);
-      const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Close);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Show);
+      const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Close);
       return [
         merge(model, {browser, overlay, mode: 'edit-web-view'}),
         Effects.batch([
@@ -380,11 +385,11 @@ export const step = (model, action) => {
   else if (model.mode === 'select-web-view') {
     if (isActivateSelectedWebView(action)) {
       const time = performance.now();
-      const [browser, fx] = Browser.step(model.browser, action);
-      const [overlay, overlayFx] = Overlay.step(model.overlay, Overlay.Hide);
-      const [sidebar, sidebarFx] = Sidebar.step(model.sidebar, Sidebar.Close);
+      const [browser, fx] = Browser.update(model.browser, action);
+      const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
+      const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Close);
       const [animation, animationFx]
-        = Animation.initialize(time, hideTabsTransitionDuration);
+        = Animation.init(time, hideTabsTransitionDuration);
 
       return [
         merge(model, {browser, sidebar, overlay, animation, mode: 'show-web-view'}),
@@ -400,7 +405,7 @@ export const step = (model, action) => {
   }
 
   // If we reached this then action
-  const [browser, fx] = Browser.step(model.browser, action);
+  const [browser, fx] = Browser.update(model.browser, action);
   return [merge(model, {browser}), fx];
 }
 
@@ -446,12 +451,6 @@ const transition = {
 }
 
 const style = StyleSheet.create({
-  inputVisible: {},
-  inputHidden: {
-    opacity: 0,
-    pointerEvents: 'none'
-  },
-
   webViewZoomedIn: {},
   webViewZoomedOut: {
     transform: 'translate3d(0, 0, -600px) rotateY(10deg)',
@@ -516,7 +515,7 @@ const viewAsEditWebView = (model, address) =>
     thunk('input',
           Input.view,
           model.browser.input,
-          forward(address, asFor('input')),
+          forward(address, InputAction),
           style.inputVisible)
   ]);
 
@@ -547,7 +546,7 @@ const viewAsShowWebView = (model, address) =>
     thunk('input',
           Input.view,
           model.browser.input,
-          forward(address, asFor('input')),
+          forward(address, InputAction),
           style.inputHidden)
   ]);
 
@@ -579,7 +578,7 @@ const viewAsCreateWebView = (model, address) =>
     thunk('input',
           Input.view,
           model.browser.input,
-          forward(address, asFor('input')),
+          forward(address, InputAction),
           style.inputVisible)
   ]);
 
@@ -611,7 +610,7 @@ const viewAsSelectWebView = (model, address) =>
     thunk('input',
           Input.view,
           model.browser.input,
-          forward(address, asFor('input')),
+          forward(address, InputAction),
           style.inputHidden)
   ]);
 
@@ -643,6 +642,6 @@ const viewAsShowTabs = (model, address) =>
     thunk('input',
           Input.view,
           model.browser.input,
-          forward(address, asFor('input')),
+          forward(address, InputAction),
           style.inputHidden)
   ]);

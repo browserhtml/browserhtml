@@ -77,8 +77,8 @@ export type isSwitchSelectedWebView = ActionPredicate
 
 
 
-export type initilize = () => [Model, Effects<Action>]
-export type step = (model:Model, action:Action) => [Model, Effects<Action>]
+export type init = () => [Model, Effects<Action>]
+export type update = (model:Model, action:Action) => [Model, Effects<Action>]
 
 export type View <Model> = (model:Model, address:Address<Action>) => VirtualTree
 

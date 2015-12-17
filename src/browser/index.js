@@ -13,9 +13,15 @@ import {version} from "../../package.json";
 import {Renderer} from "driver";
 
 
-const logger = (step) => (model, action) => {
-  const out = step(model, action);
-  console.log(action, ...out);
+const logger = (update) => (model, action) => {
+  console.log('>>> Action:', action);
+
+  console.group();
+  const out = update(model, action);
+  console.groupEnd();
+
+  console.log('<<< Model:', out[0])
+  console.log('<<< Effects:', out[1]);
   return out;
 }
 
@@ -30,8 +36,8 @@ if (isReload) {
 const application = start({
   initial: isReload ?
             window.application.model.value :
-            UI.initialize(),
-  step: logger(UI.step),
+            UI.init(),
+  step: logger(UI.update),
   view: UI.view
 });
 

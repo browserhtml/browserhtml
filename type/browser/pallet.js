@@ -1,5 +1,7 @@
 /* @flow */
 
+import type {Effects} from "reflex/type/effects";
+
 // Any type of valid CSS color string.
 type Color = string;
 // A string assumed to be in hex color format.
@@ -15,4 +17,4 @@ export type isHexBright = (hexcolor: HexColor) => boolean;
 export type isDark = (color: Color) => boolean;
 
 export type blank = Model;
-export type initialize = (background: Color, foreground: Color) => Model;
+export type init = (background: Color, foreground: Color) => [Model, Effects<any>];

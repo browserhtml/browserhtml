@@ -36,4 +36,4 @@ export type Response
   | For<"devtools", Devtools.Response>
 
 export type view = (model:Model, address:Address<Action>) => VirtualTree
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type update = (model:Model, action:Action) => [Model, Effects<Response>]

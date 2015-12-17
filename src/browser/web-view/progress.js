@@ -69,7 +69,7 @@ export const tick/*:type.tick*/ = (timeStamp, model) =>
     [merge(model, {updateTime: timeStamp}), Effects.tick(asTick)] :
     [merge(model, {updateTime: timeStamp}), Effects.none];
 
-export const step = (model, action) =>
+export const update = (model, action) =>
   action.type === 'WebView.Progress.Start' ?
     start(action.timeStamp) :
   action.type === 'WebView.Progress.End' ?

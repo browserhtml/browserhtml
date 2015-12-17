@@ -7,43 +7,44 @@
 import {html, thunk, forward} from 'reflex';
 import {Style, StyleSheet} from '../../common/style';
 import * as Toggle from "../../common/toggle";
-import {merge, cursor} from "../../common/prelude";
+import {merge} from "../../common/prelude";
+import {cursor} from "../../common/cursor";
 
 export const Attach = {type: "Attach"};
 export const Detach = {type: "Detach"};
 
-const Pin = action =>
+const ToggleAction = action =>
     action.type === "Check"
   ? Attach
   : action.type === "Uncheck"
   ? Detach
-  : ({type: "Pin", action});
+  : ({type: "Toggle", action});
 
-const pin = cursor({
+const updateToggle = cursor({
   get: model => model.pin,
   set: (model, pin) => merge(model, {pin}),
-  tag: Pin,
-  update: Toggle.step
+  tag: ToggleAction,
+  update: Toggle.update
 });
 
 export const init = () => {
   const [pin, fx] = Toggle.init()
   return [
     {pin},
-    fx.map(Pin)
+    fx.map(ToggleAction)
   ]
 }
 
 export const Model = ({pin}) => ({pin});
 
-export const step = (model, action) =>
+export const update = (model, action) =>
     action.type === "Attach"
-  ? pin(model, Toggle.Check)
+  ? updateToggle(model, Toggle.Check)
   : action.type === "Detach"
-  ? pin(model, Toggle.Uncheck)
-  : action.type === "Pin"
-  ? pin(model, action.action)
-  : Unknown.step(model, action)
+  ? updateToggle(model, Toggle.Uncheck)
+  : action.type === "Toggle"
+  ? updateToggle(model, action.action)
+  : Unknown.update(model, action);
 
 export const styleSheet = StyleSheet.create({
   toolbar: {
@@ -81,5 +82,5 @@ export const view = (model, address) =>
     className: 'sidebar-toolbar',
     style: styleSheet.toolbar
   }, [
-    thunk('pin', viewPin, model.pin, forward(address, Pin))
+    thunk('pin', viewPin, model.pin, forward(address, ToggleAction))
   ]);

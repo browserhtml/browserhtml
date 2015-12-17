@@ -31,11 +31,12 @@
   const Style = (...styles) => {
     var length = styles.length;
     var index = 0;
+    var id = null;
     while (index < length) {
       const style = styles[index];
       if (style) {
         if (style[ID]) {
-          id = id ? `${id}+${style[ID]}` : id;
+          id = id ? `${id}+${style[ID]}` : style[ID];
         } else if (typeof(style) === "object") {
           id = null;
         } else {

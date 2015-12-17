@@ -22,21 +22,3 @@ export type For <target, action> = {
 
 export type asFor <target, action> = (target:target) =>
   (action:action) => For<target, action>
-
-export type Ok <value> = {
-  type: "Ok",
-  value: value
-}
-
-export type asOk <value> = (value:value) => Ok<value>
-
-export type Error <error> = {
-  type: "Error",
-  error: error
-}
-
-export type asError <error> = (error:error) => Error<error>
-
-export type Result <error, result>
-  = Ok <result>
-  | Error <error>

@@ -71,6 +71,6 @@ export type readTitle = (model:Model, fallback: string) => string
 export type readFaviconURI = (model:Model) => URI
 export type isDark = (model:Model) => boolean
 
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type update = (model:Model, action:Action) => [Model, Effects<Response>]
 
 export type view = (model:Model, address:Address<Action>) => VirtualTree

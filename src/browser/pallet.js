@@ -48,7 +48,7 @@ export const blank/*:type.blank*/ = {
   background: null
 };
 
-export const initialize/*:type.initialize*/ = (background, foreground) => ({
+export const init/*:type.init*/ = (background, foreground) => ({
   background, foreground,
   isDark: isDark(background),
 });

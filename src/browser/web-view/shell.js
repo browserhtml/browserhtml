@@ -20,8 +20,6 @@ export const initial = ({
   zoom: 1
 })
 
-export const focus = Focusable.focus;
-export const blur = Focusable.blur;
 export const Focus = Focusable.Focus;
 export const Blur = Focusable.Blur;
 
@@ -75,7 +73,7 @@ export const request = (model, {id, action}) =>
     requestVisibilityChange(id, action.isVisible) :
     Effects.none;
 
-export const step/*:type.step*/ = (model, action) =>
+export const update/*:type.update*/ = (model, action) =>
   action.type === 'WebView.Shell.VisibilityChanged' ?
     [merge(model, {isVisible: action.isVisible}), Effects.none] :
   action.type === 'WebView.Shell.ZoomChanged' ?

@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import type {Effects} from "reflex/type/effects"
-import type {Time} from "../../common/prelude"
+import type {Time} from "../common/prelude"
 
 export type Model = {
   start: Time,
@@ -14,7 +14,7 @@ export type Model = {
 }
 
 export type Tick = {
-  type: "Animation.Tick"
+  type: "Animation.Tick",
   time: Time
 }
 
@@ -28,10 +28,10 @@ export type Action
 
 export type create = (time:Time, duration:Time) => Model
 
-export type initialize = (time:Time, duration:Time) =>
+export type init = (time:Time, duration:Time) =>
   [Model, Effects<Tick>]
 
-export type step = (model:Model, action:Tick) =>
+export type update = (model:Model, action:Tick) =>
   [Model, Effects<Action>]
 
 export type progress = (model:Model) => number

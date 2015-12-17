@@ -1,69 +1,70 @@
 /* @flow */
 
-import {merge, cursor} from "../common/prelude"
+import {merge, always} from "../common/prelude"
+import {cursor} from "../common/cursor"
 import * as Unknown from "../common/unknown"
 import * as Target from "../common/target"
 import * as Focusable from "../common/focusable"
 import {Style} from "../common/style"
-import {html, Effects} from "reflex"
+import {html, Effects, forward} from "reflex"
 
 /*:: import * as type from "../../type/common/button" */
 
-export const Down = {type: "Down"}
-export const Press = {type: "Press"}
-export const Up = {type: "Up"}
+export const Down = {type: "Down"};
+export const Press = {type: "Press"};
+export const Up = {type: "Up"};
+export const Disable = {type: "Disable"};
+export const Enable = {type: "Enable"};
 
-const Point = action => ({type: "Point", action});
-const Focus = action => ({type: "Focus", action});
+const TargetAction = action => ({type: "Target", action});
+const FocusableAction = action => ({type: "Focusable", action});
 
-const focus = cursor({
-  tag: Focus,
-  update: Focusable.step
+export const Focus = FocusableAction(Focusable.Focus);
+export const Blur = FocusableAction(Focusable.Blur);
+
+export const Over = TargetAction(Target.Over);
+export const Out = TargetAction(Target.Out);
+
+
+const updateFocusable = cursor({
+  tag: FocusableAction,
+  update: Focusable.update
 });
 
-const point = cursor({
-  tag: Point,
-  update: Target.step
+const updateTarget = cursor({
+  tag: TargetAction,
+  update: Target.update
 });
 
 
-
-export const init = () => ({
-  isDisabled: false,
-  isFocused: false,
-  isActive: false,
-  isPointerOver: false
-});
+export const init = (isDisabled, isFocused, isActive, isPointerOver) =>
+  [ ({isDisabled: false
+    , isFocused: false
+    , isActive: false
+    , isPointerOver: false
+    })
+  , Effects.none
+  ]
 
 export const Model = ({isDisabled, isActive, isPointerOver, isFocused}) =>
-  ({isDisabled, isActive, isPointerOver});
+  ({isDisabled, isActive, isPointerOver, isFocused});
 
-export const activate = model =>
-    model.isDisabled
-  ? model
-  : merge(model, {isActive: true});
-
-export const deactivate = model =>
-    model.isDisabled
-  ? model
-  : merge(model, {isActive: false});
-
-export const disable = model =>
-  merge(model, {isActive: false, isDisabled: true});
-
-
-export const step = (model, action) =>
+export const update = (model, action) =>
     action.type === "Down"
-  ? [activate(model), Effects.none]
+  ? [merge(model, {isActive: true}), Effects.none]
   : action.type === "Up"
-  ? [deactivate(model), Effects.none]
+  ? [merge(model, {isActive: false}), Effects.none]
   : action.type === "Press"
   ? [model, Effects.none]
-  : action.type === "Point"
-  ? point(model, action.action)
-  : action.type === "Focus"
-  ? focus(model, action.action)
-  : Unknown.step(model, action)
+  : action.type === "Enable"
+  ? [merge(model, {isDisabled: false}), Effects.none]
+  : action.type === "Disable"
+  ? [merge(model, {isDisabled: true}), Effects.none]
+  : action.type === "Target"
+  ? updateTarget(model, action.action)
+  : action.type === "Focusable"
+  ? updateFocusable(model, action.action)
+  : Unknown.update(model, action)
 
 
 export const view = (key, styleSheet) => (model, address, contextStyle) =>
@@ -71,9 +72,15 @@ export const view = (key, styleSheet) => (model, address, contextStyle) =>
     key: key,
     className: key,
     style: Style
-      (   model.isFocused
+      (  styleSheet.base
+
+      ,   model.isFocused
         ? styleSheet.focused
         : styleSheet.blured
+
+      ,   model.isDisabled
+        ? styleSheet.disabled
+        : styleSheet.enabled
 
       ,  model.isPointerOver
         ? styleSheet.over
@@ -83,20 +90,16 @@ export const view = (key, styleSheet) => (model, address, contextStyle) =>
         ? styleSheet.active
         : styleSheet.inactive
 
-      ,   model.isDisabled
-        ? styleSheet.disabled
-        : styleSheet.enabled
-
       , contextStyle
       ),
 
-    onFocus: () => address(Focus(Focusable.Focus)),
-    onBlur: () => address(Focus(Focusable.Blur)),
+    onFocus: forward(address, always(Focus)),
+    onBlur: forward(address, always(Blur)),
 
-    onMouseOver: () => address(Point(Target.Over)),
-    onMouseOut: () => address(Point(Target.Out)),
+    onMouseOver: forward(address, always(Over)),
+    onMouseOut: forward(address, always(Out)),
 
-    onMouseDown: () => address(Down),
-    onClick: () => address(Press),
-    onMouseUp: () => address(Up)
+    onMouseDown: forward(address, always(Down)),
+    onClick: forward(address, always(Press)),
+    onMouseUp: forward(address, always(Up))
   });

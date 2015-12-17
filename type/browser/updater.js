@@ -2,7 +2,8 @@
 
 import type {VirtualTree} from "reflex/type"
 import type {Effects} from "reflex/type/effects"
-import type {Time, URI, Result} from "../common/prelude"
+import type {Time, URI} from "../common/prelude"
+import type {Result} from "../common/result"
 
 export type Model = {
   // eTag is received from the application update server when latest available
@@ -129,7 +130,7 @@ export type scheduleApplicationUpdateCheck = (time:Time) =>
 // - request to be notified on runtime update
 // That is why it can have side effects listed under the a type uninon with in
 // the effects.
-export type initilize = () =>
+export type init = () =>
   [Model, Effects<ApplicationVersionResponse |
                   ApplicationUpdateResponse |
                   RuntimeUpdateAvailable>]
@@ -139,7 +140,7 @@ export type initilize = () =>
 // - request to check an application update (updater polls & user action may also trigger that)
 // - request to be notified on runtime update (in response to user action)
 // - request to check runtime update (in response to user action)
-export type step = (model:Model, action:Action) =>
+export type update = (model:Model, action:Action) =>
   [Model, Effects<ApplicationVersionResponse |
                   ApplicationUpdateResponse |
                   RuntimeUpdateAvailable |

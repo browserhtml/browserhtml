@@ -112,4 +112,4 @@ export type changeLocation = (model:Model, uri:URI) => Model
 
 export type asLoad = (uri:URI) => Load
 
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type update = (model:Model, action:Action) => [Model, Effects<Response>]

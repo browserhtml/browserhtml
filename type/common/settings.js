@@ -1,7 +1,8 @@
 /* @flow */
 
-import type {Address, VirtualTree, Effects} from "reflex/type"
-import type {Result} from "./prelude"
+import type {Address, Task} from "reflex/type"
+import type {Effects, Never} from "reflex/type/effects"
+import type {Result} from "../common/result"
 
 export type Name = string
 export type Value
@@ -10,26 +11,44 @@ export type Value
   | string
   | void
 
+
 export type Settings = {
   [key:Name]:Value
 }
 
-export type Fetched = {
-  type: "Settings.Fetched",
-  result: Result<string, Settings>
-}
+export type Model = ?Settings
 
-export type Updated = {
-  type: "Settings.Updated",
-  result: Result<string, Settings>
-}
 
-export type Changed = {
-  type: "Settings.Changed",
-  name: Name,
-  value: Value
-}
+export type FetchResult =
+  { type: "Fetched"
+  , result: Result<Error, Settings>
+  }
 
-export type fetch = (names:Array<Name>) => Effects<Fetched>
-export type update = (settings:Settings) => Effects<Updated>
-export type notifyChange = (namePattern:string) => Effects<Changed>
+export type UpdateResult =
+  { type: "Updated"
+  , result: Result<Error, Settings>
+  }
+
+export type ChangeResult =
+  { type: "Changed"
+  , result: Result<Error, Settings>
+  }
+
+export type Action
+  = FetchResult
+  | UpdateResult
+  | ChangeResult
+
+export type Fetched = (result:Result<Error, Settings>) => FetchResult
+export type Updated = (result:Result<Error, Settings>) => UpdateResult
+export type Changed = (result:Result<Error, Settings>) => ChangeResult
+
+export type fetch = (names:Array<Name>) => Task<Never, FetchResult>
+export type change = (settings:Settings) => Task<Never, ChangeResult>
+export type observe = (namePattern:string) => Task<Never, UpdateResult>
+
+export type init = (names:Array<Name>) =>
+  [Model, Effects<Action>]
+
+export type update = (model:Model, action:Action) =>
+  [Model, Effects<Action>]

@@ -3,65 +3,101 @@
 import {html, forward, Effects} from 'reflex';
 import {on, focus, selection} from 'driver';
 import {identity} from '../lang/functional';
-import {always} from '../common/prelude';
+import {always, merge} from '../common/prelude';
+import {cursor} from "../common/cursor";
+import {compose} from '../lang/functional';
 import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
 import * as Keyboard from '../common/keyboard';
+import * as Unknown from '../common/unknown';
 import {Style, StyleSheet} from '../common/style';
 
-/*:: import * as type from "../../type/browser/input" */
 
-export const initial/*:type.Model*/ = {
-  value: "",
-  isFocused: false,
-  selection: null
-};
+/*:: import * as type from '../../type/browser/input' */
+
+export const initial/*:type.Model*/ =
+  { value: ''
+  , isFocused: false
+  , selection: null
+  , isVisible: false
+  };
 
 // Create a new input submit action.
-export const Submit/*:type.Submit*/ = {
-  type: 'Input.Submit'
-};
+export const Submit/*:type.Submit*/ = {type: 'Submit'};
+export const Abort/*:type.Abort*/ = {type: 'Abort'};
+export const Enter/*:type.Enter*/ = {type: 'Enter'};
+export const Focus = Focusable.Focus;
+export const Show = {type: 'Show'};
+export const Hide = {type: 'Hide'};
+export const EnterSelection = value => ({type: 'EnterSelection', value});
 
-export const Abort/*:type.Abort*/ = {
-  type: 'Input.Abort'
-};
+const FocusableAction = action =>
+    action.type === 'Focus'
+  ? Focus
+  : {type: 'Focusable', action};
 
-export const Enter/*:type.Enter*/ = {
-  type: 'Input.Enter'
-};
+const EditableAction = action => ({type: 'Editable', action});
 
-export const asEditSelection/*:type.asEditSelection*/ = text =>
-  ({type: 'Input.EditSelection', text});
+export const Blur = FocusableAction(Focusable.Blur);
 
-export const update/*:type.update*/ = (model, action) =>
-  action.type === 'Keyboard.Command' && action.action.type === 'Focusable.Blur' ?
-    Focusable.update(model, action.action) :
-  action.type === 'Keyboard.Command' && action.action.type === 'Input.Submit' ?
-    Editable.clear(model) :
-  action.type === 'Input.Abort' ?
-    Focusable.update(model, Focusable.Blur) :
-  action.type === 'Input.Enter' ?
-    Editable.clear(Focusable.focus(model)) :
-  action.type === 'Input.EditSelection' ?
-    Editable.change(Focusable.focus(model), {
-      value: action.text,
-      selection: {start: 0, end: action.text.length, direction: 'forward'}
-    }) :
-  action.type === "Focusable.Blur" ?
-    Focusable.update(model, action) :
-  action.type === "Focusable.Focus" ?
-    Focusable.update(model, action) :
-  action.type === "Focusable.FocusRequest" ?
-    Focusable.update(model, action) :
-  action.type === "Editable.Clear" ?
-    Editable.update(model, action) :
-  action.type === "Editable.Select" ?
-    Editable.update(model, action) :
-  action.type === "Editable.Change" ?
-    Editable.update(model, action) :
-    model;
+const updateFocusable = cursor({
+  tag: FocusableAction,
+  update: Focusable.update
+});
 
-export const step = Effects.nofx(update);
+const updateEditable = cursor({
+  tag: EditableAction,
+  update: Editable.update
+});
+
+const enter = (model) => {
+  const [next, focusFx] = updateFocusable(model, Focusable.Focus);
+  const [result, editFx] = updateEditable(next, Editable.Clear);
+  return [result, Effects.batch([focusFx, editFx])];
+}
+
+const enterSelection = (model, value) => {
+  const [next, focusFx] = updateFocusable(model, Focusable.Focus);
+  const [result, editFx] = updateEditable(next, Editable.Change({
+    value,
+    selection: {start: 0, end: value.length, direction: 'forward'}
+  }));
+  return [result, Effects.batch([focusFx, editFx])];
+}
+
+export const init = (isVisible=false, isFocused=false, value='') =>
+  [ ({value
+    , isFocused
+    , isVisible
+    , selection: null
+    })
+  , Effects.none
+  ];
+
+export const update = (model, action) =>
+    action.type === 'Keyboard.Command'
+  ? update(model, action.action)
+  : action.type === 'Abort'
+  ? updateFocusable(model, Focusable.Blur)
+  : action.type === 'Enter'
+  ? enter(merge(model, {isVisible: true}))
+  : action.type === Focus.type
+  ? updateFocusable
+    ( merge(model, {isFocused: true, isVisible: true})
+    , Focusable.Focus
+    )
+  : action.type === 'EnterSelection'
+  ? enterSelection(merge(model, {isVisible: true}), action.value)
+  : action.type === 'Focusable'
+  ? updateFocusable(model, action.action)
+  : action.type === 'Editable'
+  ? updateEditable(model, action.action)
+  : action.type === 'Show'
+  ? [merge(model, {isVisible: true}), Effects.none]
+  : action.type === 'Hide'
+  ? [merge(model, {isVisible: false}), Effects.none]
+  : Unknown.update(model, action)
+
 
 const binding = Keyboard.bindings({
   // 'up': _ => Suggestions.SelectPrevious(),
@@ -82,13 +118,19 @@ const readSelection = target => ({
 
 // Read change action from a dom event.
 // @TODO type signature
-const readChange = ({target}) =>
-  Editable.asChange(target.value, readSelection(target));
+const readChange = compose
+  ( EditableAction
+  , ({target}) =>
+      Editable.Change(target.value, readSelection(target))
+  );
 
 // Read select action from a dom event.
 // @TODO type signature
-const readSelect = ({target}) =>
-  Editable.asSelect(readSelection(target));
+const readSelect = compose
+  ( EditableAction
+  , ({target}) =>
+      Editable.Select(readSelection(target))
+  );
 
 const inputWidth = '460px';
 const inputHeight = '40px';
@@ -140,13 +182,24 @@ const style = StyleSheet.create({
   },
   clearIconInactive: {
     opacity: 0
+  },
+  visible: {
+
+  },
+  hidden: {
+    opacity: 0,
+    pointerEvents: 'none'
   }
 });
 
-export const view = (model, address, modeStyle) =>
+export const view = (model, address) =>
   html.div({
     className: 'input-combobox',
-    style: Style(style.combobox, modeStyle)
+    style: Style( style.combobox
+                ,   model.isVisible
+                  ? style.visible
+                  : style.hidden
+                )
   }, [
     html.span({
       className: 'input-search-icon',
@@ -170,8 +223,8 @@ export const view = (model, address, modeStyle) =>
       selection: selection(model.selection),
       onInput: on(address, readChange),
       onSelect: on(address, readSelect),
-      onFocus: on(address, Focusable.asFocus),
-      onBlur: on(address, Focusable.asBlur),
+      onFocus: on(address, always(Focus)),
+      onBlur: on(address, always(Blur)),
       onKeyDown: on(address, binding),
       // DOM does not fire selection events when you hit arrow
       // keys or when you click in the input field. There for we

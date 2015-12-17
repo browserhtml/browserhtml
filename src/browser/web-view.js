@@ -8,6 +8,7 @@
 
 import {Effects, html} from 'reflex';
 import {merge, always, asFor} from '../common/prelude';
+import {cursor} from '../common/cursor';
 import {on} from 'driver';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
@@ -18,6 +19,7 @@ import {Style, StyleSheet} from '../common/style';
 import * as Driver from 'driver';
 import * as URI from '../common/url-helper';
 import * as Animation from '../common/animation';
+import * as Focusable from '../common/focusable';
 import {ease, easeOutCubic, float} from 'eased';
 
 export const RequestZoomIn = Shell.asRequest(Shell.ZoomIn);
@@ -47,6 +49,8 @@ export const RequestShowTabs/*:type.RequestShowTabs*/
 
 export const Create = ({type: 'WebView.Create'});
 
+export const Focus = Focusable.Focus;
+
 export const open/*:type.open*/ = (id, options) => ({
   id: id,
   name: options.name,
@@ -70,7 +74,7 @@ export const select/*:type.select*/ = model => {
   }
   else {
     const [animation, fx]
-      = Animation.initialize(performance.now(), selectTransitionDuration);
+      = Animation.init(performance.now(), selectTransitionDuration);
 
     return [
       merge(model, {isSelected: true, animation}),
@@ -82,7 +86,7 @@ export const select/*:type.select*/ = model => {
 export const unselect/*:type.unselect*/ = model => {
   if (model.isSelected) {
     const [animation, fx]
-      = Animation.initialize(performance.now(), unselectTransitionDuration);
+      = Animation.init(performance.now(), unselectTransitionDuration);
 
     return [
       merge(model, {isSelected: false, animation}),
@@ -127,7 +131,7 @@ export const readFaviconURI/*:type.readFaviconURI*/ = (model) =>
 export const isDark/*:type.isDark*/ = (model) =>
   model.page ? model.page.pallet.isDark : false;
 
-export const step/*:type.step*/ = (model, action) => {
+export const update/*:type.update*/ = (model, action) => {
   // Shell actions
   if (action.type === "WebView.Select") {
     return select(model);
@@ -142,18 +146,18 @@ export const step/*:type.step*/ = (model, action) => {
     return [activate(model), Effects.none];
   }
   else if (action.type === "Focusable.Blur") {
-    const [shell, fx] = Shell.step(model.shell, action);
+    const [shell, fx] = Shell.update(model.shell, action);
     return [merge(model, {shell}), fx];
   }
   // Progress actions
   else if (action.type === 'WebView.Progress.Tick')
   {
-    const [progress, fx] = Progress.step(model.progress, action);
+    const [progress, fx] = Progress.update(model.progress, action);
     return [merge(model, {progress}), fx];
   }
   else if (action.type === 'WebView.Progress.Start') {
     const [progress, progressFx] = Progress.start(action.timeStamp);
-    const [page, pageFx] = Page.step(model.page, action);
+    const [page, pageFx] = Page.update(model.page, action);
     const security = Security.initial;
 
     return [
@@ -166,8 +170,8 @@ export const step/*:type.step*/ = (model, action) => {
 
   }
   else if (action.type === 'WebView.Progress.End') {
-    const [progress, progressFx] = Progress.step(model.progress, action);
-    const [page, pageFx] = Page.step(model.page, action);
+    const [progress, progressFx] = Progress.update(model.progress, action);
+    const [page, pageFx] = Page.update(model.page, action);
 
     return [
       merge(model, {progress, page}),
@@ -185,9 +189,9 @@ export const step/*:type.step*/ = (model, action) => {
     const request = Navigation.asLocationChanged(model.id,
                                                   action.uri,
                                                   action.timeStamp);
-    const [navigation, navigationFx] = Navigation.step(model.navigation,
+    const [navigation, navigationFx] = Navigation.update(model.navigation,
                                                         request);
-    const [page, pageFx] = Page.step(model.page, action);
+    const [page, pageFx] = Page.update(model.page, action);
     return [
       merge(model, {navigation, page}),
       Effects.batch([navigationFx, pageFx])
@@ -195,18 +199,18 @@ export const step/*:type.step*/ = (model, action) => {
   }
   else if (action.type === 'WebView.Navigation.Request') {
     const request = Navigation.asRequestBy(model.id, action.action);
-    const [navigation, fx] = Navigation.step(model.navigation, request);
+    const [navigation, fx] = Navigation.update(model.navigation, request);
     return [merge(model, {navigation}), fx];
   }
   else if (action.type === 'WebView.Navigation.Load' ||
            action.type === 'WebView.Navigation.CanGoBackChanged' ||
            action.type === 'WebView.Navigation.CanGoForwardChanged')
   {
-    const [navigation, fx] = Navigation.step(model.navigation, action);
+    const [navigation, fx] = Navigation.update(model.navigation, action);
     return [merge(model, {navigation}), fx];
   }
   else if (action.type === 'WebView.Security.Changed') {
-    const [security, fx] = Security.step(model.security, action);
+    const [security, fx] = Security.update(model.security, action);
     return [merge(model, {security}), fx];
   }
   // Page actions
@@ -222,24 +226,24 @@ export const step/*:type.step*/ = (model, action) => {
         || action.type === 'WebView.Page.OverflowChanged'
         || action.type === 'WebView.Page.Scrolled')
   {
-    const [page, fx] = Page.step(model.page, action);
+    const [page, fx] = Page.update(model.page, action);
     return [merge(model, {page}), fx];
   }
   else if (action.type === "WebView.Shell.Request") {
     const request = Shell.asRequestBy(model.id, action.action);
-    const [shell, fx] = Shell.step(model.shell, request);
+    const [shell, fx] = Shell.update(model.shell, request);
     return [merge(model, {shell}), fx];
   }
   else if (action.type === "WebView.Shell.ZoomChanged" ||
            action.type === "WebView.Shell.VisibilityChanged") {
-    const [shell, fx] = Shell.step(model.shell, action);
+    const [shell, fx] = Shell.update(model.shell, action);
     return [merge(model, {shell}), fx];
   }
   else if (action.type === "Animation.Tick") {
     // @TODO: Find out how do we end up in case where we have removed
     // unimation but still get a tick.
     if (model.animation) {
-      const [animation, fx] = Animation.step(model.animation, action);
+      const [animation, fx] = Animation.update(model.animation, action);
       return [merge(model, {animation}), fx];
     } {
       return [model, Effects.none];

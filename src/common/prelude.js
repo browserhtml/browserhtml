@@ -1,20 +1,13 @@
 /* @flow */
+
 /*:: import * as type from "../../type/common/prelude" */
-
-
+/*:: import {Effects} from "reflex/type/effects" */
 
 export const asFor/*:type.asFor*/ = target => action =>
   ({type: "For", target, action})
 
 
-export const asOk/*:type.asOk*/ = value =>
-  ({type: "Ok", value})
-
-export const asError/*:type.asError*/ = error =>
-  ({type: "Error", error})
-
-
-export const merge = /*::<model>*/(model/*:model*/, changes/*:{}*/)/*:model*/ => {
+export const merge = /*::<model:Object>*/(model/*:model*/, changes/*:{}*/)/*:model*/ => {
   let result = model
   for (let key in changes) {
     if (changes.hasOwnProperty(key)) {
@@ -66,29 +59,26 @@ const Always = {
   }
 }
 
+const alwaysSymbol = Symbol.for('always');
+
+const Null = () => null;
+const Void = () => void(0);
+
 export const always = /*::<a>*/(a/*:a*/)/*:(...args:Array<any>)=>a*/ => {
   const value = a
-  const f = () => value
-  f.value = value
-  f.toString = Always.toString
-  return f
-}
-
-export const lift = (tag, [model, fx]) =>
-  ([model, fx.map(tag)]);
-
-
-export const cursor = ({get, set, tag, update}) => (model, action) => {
-  const previous
-    = get == null
-    ? model
-    : get(model);
-
-  const [next, fx] = update(previous, action);
-  const state
-    = set == null
-    ? next
-    : set(model, next);
-
-  return [state, tag == null ? fx : fx.map(tag)]
+  if (value === null) {
+    return Null
+  }
+  else if (value === void(0)) {
+    return Void
+  }
+  else if (value[alwaysSymbol] != null) {
+    return value[alwaysSymbol]
+  } else {
+    const f = () => value
+    f.value = value
+    f.toString = Always.toString
+    value[alwaysSymbol] = f
+    return f
+  }
 }

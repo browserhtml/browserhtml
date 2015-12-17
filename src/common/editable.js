@@ -1,37 +1,37 @@
 /* @flow */
 
-import {merge} from "../common/prelude"
+import {merge} from "../common/prelude";
+import * as Unknown from "../common/unknown";
+import {Effects} from "reflex";
 
 /*:: import * as type from "../../type/common/editable" */
 
-export const initial/*:type.Model*/ = {
-  value: "",
-  selection: null
-}
+// Actions
 
-export const asSelect/*:type.asSelect*/ = range =>
-  ({type: "Editable.Select", range})
+export const Clear/*:type.Clear*/ = {type: "Clear"};
 
-export const asChange/*:type.asChange*/ = (value, selection) =>
-  ({type: "Editable.Change", value, selection})
+export const Select/*:type.Select*/ = range =>
+  ({type: "Select", range});
 
-export const Clear/*:type.Clear*/ = {type: "Editable.Clear"}
-export const asClear/*:type.asClear*/ = () => Clear
+export const Change/*:type.Change*/ = (value, selection) =>
+  ({type: "Change", value, selection});
 
-export const select/*:type.select*/ = (model, action) =>
-  merge(model, {selection: action.range})
 
-export const change/*:type.change*/ = (model, action) =>
-  merge(model, {selection: action.selection, value: action.value})
 
-export const clear/*:type.clear*/ = model =>
-  merge(model, initial)
+const select = (model, action) =>
+  merge(model, {selection: action.range});
+
+const change = (model, action) =>
+  merge(model, {selection: action.selection, value: action.value});
+
+const clear = model =>
+  merge(model, {value: "", selection: null});
 
 export const update/*:type.update*/ = (model, action) =>
-  action.type === "Editable.Clear" ?
-    clear(model) :
-  action.type === "Editable.Select" ?
-    select(model, action) :
-  action.type === "Editable.Change" ?
-    change(model, action) :
-  model;
+    action.type === "Clear"
+  ? [clear(model), Effects.none]
+  : action.type === "Select"
+  ? [select(model, action), Effects.none]
+  : action.type === "Change"
+  ? [change(model, action), Effects.none]
+  : Unknown.update(model, action);

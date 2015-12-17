@@ -26,12 +26,10 @@
   },
   "dependencies": {
     "eased": "0.0.4",
-    "immutable": "3.7.0",
     "pouchdb": "4.0.0",
-    "reflex": "0.0.51",
+    "reflex": "0.1.0",
     "reflex-virtual-dom-driver": "0.0.2",
-    "tinycolor2": "1.1.2",
-    "typed-immutable": "0.0.7"
+    "tinycolor2": "1.1.2"
   },
   "devDependencies": {
     "babel-core": "5.8.23",
