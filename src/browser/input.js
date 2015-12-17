@@ -58,10 +58,11 @@ const enter = (model) => {
 
 const enterSelection = (model, value) => {
   const [next, focusFx] = updateFocusable(model, Focusable.Focus);
-  const [result, editFx] = updateEditable(next, Editable.Change({
-    value,
-    selection: {start: 0, end: value.length, direction: 'forward'}
+  const [result, editFx] = updateEditable(next, Editable.Change(value, {
+    start: 0, end: value.length, direction: 'forward'
   }));
+
+
   return [result, Effects.batch([focusFx, editFx])];
 }
 
