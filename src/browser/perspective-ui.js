@@ -15,6 +15,7 @@ import {ease, easeOutCubic, float} from 'eased';
 
 
 export const OverlayClicked = {type: "OverlayClicked"};
+export const CreateWebView = {type: "CreateWebView"};
 
 export const initialize/*:type.initialize*/ = () => {
   const [browser, browserFx] = Browser.initialize();
@@ -41,6 +42,8 @@ export const initialize/*:type.initialize*/ = () => {
 const SidebarAction = action =>
     action.type === "Tabs"
   ? asByWebViews(action.action)
+  : action.type === 'CreateWebView'
+  ? CreateWebView
   : ({type: "Sidebar", action});
 
 
@@ -103,6 +106,7 @@ export const isKeyUp = action =>
   action.target === 'Browser.KeyUp';
 
 export const isCreateTab = action =>
+  (action === CreateWebView) ||
   (isWebViewAction(action) &&
    action.action.action.type === 'WebView.Create') ||
   (action.type === 'Browser.CreateWebView' ||

@@ -11,6 +11,7 @@ import {merge, cursor} from "../../common/prelude";
 
 export const Attach = {type: "Attach"};
 export const Detach = {type: "Detach"};
+export const CreateWebView = {type: "CreateWebView"};
 
 const Pin = action =>
     action.type === "Check"
@@ -52,6 +53,20 @@ export const styleSheet = StyleSheet.create({
     position: 'absolute',
     bottom: '0',
     width: '100%'
+  },
+
+  createTabButton: {
+    MozWindowDragging: 'no-drag',
+    color: 'rgba(255,255,255,0.8)',
+    fontFamily: 'FontAwesome',
+    fontSize: '18px',
+    lineHeight: '34px',
+    position: 'absolute',
+    textAlign: 'center',
+    bottom: '8px',
+    right: '8px',
+    width: '34px',
+    height: '34px',
   }
 });
 
@@ -85,5 +100,10 @@ export const view = (model, address, {toolbarOpacity}) =>
       {opacity: toolbarOpacity}
     )
   }, [
-    thunk('pin', viewPin, model.pin, forward(address, Pin))
+    thunk('pin', viewPin, model.pin, forward(address, Pin)),
+    html.div({
+      className: 'sidebar-create-tab-icon',
+      style: styleSheet.createTabButton,
+      onClick: () => address(CreateWebView)
+    }, [''])
   ]);
