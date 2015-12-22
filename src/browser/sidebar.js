@@ -105,6 +105,7 @@ export const Attach = {type: "Attach"};
 export const Detach = {type: "Detach"};
 export const Open = {type: "Open"};
 export const Close = {type: "Close"};
+export const CreateWebView = {type: 'CreateWebView'};
 const Animation = action => ({type: "Animation", action});
 const AnimationEnd = always({type: "AnimationEnd"});
 
@@ -234,6 +235,8 @@ const ToolbarAction = action =>
   ? Attach
   : action.type === "Detach"
   ? Detach
+  : action.type === "CreateWebView"
+  ? CreateWebView
   : ({type: "Toolbar", action});
 
 const Tabs = action =>
