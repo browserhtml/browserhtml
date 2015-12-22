@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   },
 
   tabSelected: {
-    backgroundColor: '#3D5166'
+    backgroundColor: '#3D91F2'
   },
 
   title: {
