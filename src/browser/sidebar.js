@@ -267,13 +267,14 @@ const viewImage = (uri, style) =>
   });
 
 // @TODO animate this in
-const viewClose = (isVisible) =>
+const viewClose = ({isVisible}, address) =>
   html.div({
     className: 'sidebar-tab-close',
     style: Style(
       style.closeButton,
       !isVisible && style.closeButtonHidden
-    )
+    ),
+    onClick: () => address(WebView.Close)
   }, [''])
 
 const viewTab = (model, address, {tabWidth, titleOpacity}) =>
@@ -301,7 +302,7 @@ const viewTab = (model, address, {tabWidth, titleOpacity}) =>
       // @TODO localize this string
       readTitle(model, 'Untitled')
     ]),
-    thunk('close', viewClose, true)
+    thunk('close', viewClose, {isVisible: true}, address)
   ]);
 
 
