@@ -16,7 +16,7 @@ import * as Stopwatch from "../common/stopwatch";
 import * as Easing from "eased";
 
 
-const styles = StyleSheet.create({
+const style = StyleSheet.create({
   sidebar: {
     // WARNING: will slow down animations! (gecko)
     // boxShadow: 'rgba(0, 0, 0, 0.5) -50px 0 80px',
@@ -54,6 +54,19 @@ const styles = StyleSheet.create({
 
   tabSelected: {
     backgroundColor: '#3D91F2'
+  },
+
+  closeButton: {
+    color: '#fff',
+    fontFamily: 'FontAwesome',
+    fontSize: '12px',
+    width: '34px',
+    height: '34px',
+    lineHeight: '34px',
+    position: 'absolute',
+    textAlign: 'center',
+    right: 0,
+    top: 0
   },
 
   title: {
@@ -253,12 +266,22 @@ const viewImage = (uri, style) =>
     }, style)
   });
 
+// @TODO animate this in
+const viewClose = (isVisible) =>
+  html.div({
+    className: 'sidebar-tab-close',
+    style: Style(
+      style.closeButton,
+      !isVisible && style.closeButtonHidden
+    )
+  }, [''])
+
 const viewTab = (model, address, {tabWidth, titleOpacity}) =>
   html.div({
     className: 'sidebar-tab',
     style: Style(
-      styles.tab,
-      model.isSelected && styles.tabSelected,
+      style.tab,
+      model.isSelected && style.tabSelected,
       {width: `${tabWidth}px`}
     ),
     onMouseDown: () => address(WebView.Select),
@@ -267,17 +290,18 @@ const viewTab = (model, address, {tabWidth, titleOpacity}) =>
     thunk('favicon',
           viewImage,
           readFaviconURI(model),
-          styles.favicon),
+          style.favicon),
     html.div({
       className: 'sidebar-tab-title',
       style: Style(
-        styles.title,
+        style.title,
         {opacity: titleOpacity}
       )
     }, [
       // @TODO localize this string
       readTitle(model, 'Untitled')
-    ])
+    ]),
+    thunk('close', viewClose, true)
   ]);
 
 
@@ -288,7 +312,7 @@ const viewSidebar = (key) => (model, {entries}, address) => {
     key: key,
     className: key,
     style: Style
-      ( styles.sidebar
+      ( style.sidebar
       , {
           transform: `translateX(${display.x}px)`,
           boxShadow: `rgba(0, 0, 0, ${display.shadow}) -50px 0 80px`,
@@ -299,7 +323,7 @@ const viewSidebar = (key) => (model, {entries}, address) => {
   }, [
     html.div({
       className: 'sidebar-tabs-scrollbox',
-      style: styles.scrollbox
+      style: style.scrollbox
     }, entries.map(entry =>
         thunk(entry.id, viewTab, entry, forward(tabs, asByID(entry.id)), display))),
     thunk('sidebar-toolbar',
