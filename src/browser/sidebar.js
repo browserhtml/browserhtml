@@ -45,11 +45,18 @@ const style = StyleSheet.create({
     MozWindowDragging: 'no-drag',
     borderRadius: '5px',
     height: '34px',
+    color: '#fff',
+    overflow: 'hidden',
+  },
+
+  tabInner: {
+    height: '34px',
     lineHeight: '34px',
+    width: '312px',
     color: '#fff',
     fontSize: '14px',
     overflow: 'hidden',
-    position: 'relative',
+    position: 'relative'
   },
 
   tabSelected: {
@@ -57,6 +64,11 @@ const style = StyleSheet.create({
   },
 
   closeButton: {
+    background: `linear-gradient(
+      to right,
+      rgba(36,48,61,0) 0%,
+      rgba(36,48,61,1) 20%,
+      rgba(36,48,61,1) 100%)`,
     color: '#fff',
     fontFamily: 'FontAwesome',
     fontSize: '12px',
@@ -67,6 +79,19 @@ const style = StyleSheet.create({
     textAlign: 'center',
     right: 0,
     top: 0
+  },
+
+  closeButtonSelected: {
+    background: `linear-gradient(
+      to right,
+      rgba(61,145,242,0) 0%,
+      rgba(61,145,242,1) 20%,
+      rgba(61,145,242,1) 100%)`
+  },
+
+  closeButtonHidden: {
+    opacity: 0,
+    pointerEvents: 'none'
   },
 
   title: {
@@ -267,12 +292,13 @@ const viewImage = (uri, style) =>
   });
 
 // @TODO animate this in
-const viewClose = ({isVisible}, address) =>
+const viewClose = ({isSelected}, address) =>
   html.div({
     className: 'sidebar-tab-close',
     style: Style(
       style.closeButton,
-      !isVisible && style.closeButtonHidden
+      isSelected && style.closeButtonSelected,
+      false && style.closeButtonHidden
     ),
     onClick: () => address(WebView.Close)
   }, [''])
@@ -288,21 +314,26 @@ const viewTab = (model, address, {tabWidth, titleOpacity}) =>
     onMouseDown: () => address(WebView.Select),
     onMouseUp: () => address(WebView.Activate)
   }, [
-    thunk('favicon',
-          viewImage,
-          readFaviconURI(model),
-          style.favicon),
     html.div({
-      className: 'sidebar-tab-title',
-      style: Style(
-        style.title,
-        {opacity: titleOpacity}
-      )
+      className: 'sidebar-tab-inner',
+      style: style.tabInner
     }, [
-      // @TODO localize this string
-      readTitle(model, 'Untitled')
-    ]),
-    thunk('close', viewClose, {isVisible: true}, address)
+      thunk('favicon',
+            viewImage,
+            readFaviconURI(model),
+            style.favicon),
+      html.div({
+        className: 'sidebar-tab-title',
+        style: Style(
+          style.title,
+          {opacity: titleOpacity}
+        )
+      }, [
+        // @TODO localize this string
+        readTitle(model, 'Untitled')
+      ]),
+      thunk('close', viewClose, model, address)
+    ])
   ]);
 
 
