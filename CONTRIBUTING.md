@@ -13,14 +13,30 @@ Check out [good first bugs](https://github.com/mozilla/browser.html/labels/good%
 - Commits should be as small as possible, while ensuring that each commit is correct independently (i.e., each commit should compile and pass tests).
 - If your patch is not getting reviewed or you need a specific person to review it, you can @-reply a reviewer asking for a review in the pull request or a comment.
 
+
+## Filing issues
+
+The Browser.html has 2 major pieces:
+
+- Graphene: a runtime for building native apps in HTML. It's currently in development and part of Servo. There is also a Gecko version.
+- Browser.html: an experimental browser UI for desktop.
+
+Development for the Browser.html UI happens in this repository. Work on Servo and Gecko happens in their respective repositories.
+
+* For issues tagged [graphene (servo)](https://github.com/mozilla/browser.html/labels/graphene%20%28servo%29). If the issue is with Servo, [file in Servo repository](https://github.com/servo/servo/issues/).
+* For issues tagged [graphene (gecko)](https://github.com/mozilla/browser.html/labels/graphene%20%gecko%29). Triage and file in [Bugzilla](http://bugzilla.mozilla.org/). When filed, post a link to issue and close.
+
+
 ## Conduct
 
 We follow the [Rust Code of Conduct](https://www.rust-lang.org/conduct.html).
 
-## Github Issues
 
-* For issues tagged [graphene (servo)](https://github.com/mozilla/browser.html/labels/graphene%20%28servo%29). If the issue is with Servo, [file in Servo repository](https://github.com/servo/servo/issues/).
-* For issues tagged [graphene (gecko)](https://github.com/mozilla/browser.html/labels/graphene%20%gecko%29). Triage and file in Bugzilla. When filed, post a link to issue and close.
+## Communication and resources
+
+- Browser.html contributors hang out in [browserhtml.slack.com](https://browserhtml.slack.com). Anyone can [get an invite](https://browserhtml-slackin.herokuapp.com/).
+- More information can be found on the [wiki](https://github.com/mozilla/browser.html/wiki)
+
 
 ## Philosophy
 
@@ -29,8 +45,3 @@ We follow the [Rust Code of Conduct](https://www.rust-lang.org/conduct.html).
 * [We try to understand "why"](https://en.wikipedia.org/wiki/5_Whys).
 * We try to be pragmatic.
 * We don't use the term "polish". It implies that quality is an afterthought.
-
-## Communication and resources
-
-- Browser.html contributors frequent the `#browserhtml` channel on [irc.mozilla.org](https://wiki.mozilla.org/IRC).
-- More information can be found on the [wiki](https://github.com/mozilla/browser.html/wiki)
