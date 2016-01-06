@@ -63,25 +63,21 @@ const style = StyleSheet.create({
     backgroundColor: '#3D91F2'
   },
 
-  closeButton: {
+  closeMask: {
     background: `linear-gradient(
       to right,
       rgba(36,48,61,0) 0%,
       rgba(36,48,61,1) 20%,
       rgba(36,48,61,1) 100%)`,
-    color: '#fff',
-    fontFamily: 'FontAwesome',
-    fontSize: '12px',
     width: '34px',
     height: '34px',
-    lineHeight: '34px',
     position: 'absolute',
-    textAlign: 'center',
+    paddingLeft: '10px',
     right: 0,
     top: 0
   },
 
-  closeButtonSelected: {
+  closeMaskSelected: {
     background: `linear-gradient(
       to right,
       rgba(61,145,242,0) 0%,
@@ -89,9 +85,19 @@ const style = StyleSheet.create({
       rgba(61,145,242,1) 100%)`
   },
 
-  closeButtonHidden: {
+  closeMaskHidden: {
     opacity: 0,
     pointerEvents: 'none'
+  },
+
+  closeIcon: {
+    color: '#fff',
+    fontFamily: 'FontAwesome',
+    fontSize: '12px',
+    width: '34px',
+    height: '34px',
+    lineHeight: '34px',
+    textAlign: 'center'
   },
 
   title: {
@@ -294,14 +300,19 @@ const viewImage = (uri, style) =>
 // @TODO animate this in
 const viewClose = ({isSelected}, address) =>
   html.div({
-    className: 'sidebar-tab-close',
+    className: 'tab-close-mask',
     style: Style(
-      style.closeButton,
-      isSelected && style.closeButtonSelected,
-      false && style.closeButtonHidden
-    ),
-    onClick: () => address(WebView.Close)
-  }, [''])
+      style.closeMask,
+      isSelected && style.closeMaskSelected,
+      false && style.closeMaskHidden
+    )
+  }, [
+    html.div({
+      className: 'tab-close-icon',
+      style: style.closeIcon,
+      onClick: () => address(WebView.Close)
+    }, [''])
+  ])
 
 const viewTab = (model, address, {tabWidth, titleOpacity}) =>
   html.div({
