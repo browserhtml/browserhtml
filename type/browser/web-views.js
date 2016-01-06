@@ -4,6 +4,7 @@ import type {Address, VirtualTree, Effects} from "reflex/type"
 import type {ID, URI} from "../common/prelude"
 import * as WebView from "./web-view"
 import * as Selector from "./selector"
+import * as Stopwatch from "../common/stopwatch"
 
 // # Model
 
@@ -12,6 +13,10 @@ export type Model =
   , selector: ?Selector.Model<ID>
   , order: Array<ID>
   , entries: {[key:ID]: WebView.Model}
+  , animation: Stopwatch.Model
+  , display: { rightOffset: number }
+  , isExpanded: boolean
+  , isFolded: boolean
   }
 
 // # Actions
@@ -109,12 +114,24 @@ export type Activated = (id:ID) =>
 
 // ### Switch mode
 
-export type Expand =
-  { type: "Expand"
+// ZoomOut of the active WebView.
+export type Unfold =
+  { type: "Unfold"
   }
 
-export type Contract =
-  { type: "Contract"
+// ZoomIn into active WebView.
+export type Fold =
+  { type: "Fold"
+  }
+
+// Shrink view to accomodate sidebar on the right side.
+export type Shrink =
+  { type: "Shrink"
+  }
+
+// Expand view to disregard / cover sidebar on the right side.
+export type Expand =
+  { type: "Expand"
   }
 
 // ### Tag WebView Action
@@ -162,8 +179,11 @@ export type Action
   | ActivateByIDAction
   | ActivatedAction
 
+  | Shrink
   | Expand
-  | Contract
+
+  | Fold
+  | Unfold
 
   | ActiveWebViewAction
   | WebViewAction

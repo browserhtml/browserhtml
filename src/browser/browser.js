@@ -14,7 +14,7 @@ import * as URI from '../common/url-helper';
 import * as WebViews from "./web-views";
 import * as WebView from "./web-view";
 import * as Unknown from "../common/unknown";
-import {merge, always} from "../common/prelude";
+import {merge, always, batch} from "../common/prelude";
 import {cursor} from "../common/cursor";
 import * as Focusable from "../common/focusable";
 import * as OS from '../common/os';
@@ -68,6 +68,8 @@ export const WebViewsAction/*:type.WebViewsAction*/ = action =>
   ? ShowTabs
   : action.type === "Create"
   ? CreateWebView
+  : action.type === "Edit"
+  ? EditWebView
   : { type: 'WebViews'
     , action
     }
@@ -137,7 +139,9 @@ export const ActivateSeleted = WebViewsAction(WebViews.ActivateSelected);
 export const FocusWebView = WebViewsAction(WebViews.Focus);
 export const NavigateTo = compose(WebViewsAction, WebViews.NavigateTo);
 const ExpandWebViews = WebViewsAction(WebViews.Expand);
-const ContractWebViews = WebViewsAction(WebViews.Contract);
+const ShrinkWebViews = WebViewsAction(WebViews.Shrink);
+const UnfoldWebViews = WebViewsAction(WebViews.Unfold);
+const FoldWebViews = WebViewsAction(WebViews.Fold);
 const Open = compose(WebViewsAction, WebViews.Open);
 
 export const ActivateWebView = compose(WebViewsAction, WebViews.ActivateByID);
@@ -152,7 +156,15 @@ export const Focus = ShellAction(Shell.Focus);
 const ShowInput = InputAction(Input.Show);
 const HideInput = InputAction(Input.Hide);
 const EnterInput = InputAction(Input.Enter);
+const EnterInputSelection = compose(InputAction, Input.EnterSelection);
 
+export const AttachSidebar =
+  { type: "AttachSidebar"
+  };
+
+export const DetachSidebar =
+  { type: "DetachSidebar"
+  };
 
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
@@ -189,100 +201,119 @@ const decodeKeyUp = Keyboard.bindings({
   'accel': always(ActivateSeleted)
 });
 
+const showWebView = model =>
+  batch
+  ( update
+  , model
+  , [ HideInput
+    , FoldWebViews
+    , FocusWebView
+    ]
+  );
+
+
+
+const submitInput = model =>
+  batch
+  ( update
+  , model
+  , [ InputAction(Input.Submit)
+    , NavigateTo(URI.read(model.input.value))
+    , ShowWebView
+    ]
+  );
+
+const openWebView = model =>
+  batch
+  ( update
+  , model
+  , [ Open
+      ( { uri: URI.read(model.input.value)
+        , inBackground: false
+        , name: ''
+        , features: ''
+        }
+      )
+    , ShowWebView
+    ]
+  );
+
+const focusWebView = model =>
+  update(model, FocusWebView)
+
+const exitInput = model =>
+  batch
+  ( update
+  , model
+  , [ InputAction(Input.Abort)
+    , FocusWebView
+    ]
+  );
+
+const createWebView = model =>
+  batch
+  ( update
+  , model
+  , [ ShowInput
+    , EnterInput
+    ]
+  );
+
+const editWebView = model =>
+  batch
+  ( update
+  , model
+  , [ ShowInput
+    , EnterInputSelection(WebViews.getActiveURI(model.webViews, ''))
+    ]
+  );
+
+const showTabs = model =>
+  batch
+  ( update
+  , model
+  , [ HideInput
+    , UnfoldWebViews
+    ]
+  );
+
+const attachSidebar = model =>
+  update(model, ShrinkWebViews);
+
+const detachSidebar = model =>
+  update(model, ExpandWebViews);
+
+const reloadRuntime = model =>
+  [ model, Effects.task(Runtime.reload) ];
+
+
 
 // Unbox For actions and route them to their location.
 export const update/*:type.update*/ = (model, action) =>
-  // If location bar triggered submit action we delegate to it
-  // and also receive `NavigateTo` containing currenly entered
-  // URI, which we'll handle in a separate branch.
   ( action.type === 'SubmitInput'
-  ? [ model
-    , Effects.batch
-      ( [ // @TODO One would think we should forward Submit to input
-          // but if we would receive such an event we would end up
-          // right here since:
-          // Effects.receive(Input.Submit).map(InputAction) => Effects.receive(SubmitInput))
-          // Maybe we should define additional action like `InputSubmitted` which
-          // would then do `updateInput(model, Input.Submit)`.
-          Effects.receive(NavigateTo(URI.read(model.input.value)))
-        , Effects.receive(ShowWebView)
-        ]
-      )
-    ]
+  ? submitInput(model)
   : action.type === 'OpenWebView'
-  ? [ model
-    , Effects.batch
-      ( [ Effects.receive
-          ( Open
-            ( { uri: URI.read(model.input.value)
-              , inBackground: false
-              , name: ''
-              , features: ''
-              }
-            )
-          )
-        , Effects.receive(ShowWebView)
-        ]
-      )
-    ]
-
-  // If location bar triggert abort action (happens when user hits
-  // Escape key) we delegate to input to do it's thing & also receive
-  // `FocusWebView` action to give the focus back to the active
-  // web-view in a next update.
+  ? openWebView(model)
   : action.type === 'ExitInput'
-  ? [ model
-    , Effects.batch
-      ( [ // @TODO same stuff as in previous @TODO item.
-          Effects.receive(FocusWebView)
-        ]
-      )
-    ]
-  // When new web view is created we just enter an Input field.
+  ? exitInput(model)
   : action.type === 'CreateWebView'
-  ? [ model
-    , Effects.batch
-      ( [ Effects.receive(ShowInput)
-        , Effects.receive(EnterInput)
-        ]
-      )
-    ]
-  // When EditWebView action is triggered we delegate to Input module to
-  // give it a focus and to select a given input.
+  ? createWebView(model)
   : action.type === 'EditWebView'
-  ? [ model
-    , Effects.batch
-      ( [ Effects.receive(Input.Show).map(InputAction)
-        , Effects
-            .receive
-              ( Input.EnterSelection
-                ( WebViews.getActiveURI(model.webViews, '') )
-              )
-            .map(InputAction)
-        ]
-      )
-    ]
-
+  ? editWebView(model)
   : action.type === 'ShowWebView'
-  ? [ model
-    , Effects.batch
-      ( [ Effects.receive(HideInput)
-        //, Effects.receive(FocusWebView)
-        ]
-      )
-    ]
-
-  : action.type == 'ShowTabs'
-  ? [ model
-    , Effects.batch
-      ( [ Effects.receive(HideInput)
-        , Effects.receive(ExpandWebViews)
-        ]
-      )
-    ]
-
+  ? showWebView(model)
+  : action.type === 'ShowTabs'
+  ? showTabs(model)
+  // @TODO Change this to toggle tabs instead.
+  : action.type === 'Escape'
+  ? showTabs(model)
+  : action.type === 'AttachSidebar'
+  ? attachSidebar(model)
+  : action.type === 'DetachSidebar'
+  ? detachSidebar(model)
   : action.type === 'ReloadRuntime'
-  ? [model, Effects.task(Runtime.reload)]
+  ? reloadRuntime(model)
+
 
   // Delegate to the appropriate module
   : action.type === 'Input'
@@ -294,13 +325,10 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'Devtools'
   ? updateDevtools(model, action.action)
 
-  : action.type === 'Escape'
-  ? [model, Effects.receive(ShowTabs)]
-
   : Unknown.update(model, action)
   );
 
-const style = StyleSheet.create({
+const styleSheet = StyleSheet.create({
   root: {
     background: '#24303D',
     perspective: '1000px',
@@ -322,7 +350,7 @@ const style = StyleSheet.create({
 export const view/*:type.view*/ = (model, address, children) =>
   html.div
   ( { className: 'root'
-    , style: style.root
+    , style: styleSheet.root
     , tabIndex: 1
     , onKeyDown: onWindow(address, decodeKeyDown)
     , onKeyUp: onWindow(address, decodeKeyUp)

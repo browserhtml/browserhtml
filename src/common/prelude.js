@@ -116,6 +116,14 @@ export const always = /*::<a>*/(a/*:a*/)/*:(...args:Array<any>)=>a*/ => {
 }
 
 
+// @TODO: Optimze batch by avoiding intermidiate states.
+// batch performs a reduction over actions building up a [model, fx]
+// pair containing all updates. In the process we create a intermidiate
+// model instances that are threaded through updates cycles, there for
+// we could implement clojure like `transient(model)` / `persistent(model)`
+// that would mark `model` as mutable / immutable allowing `merge` to mutate
+// in place if `modlel` is "mutable". `batch` here wolud be able to take
+// advantage of these to update same model in place.
 export const batch = /*:: <model, action>*/
   ( update/*:(m:model, a:action) => [model, Effects<action>]*/
   , model/*:model*/

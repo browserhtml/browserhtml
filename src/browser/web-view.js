@@ -578,7 +578,7 @@ const styleSheet = StyleSheet.create({
     zIndex: 2
   },
 
-  webViewInactive: {
+  webviewInactive: {
     pointerEvents: 'none',
     visibility: 'hidden',
     opacity: 0,
@@ -757,6 +757,10 @@ export const view/*:type.view*/ = (model, address) => {
       )
     , style: Style
       ( styleSheet.webview
+      , ( model.isActive
+        ? styleSheet.webviewActive
+        : styleSheet.webviewInactive
+        )
       , model.display
       )
     }

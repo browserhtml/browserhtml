@@ -16,6 +16,8 @@ import {ease, easeOutCubic, float} from 'eased';
 
 
 export const OverlayClicked = {type: "OverlayClicked"};
+const AttachSidebar = Browser.AttachSidebar;
+const DetachSidebar = Browser.DetachSidebar;
 
 export const init/*:type.init*/ = () => {
   const [browser, browserFx] = Browser.init();
@@ -41,9 +43,14 @@ export const init/*:type.init*/ = () => {
 };
 
 const SidebarAction = action =>
-    action.type === "ActivateTab"
+  ( action.type === "ActivateTab"
   ? Browser.ActivateWebView(action.id)
-  : ({ type: "Sidebar", action });
+  : action.type === "Attach"
+  ? AttachSidebar
+  : action.type === "Detach"
+  ? DetachSidebar
+  : { type: "Sidebar", action }
+  );
 
 
 const OverlayAction = action =>
@@ -162,6 +169,38 @@ export const update = (model, action) => {
   }
   else if (action.type === "Overlay") {
     return updateOverlay(model, action.action);
+  }
+  else if (action.type === "AttachSidebar") {
+    const [sidebar, sidebarFX] =
+      Sidebar.update(model.sidebar, Sidebar.Attach);
+    const [browser, browserFX] =
+      Browser.update(model.browser, Browser.AttachSidebar);
+
+    return (
+      [ merge(model, {sidebar, browser})
+      , Effects.batch
+        ( [ sidebarFX.map(SidebarAction)
+          , browserFX
+          ]
+        )
+      ]
+    );
+  }
+  else if (action.type === "DetachSidebar") {
+    const [sidebar, sidebarFX] =
+      Sidebar.update(model.sidebar, Sidebar.Detach);
+    const [browser, browserFX] =
+      Browser.update(model.browser, Browser.DetachSidebar);
+
+    return (
+      [ merge(model, {sidebar, browser})
+      , Effects.batch
+        ( [ sidebarFX.map(SidebarAction)
+          , browserFX
+          ]
+        )
+      ]
+    );
   }
   else if (action.type === 'Animation') {
     // @TODO Right now we set animation to null whet it is not running but
@@ -515,10 +554,7 @@ const viewAsEditWebView = (model, address) =>
           WebViews.view,
           model.browser.webViews,
           forward(address, WebViewsAction),
-          Style(  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
-                  style.webViewZoomedIn)),
+          style.webViewZoomedIn),
     thunk('overlay',
           Overlay.view,
           model.overlay,
@@ -545,9 +581,7 @@ const viewAsShowWebView = (model, address) =>
           WebViews.view,
           model.browser.webViews,
           forward(address, WebViewsAction),
-          Style(  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
+          Style(style.webViewZoomedIn,
                 transition.webViewZoomIn(model.animation))),
     thunk('overlay',
           Overlay.view,
@@ -576,9 +610,6 @@ const viewAsCreateWebView = (model, address) =>
           model.browser.webViews,
           forward(address, WebViewsAction),
           Style(style.webViewZoomedOut,
-                  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
                 transition.webViewZoomIn(model.animation))),
     thunk('overlay',
           Overlay.view,
@@ -607,9 +638,6 @@ const viewAsSelectWebView = (model, address) =>
           model.browser.webViews,
           forward(address, WebViewsAction),
           Style(style.webViewZoomedOut,
-                  model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand,
                 transition.webViewZoomOut(model.animation))),
     thunk('overlay',
           Overlay.view,
@@ -638,10 +666,6 @@ const viewAsShowTabs = (model, address) =>
           model.browser.webViews,
           forward(address, WebViewsAction),
           Style(style.webViewZoomedOut,
-                ( model.sidebar.isAttached
-                ? style.webViewShrink
-                : style.webViewExpand
-                ),
                 transition.webViewZoomOut(model.animation))),
     thunk('overlay',
           Overlay.view,

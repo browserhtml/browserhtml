@@ -12,6 +12,8 @@ import {merge, setIn, remove, always, batch} from "../common/prelude";
 import {cursor} from "../common/cursor";
 import * as WebView from "../browser/web-view";
 import * as Unknown from "../common/unknown";
+import * as Stopwatch from "../common/stopwatch";
+import * as Easing from "eased";
 import {Style, StyleSheet} from "../common/style";
 
 
@@ -124,7 +126,9 @@ const Activated/*:type.Activated*/ = id =>
 // ### Switch mode
 
 export const Expand/*:type.Expand*/ = {type: "Expand"};
-export const Contract/*:type.Contract*/ = {type: "Contract"};
+export const Shrink/*:type.Shrink*/ = {type: "Shrink"};
+export const Fold/*:type.Fold*/ = {type: "Fold"};
+export const Unfold/*:type.Unfold*/ = {type: "Unfold"};
 
 // ### Tag WebView Action
 
@@ -150,6 +154,8 @@ const WebViewAction = (id, action) =>
   ? ShowTabs
   : action.type === "Create"
   ? Create
+  : action.type === "Edit"
+  ? Edit
   : { type: "WebView"
     , id
     , action
@@ -163,6 +169,21 @@ const ByID =
   id =>
   action =>
   WebViewAction(id, action);
+
+
+// Animation
+
+const AnimationEnd =
+  { type: "AnimationEnd"
+  };
+
+const AnimationAction = action =>
+  ( action.type === "End"
+  ? AnimationEnd
+  : { type: "Animation"
+    , action
+    }
+  );
 
 
 // Set of exposed actions that embedders can use to trigger certain actions.
@@ -182,6 +203,7 @@ export const Focus = ActiveWebViewAction(WebView.Focus);
 
 export const ShowTabs = WebView.ShowTabs;
 export const Create = WebView.Create;
+export const Edit = WebView.Edit;
 
 
 // # Update
@@ -192,6 +214,10 @@ export const init/*:type.init*/ = () =>
     , selector: null
     , order: []
     , entries: {}
+    , display: { rightOffset: 0 }
+    , animation: null
+    , isExpanded: true
+    , isFolded: false
     }
   , Effects.none
   ];
@@ -434,6 +460,71 @@ const selectByID = (model, id) =>
   : [ model, Effects.none ]
   );
 
+// Animations
+
+const expand = model =>
+  startAnimation(merge(model, {isExpanded: true}))
+
+const shrink = model =>
+  startAnimation(merge(model, {isExpanded: false}))
+
+const startAnimation = model => {
+  const [animation, fx] = Stopwatch.update(model.animation, Stopwatch.Start);
+  return [merge(model, {animation}), fx.map(AnimationAction)]
+}
+
+const endAnimation = model => {
+  const [animation, fx] = Stopwatch.update(model.animation, Stopwatch.End);
+  return [merge(model, {animation}), Effects.none];
+}
+
+const updateAnimation = (model, action) => {
+  const [animation, fx] = Stopwatch.update(model.animation, action);
+  const duration = 300;
+
+  const [begin, end] =
+    ( model.isExpanded
+    ? [50, 0]
+    : [0, 50]
+    );
+
+  const result =
+    ( duration > animation.elapsed
+    ? [ merge
+        ( model
+        , { animation
+          , display:
+              merge
+              ( model.display
+              , { rightOffset
+                  : Easing.ease
+                    ( Easing.easeOutCubic
+                    , Easing.float
+                    , begin
+                    , end
+                    , duration
+                    , animation.elapsed
+                    )
+                }
+              )
+          }
+        )
+      , fx.map(AnimationAction)
+      ]
+    : [ merge
+        ( model
+        , { animation
+          , display: merge(model.display, { rightOffset: end })
+          }
+        )
+      , Effects.receive(AnimationEnd)
+      ]
+    );
+
+  return result;
+}
+
+
 
 export const update/*:type.update*/ = (model, action) =>
   ( action.type === "NavigateTo"
@@ -477,13 +568,15 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === "Selected"
   ? [ model, Effects.none ]
 
-  // Expand / Contract animations
-  // @TODO: Perform Expand / Contract animations here instead of
-  // doing them in perspective-ui.
+  // Expand / Shrink animations
   : action.type === "Expand"
-  ? [ model, Effects.none ]
-  : action.type === "Contract"
-  ? [ model, Effects.none ]
+  ? expand(model)
+  : action.type === "Shrink"
+  ? shrink(model)
+  : action.type === "Animation"
+  ? updateAnimation(model, action.action)
+  : action.type === "AnimationEnd"
+  ? endAnimation(model)
 
   // Delegate tagged action to one of the update functions.
   : action.type === "ActiveWebView"
@@ -527,7 +620,12 @@ const styleSheet = StyleSheet.create({
 export const view/*:type.view*/ = (model, address, contextStyle) =>
   html.div
   ( { className: 'webviews-stack'
-    , style: Style(styleSheet.webviews, contextStyle)
+    , style:
+        Style
+        ( styleSheet.webviews
+        , contextStyle
+        , { width: `calc(100% - ${model.display.rightOffset}px)`}
+        )
     }
   , model
       .order
