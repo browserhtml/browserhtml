@@ -1,4 +1,4 @@
-[![build](https://travis-ci.org/mozilla/browser.html.svg?branch=master)](https://travis-ci.org/mozilla/browser.html)
+[![build](https://travis-ci.org/mozilla/browser.html.svg?branch=master)](https://travis-ci.org/mozilla/browser.html) [![slack](https://browserhtml-slackin.herokuapp.com/badge.svg)](https://browserhtml-slackin.herokuapp.com/)
 
 *Browser.html* is a research project aimed at building native apps in HTML using [Servo](https://github.com/servo/servo). The project has 2 major pieces:
 
