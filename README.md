@@ -7,7 +7,7 @@
 
 This repository is for Browser.html (the front-end). Active development of Graphene happens in the [Servo](https://github.com/servo/servo) repository.
 
-We welcome contributions from anyone. See our [contribution wiki page](https://github.com/mozilla/browser.html/wiki/Contributing) for help getting started.
+We welcome contributions from anyone. See [CONTRIBUTING.md](https://github.com/mozilla/browser.html/blob/master/CONTRIBUTING.md) for help getting started.
 
 
 ### Prerequisites and Setup
