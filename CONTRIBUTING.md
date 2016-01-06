@@ -34,6 +34,8 @@ We follow the [Rust Code of Conduct](https://www.rust-lang.org/conduct.html).
 
 ## Communication and resources
 
+[![slack](https://browserhtml-slackin.herokuapp.com/badge.svg)](https://browserhtml-slackin.herokuapp.com/)
+
 - Browser.html contributors hang out in [browserhtml.slack.com](https://browserhtml.slack.com). Anyone can [get an invite](https://browserhtml-slackin.herokuapp.com/).
 - More information can be found on the [wiki](https://github.com/mozilla/browser.html/wiki)
 
