@@ -35,7 +35,7 @@ const readModifiers = ({type, metaKey, shiftKey, altKey, ctrlKey}) => {
 
 
 const readKey = key => readKey.table[key] || key;
-
+// @FlowIssue: Sigh..
 readKey.table = Object.assign(Object.create(null), {
   'ctrl': 'Control',
   'accel': platform == 'darwin' ? 'meta' : 'control',
@@ -72,7 +72,7 @@ const writeChord = event => {
 };
 
 
-export const bindings/*:type.keyBindings*/ = (bindingTable) => {
+export const bindings/*:type.bindings*/ = (bindingTable) => {
   const bindings = Object.create(null);
   Object.keys(bindingTable).forEach(key => {
     bindings[readChord(key)] = bindingTable[key];

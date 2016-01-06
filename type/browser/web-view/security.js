@@ -8,16 +8,25 @@ export type Model = {
   extendedValidation: boolean
 };
 
-export type Changed = {
-  type: "WebView.Security.Changed",
+export type LoadStart = {
+  type: "LoadStart"
+}
+
+export type ChangedType = {
+  type: "Changed",
   state: string,
   extendedValidation: boolean
 };
 
-export type Action = Changed;
+export type Action
+  = LoadStart
+  | ChangedType
 
-export type asChanged = (state: string, extendedValidation: boolean) => Changed;
+export type Changed = (state: string, extendedValidation: boolean) =>
+  ChangedType;
 
-export type initial = Model;
+export type init = () =>
+  [Model, Effects<Action>]
+
 export type update = (model:Model, action:Action) =>
-  [Model, Effects<Action>];
+  [Model, Effects<Action>]

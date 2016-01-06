@@ -18,6 +18,8 @@ export type Editable = {
   value: string
 }
 
+export type Model = Editable
+
 export type Clear = {
   type: "Clear",
 }

@@ -18,8 +18,8 @@ const visible/*:type.Visible*/ = 0.1;
 const invisible/*:type.Invisible*/ = 0;
 const duration = 300;
 
-export const Model
-  = ({isCapturing, isVisible}) =>
+export const Model/*:type.Overlay*/ =
+  ({isCapturing, isVisible}) =>
   ({isCapturing
   , isVisible
   , animation: null
@@ -40,8 +40,10 @@ const Hidden = always({type: "Hidden"});
 const Faded = always({type: "Faded"});
 
 
-export const init = (isVisible, isCapturing) =>
-  [Model(isVisible, isCapturing), Effects.none];
+export const init/*:type.init*/ = (isVisible, isCapturing) =>
+  [ Model({isVisible, isCapturing})
+  , Effects.none
+  ];
 
 
 const updateStopwatch = cursor({
@@ -135,12 +137,14 @@ const style = StyleSheet.create({
   }
 });
 
-export const view = (model, address) =>
+export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'overlay',
-    style: Style(style.overlay, {
-      opacity: model.display.opacity,
-      pointerEvents: model.isCapturing ? 'all' : 'none'
-    }),
+    style: Style
+      ( style.overlay
+      , { opacity: model.display.opacity
+        , pointerEvents: model.isCapturing ? 'all' : 'none'
+        }
+      ),
     onClick: forward(address, Click)
   });

@@ -13,17 +13,20 @@ export type Model = {
   end: Time
 }
 
-export type Tick = {
-  type: "Animation.Tick",
+type TickAction = {
+  type: "Tick",
   time: Time
 }
 
+export type Tick = (time:Time) =>
+  TickAction
+
 export type End = {
-  type: "Animation.End"
+  type: "End"
 }
 
 export type Action
-  = Tick
+  = TickAction
   | End
 
 export type create = (time:Time, duration:Time) => Model
@@ -34,4 +37,6 @@ export type init = (time:Time, duration:Time) =>
 export type update = (model:Model, action:Tick) =>
   [Model, Effects<Action>]
 
-export type progress = (model:Model) => number
+export type progress = (model:Model) => Time
+
+export type duration = (model:Model) => Time

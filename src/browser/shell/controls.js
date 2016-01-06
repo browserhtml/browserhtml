@@ -5,7 +5,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, forward, Effects} from 'reflex';
-import {on} from 'driver';
 import {Style, StyleSheet} from '../../common/style';
 import * as Target from '../../common/target';
 import * as Button from '../../common/button';
@@ -16,7 +15,7 @@ import {always, merge} from '../../common/prelude';
 import {cursor} from '../../common/cursor';
 
 
-/*:: import * as type from '../../type/browser/shell/controls' */
+/*:: import * as type from '../../../type/browser/shell/controls' */
 
 export const CloseWindow = {type: "CloseWindow"};
 export const MinimizeWindow = {type: "MinimizeWindow"};
@@ -67,9 +66,9 @@ const ToggleButtonAction = compose
   , ignore
   );
 
-export const Model =
-  ({close, minimize, maximize, unmaximize}) =>
-  ({close, minimize, maximize, unmaximize})
+export const Model/*:type.Controls*/ =
+  ({close, minimize, toggle}) =>
+  ({close, minimize, toggle})
 
 const updateClose = cursor({
   get: model => model.close,
@@ -92,30 +91,33 @@ const updateToggle = cursor({
   tag: ToggleButtonAction
 });
 
-export const init = (isDisabled, isPointerOver, isMaximized) => {
+export const init/*:type.init*/ = (isDisabled, isPointerOver, isMaximized) => {
   const [isFocused, isActive] = [false, false];
 
   const close = Button.Model
-    ({isDisabled
-    , isPointerOver
-    , isFocused
-    , isActive
-    });
+    ( { isDisabled
+      , isPointerOver
+      , isFocused
+      , isActive
+      }
+    );
 
   const minimize = Button.Model
-    ({isDisabled
-    , isPointerOver
-    , isFocused
-    , isActive
-    });
+    ( { isDisabled
+      , isPointerOver
+      , isFocused
+      , isActive
+      }
+    );
 
   const toggle = Toggle.Model
-    ({isDisabled
-    , isPointerOver
-    , isChecked: isMaximized
-    , isFocused
-    , isActive
-  });
+    ( { isDisabled
+      , isFocused
+      , isActive
+      , isPointerOver
+      , isChecked: isMaximized
+      }
+    );
 
   return [{close, minimize, toggle}, Effects.none];
 }
@@ -123,7 +125,7 @@ export const init = (isDisabled, isPointerOver, isMaximized) => {
 const updateButtons = (model, action) => {
   const [close, closeFx] = Button.update(model.close, action);
   const [minimize, minimizeFx] = Button.update(model.minimize, action);
-  const [toggle, toggleFx] = Button.update(model.toggle, action);
+  const [toggle, toggleFx] = Toggle.update(model.toggle, Toggle.ButtonAction(action));
 
   return [
     merge(model, {close, minimize, toggle})
@@ -136,8 +138,8 @@ const updateButtons = (model, action) => {
   ]
 }
 
-export const update = (model, action) =>
-    action.type === 'Over'
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === 'Over'
   ? updateButtons(model, Button.Over)
   : action.type === 'Out'
   ? updateButtons(model, Button.Out)
@@ -155,7 +157,8 @@ export const update = (model, action) =>
   ? updateMinimize(model, action.action)
   : action.type === 'ToggleButton'
   ? updateToggle(model, action.action)
-  : Unknown.update(model, action);
+  : Unknown.update(model, action)
+  );
 
 
 // style

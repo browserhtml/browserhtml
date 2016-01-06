@@ -19,9 +19,9 @@ export type Closed = {type: "Closed"}
 export type Minimized = Runtime.Minimized
 export type FullscreenToggled = Runtime.FullscreenToggled
 
-export type HasFocusType = {type: "HasFocus", value: boolean}
-export type HasFocus = (value:boolean) => HasFocusType
-export type Controls$Action = {type: "Controls", action: Controls.Action}
+export type HasFocusAction = {type: "HasFocus", value: boolean}
+export type HasFocus = (value:boolean) => HasFocusAction
+export type ControlsAction = {type: "Controls", action: Controls.Action}
 
 export type Model =
   { isMinimized: boolean
@@ -38,10 +38,14 @@ export type Model =
 export type Action
   = Focus
   | Blur
-  | HasFocusType
-  | Close | Minimze | ToggleFullscreen
-  | Closed | Minimized | FullscreenToggled
-  | Controls$Action
+  | HasFocusAction
+  | Close
+  | Minimize
+  | ToggleFullscreen
+  | Closed
+  | Minimized
+  | FullscreenToggled
+  | ControlsAction
 
 export type init = () =>
   [Model, Effects<Action>]

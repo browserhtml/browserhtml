@@ -65,7 +65,9 @@ export const change/*:type.change*/ = settings => Task.future(() => {
 
 export const observe/*:type.observe*/ = name => Task.io(deliver => {
   const observer = change => {
-    navigator.mozSettings.removeObserver(name, observer);
+    if (navigator.mozSettings) {
+      navigator.mozSettings.removeObserver(name, observer);
+    }
     deliver(Task.succeed(Updated(Result.ok({[change.settingName]: change.settingValue}))));
   }
 
@@ -86,9 +88,10 @@ export const init/*:type.init*/ = names =>
 
 const updateSettings = (model, settings) =>
   // @TODO: Ignore unknown settings
-  [   model == null
+  [ ( model == null
     ? settings
     : merge(model, settings)
+    )
   , Effects.batch
     ( Object
         .keys(settings)

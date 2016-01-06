@@ -1,4 +1,4 @@
-/* @flow */
+/* @noflow */
 
 import {always, merge, take, move} from "../common/prelude"
 import {Effects, batch, nofx, html, thunk} from "reflex"

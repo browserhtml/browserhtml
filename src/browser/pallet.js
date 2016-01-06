@@ -31,7 +31,7 @@ const curated = {
 
 // Calculate the distance from white, returning a boolean.
 // This is a pretty primitive check.
-const isHexBright/*:type.isBright*/ = hexcolor =>
+const isHexBright/*:type.isHexBright*/ = hexcolor =>
   parseInt(hexcolor, 16) > 0xffffff/2;
 
 export const isDark/*:type.isDark*/ = color => {
@@ -48,27 +48,19 @@ export const blank/*:type.blank*/ = {
   background: null
 };
 
-export const init/*:type.init*/ = (background, foreground) => ({
-  background, foreground,
-  isDark: isDark(background),
-});
+export const create/*:type.create*/ = (background, foreground) =>
+  ( { background
+    , foreground
+    , isDark: isDark(background)
+    }
+  );
 
-export const CuratedColorNotFound = {
-  type: 'WebView.Page.CuratedColorNotFound'
-};
-
-export const asCuratedColorUpdate = theme => ({
-  type: 'WebView.Page.CuratedColorUpdate',
-  color: theme
-});
-
-export const requestCuratedColor = uri => Effects.task(Task.future(() => {
-  const hostname = URI.getDomainName(uri);
-  const theme = hostname == null ?
-                  null :
-                  curated[hostname];
-
-  return Promise.resolve(theme ?
-                          asCuratedColorUpdate(theme) :
-                          CuratedColorNotFound);
-}));
+export const requestCuratedColor/*:type.requestCuratedColor*/ = uri =>
+  Task.future(() => {
+    const hostname = URI.getDomainName(uri);
+    return Promise.resolve
+      ( hostname == null
+      ? null
+      : curated[hostname]
+      );
+  });

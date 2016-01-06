@@ -5,21 +5,19 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, forward, Effects} from 'reflex';
-import {asByID} from './web-views';
-import * as WebView from './web-view';
 import {Style, StyleSheet} from '../common/style';
-import {readTitle, readFaviconURI} from './web-view';
 import * as Toolbar from "./sidebar/toolbar";
+import * as Tabs from "./sidebar/tabs";
 import {merge, always} from "../common/prelude";
 import {cursor} from "../common/cursor";
 import * as Unknown from "../common/unknown";
 import * as Stopwatch from "../common/stopwatch";
 import * as Easing from "eased";
 
-
+/*:: import * as type from "../../type/browser/sidebar" */
 
 const styleSheet = StyleSheet.create({
-  sidebar: {
+  base: {
     // WARNING: will slow down animations! (gecko)
     xBoxShadow: 'rgba(0, 0, 0, 0.5) -80px 0 100px',
     backgroundColor: '#2E3D4D',
@@ -31,48 +29,17 @@ const styleSheet = StyleSheet.create({
     boxSizing: 'border-box',
     zIndex: 2 // @TODO This is a hack to avoid resizing new tab / edit tab views.
   },
-
-  scrollbox: {
-    width: '100%',
-    height: `calc(100% - ${Toolbar.styleSheet.toolbar.height})`,
-    paddingTop: '35px',
-    overflowY: 'scroll',
-    boxSizing: 'border-box'
+  attached: {
+    padding: '0 18px'
   },
-
-  tab: {
-    MozWindowDragging: 'no-drag',
-    borderRadius: '5px',
-    lineHeight: '35px',
-    color: '#fff',
-    fontSize: '14px',
-    overflow: 'hidden',
-    padding: '0 10px 0 33px',
-    position: 'relative',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap'
-  },
-
-  tabSelected: {
-    backgroundColor: '#3D5166'
-  },
-
-  title: {
-    display: 'inline'
-  },
-
-  favicon: {
-    borderRadius: '3px',
-    left: '9px',
-    position: 'absolute',
-    top: '10px',
-    width: '16px',
-    height: '16px',
+  detached: {
+    width: '380px',
+    padding: '0 35px'
   }
 });
 
 
-export const init = () => {
+export const init/*:type.init*/ = () => {
   const [toolbar, fx] = Toolbar.init()
   return [
     {
@@ -86,26 +53,41 @@ export const init = () => {
   ]
 }
 
-export const Model =
-  ({isAttached, isOpen, toolbar}) =>
-  ({isAttached, isOpen, toolbar});
-
 export const Attach = {type: "Attach"};
 export const Detach = {type: "Detach"};
 export const Open = {type: "Open"};
 export const Close = {type: "Close"};
+export const Select = {type: "Select"};
+export const Activate = {type: "Activate"};
+export const CloseTab/*:type.CloseTab*/ = id =>
+  ({type: "CloseTab", id});
+export const SelectTab/*:type.SelectTab*/ = id =>
+  ({type: "SelectTab", id});
+export const ActivateTab/*:type.ActivateTab*/ = id =>
+  ({type: "ActivateTab", id});
+
+const TabsAction = action =>
+  (  action.type === "Close"
+  ? CloseTab(action.id)
+  : action.type === "Select"
+  ? SelectTab(action.id)
+  : action.type === "Activate"
+  ? ActivateTab(action.id)
+  : {type: "Tabs", action}
+  );
+
+
 const AnimationAction = action => ({type: "Animation", action});
 const AnimationEnd = always({type: "AnimationEnd"});
 
 const ToolbarAction = action =>
-    action.type === "Attach"
+  ( action.type === "Attach"
   ? Attach
   : action.type === "Detach"
   ? Detach
-  : ({type: "Toolbar", action});
+  : {type: "Toolbar", action}
+  );
 
-const TabsAction = action =>
-  ({type: "Tabs", action});
 
 
 const updateToolbar = cursor({
@@ -114,8 +96,6 @@ const updateToolbar = cursor({
   tag: ToolbarAction,
   update: Toolbar.update
 });
-
-
 
 const updateStopwatch = cursor({
   tag: AnimationAction,
@@ -130,14 +110,15 @@ const interpolate = (from, to, progress) => merge(from, {
 })
 
 const animationProjection = model =>
-    model.isOpen
+  ( model.isOpen
   ? {angle: 0, x: 0}
   : model.isAttached
   ? {angle: 0, x: 330}
   : {angle: -15, x: 500}
+  );
 
 const animationDuration = model =>
-    model.isOpen
+  (  model.isOpen
   ? ( model.isAttached
     ? 500
     : 600
@@ -145,8 +126,8 @@ const animationDuration = model =>
   : ( model.isAttached
     ? 350
     : 400
-    );
-
+    )
+  );
 
 
 const updateAnimation = (model, action) => {
@@ -187,8 +168,8 @@ const updateAnimation = (model, action) => {
 }
 
 
-export const update = (model, action) =>
-    action.type === "Animation"
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === "Animation"
   ? updateAnimation(model, action)
   : action.type === "AnimationEnd"
   ? updateStopwatch(model, Stopwatch.End)
@@ -203,50 +184,15 @@ export const update = (model, action) =>
   : action.type === "Toolbar"
   ? updateToolbar(model, action.action)
   : Unknown.update(model, action)
+  );
 
 
-
-const viewImage = (uri, style) =>
-  html.img({
-    style: Style({
-      backgroundImage: `url(${uri})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center center',
-      backgroundRepeat: 'no-repeat',
-      border: 'none'
-    }, style)
-  });
-
-const viewTab = (model, address) =>
-  html.div({
-    className: 'sidebar-tab',
-    style: Style(
-      styleSheet.tab,
-      model.isSelected && styleSheet.tabSelected
-    ),
-    onMouseDown: () => address(WebView.Select),
-    onMouseUp: () => address(WebView.Activate)
-  }, [
-    thunk('favicon',
-          viewImage,
-          readFaviconURI(model),
-          styleSheet.favicon),
-    html.div({
-      className: 'sidebar-tab-title',
-      style: styleSheet.title
-    }, [
-      // @TODO localize this string
-      readTitle(model, 'Untitled')
-    ])
-  ]);
-
-
-const viewSidebar = (key, styleSheet) => (model, {entries}, address) => {
-  const tabs = forward(address, TabsAction);
+export const view/*:type.view*/ = (model, webViews, address) => {
   const {display} = model;
   return html.div({
-    key: key,
-    className: key,
+
+    key: 'sidebar',
+    className: 'sidebar',
     style: Style
       ( styleSheet.base
 
@@ -260,25 +206,13 @@ const viewSidebar = (key, styleSheet) => (model, {entries}, address) => {
         }
       )
   }, [
-    html.div({
-      className: 'sidebar-tabs-scrollbox',
-      style: styleSheet.scrollbox
-    }, entries.map(entry =>
-        thunk(entry.id, viewTab, entry, forward(tabs, asByID(entry.id))))),
+    thunk('tabs',
+          Tabs.view,
+          webViews,
+          forward(address, TabsAction)),
     thunk('sidebar-toolbar',
           Toolbar.view,
           model.toolbar,
           forward(address, ToolbarAction))
   ]);
-}
-
-export const view = viewSidebar('sidebar', StyleSheet.create({
-  base: styleSheet.sidebar,
-  attached: {
-    padding: '0 18px'
-  },
-  detached: {
-    width: '380px',
-    padding: '0 35px'
-  }
-}));
+};

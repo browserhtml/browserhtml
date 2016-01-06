@@ -13,7 +13,8 @@ export type LiveReload = {
   type: "LiveReload"
 }
 
-export type Unknown = <detail> (detail:detail) => UnknownType<detail>
+export type Unknown = <detail> (detail:detail) =>
+  UnknownType<detail>
 
 export type RemoteDebugRequest = {
   type: "RemoteDebugRequest",

@@ -15,6 +15,7 @@
 .*/browser.html/.profile/.*
 .*/browser.html/.bin/.*
 .*/gulpfile.*
+.*~/.*
 
 [libs]
 ./node_modules/reflex/interfaces/
@@ -29,4 +30,5 @@ module.name_mapper='reflex-virtual-dom-driver' -> 'reflex-virtual-dom-driver/src
 module.name_mapper='reflex' -> 'reflex/src/index'
 module.name_mapper='eased' -> 'eased/src/index'
 module.name_mapper='color-structure' -> 'color-structure/src/index'
-module.name_mapper='package.json' -> 'package.js'
+module.name_mapper='driver' -> './src/driver/virtual-dom/index.js'
+suppress_comment= \\(.\\|\n\\)*\\@FlowIssue

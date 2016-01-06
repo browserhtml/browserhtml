@@ -4,79 +4,97 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from "../../type/browser/web-view/progress" */
+/*:: import * as type from "../../../type/browser/web-view/progress" */
 
 import {Effects, html} from 'reflex';
 import {ease, easeOutQuart, float} from 'eased';
 import {StyleSheet, Style} from '../../common/style';
 import {merge} from '../../common/prelude';
+import * as Unknown from '../../common/unknown';
 
 const second = 1000;
 
-export const asStart/*:type.asStart*/ = (time) => ({
-  type: "WebView.Progress.Start",
-  timeStamp: time,
-});
+export const Start/*:type.Start*/ = time =>
+  ( { type: "Start"
+    , time
+    }
+  );
 
 // @TODO Is change supposed to be connected to http progress events from
 // the browser? In this case would it modify the loadEnd estimate in the model?
-export const asChange/*:type.asChange*/ = (time) => ({
-  type: "WebView.Progress.Change",
-  timeStamp: time,
-});
+export const Change/*:type.Change*/ = time =>
+  ( { type: "Change"
+    , time
+    }
+  );
 
-export const asEnd/*:type.asEnd*/ = (time) => ({
-  type: "WebView.Progress.End",
-  timeStamp: time,
-});
+export const End/*:type.End*/ = time =>
+  ( { type: "End"
+    , time
+    }
+  );
 
-export const asTick/*:type.asTick*/ = (time) => ({
-  type: "WebView.Progress.Tick",
-  timeStamp: time,
-});
+export const Tick/*:type.Tick*/ = time =>
+  ( { type: "Tick"
+    , time
+    }
+  );
 
 // Start a new progress cycle.
-export const start/*:type.start*/ = (timeStamp) => [
-  {
-    loadStart: timeStamp,
-    // Predict a 5s load if we don't know.
-    loadEnd: timeStamp + (7 * second),
-    updateTime: timeStamp
-  },
-  Effects.tick(asTick)
-];
+const start = time =>
+  [ { loadStart: time
+    // Predict a 7s load if we don't know.
+    , loadEnd: time + (7 * second)
+    , updateTime: time
+    }
+  , Effects.tick(Tick)
+  ];
 
 // Invoked on End action and returns model with updated `timeStamp`:
 //  [
 //    {...model, loadEnd: timeStamp},
 //    Effects.none
 //  ]
-export const end = (timeStamp, model) =>
+const end = (time, model) =>
   // It maybe that our estimated load time was naive and we finished load
   // animation before we received loadEnd. In such case we update both `loadEnd`
   // & `updateTime` so that load progress will remain complete. Otherwise we
   // update `loadEnd` with `timeStamp + 500` to make progressbar sprint to the
   // end in next 500ms.
-  model.loadEnd > model.updateTime ?
-    [merge(model, {loadEnd: timeStamp + 500}), Effects.none] :
-    [merge(model, {loadEnd: timeStamp + 500,
-                   updateTime: timeStamp + 500}), Effects.none];
+  ( model.loadEnd > model.updateTime
+  ? [ merge(model, {loadEnd: time + 500}), Effects.none ]
+  : [ merge
+      ( model
+      , { loadEnd: time + 500
+        , updateTime: time + 500
+        }
+      )
+    , Effects.none
+    ]
+  );
 
 // Update the progress and request another tick.
 // Returns a new model and a tick effect.
-export const tick/*:type.tick*/ = (timeStamp, model) =>
-  model.loadEnd > timeStamp ?
-    [merge(model, {updateTime: timeStamp}), Effects.tick(asTick)] :
-    [merge(model, {updateTime: timeStamp}), Effects.none];
+export const tick/*:type.tick*/ = (time, model) =>
+  ( model.loadEnd > time
+  ? [ merge(model, {updateTime: time}), Effects.tick(Tick) ]
+  : [ merge(model, {updateTime: time}), Effects.none ]
+  );
 
-export const update = (model, action) =>
-  action.type === 'WebView.Progress.Start' ?
-    start(action.timeStamp) :
-  action.type === 'WebView.Progress.End' ?
-    end(action.timeStamp, model) :
-  action.type === 'WebView.Progress.Tick' ?
-    tick(action.timeStamp, model) :
-  [model, Effects.none];
+export const init/*:type.init*/ = () =>
+  [null, Effects.none];
+
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === 'Start'
+  ? start(action.time)
+  : model == null
+  ? start(action.time)
+  : action.type === 'End'
+  ? end(action.time, model)
+  : action.type === 'Tick'
+  ? tick(action.time, model)
+  : Unknown.update(model, action)
+  );
 
 export const progress/*:type.progress*/ = (model) =>
   model ?

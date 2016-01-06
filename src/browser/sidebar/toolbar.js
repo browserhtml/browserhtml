@@ -9,9 +9,17 @@ import {Style, StyleSheet} from '../../common/style';
 import * as Toggle from "../../common/toggle";
 import {merge} from "../../common/prelude";
 import {cursor} from "../../common/cursor";
+import * as Unknown from "../../common/unknown";
 
-export const Attach = {type: "Attach"};
-export const Detach = {type: "Detach"};
+/*:: import * as type from "../../../type/browser/sidebar/toolbar" */
+
+export const Attach/*:type.Attach*/ =
+  { type: "Attach"
+  };
+
+export const Detach/*:type.Detach*/ =
+  { type: "Detach"
+  };
 
 const ToggleAction = action =>
     action.type === "Check"
@@ -27,7 +35,7 @@ const updateToggle = cursor({
   update: Toggle.update
 });
 
-export const init = () => {
+export const init/*:type.init*/ = () => {
   const [pin, fx] = Toggle.init()
   return [
     {pin},
@@ -35,16 +43,20 @@ export const init = () => {
   ]
 }
 
-export const Model = ({pin}) => ({pin});
+export const Model/*:type.Toolbar*/ =
+  ({pin}) =>
+  ({pin});
 
-export const update = (model, action) =>
-    action.type === "Attach"
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === "Attach"
   ? updateToggle(model, Toggle.Check)
   : action.type === "Detach"
   ? updateToggle(model, Toggle.Uncheck)
   : action.type === "Toggle"
   ? updateToggle(model, action.action)
-  : Unknown.update(model, action);
+
+  : Unknown.update(model, action)
+  );
 
 export const styleSheet = StyleSheet.create({
   toolbar: {
@@ -76,7 +88,7 @@ const viewPin = Toggle.view('pin-button', StyleSheet.create({
   }
 }));
 
-export const view = (model, address) =>
+export const view/*:type.view*/ = (model, address) =>
   html.div({
     key: 'sidebar-toolbar',
     className: 'sidebar-toolbar',

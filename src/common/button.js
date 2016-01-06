@@ -37,7 +37,7 @@ const updateTarget = cursor({
 });
 
 
-export const init = (isDisabled, isFocused, isActive, isPointerOver) =>
+export const init/*:type.init*/ = (isDisabled, isFocused, isActive, isPointerOver) =>
   [ ({isDisabled: false
     , isFocused: false
     , isActive: false
@@ -46,11 +46,11 @@ export const init = (isDisabled, isFocused, isActive, isPointerOver) =>
   , Effects.none
   ]
 
-export const Model = ({isDisabled, isActive, isPointerOver, isFocused}) =>
+export const Model/*:type.Button*/ = ({isDisabled, isActive, isPointerOver, isFocused}) =>
   ({isDisabled, isActive, isPointerOver, isFocused});
 
-export const update = (model, action) =>
-    action.type === "Down"
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === "Down"
   ? [merge(model, {isActive: true}), Effects.none]
   : action.type === "Up"
   ? [merge(model, {isActive: false}), Effects.none]
@@ -65,9 +65,10 @@ export const update = (model, action) =>
   : action.type === "Focusable"
   ? updateFocusable(model, action.action)
   : Unknown.update(model, action)
+  );
 
 
-export const view = (key, styleSheet) => (model, address, contextStyle) =>
+export const view/*:type.view*/ = (key, styleSheet) => (model, address, contextStyle) =>
   html.button({
     key: key,
     className: key,

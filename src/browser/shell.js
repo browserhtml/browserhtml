@@ -14,6 +14,7 @@ import * as Unknown from "../common/unknown";
 // @TODO: IO stuff should probably live elsewhere.
 const fetchFocus = Task.io(deliver => {
   const action
+    // @FlowIssue: Flow does not know about `document.hasFocus()`
     = document.hasFocus()
     ? Focus
     : Blur;
@@ -22,13 +23,14 @@ const fetchFocus = Task.io(deliver => {
 
 
 export const init/*:type.init*/ = () => {
-  const [controls, fx] = Controls.init(false);
+  const [controls, fx] = Controls.init(false, false, false);
   return [
-    ({isFocused: false
-    , isMinimized: false
-    , isMaximized: false
-    , controls: controls
-    })
+    ( { isFocused: false
+      , isMinimized: false
+      , isMaximized: false
+      , controls: controls
+      }
+    )
   , Effects.batch(
     [ fx,
       // Check if window is actually focused

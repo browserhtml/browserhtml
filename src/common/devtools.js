@@ -1,8 +1,9 @@
+/* @flow */
+
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* @flow */
 
 /*:: import * as type from '../../type/common/devtools' */
 
@@ -57,7 +58,7 @@ export const CleanRestart =
 export const CleanReload =
   {type: "CleanReload"};
 
-export const Change = (name, value) =>
+const Change = (name, value) =>
   ({type: "Change", name, value});
 
 export const init/*:type.init*/ = () => {
@@ -81,15 +82,15 @@ const updateSettings = cursor({
 
 export const update/*:type.update*/ = (model, action) =>
     action.type === 'Toggle'
-  ? [merge(model, {isActive: !model.isActive}), Effects.none]
+  ? [ merge(model, {isActive: !model.isActive}), Effects.none ]
 
   // Button actions
   : action.type === 'Restart'
-  ? [model, Effects.task(Runtime.restart)]
+  ? [ model, Effects.task(Runtime.restart) ]
   : action.type === 'CleanRestart'
-  ? [model, Effects.task(Runtime.clearRestart)]
+  ? [ model, Effects.task(Runtime.cleanRestart) ]
   : action.type === 'CleanReload'
-  ? [model, Effects.task(Runtime.cleanReload)]
+  ? [ model, Effects.task(Runtime.cleanReload) ]
 
   : action.type === 'Change'
   ? [ model

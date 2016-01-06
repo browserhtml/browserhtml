@@ -21,7 +21,7 @@
     f2(5) // => 36
     **/
 
-    return (...args) => {
+    const composed = (...args) => {
       var index = lambdas.length;
       var result = lambdas[--index](...args);
       while (--index >= 0) {
@@ -29,7 +29,13 @@
       }
       return result;
     };
+    composed.lambdas = lambdas;
+    composed.toString = compose$toString;
+    return composed;
   };
+  const compose$toString = function() {
+    return `compose(${this.lambdas.join(', ')})`
+  }
 
   const partial = (lambda, ...curried) =>
     (...passed) => lambda(...curried, ...passed);

@@ -1,5 +1,7 @@
 /* @flow */
 
+import * as Reflex from "reflex";
+
 /*::
 import type {Cursor} from "../../type/common/cursor"
 import type {Effects} from "reflex/type/effects"
@@ -15,7 +17,7 @@ export const cursor = /*::<from, to, in, out>*/ (config/*:Cursor*/)/*:(model:fro
     const previous
       = get == null
       ? model
-      : get(model);
+      : get(model, action);
 
     const [next, fx] = update(previous, action);
     const state
@@ -25,4 +27,12 @@ export const cursor = /*::<from, to, in, out>*/ (config/*:Cursor*/)/*:(model:fro
 
     return [state, tag == null ? fx : fx.map(tag)]
   }
+}
+
+
+// @FlowIssue: Ignore for now
+export const join = (cursorA, cursorB) => (model, action) => {
+  const [stepA, fxA] = cursorA(model, action)
+  const [stepB, fxB] = cursorB(model, action)
+  return [stepB, Reflex.Effects.batch([fxA, fxB])];
 }

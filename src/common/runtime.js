@@ -43,10 +43,11 @@ export const LiveReload/*:type.LiveReload*/
 
 
 // Action annotations
-export const Unknown/*:type.Unknown*/ = detail => ({
-  type: "Unknown",
-  detail
-});
+export const Unknown = /*::<detail>*/(detail/*:detail*/)/*:type.UnknownType<detail>*/ =>
+  ( { type: "Unknown"
+    , detail
+    }
+  )
 
 export const RemoteDebugResponse/*:type.RemoteDebugResponse*/ = value => ({
   type: "RemoteDebugResponse",
@@ -60,7 +61,7 @@ export const DownloadUpdate/*:type.DownloadUpdate*/ = result => ({
 
 
 const dispatchRequest = data =>
-  window.dispatchEvent(new CustomEvent("mozContentEvent", {
+  window.dispatchEvent(new window.CustomEvent("mozContentEvent", {
     bubbles: false,
     cancelable: false,
     detail: data

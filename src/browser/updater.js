@@ -2,7 +2,7 @@
 
 import {Effects, Task} from "reflex"
 import {always} from "../common/prelude"
-import * as Rusult from "../common/result"
+import * as Result from "../common/result"
 
 /*:: import * as type from "../../type/browser/updater" */
 

@@ -29,15 +29,18 @@ export const Enter/*:type.Enter*/ = {type: 'Enter'};
 export const Focus = Focusable.Focus;
 export const Show = {type: 'Show'};
 export const Hide = {type: 'Hide'};
-export const EnterSelection = value => ({type: 'EnterSelection', value});
+export const EnterSelection/*:type.EnterSelection*/ = value =>
+  ({type: 'EnterSelection', value});
 
 const FocusableAction = action =>
     action.type === 'Focus'
   ? Focus
   : {type: 'Focusable', action};
 
-const EditableAction = action => ({type: 'Editable', action});
+const EditableAction = action =>
+  ({type: 'Editable', action});
 
+const Clear = EditableAction(Editable.Clear);
 export const Blur = FocusableAction(Focusable.Blur);
 
 const updateFocusable = cursor({
@@ -66,7 +69,7 @@ const enterSelection = (model, value) => {
   return [result, Effects.batch([focusFx, editFx])];
 }
 
-export const init = (isVisible=false, isFocused=false, value='') =>
+export const init/*:type.init*/ = (isVisible=false, isFocused=false, value='') =>
   [ ({value
     , isFocused
     , isVisible
@@ -75,11 +78,14 @@ export const init = (isVisible=false, isFocused=false, value='') =>
   , Effects.none
   ];
 
-export const update = (model, action) =>
-    action.type === 'Keyboard.Command'
-  ? update(model, action.action)
-  : action.type === 'Abort'
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === 'Abort'
   ? updateFocusable(model, Focusable.Blur)
+  // We don't really do anything on submit action for now
+  // although in a future we may clear the value or do blur
+  // the input.
+  : action.type === 'Submit'
+  ? [model, Effects.none]
   : action.type === 'Enter'
   ? enter(merge(model, {isVisible: true}))
   : action.type === Focus.type
@@ -98,6 +104,7 @@ export const update = (model, action) =>
   : action.type === 'Hide'
   ? [merge(model, {isVisible: false}), Effects.none]
   : Unknown.update(model, action)
+  );
 
 
 const decodeKeyDown = Keyboard.bindings({
@@ -193,7 +200,7 @@ const style = StyleSheet.create({
   }
 });
 
-export const view = (model, address) =>
+export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'input-combobox',
     style: Style( style.combobox
@@ -210,9 +217,12 @@ export const view = (model, address) =>
       className: 'input-clear-icon',
       style: Style(
         style.clearIcon,
-        model.value === '' && style.clearIconInactive
+        ( model.value === ''
+        ? style.clearIconInactive
+        : null
+        )
       ),
-      onClick: () => address(Editable.Clear)
+      onClick: () => address(Clear)
     }, ['']),
     html.input({
       className: 'input-field',

@@ -8,25 +8,37 @@
 
 import {Effects} from 'reflex';
 import * as Unknown from '../../common/unknown';
+import {merge} from '../../common/prelude';
 
-export const asChanged/*:type.asChanged*/ = (state, extendedValidation) => ({
-  type: 'WebView.Security.Changed',
-  state,
-  extendedValidation,
-});
+export const LoadStart/*:type.LoadStart*/ = {type: "LoadStart"};
+export const Changed/*:type.Changed*/ = (state, extendedValidation) =>
+  ({type: "Changed", state, extendedValidation});
 
-export const initial/*:type.initial*/ = {
-  state: 'insecure',
-  secure: false,
-  extendedValidation: false,
-};
+export const init/*:type.init*/ = () =>
+  [ {state: 'insecure', secure: false, extendedValidation: false}
+  , Effects.none
+  ]
 
 export const update/*:type.update*/ = (model, action) =>
-    action.type === 'WebView.Security.Changed'
-  ? [ { state: action.state
-      , secure: action.state === 'secure'
-      , extendedValidation: action.extendedValidation
-      }
+  ( action.type === "LoadStart"
+  ? [ merge
+      ( model
+      , { state: 'insecure'
+        , secure: false
+        , extendedValidation: false
+        }
+      )
     , Effects.none
     ]
-  : Unknown.update(model, action);
+  : action.type === 'Changed'
+  ? [ merge
+      ( model
+      , { state: action.state
+        , secure: action.state === 'secure'
+        , extendedValidation: action.extendedValidation
+        }
+      )
+    , Effects.none
+    ]
+  : Unknown.update(model, action)
+  );

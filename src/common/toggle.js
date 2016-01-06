@@ -12,7 +12,7 @@ import {html, Effects, forward, Task} from "reflex"
 /*:: import * as type from "../../type/common/toggle" */
 
 
-export const init = () =>
+export const init/*:type.init*/ = () =>
   [
     {
       isDisabled: false,
@@ -25,9 +25,9 @@ export const init = () =>
   ];
 
 
-export const Model =
-  ({isDisabled, isActive, isPointerOver, isFocused, isChecked}) =>
-  ({isDisabled, isActive, isPointerOver, isFocused, isChecked});
+export const Model/*:type.Toggle*/ =
+  ({isDisabled, isFocused, isActive, isPointerOver, isChecked}) =>
+  ({isDisabled, isFocused, isActive, isPointerOver, isChecked});
 
 export const Press = {type: "Press"};
 export const Check = {type: "Check"};
@@ -35,7 +35,8 @@ export const Uncheck = {type: "Uncheck"};
 
 const TargetAction = action => ({type: "Target", action});
 const FocusableAction = action => ({type: "Focusable", action});
-const ButtonAction = action => ({type: "Button", action});
+export const ButtonAction/*:type.ButtonAction*/ = action =>
+  ({type: "Button", action});
 
 export const Focus = FocusableAction(Focusable.Focus);
 export const Blur = FocusableAction(Focusable.Blur);
@@ -63,8 +64,8 @@ const updateButton = cursor({
 });
 
 
-export const update = (model, action) =>
-    action.type === "Press"
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === "Press"
   ? [ merge(model, {isChecked: !model.isChecked})
     , ( model.isChecked
       ? Effects.task(Task.succeed(Uncheck))
@@ -83,10 +84,11 @@ export const update = (model, action) =>
   ? updateTarget(model, action.action)
   : action.type === "Focusable"
   ? updateFocusable(model, action.action)
-  : Unknown.update(model, action);
+  : Unknown.update(model, action)
+  );
 
 
-export const view = (key, styleSheet) => (model, address, contextStyle) =>
+export const view/*:type.view*/ = (key, styleSheet) => (model, address, contextStyle) =>
   html.button({
     key: key,
     className: key,

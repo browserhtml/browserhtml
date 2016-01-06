@@ -18,6 +18,6 @@ export const error/*:type.error*/ = (...params) => Task.io(respond => {
 
 
 export const update/*:type.update*/ = (model, action) => {
-  console.warn('Unknown action was passed & ignored: ', action);
+  console.warn('Unknown action was passed & ignored: ', action, Error().stack);
   return [model, Effects.none];
 };

@@ -26,7 +26,7 @@ export type Toggle = {type: "Toggle"}
 export type Restart = {type: "Restart"}
 export type CleanRestart = {type: "CleanRestart"}
 export type CleanReload = {type: "CleanReload"}
-export type Change =
+export type ChangeAction =
   { type: "Change"
   , name: Settings.Name
   , value: Settings.Value
@@ -41,7 +41,7 @@ export type Action
   | Restart
   | CleanRestart
   | CleanReload
-  | Change
+  | ChangeAction
   | SettingsAction
 
 export type init = () => [Model, Effects<Action>]

@@ -1,5 +1,7 @@
 /* @flow */
 
+import type {Effects} from "reflex/type/effects"
+
 export type ID = number
 export type URI = string
 export type Time = number
@@ -14,11 +16,9 @@ export type move = <item> (items:Array<item>, from:number, to:number) => Array<i
 export type Always <a> = (a:a) => (...args:Array<any>) => a
 export type always = <a> (a:a) => (...args:Array<any>) => a
 
-export type For <target, action> = {
-  type: "For",
-  target: target,
-  action: action
-}
 
-export type asFor <target, action> = (target:target) =>
-  (action:action) => For<target, action>
+export type batch = <model, action>
+  ( update:(model:model, action:action)=>[model, Effects<action>]
+  , model:model
+  , actions:Array<action>
+  ) => [model, Effects<action>]
