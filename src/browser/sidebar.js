@@ -82,8 +82,6 @@ const toolbar = cursor({
   update: Toolbar.step
 });
 
-
-
 const stopwatch = cursor({
   tag: Animation,
   get: model => model.animation,
@@ -206,7 +204,7 @@ const ToolbarAction = action =>
   : ({type: "Toolbar", action});
 
 const TabAction = action =>
-  ({type: "Tabs", action});
+  ({type: "Tab", action});
 
 const viewSidebar = (key) => (model, {entries}, address) => {
   const tabs = forward(address, TabAction);
