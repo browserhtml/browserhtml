@@ -126,9 +126,13 @@ const Activated/*:type.Activated*/ = id =>
 // ### Switch mode
 
 export const Expand/*:type.Expand*/ = {type: "Expand"};
+export const Expanded/*:type.Expanded*/ = {type: "Expanded"};
 export const Shrink/*:type.Shrink*/ = {type: "Shrink"};
+export const Shrinked/*:type.Shrinked*/ = {type: "Shrinked"};
 export const Fold/*:type.Fold*/ = {type: "Fold"};
+export const Folded/*:type.Folded*/ = {type: "Folded"};
 export const Unfold/*:type.Unfold*/ = {type: "Unfold"};
+export const Unfolded/*:type.Unfolded*/ = {type: "Unfolded"};
 
 // ### Tag WebView Action
 
@@ -173,14 +177,14 @@ const ByID =
 
 // Animation
 
-const AnimationEnd =
-  { type: "AnimationEnd"
-  };
+const ResizeAnimationAction = action =>
+  ( { type: "ResizeAnimation"
+    , action
+    }
+  );
 
-const AnimationAction = action =>
-  ( action.type === "End"
-  ? AnimationEnd
-  : { type: "Animation"
+const FoldAnimationAction = action =>
+  ( { type: "FoldAnimation"
     , action
     }
   );
@@ -215,9 +219,12 @@ export const init/*:type.init*/ = () =>
     , order: []
     , entries: {}
     , display: { rightOffset: 0 }
-    , animation: null
+
+    , resizeAnimation: null
     , isExpanded: true
-    , isFolded: false
+
+    , foldAnimation: null
+    , isFolded: true
     }
   , Effects.none
   ];
@@ -463,23 +470,37 @@ const selectByID = (model, id) =>
 // Animations
 
 const expand = model =>
-  startAnimation(merge(model, {isExpanded: true}))
+  ( model.isExpanded
+  ? [ model, Effects.none ]
+  : startResizeAnimation(merge(model, {isExpanded: true}))
+  );
 
 const shrink = model =>
-  startAnimation(merge(model, {isExpanded: false}))
+  ( model.isExpanded
+  ? startResizeAnimation(merge(model, {isExpanded: false}))
+  : [ model, Effects.none ]
+  );
 
-const startAnimation = model => {
-  const [animation, fx] = Stopwatch.update(model.animation, Stopwatch.Start);
-  return [merge(model, {animation}), fx.map(AnimationAction)]
+
+const startResizeAnimation = model => {
+  const [resizeAnimation, fx] =
+    Stopwatch.update(model.resizeAnimation, Stopwatch.Start);
+  return [ merge(model, {resizeAnimation}), fx.map(ResizeAnimationAction) ];
 }
 
-const endAnimation = model => {
-  const [animation, fx] = Stopwatch.update(model.animation, Stopwatch.End);
-  return [merge(model, {animation}), Effects.none];
+const endResizeAnimation = model => {
+  const [resizeAnimation, fx] =
+    Stopwatch.update(model.resizeAnimation, Stopwatch.End);
+
+  return [ merge(model, {resizeAnimation}), Effects.none ];
 }
 
-const updateAnimation = (model, action) => {
-  const [animation, fx] = Stopwatch.update(model.animation, action);
+const shrinked = endResizeAnimation;
+const expanded = endResizeAnimation;
+
+const updateResizeAnimation = (model, action) => {
+  const [resizeAnimation, fx] =
+    Stopwatch.update(model.resizeAnimation, action);
   const duration = 300;
 
   const [begin, end] =
@@ -489,10 +510,10 @@ const updateAnimation = (model, action) => {
     );
 
   const result =
-    ( duration > animation.elapsed
+    ( duration > resizeAnimation.elapsed
     ? [ merge
         ( model
-        , { animation
+        , { resizeAnimation
           , display:
               merge
               ( model.display
@@ -503,27 +524,125 @@ const updateAnimation = (model, action) => {
                     , begin
                     , end
                     , duration
-                    , animation.elapsed
+                    , resizeAnimation.elapsed
                     )
                 }
               )
           }
         )
-      , fx.map(AnimationAction)
+      , fx.map(ResizeAnimationAction)
       ]
     : [ merge
         ( model
-        , { animation
+        , { resizeAnimation
           , display: merge(model.display, { rightOffset: end })
           }
         )
-      , Effects.receive(AnimationEnd)
+      , Effects.receive
+        ( model.isExpanded
+        ? Expanded
+        : Shrinked
+        )
       ]
     );
 
   return result;
 }
 
+const fold = model =>
+  ( model.isFolded
+  ? [ model, Effects.none ]
+  : startFoldAnimation(merge(model, {isFolded: true}))
+  );
+
+const unfold = model =>
+  ( model.isFolded
+  ? startFoldAnimation(merge(model, {isFolded: false}))
+  : [ model, Effects.none ]
+  );
+
+const startFoldAnimation = model => {
+  if (model.foldAnimation != null) {
+    return (
+      [ merge
+        ( model
+        , { foldAnimation: merge(model.foldAnimation, {elapsed: 0}) }
+        )
+      , Effects.none
+      ]
+    );
+  }
+  const [foldAnimation, fx] =
+    Stopwatch.update(model.foldAnimation, Stopwatch.Start);
+  return [merge(model, {foldAnimation}), fx.map(FoldAnimationAction)];
+};
+
+const endFoldAnimation = model => {
+  const [foldAnimation, fx] =
+    Stopwatch.update(model.foldAnimation, Stopwatch.End);
+
+  return [ merge(model, {foldAnimation}), Effects.none ];
+}
+
+const folded = endFoldAnimation;
+const unfolded = endFoldAnimation;
+
+const interpolateFold = (from, to, progress) =>
+  ( progress === 0
+  ? from
+  : { angle: Easing.float(from.angle, to.angle, progress)
+    , depth: Easing.float(from.depth, to.depth, progress)
+    }
+  );
+
+const updateFoldAnimation = (model, action) => {
+  const [foldAnimation, fx] =
+    Stopwatch.update(model.foldAnimation, action);
+
+  const [begin, end, duration] =
+    ( model.isFolded
+    ? [ {angle: 10, depth: -600}
+      , {angle: 0, depth: 0}
+      , 200
+      ]
+    : [ {angle: 0, depth: 0}
+      , {angle: 10, depth: -600}
+      , 600
+      ]
+    );
+
+  const result =
+    ( duration > foldAnimation.elapsed
+    ? [ merge
+        ( model
+        , { foldAnimation
+          , display:
+              merge
+              ( model.display
+              , Easing.ease
+                ( Easing.easeOutCubic
+                , interpolateFold
+                , begin
+                , end
+                , duration
+                , foldAnimation.elapsed
+                )
+              )
+          }
+        )
+      , fx.map(FoldAnimationAction)
+      ]
+    : [ merge(model, {foldAnimation, display: merge(model.display, end) })
+      , Effects.receive
+        ( model.isFolded
+        ? Folded
+        : Unfolded
+        )
+      ]
+    );
+
+  return result;
+}
 
 
 export const update/*:type.update*/ = (model, action) =>
@@ -573,10 +692,24 @@ export const update/*:type.update*/ = (model, action) =>
   ? expand(model)
   : action.type === "Shrink"
   ? shrink(model)
-  : action.type === "Animation"
-  ? updateAnimation(model, action.action)
-  : action.type === "AnimationEnd"
-  ? endAnimation(model)
+  : action.type === "ResizeAnimation"
+  ? updateResizeAnimation(model, action.action)
+  : action.type === "Expanded"
+  ? expanded(model)
+  : action.type === "Shrinked"
+  ? shrinked(model)
+
+  // Fold / Unfold animations
+  : action.type === "Fold"
+  ? fold(model)
+  : action.type === "Unfold"
+  ? unfold(model)
+  : action.type === "FoldAnimation"
+  ? updateFoldAnimation(model, action.action)
+  : action.type === "Folded"
+  ? folded(model)
+  : action.type === "Unfolded"
+  ? unfolded(model)
 
   // Delegate tagged action to one of the update functions.
   : action.type === "ActiveWebView"
@@ -600,7 +733,7 @@ export const getActiveURI/*:type.getActiveURI*/ = (model, fallback=null) =>
 
 
 const styleSheet = StyleSheet.create({
-  webviews: {
+  base: {
     // @TODO box shadow slows down animations significantly (Gecko)
     // boxShadow: '0 50px 80px rgba(0,0,0,0.25)',
     // @WORKAROUND use percent instead of vw/vh to work around
@@ -612,19 +745,21 @@ const styleSheet = StyleSheet.create({
     position: 'absolute', // to position webviews relatively to stack
     top: 0,
     willChange: 'transform',
+    transformOrigin: 'left center'
     // WARNING: will slow down animations! (Gecko)
     // xBorderRadius: '4px',
   }
 });
 
-export const view/*:type.view*/ = (model, address, contextStyle) =>
+export const view/*:type.view*/ = (model, address) =>
   html.div
   ( { className: 'webviews-stack'
     , style:
         Style
-        ( styleSheet.webviews
-        , contextStyle
-        , { width: `calc(100% - ${model.display.rightOffset}px)`}
+        ( styleSheet.base
+        , { width: `calc(100% - ${model.display.rightOffset}px)`
+          , transform: `translate3d(0, 0, ${model.display.depth}px) rotateY(${model.display.angle}deg)`
+          }
         )
     }
   , model

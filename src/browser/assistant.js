@@ -15,8 +15,15 @@ export const initial/*:type.Model*/ = {
 
   topHit: null,
   page: [],
-  search: []
+  search: [],
+
+  isVisible: false,
+  isExpanded: false
 };
+
+export const Open = {type: "Open"};
+export const Close = {type: "Close"};
+export const Expand = {type: "Expand"};
 
 export const Unselect/*:type.Unselect*/ = {type: "Assistant.Unselect"};
 export const asUnselect/*:type.asUnselect*/ = always(Unselect);
@@ -150,7 +157,28 @@ export const query/*:type.query*/ = (input, limit) => Effects.batch([
 
 
 export const update/*:type.update*/ = (model, action) => {
-  if (action.type === "Assistant.Reset") {
+  if (action.type === "Open") {
+    return (
+      [ merge(model, { isOpen: true, isExpanded: false })
+      , Effects.none
+      ]
+    );
+  }
+  else if (action.type === "Close") {
+    return (
+      [ merge(model, { isOpen: false, isExpanded: false })
+      , Effects.none
+      ]
+    );
+  }
+  else if (action.type === "Expand") {
+    return (
+      [ merge(model, {isOpen: true, isExpanded: true })
+      , Effects.none
+      ]
+    )
+  }
+  else if (action.type === "Assistant.Reset") {
     return [
       initial,
       Effects.none
@@ -209,6 +237,18 @@ const style = StyleSheet.create({
     // @WORKAROUND use percent instead of vw/vh to work around
     // https://github.com/servo/servo/issues/8754
     width: '100%'
+  },
+
+  assistantExpanded: {
+   height: '100%'
+  },
+
+  assistantOpen: {
+
+  },
+
+  assistantClosed: {
+    display: 'none'
   },
 
   icon: {
@@ -353,10 +393,19 @@ const viewResult = (model, index, selected, address) =>
   // model.type === 'Search.Match' ?
     viewSearch(model, index, selected, address);
 
-export const view/*:type.view*/ = (model, address, modeStyle) =>
+export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'assistant',
-    style: Style(style.assistant, modeStyle)
+    style:
+      Style
+      ( style.assistant
+      , ( model.isExpanded
+        ? style.assistantExpanded
+        : model.isOpen
+        ? style.assistantOpen
+        : style.assistantClosed
+        )
+      )
   }, [
     html.ol({
       className: 'assistant-results',

@@ -81,6 +81,9 @@ const ShellAction = action =>
 const DevtoolsAction = action =>
   ({type: 'Devtools', action});
 
+const AssistantAction = action =>
+  ({type: 'Assistant', action});
+
 const updateInput = cursor({
   get: model => model.input,
   set: (model, input) => merge(model, {input}),
@@ -107,6 +110,13 @@ const updateDevtools = cursor({
   set: (model, devtools) => merge(model, {devtools}),
   update: Devtools.update,
   tag: DevtoolsAction
+});
+
+const updateAssistant = cursor({
+  get: model => model.suggestions,
+  set: (model, suggestions) => merge(model, {suggestions}),
+  update: Assistant.update,
+  tag: AssistantAction
 });
 
 // Following Browser actions end up updating several components of the
@@ -158,6 +168,10 @@ const HideInput = InputAction(Input.Hide);
 const EnterInput = InputAction(Input.Enter);
 const EnterInputSelection = compose(InputAction, Input.EnterSelection);
 
+const OpenAssistant = AssistantAction(Assistant.Open);
+const CloseAssistant = AssistantAction(Assistant.Close);
+const ExpandAssistant = AssistantAction(Assistant.Expand);
+
 export const AttachSidebar =
   { type: "AttachSidebar"
   };
@@ -206,6 +220,7 @@ const showWebView = model =>
   ( update
   , model
   , [ HideInput
+    , CloseAssistant
     , FoldWebViews
     , FocusWebView
     ]
@@ -217,8 +232,7 @@ const submitInput = model =>
   batch
   ( update
   , model
-  , [ InputAction(Input.Submit)
-    , NavigateTo(URI.read(model.input.value))
+  , [ NavigateTo(URI.read(model.input.value))
     , ShowWebView
     ]
   );
@@ -246,6 +260,7 @@ const exitInput = model =>
   ( update
   , model
   , [ InputAction(Input.Abort)
+    , CloseAssistant
     , FocusWebView
     ]
   );
@@ -255,6 +270,7 @@ const createWebView = model =>
   ( update
   , model
   , [ ShowInput
+    , ExpandAssistant
     , EnterInput
     ]
   );
@@ -264,6 +280,7 @@ const editWebView = model =>
   ( update
   , model
   , [ ShowInput
+    , OpenAssistant
     , EnterInputSelection(WebViews.getActiveURI(model.webViews, ''))
     ]
   );
@@ -273,6 +290,7 @@ const showTabs = model =>
   ( update
   , model
   , [ HideInput
+    , CloseAssistant
     , UnfoldWebViews
     ]
   );
@@ -322,6 +340,8 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateWebViews(model, action.action)
   : action.type === 'Shell'
   ? updateShell(model, action.action)
+  : action.type === 'Assistant'
+  ? updateAssistant(model, action.action)
   : action.type === 'Devtools'
   ? updateDevtools(model, action.action)
 

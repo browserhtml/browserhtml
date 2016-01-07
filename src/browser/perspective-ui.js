@@ -28,7 +28,6 @@ export const init/*:type.init*/ = () => {
     browser,
     sidebar,
     overlay,
-    animation: null,
   };
 
   return [
@@ -202,30 +201,6 @@ export const update = (model, action) => {
       ]
     );
   }
-  else if (action.type === 'Animation') {
-    // @TODO Right now we set animation to null whet it is not running but
-    // that makes delegation to Animation.update little tricky since animation
-    // can be null. Furthermore `Animation.update` itself does not handle
-    // `Animation.End` action so we need to check incoming actions before
-    // delegation. We should out better API for `Animation` module or stop
-    // settings `animation` to `null`.
-    if (action.action.type === 'Tick') {
-      const [animation, fx] = Animation.update(model.animation, action.action);
-      return [
-        merge(model, {
-          animation:
-            ( animation.now <= animation.end
-            ? animation
-            : null
-            )
-        }),
-        fx.map(AnimationAction)
-      ];
-    }
-    else {
-      return [model, Effects.none];
-    }
-  }
   else if (model.mode === 'create-web-view') {
     if (isAbort(action) || isEscape(action)) {
       // Only switch to show-web-view mode if there is a web view
@@ -337,15 +312,12 @@ export const update = (model, action) => {
       const [browser, fx] = Browser.update(model.browser, Browser.ShowTabs);
       const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Fade);
       const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Open);
-      const [animation, animationFx]
-        = Animation.init(performance.now(), showTabsTransitionDuration);
 
       return [
-        merge(model, {browser, overlay, sidebar, animation, mode: 'show-tabs'}),
+        merge(model, {browser, overlay, sidebar, mode: 'show-tabs'}),
         Effects.batch([
           fx,
           sidebarFx.map(SidebarAction),
-          animationFx.map(AnimationAction),
           overlayFx.map(OverlayAction)
         ])
       ];
@@ -388,25 +360,16 @@ export const update = (model, action) => {
         isActivateWebView(action) ||
         isOverlayClick(action))
     {
-      const time = performance.now();
       const [browser, fx] = Browser.update(model.browser, Browser.ShowWebView);
       const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
       const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Close);
-      // TODO: Handle already running animation case (see #747).
-      const [animation, animationFx]
-        = Animation.init(time, hideTabsTransitionDuration);
 
       return [
-        merge(model, {browser, sidebar, overlay, animation, mode: 'show-web-view'}),
+        merge(model, {browser, sidebar, overlay, mode: 'show-web-view'}),
         Effects.batch([
           fx,
           sidebarFx.map(SidebarAction),
-          overlayFx.map(OverlayAction),
-          // If animation was running no need for another tick.
-          ( model.animation
-          ? Effects.none
-          : animationFx.map(AnimationAction)
-          )
+          overlayFx.map(OverlayAction)
         ])
       ];
     }
@@ -447,17 +410,13 @@ export const update = (model, action) => {
       const [browser, fx] = Browser.update(model.browser, action);
       const [overlay, overlayFx] = Overlay.update(model.overlay, Overlay.Hide);
       const [sidebar, sidebarFx] = Sidebar.update(model.sidebar, Sidebar.Close);
-      const [animation, animationFx]
-        = Animation.init(time, hideTabsTransitionDuration);
 
       return [
-        merge(model, {browser, sidebar, overlay, animation, mode: 'show-web-view'}),
+        merge(model, {browser, sidebar, overlay, mode: 'show-web-view'}),
         Effects.batch([
           fx,
           overlayFx.map(OverlayAction),
-          sidebarFx.map(SidebarAction),
-          // If animation was running no need for another tick.
-          model.animation ? Effects.none : animationFx.map(AnimationAction)
+          sidebarFx.map(SidebarAction)
         ])
       ];
     }
@@ -468,93 +427,13 @@ export const update = (model, action) => {
   return [merge(model, {browser}), fx];
 }
 
-const zoom = (from, to, progress) => merge(from, {
-  angle: float(from.angle, to.angle, progress),
-  depth: float(from.depth, to.depth, progress)
-})
-
-const flipSlide = (from, to, progress) => merge(from, {
-  angle: float(from.angle, to.angle, progress),
-  x: float(from.x, to.x, progress)
-});
-
-const transition = {
-  webViewZoomOut(model) {
-    const {angle, depth}
-      = model == null ?
-          {angle: 10, depth: -600} :
-          ease(easeOutCubic,
-                zoom,
-                {angle: 0, depth: 0},
-                {angle: 10, depth: -600},
-                Animation.duration(model),
-                Animation.progress(model));
-    return {
-      transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
-    }
-  },
-  webViewZoomIn(model) {
-    const {angle, depth}
-      = model == null ?
-          {angle: 0, depth: 0} :
-          ease(easeOutCubic,
-                zoom,
-                {angle: 10, depth: -600},
-                {angle: 0, depth: 0},
-                Animation.duration(model),
-                Animation.progress(model));
-    return {
-      transform: `translate3d(0, 0, ${depth}px) rotateY(${angle}deg)`
-    }
-  }
-}
-
-const style = StyleSheet.create({
-  webViewZoomedIn: {},
-  webViewZoomedOut: {
-    transform: 'translate3d(0, 0, -600px) rotateY(10deg)',
-    transformOrigin: 'left center',
-    pointerEvents: 'none'
-  },
-
-  webViewShrink: {
-    width: 'calc(100% - 50px)'
-  },
-
-  webViewExpand: {
-
-  },
-
-  assistantHidden: {
-    display: 'none'
-  },
-
-  assistantFull: {
-    // @WORKAROUND use percent instead of vw/vh to work around
-    // https://github.com/servo/servo/issues/8754
-    height: '100%'
-  }
-});
 
 export const view/*:type.view*/ = (model, address) =>
-  model.mode === 'edit-web-view' ?
-    viewAsEditWebView(model, address) :
-  model.mode === 'show-web-view' ?
-    viewAsShowWebView(model, address) :
-  model.mode === 'create-web-view' ?
-    viewAsCreateWebView(model, address) :
-  model.mode === 'select-web-view' ?
-    viewAsSelectWebView(model, address) :
-  // mode === 'show-tabs' ?
-    viewAsShowTabs(model, address);
-
-const viewAsEditWebView = (model, address) =>
   Browser.view(model.browser, address, [
     thunk('web-views',
           WebViews.view,
           model.browser.webViews,
-          forward(address, WebViewsAction),
-          style.webViewZoomedIn),
+          forward(address, WebViewsAction)),
     thunk('overlay',
           Overlay.view,
           model.overlay,
@@ -568,119 +447,6 @@ const viewAsEditWebView = (model, address) =>
           Assistant.view,
           model.browser.suggestions,
           address),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, InputAction),
-          style.inputVisible)
-  ]);
-
-const viewAsShowWebView = (model, address) =>
-  Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, WebViewsAction),
-          Style(style.webViewZoomedIn,
-                transition.webViewZoomIn(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, OverlayAction)),
-    thunk('sidebar',
-          Sidebar.view,
-          model.sidebar,
-          model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address,
-          style.assistantHidden),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, InputAction))
-  ]);
-
-const viewAsCreateWebView = (model, address) =>
-  Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, WebViewsAction),
-          Style(style.webViewZoomedOut,
-                transition.webViewZoomIn(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, OverlayAction)),
-    thunk('sidebar',
-          Sidebar.view,
-          model.sidebar,
-          model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address,
-          style.assistantFull),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, InputAction))
-  ]);
-
-const viewAsSelectWebView = (model, address) =>
-  Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, WebViewsAction),
-          Style(style.webViewZoomedOut,
-                transition.webViewZoomOut(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, OverlayAction)),
-    thunk('sidebar',
-          Sidebar.view,
-          model.sidebar,
-          model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address,
-          style.assistantHidden),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, InputAction))
-  ]);
-
-const viewAsShowTabs = (model, address) =>
-  Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, WebViewsAction),
-          Style(style.webViewZoomedOut,
-                transition.webViewZoomOut(model.animation))),
-    thunk('overlay',
-          Overlay.view,
-          model.overlay,
-          forward(address, OverlayAction)),
-    thunk('sidebar',
-          Sidebar.view,
-          model.sidebar,
-          model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address,
-          style.assistantHidden),
     thunk('input',
           Input.view,
           model.browser.input,
