@@ -17,24 +17,15 @@ import * as Easing from "eased";
 /*:: import * as type from "../../type/browser/sidebar" */
 
 const styleSheet = StyleSheet.create({
-  base: {
-    // WARNING: will slow down animations! (gecko)
-    xBoxShadow: 'rgba(0, 0, 0, 0.5) -80px 0 100px',
-    backgroundColor: '#2E3D4D',
-    height: '100%',
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    width: '380px',
-    boxSizing: 'border-box',
-    zIndex: 2 // @TODO This is a hack to avoid resizing new tab / edit tab views.
-  },
-  attached: {
-    padding: '0 18px'
-  },
-  detached: {
-    width: '380px',
-    padding: '0 35px'
+  base:
+  { backgroundColor: '#24303D'
+  , height: '100%'
+  , position: 'absolute'
+  , right: 0
+  , top: 0
+  , width: '380px'
+  , boxSizing: 'border-box'
+  , zIndex: 2 // @TODO This is a hack to avoid resizing new tab / edit tab views.
   }
 });
 
@@ -42,19 +33,36 @@ const styleSheet = StyleSheet.create({
 export const init/*:type.init*/ = () => {
   const [toolbar, fx] = Toolbar.init()
   return [
-    {
-      isAttached: false,
-      isOpen: false,
-      animation: null,
-      display: {angle: -15, x: 500},
-      toolbar
+    { isAttached: false
+    , isOpen: false
+    , animation: null
+    , display:
+      { x: 500
+      , shadow: 0.5
+      , spacing: 34
+      , toolbarOpacity: 1
+      , titleOpacity: 1
+      , tabWidth: 312
+      }
+    , toolbar
     },
     fx.map(ToolbarAction)
   ]
 }
 
-export const Attach = {type: "Attach"};
-export const Detach = {type: "Detach"};
+export const CreateWebView =
+  { type: 'CreateWebView'
+  };
+
+export const Attach =
+  {
+    type: "Attach"
+  };
+
+export const Detach =
+  { type: "Detach"
+  };
+
 export const Open = {type: "Open"};
 export const Close = {type: "Close"};
 export const Select = {type: "Select"};
@@ -73,7 +81,9 @@ const TabsAction = action =>
   ? SelectTab(action.id)
   : action.type === "Activate"
   ? ActivateTab(action.id)
-  : {type: "Tabs", action}
+  : { type: "Tabs"
+    , source: action
+    }
   );
 
 
@@ -85,7 +95,12 @@ const ToolbarAction = action =>
   ? Attach
   : action.type === "Detach"
   ? Detach
-  : {type: "Toolbar", action}
+  : action.type === "CreateWebView"
+  ? CreateWebView
+  : { type: "Toolbar"
+    , source: action
+    , action
+    }
   );
 
 
@@ -104,29 +119,58 @@ const updateStopwatch = cursor({
   update: Stopwatch.update
 });
 
-const interpolate = (from, to, progress) => merge(from, {
-  angle: Easing.float(from.angle, to.angle, progress),
-  x: Easing.float(from.x, to.x, progress)
-})
+const interpolate = (from, to, progress) =>
+  merge
+  ( from
+  , { x: Easing.float(from.x, to.x, progress)
+    , shadow: Easing.float(from.shadow, to.shadow, progress)
+    , spacing: Easing.float(from.spacing, to.spacing, progress)
+    , toolbarOpacity: Easing.float(from.toolbarOpacity, to.toolbarOpacity, progress)
+    , titleOpacity: Easing.float(from.titleOpacity, to.titleOpacity, progress)
+    , tabWidth: Easing.float(from.tabWidth, to.tabWidth, progress)
+    }
+  );
+
+const display =
+  { open:
+    { x: 0
+    , shadow: 0.5
+    , spacing: 34
+    , toolbarOpacity: 1
+    , titleOpacity: 1
+    , tabWidth: 312
+    }
+  , attached:
+    { x: 330
+    , shadow: 0
+    , spacing: 8
+    , toolbarOpacity: 0
+    , titleOpacity: 0
+    , tabWidth: 34
+    }
+  , closed:
+    { x: 500
+    , shadow: 0.5
+    , spacing: 34
+    , toolbarOpacity: 1
+    , titleOpacity: 1
+    , tabWidth: 312
+    }
+  };
+
 
 const animationProjection = model =>
   ( model.isOpen
-  ? {angle: 0, x: 0}
+  ? display.open
   : model.isAttached
-  ? {angle: 0, x: 330}
-  : {angle: -15, x: 500}
+  ? display.attached
+  : display.closed
   );
 
 const animationDuration = model =>
-  (  model.isOpen
-  ? ( model.isAttached
-    ? 500
-    : 600
-    )
-  : ( model.isAttached
-    ? 350
-    : 400
-    )
+  ( model.isOpen
+  ? 500
+  : 200
   );
 
 
@@ -140,10 +184,10 @@ const updateAnimation = (model, action) => {
   // something that will give us more like spring physics.
   const begin
     = !model.isOpen
-    ? {angle: 0, x: 0}
+    ? display.open
     : model.isAttached
-    ? {angle: 0, x: 330}
-    : {angle: -15, x: 500};
+    ? display.attached
+    : display.closed;
 
   const projection = animationProjection(model)
 
@@ -213,32 +257,31 @@ export const update/*:type.update*/ = (model, action) =>
   );
 
 
-export const view/*:type.view*/ = (model, webViews, address) => {
-  const {display} = model;
-  return html.div({
-
-    key: 'sidebar',
-    className: 'sidebar',
-    style: Style
+export const view/*:type.view*/ = (model, webViews, address) =>
+  html.div
+  ( { key: 'sidebar'
+    , className: 'sidebar'
+    , style: Style
       ( styleSheet.base
-
-
-      ,   model.isAttached
-        ? styleSheet.attached
-        : styleSheet.detached
-
-      , {
-          transform:`translateX(${display.x}px) rotateY(${display.angle}deg)`
+      , { transform: `translateX(${model.display.x}px)`
+        , boxShadow: `rgba(0, 0, 0, ${model.display.shadow}) -50px 0 80px`
+        , paddingLeft: `${model.display.spacing}px`
+        , paddingRight: `${model.display.spacing}px`
         }
       )
   }, [
-    thunk('tabs',
-          Tabs.view,
-          webViews,
-          forward(address, TabsAction)),
-    thunk('sidebar-toolbar',
-          Toolbar.view,
-          model.toolbar,
-          forward(address, ToolbarAction))
+    thunk
+    ( 'tabs'
+    , Tabs.view
+    , webViews
+    , forward(address, TabsAction, model.display)
+    , model.display
+    )
+  , thunk
+    ( 'sidebar-toolbar'
+    , Toolbar.view
+    , model.toolbar
+    , forward(address, ToolbarAction)
+    , model.display
+    )
   ]);
-};

@@ -16,9 +16,11 @@ import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
+import * as Tab from './sidebar/tab';
 import * as Unknown from '../common/unknown';
 import * as Stopwatch from '../common/stopwatch';
 import {Style, StyleSheet} from '../common/style';
+import {readTitle, isDark} from './web-view/util';
 import * as Driver from 'driver';
 import * as URI from '../common/url-helper';
 import * as Focusable from '../common/focusable';
@@ -188,6 +190,17 @@ const OverflowChanged =
   , Page.OverflowChanged
   );
 
+const TabAction = action =>
+  ( action.type === "Close"
+  ? Close
+  : action.type === "Select"
+  ? Select
+  : action.type === "Activate"
+  ? Activate
+  : { type: "Tab"
+    , source: action
+    }
+  );
 
 const ProgressAction/*type.ProgressAction*/ = action =>
   ({type: "Progress", action});
@@ -217,26 +230,6 @@ const UnselectAnimationAction = action =>
   );
 
 
-export const readTitle/*:type.readTitle*/ = (model, fallback) =>
-  ( (model.page && model.page.title && model.page.title !== '')
-  ? model.page.title
-  : model.navigation.currentURI.search(/^\s*$/)
-  ? URI.prettify(model.navigation.currentURI)
-  : fallback
-  );
-
-export const readFaviconURI/*:type.readFaviconURI*/ = (model) =>
-  ( (model.page && model.page.faviconURI)
-  ? model.page.faviconURI
-  // @TODO use a proper URL.join function. Need to add this to url-helper lib.
-  : `${model.navigation.currentURI}/favicon.ico`
-  );
-
-export const isDark/*:type.isDark*/ = (model) =>
-  ( model.page
-  ? model.page.pallet.isDark
-  : false
-  );
 
 
 
@@ -275,6 +268,13 @@ const updatePage = cursor
     }
   );
 
+const updateTab = cursor
+  ( { get: model => model.tab
+    , set: (model, tab) => merge(model, {tab})
+    , tag: TabAction
+    , update: Tab.update
+    }
+  );
 
 const updateShell = cursor
   ( { get: model => model.shell
@@ -352,6 +352,7 @@ export const init/*:type.init*/ = (id, options) => {
   const [security, securityFx] = Security.init();
   const [progress, progressFx] = Progress.init();
   const [animation, animationFx] = Stopwatch.init();
+  const [tab, tabFx] = Tab.init();
 
   return [
     { id
@@ -370,12 +371,14 @@ export const init/*:type.init*/ = (id, options) => {
     , security
     , navigation
     , page
+    , tab
     , progress
     , animation
     }
   , Effects.batch
     ( [ shellFx.map(ShellAction)
       , pageFx.map(PageAction)
+      , tabFx.map(TabAction)
       , securityFx.map(SecurityAction)
       , navigationFx.map(NavigationAction)
       , progressFx.map(ProgressAction)
@@ -553,6 +556,8 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateShell(model, action.action)
   : action.type === "Page"
   ? updatePage(model, action.action)
+  : action.type === "Tab"
+  ? updateTab(model, action.source)
   : action.type === "Security"
   ? updateSecurity(model, action.action)
   : action.type === "Navigation"

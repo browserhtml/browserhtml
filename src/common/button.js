@@ -37,11 +37,12 @@ const updateTarget = cursor({
 });
 
 
-export const init/*:type.init*/ = (isDisabled, isFocused, isActive, isPointerOver) =>
+export const init/*:type.init*/ = (isDisabled, isFocused, isActive, isPointerOver, text='') =>
   [ ({isDisabled: false
     , isFocused: false
     , isActive: false
     , isPointerOver: false
+    , text
     })
   , Effects.none
   ]
@@ -103,4 +104,4 @@ export const view/*:type.view*/ = (key, styleSheet) => (model, address, contextS
     onMouseDown: forward(address, always(Down)),
     onClick: forward(address, always(Press)),
     onMouseUp: forward(address, always(Up))
-  });
+  }, [model.text || '']);

@@ -18,7 +18,7 @@ const styleSheet = StyleSheet.create({
   base: {
     width: '100%',
     height: `calc(100% - ${Toolbar.styleSheet.toolbar.height})`,
-    paddingTop: '35px',
+    paddingTop: '34px',
     overflowY: 'scroll',
     boxSizing: 'border-box'
   }
@@ -51,14 +51,14 @@ export const ByID/*:type.ByID*/ =
   ? Select(id)
   : action.type === "Activate"
   ? Activate(id)
-  : { type: "ByID"
+  : { type: "Tab"
     , id
-    , action
+    , source: action
     }
   );
 
 
-export const view/*:type.view*/ = (model, address) =>
+export const view/*:type.view*/ = (model, address, display) =>
   html.div
   ( { className: 'sidebar-tabs-scrollbox'
     , style: styleSheet.base
@@ -72,6 +72,7 @@ export const view/*:type.view*/ = (model, address) =>
           , Tab.view
           , model.entries[id]
           , forward(address, ByID(id))
+          , display
           )
       )
   );

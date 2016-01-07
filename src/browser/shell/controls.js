@@ -99,6 +99,7 @@ export const init/*:type.init*/ = (isDisabled, isPointerOver, isMaximized) => {
       , isPointerOver
       , isFocused
       , isActive
+      , text: ''
       }
     );
 
@@ -107,6 +108,7 @@ export const init/*:type.init*/ = (isDisabled, isPointerOver, isMaximized) => {
       , isPointerOver
       , isFocused
       , isActive
+      , text: ''
       }
     );
 

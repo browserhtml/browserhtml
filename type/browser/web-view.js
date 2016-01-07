@@ -1,4 +1,4 @@
-/* @flow */
+-view/* @flow */
 
 import type {Address, VirtualTree, Effects} from "reflex/type"
 import type {ID, URI, Time} from "../common/prelude"
@@ -10,7 +10,7 @@ import * as Security from "./web-view/security"
 import * as Page from "./web-view/page"
 import * as Rotation from "./web-view/rotation"
 import * as Stopwatch from "../common/stopwatch"
-
+import * as Sidebar from "../sidebar/tab"
 
 export type Activate =
   { type: "Activate" }

@@ -82,7 +82,7 @@ const Closed/*:type.Closed*/ = id =>
 
 // ### Select WebView
 
-const SelectByID/*:type.SelectByID*/ = id =>
+export const SelectByID/*:type.SelectByID*/ = id =>
   ( { type: "SelectByID"
     , id
     }
@@ -165,6 +165,8 @@ const WebViewAction = (id, action) =>
     , action
     }
   );
+
+export const ActionByID = WebViewAction;
 
 
 // Utility function for anotating specific actions to target a WebView with a

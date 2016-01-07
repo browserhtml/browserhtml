@@ -70,8 +70,16 @@ export const init/*:type.init*/ = () => {
 }
 
 const SidebarAction = action =>
-  ( action.type === "ActivateTab"
-  ? ActivateWebView(action.id)
+  ( action.type === "CreateWebView"
+  ? CreateWebView
+  : action.type === "ActivateTab"
+  ? ActivateWebViewByID(action.id)
+  : action.type === "SelectTab"
+  ? SelectWebViewByID(action.id)
+  : action.type === "CloseTab"
+  ? CloseWebViewByID(action.id)
+  : action.type === "Tabs"
+  ? WebViewActionByID(action.source.id, action.source)
   : action.type === "Attach"
   ? AttachSidebar
   : action.type === "Detach"
@@ -292,7 +300,15 @@ const UnfoldWebViews = WebViewsAction(WebViews.Unfold);
 const FoldWebViews = WebViewsAction(WebViews.Fold);
 const Open = compose(WebViewsAction, WebViews.Open);
 
-export const ActivateWebView = compose(WebViewsAction, WebViews.ActivateByID);
+export const ActivateWebViewByID =
+  compose(WebViewsAction, WebViews.ActivateByID);
+const SelectWebViewByID =
+  compose(WebViewsAction, WebViews.SelectByID);
+const WebViewActionByID =
+  compose(WebViewsAction, WebViews.ActionByID);
+
+const CloseWebViewByID =
+  compose(WebViewsAction, WebViews.CloseByID);
 
 // Following browser actions directly delegate to one of the existing modules
 // there for we define them by just wrapping actions from that module to avoid
