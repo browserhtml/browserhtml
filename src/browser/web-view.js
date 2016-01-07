@@ -578,6 +578,14 @@ const styleSheet = StyleSheet.create({
     zIndex: 2
   },
 
+  webviewActive: {
+
+  },
+
+  webviewSelected: {
+
+  },
+
   webviewInactive: {
     pointerEvents: 'none',
     visibility: 'hidden',
@@ -759,6 +767,8 @@ export const view/*:type.view*/ = (model, address) => {
       ( styleSheet.webview
       , ( model.isActive
         ? styleSheet.webviewActive
+        : model.isSelected
+        ? styleSheet.webviewSelected
         : styleSheet.webviewInactive
         )
       , model.display
