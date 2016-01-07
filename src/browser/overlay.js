@@ -128,7 +128,7 @@ export const update/*:type.update*/ = (model, action) =>
 
 const style = StyleSheet.create({
   overlay: {
-    background: 'rgb(39, 51, 64)',
+    background: 'rgb(0, 0, 0)',
     position: 'absolute',
     // @WORKAROUND use percent instead of vw/vh to work around
     // https://github.com/servo/servo/issues/8754
