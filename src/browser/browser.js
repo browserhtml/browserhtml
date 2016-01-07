@@ -6,19 +6,20 @@ import {Effects, html, forward, thunk} from "reflex";
 import * as Shell from "./shell";
 import * as Input from "./input";
 import * as Assistant from "./assistant";
+import * as Sidebar from './sidebar';
+import * as WebViews from "./web-views";
 
 // import * as Updater from "./updater"
 import * as Devtools from "../common/devtools";
 import * as Runtime from "../common/runtime";
 import * as URI from '../common/url-helper';
-import * as WebViews from "./web-views";
-import * as WebView from "./web-view";
 import * as Unknown from "../common/unknown";
-import {merge, always, batch} from "../common/prelude";
-import {cursor} from "../common/cursor";
 import * as Focusable from "../common/focusable";
 import * as OS from '../common/os';
 import * as Keyboard from '../common/keyboard';
+
+import {merge, always, batch} from "../common/prelude";
+import {cursor} from "../common/cursor";
 import {Style, StyleSheet} from '../common/style';
 
 import {identity, compose} from "../lang/functional";
@@ -29,39 +30,69 @@ import {onWindow} from "driver";
 
 export const init/*:type.init*/ = () => {
   const [devtools, devtoolsFx] = Devtools.init();
-  // const [updates, updaterFx] = Updater.init();
+  // const [updater, updaterFx] = Updater.init();
   const [input, inputFx] = Input.init(false, false, "");
   const [shell, shellFx] = Shell.init();
-  const [webViews, viewsFx] = WebViews.init();
+  const [webViews, webViewsFx] = WebViews.init();
+  const [sidebar, sidebarFx] = Sidebar.init();
+  const [suggestions, suggestionsFx] = Assistant.init();
 
-  const model = {
-    version,
-    shell: shell,
-    input: input,
-    suggestions: Assistant.initial,
-    webViews: webViews,
-    // updates: updates,
-    devtools: devtools
-  };
+  const model =
+    { version
+    , shell
+    , input
+    , suggestions
+    , webViews
+    , sidebar
+    // , updater
+    , devtools
+    };
 
-  const fx = Effects.batch([
-    devtoolsFx.map(DevtoolsAction),
-    inputFx.map(InputAction),
-    shellFx.map(ShellAction),
-    viewsFx.map(WebViewsAction)
-    //updaterFx.map(UpdaterAction)
-  ]);
+  const fx =
+    Effects.batch
+    ( [ devtoolsFx.map(DevtoolsAction)
+      , inputFx.map(InputAction)
+      , shellFx.map(ShellAction)
+      , webViewsFx.map(WebViewsAction)
+      // , updaterFx.map(UpdaterAction)
+      , sidebarFx.map(SidebarAction)
+      , suggestionsFx.map(AssistantAction)
+      ]
+    );
 
   return [model, fx];
 }
 
+const SidebarAction = action =>
+  ( action.type === "ActivateTab"
+  ? ActivateWebView(action.id)
+  : action.type === "Attach"
+  ? AttachSidebar
+  : action.type === "Detach"
+  ? DetachSidebar
+  : { type: "Sidebar"
+    , action
+    }
+  );
+
+const OverlayAction = action =>
+  ( action.type === "Click"
+  ? OverlayClicked
+  : { type: "Overlay"
+    , action
+    }
+  );
+
 
 export const InputAction/*:type.InputAction*/ = action =>
-    action.type === 'Submit'
+  ( action.type === 'Submit'
   ? SubmitInput
   : action.type === 'Abort'
   ? ExitInput
-  : {type: 'Input', action};
+  : { type: 'Input'
+    , action
+    }
+  );
 
 export const WebViewsAction/*:type.WebViewsAction*/ = action =>
   ( action.type === "ShowTabs"
@@ -119,6 +150,12 @@ const updateAssistant = cursor({
   tag: AssistantAction
 });
 
+const updateSidebar = cursor({
+  get: model => model.sidebar,
+  set: (model, sidebar) => merge(model, {sidebar}),
+  tag: SidebarAction,
+  update: Sidebar.update
+});
 // Following Browser actions end up updating several components of the
 // browser and there for they are defined separately.
 export const CreateWebView = {type: 'CreateWebView'};
@@ -172,6 +209,9 @@ const OpenAssistant = AssistantAction(Assistant.Open);
 const CloseAssistant = AssistantAction(Assistant.Close);
 const ExpandAssistant = AssistantAction(Assistant.Expand);
 
+const OpenSidebar = SidebarAction(Sidebar.Open);
+const CloseSidebar = SidebarAction(Sidebar.Close);
+
 export const AttachSidebar =
   { type: "AttachSidebar"
   };
@@ -221,6 +261,7 @@ const showWebView = model =>
   , model
   , [ HideInput
     , CloseAssistant
+    , CloseSidebar
     , FoldWebViews
     , FocusWebView
     ]
@@ -271,6 +312,7 @@ const createWebView = model =>
   , model
   , [ ShowInput
     , ExpandAssistant
+    , CloseSidebar
     , EnterInput
     ]
   );
@@ -281,6 +323,7 @@ const editWebView = model =>
   , model
   , [ ShowInput
     , OpenAssistant
+    , CloseSidebar
     , EnterInputSelection(WebViews.getActiveURI(model.webViews, ''))
     ]
   );
@@ -291,19 +334,42 @@ const showTabs = model =>
   , model
   , [ HideInput
     , CloseAssistant
+    , OpenSidebar
     , UnfoldWebViews
     ]
   );
 
 const attachSidebar = model =>
-  update(model, ShrinkWebViews);
+  batch
+  ( update
+  , model
+  , [ Sidebar.Attach
+    , ShrinkWebViews
+    ]
+  );
 
 const detachSidebar = model =>
-  update(model, ExpandWebViews);
+  batch
+  ( update
+  , model
+  , [ Sidebar.Detach
+    , ExpandWebViews
+    ]
+  );
 
 const reloadRuntime = model =>
   [ model, Effects.task(Runtime.reload) ];
 
+const selectWebView = (model, action) =>
+  batch
+  ( update
+  , model
+  , [ HideInput
+    , CloseAssistant
+    , OpenSidebar
+    , UnfoldWebViews
+    ]
+  );
 
 
 // Unbox For actions and route them to their location.
@@ -344,6 +410,8 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateAssistant(model, action.action)
   : action.type === 'Devtools'
   ? updateDevtools(model, action.action)
+  : action.type === 'Sidebar'
+  ? updateSidebar(model, action.action)
 
   : Unknown.update(model, action)
   );

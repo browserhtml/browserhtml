@@ -155,6 +155,8 @@ export const query/*:type.query*/ = (input, limit) => Effects.batch([
   Search.query(input, limit)
 ]);
 
+export const init/*:type.init*/ = () =>
+  [ initial, Effects.none ];
 
 export const update/*:type.update*/ = (model, action) => {
   if (action.type === "Open") {

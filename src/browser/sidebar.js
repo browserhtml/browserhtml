@@ -167,22 +167,48 @@ const updateAnimation = (model, action) => {
       ]
 }
 
+const open = model =>
+  ( model.isOpen
+  ? [ model, Effects.none ]
+  : updateStopwatch(merge(model, {isOpen: true}), Stopwatch.Start)
+  );
+
+const close = model =>
+  ( model.isOpen
+  ? updateStopwatch(merge(model, {isOpen: false}), Stopwatch.Start)
+  : [ model, Effects.none ]
+  );
+
+const attach = model =>
+  ( model.isAttached
+  ? [ model, Effects.none ]
+  : updateToolbar(merge(model, {isAttached: true}), Toolbar.Attach)
+  );
+
+const detach = model =>
+  ( model.isAttached
+  ? updateToolbar(merge(model, {isAttached: false}), Toolbar.Detach)
+  : [ model, Effects.none ]
+  );
 
 export const update/*:type.update*/ = (model, action) =>
-  ( action.type === "Animation"
+  ( action.type === "Open"
+  ? open(model)
+  : action.type === "Close"
+  ? close(model)
+  : action.type === "Attach"
+  ? attach(model)
+  : action.type === "Detach"
+  ? detach(model)
+
+  : action.type === "Animation"
   ? updateAnimation(model, action)
   : action.type === "AnimationEnd"
   ? updateStopwatch(model, Stopwatch.End)
-  : action.type === "Open"
-  ? updateStopwatch(merge(model, {isOpen: true}), Stopwatch.Start)
-  : action.type === "Close"
-  ? updateStopwatch(merge(model, {isOpen: false}), Stopwatch.Start)
-  : action.type === "Attach"
-  ? updateToolbar(merge(model, {isAttached: true}), Toolbar.Attach)
-  : action.type === "Detach"
-  ? updateToolbar(merge(model, {isAttached: false}), Toolbar.Detach)
+
   : action.type === "Toolbar"
   ? updateToolbar(model, action.action)
+
   : Unknown.update(model, action)
   );
 
