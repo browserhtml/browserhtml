@@ -169,13 +169,13 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === "GoBack"
   ? [ model
     , Effects
-        .task(goBack(id))
+        .task(goBack(model.id))
         .map(WentBack)
     ]
   : action.type === "GoForward"
   ? [ model
     , Effects
-        .task(goForward(id))
+        .task(goForward(model.id))
         .map(WentForward)
     ]
   : action.type === "Stopped"
