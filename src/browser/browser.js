@@ -8,6 +8,7 @@ import * as Input from "./input";
 import * as Assistant from "./assistant";
 import * as Sidebar from './sidebar';
 import * as WebViews from "./web-views";
+import * as Overlay from './overlay';
 
 // import * as Updater from "./updater"
 import * as Devtools from "../common/devtools";
@@ -36,6 +37,7 @@ export const init/*:type.init*/ = () => {
   const [webViews, webViewsFx] = WebViews.init();
   const [sidebar, sidebarFx] = Sidebar.init();
   const [suggestions, suggestionsFx] = Assistant.init();
+  const [overlay, overlayFx] = Overlay.init(false, false);
 
   const model =
     { version
@@ -44,6 +46,7 @@ export const init/*:type.init*/ = () => {
     , suggestions
     , webViews
     , sidebar
+    , overlay
     // , updater
     , devtools
     };
@@ -57,6 +60,7 @@ export const init/*:type.init*/ = () => {
       // , updaterFx.map(UpdaterAction)
       , sidebarFx.map(SidebarAction)
       , suggestionsFx.map(AssistantAction)
+      , overlayFx.map(OverlayAction)
       ]
     );
 
@@ -84,7 +88,7 @@ const OverlayAction = action =>
   );
 
 
-export const InputAction/*:type.InputAction*/ = action =>
+const InputAction = action =>
   ( action.type === 'Submit'
   ? SubmitInput
   : action.type === 'Abort'
@@ -94,7 +98,7 @@ export const InputAction/*:type.InputAction*/ = action =>
     }
   );
 
-export const WebViewsAction/*:type.WebViewsAction*/ = action =>
+const WebViewsAction = action =>
   ( action.type === "ShowTabs"
   ? ShowTabs
   : action.type === "Create"
@@ -107,13 +111,22 @@ export const WebViewsAction/*:type.WebViewsAction*/ = action =>
   );
 
 const ShellAction = action =>
-  ({type: 'Shell', action});
+  ( { type: 'Shell'
+    , action
+    }
+  );
 
 const DevtoolsAction = action =>
-  ({type: 'Devtools', action});
+  ( { type: 'Devtools'
+    , action
+    }
+  );
 
 const AssistantAction = action =>
-  ({type: 'Assistant', action});
+  ( { type: 'Assistant'
+    , action
+    }
+  );
 
 const updateInput = cursor({
   get: model => model.input,
@@ -156,19 +169,75 @@ const updateSidebar = cursor({
   tag: SidebarAction,
   update: Sidebar.update
 });
-// Following Browser actions end up updating several components of the
-// browser and there for they are defined separately.
-export const CreateWebView = {type: 'CreateWebView'};
-export const EditWebView = {type: 'EditWebView'};
-export const ExitInput = {type: 'ExitInput'};
 
-export const SubmitInput = {type: 'SubmitInput'};
-export const Escape = {type: 'Escape'};
-export const Unload = {type: 'Unload'};
-export const ReloadRuntime = {type: 'ReloadRuntime'};
-export const ShowWebView = {type: 'ShowWebView'};
-export const ShowTabs = {type: 'ShowTabs'};
-export const OpenWebView = {type: 'OpenWebView'};
+const updateOverlay = cursor({
+  get: model => model.overlay,
+  set: (model, overlay) => merge(model, {overlay}),
+  tag: OverlayAction,
+  update: Overlay.update
+});
+
+
+// ### Mode changes
+
+export const CreateWebView/*:type.CreateWebView*/ =
+  { type: 'CreateWebView'
+  };
+
+export const EditWebView/*:type.EditWebView*/ =
+  { type: 'EditWebView'
+  };
+
+export const ShowWebView/*:type.ShowWebView*/ =
+  { type: 'ShowWebView'
+  };
+
+export const ShowTabs/*:type.ShowTabs*/ =
+  { type: 'ShowTabs'
+  };
+
+export const SelectWebView/*:type.SelectWebView*/ =
+  { type: 'SelectWebView'
+  };
+
+// ### Actions that affect multilpe sub-components
+
+export const OpenWebView/*:type.OpenWebView*/ =
+  { type: 'OpenWebView'
+  };
+
+export const AttachSidebar/*:type.AttachSidebar*/ =
+  { type: "AttachSidebar"
+  };
+
+export const DetachSidebar/*:type.DetachSidebar*/ =
+  { type: "DetachSidebar"
+  };
+
+export const OverlayClicked/*:type.OverlayClicked*/ =
+  { type: "OverlayClicked"
+  };
+
+export const SubmitInput/*:type.SubmitInput*/ =
+  { type: 'SubmitInput'
+  };
+
+export const ExitInput/*:type.ExitInput*/ =
+  { type: 'ExitInput'
+  };
+
+export const Escape/*:type.Escape*/ =
+  { type: 'Escape'
+  };
+
+
+export const Unload/*:type.Unload*/ =
+  { type: 'Unload'
+  };
+
+export const ReloadRuntime/*:type.ReloadRuntime*/ =
+  { type: 'ReloadRuntime'
+  };
 
 // Following Browser actions directly delegate to a `WebViews` module, there for
 // they are just tagged versions of `WebViews` actions, but that is Just an
@@ -212,13 +281,9 @@ const ExpandAssistant = AssistantAction(Assistant.Expand);
 const OpenSidebar = SidebarAction(Sidebar.Open);
 const CloseSidebar = SidebarAction(Sidebar.Close);
 
-export const AttachSidebar =
-  { type: "AttachSidebar"
-  };
-
-export const DetachSidebar =
-  { type: "DetachSidebar"
-  };
+const HideOverlay = OverlayAction(Overlay.Hide);
+const ShowOverlay = OverlayAction(Overlay.Show);
+const FadeOverlay = OverlayAction(Overlay.Fade);
 
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
@@ -262,6 +327,7 @@ const showWebView = model =>
   , [ HideInput
     , CloseAssistant
     , CloseSidebar
+    , HideOverlay
     , FoldWebViews
     , FocusWebView
     ]
@@ -313,6 +379,7 @@ const createWebView = model =>
   , [ ShowInput
     , ExpandAssistant
     , CloseSidebar
+    , HideOverlay
     , EnterInput
     ]
   );
@@ -324,6 +391,7 @@ const editWebView = model =>
   , [ ShowInput
     , OpenAssistant
     , CloseSidebar
+    , ShowOverlay
     , EnterInputSelection(WebViews.getActiveURI(model.webViews, ''))
     ]
   );
@@ -335,6 +403,7 @@ const showTabs = model =>
   , [ HideInput
     , CloseAssistant
     , OpenSidebar
+    , FadeOverlay
     , UnfoldWebViews
     ]
   );
@@ -368,6 +437,8 @@ const selectWebView = (model, action) =>
     , CloseAssistant
     , OpenSidebar
     , UnfoldWebViews
+    , FadeOverlay
+    , WebViewAction(action)
     ]
   );
 
@@ -412,6 +483,8 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateDevtools(model, action.action)
   : action.type === 'Sidebar'
   ? updateSidebar(model, action.action)
+  : action.type === 'Overlay'
+  ? updateOverlay(model, action.action)
 
   : Unknown.update(model, action)
   );
@@ -435,7 +508,7 @@ const styleSheet = StyleSheet.create({
   }
 });
 
-export const view/*:type.view*/ = (model, address, [overlay, sidebar]) =>
+export const view/*:type.view*/ = (model, address) =>
   html.div
   ( { className: 'root'
     , style: styleSheet.root
@@ -452,8 +525,18 @@ export const view/*:type.view*/ = (model, address, [overlay, sidebar]) =>
       , model.webViews
       , forward(address, WebViewsAction)
       )
-    , overlay
-    , sidebar
+    , thunk
+      ( 'overlay'
+      , Overlay.view
+      , model.overlay
+      , forward(address, OverlayAction))
+    , thunk
+      ( 'sidebar'
+      , Sidebar.view
+      , model.sidebar
+      , model.webViews
+      , forward(address, SidebarAction)
+      )
     , thunk
       ( 'assistant'
       , Assistant.view

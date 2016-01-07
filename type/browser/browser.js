@@ -10,23 +10,23 @@ import * as Updater from "./updater"
 import * as WebViews from "./web-views"
 import * as Input from "./input"
 import * as Assistant from "./assistant"
+import * as Overlay from "./overlay"
+import * as Sidebar from "./sidebar"
 
 
-export type Model = {
-  version: Version,
-  shell: Shell.Model,
-  input: Input.Model,
-  suggestions: Assistant.Model,
-  webViews: WebViews.Model,
-
-//  updates: Updater.Model,
-  devtools: Devtools.Model
-}
-
-type TaggedAction <tag, action> =
-  { type: tag
-  , action: action
+export type Model =
+  { version: Version
+  , shell: Shell.Model
+  , input: Input.Model
+  , suggestions: Assistant.Model
+  , webViews: WebViews.Model
+  , sidebar: Sidebar.Model
+  , overlay: Overlay.Model
+  // , updater: Updater.Model
+  , devtools: Devtools.Model
   }
+
+// ### Mode changes
 
 export type CreateWebView =
   { type: "CreateWebView"
@@ -36,31 +36,121 @@ export type EditWebView =
   { type: "EditWebView"
   }
 
-export type ExitInput =
-  { type: "ExitInput"
+export type ShowWebView =
+  { type: "ShowWebView"
   }
+
+export type ShowTabs =
+  { type: "ShowTabs"
+  }
+
+export type SelectWebView
+  { type: "SelectWebView"
+  }
+
+// ### Actions that affect multilpe sub-components
+
+export type OpenWebView =
+  { type: "OpenWebView"
+  }
+
+export type AttachSidebar =
+  { type: "AttachSidebar"
+  };
+
+export type DetachSidebar =
+  { type: "DetachSidebar"
+  };
+
+export type OverlayClicked =
+  { type: "OverlayClicked"
+  };
 
 export type SubmitInput =
   { type: "SubmitInput"
   }
 
-export type InputAction = (action:Input.Action) =>
-  SubmitInput | ExitInput | TaggedAction<"Input", action>
+export type ExitInput =
+  { type: "ExitInput"
+  }
 
-export type WebViewsAction = (action:WebViews.Action) =>
-  TaggedAction<"WebViews", action>
+export type Escape =
+  { type: "Escape"
+  }
+
+export type Unload =
+  { type: "Unload"
+  }
+
+export type Unload =
+  { type: "ReloadRuntime"
+  }
+
+
+type WebViewsAction
+  = { type: "WebViews"
+    , action: WebViews.Action
+    }
+
+type InputAction
+  = { type: "Input"
+    , action: Input.Action
+    }
+
+type SidebarAction
+  = { type: "Sidebar"
+    , action: Sidebar.Action
+    }
+
+type OverlayAction
+  = { type: "Overlay"
+    , action: Overlay.Action
+    }
+
+type ShellAction
+  = { type: "Shell"
+    , action: Shell.Action
+    }
+
+type DevtoolsAction
+  = { type: "Devtools"
+    , action: Devtools.Action
+    }
+
+type AssistantAction
+  = { type: "Assistant"
+    , action: Assistant.Action
+    }
 
 
 export type Action
   = CreateWebView
   | EditWebView
-  | ExitInput
-  | SubmitInput
-  | TaggedAction<"Shell", Shell.Action>
-  | TaggedAction<"WebViews", action>
-  | TaggedAction<"Input", Input.Action>
-  | TaggedAction<"Devtools", Devtools.Action>
+  | ShowWebView
+  | ShowTabs
+  | SelectWebView
 
+  // Dispatch
+
+  | OpenWebView
+  | AttachSidebar
+  | DetachSidebar
+  | OverlayClicked
+  | SubmitInput
+  | ExitInput
+  | Escape
+  | Unload
+  | ReloadRuntime
+
+  // Delegate
+
+  | WebViewsAction
+  | InputAction
+  | SidebarAction
+  | OverlayAction
+  | ShellAction
+  | AssistantAction
+  | DevtoolsAction
 
 
 export type init = () =>
