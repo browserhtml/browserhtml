@@ -42,12 +42,23 @@ export type EnterSelection = (value:string) =>
 
 export type FocusableAction =
   { type: 'Focusable'
-  , action: Focusable.Action
+  , source: Focusable.Action
   }
+
+export type Focus =
+  { type: 'Focus'
+  , source: Focusable.Focus
+  }
+
+export type Blur =
+  { type: 'Blur'
+  , source: Focusable.Blur
+  }
+
 
 export type EditableAction =
   { type: 'Editable'
-  , action: Editable.Action
+  , source: Editable.Action
   }
 
 export type Action
@@ -56,6 +67,7 @@ export type Action
   | Enter
   | EnterSelection
   | Show | Hide
+  | Focus | Blur
   | FocusableAction
   | EditableAction
 

@@ -26,22 +26,30 @@ export const initial/*:type.Model*/ =
 export const Submit/*:type.Submit*/ = {type: 'Submit'};
 export const Abort/*:type.Abort*/ = {type: 'Abort'};
 export const Enter/*:type.Enter*/ = {type: 'Enter'};
-export const Focus = Focusable.Focus;
+export const Focus = {type: 'Focus', source: Focusable.Focus };
+export const Blur = {type: 'Blur', source: Focusable.Blur };
 export const Show = {type: 'Show'};
 export const Hide = {type: 'Hide'};
 export const EnterSelection/*:type.EnterSelection*/ = value =>
   ({type: 'EnterSelection', value});
 
 const FocusableAction = action =>
-    action.type === 'Focus'
+  ( action.type === 'Focus'
   ? Focus
-  : {type: 'Focusable', action};
+  : action.type === 'Blur'
+  ? Blur
+  : { type: 'Focusable'
+    , source: action
+    }
+  );
 
 const EditableAction = action =>
-  ({type: 'Editable', action});
+  ( { type: 'Editable'
+    , source: action
+    }
+  );
 
 const Clear = EditableAction(Editable.Clear);
-export const Blur = FocusableAction(Focusable.Blur);
 
 const updateFocusable = cursor({
   tag: FocusableAction,
@@ -88,17 +96,20 @@ export const update/*:type.update*/ = (model, action) =>
   ? [model, Effects.none]
   : action.type === 'Enter'
   ? enter(merge(model, {isVisible: true}))
-  : action.type === Focus.type
+  : action.type === 'Focus'
   ? updateFocusable
     ( merge(model, {isFocused: true, isVisible: true})
-    , Focusable.Focus
+    , action.source
     )
+  : action.type === 'Blur'
+  ? updateFocusable(model, action.source)
+
   : action.type === 'EnterSelection'
   ? enterSelection(merge(model, {isVisible: true}), action.value)
   : action.type === 'Focusable'
-  ? updateFocusable(model, action.action)
+  ? updateFocusable(model, action.source)
   : action.type === 'Editable'
-  ? updateEditable(model, action.action)
+  ? updateEditable(model, action.source)
   : action.type === 'Show'
   ? [merge(model, {isVisible: true}), Effects.none]
   : action.type === 'Hide'

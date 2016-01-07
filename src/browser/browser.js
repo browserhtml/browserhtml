@@ -41,6 +41,7 @@ export const init/*:type.init*/ = () => {
 
   const model =
     { version
+    , mode: 'create-web-view'
     , shell
     , input
     , suggestions
@@ -61,6 +62,7 @@ export const init/*:type.init*/ = () => {
       , sidebarFx.map(SidebarAction)
       , suggestionsFx.map(AssistantAction)
       , overlayFx.map(OverlayAction)
+      , Effects.receive(CreateWebView)
       ]
     );
 
@@ -93,8 +95,10 @@ const InputAction = action =>
   ? SubmitInput
   : action.type === 'Abort'
   ? ExitInput
+  : action.type === 'Blur'
+  ? BlurInput
   : { type: 'Input'
-    , action
+    , source: action
     }
   );
 
@@ -105,14 +109,34 @@ const WebViewsAction = action =>
   ? CreateWebView
   : action.type === "Edit"
   ? EditWebView
+  : action.type === "SelectRelative"
+  ? { type: "SelectTab"
+    , source: action
+    }
+  : action.type === "SelectByID"
+  ? { type: "SelectTab"
+    , source: action
+    }
+  : action.type === "ActivateSelected"
+  ? { type: "ActivateTab"
+    , source: action
+    }
+  : action.type === "ActivateByID"
+  ? { type: "ActivateTab"
+    , source: action
+    }
   : { type: 'WebViews'
-    , action
+    , source: action
     }
   );
 
 const ShellAction = action =>
-  ( { type: 'Shell'
-    , action
+  ( action.type === 'Focus'
+  ? { type: 'Focus'
+    , source: action
+    }
+  : { type: 'Shell'
+    , source: action
     }
   );
 
@@ -208,10 +232,12 @@ export const OpenWebView/*:type.OpenWebView*/ =
 
 export const AttachSidebar/*:type.AttachSidebar*/ =
   { type: "AttachSidebar"
+  , source: Sidebar.Attach
   };
 
 export const DetachSidebar/*:type.DetachSidebar*/ =
   { type: "DetachSidebar"
+  , source: Sidebar.Detach
   };
 
 export const OverlayClicked/*:type.OverlayClicked*/ =
@@ -224,6 +250,7 @@ export const SubmitInput/*:type.SubmitInput*/ =
 
 export const ExitInput/*:type.ExitInput*/ =
   { type: 'ExitInput'
+  , source: Input.Abort
   };
 
 export const Escape/*:type.Escape*/ =
@@ -237,6 +264,11 @@ export const Unload/*:type.Unload*/ =
 
 export const ReloadRuntime/*:type.ReloadRuntime*/ =
   { type: 'ReloadRuntime'
+  };
+
+export const BlurInput =
+  { type: 'BlurInput'
+  , source: Input.Blur
   };
 
 // Following Browser actions directly delegate to a `WebViews` module, there for
@@ -273,6 +305,7 @@ const ShowInput = InputAction(Input.Show);
 const HideInput = InputAction(Input.Hide);
 const EnterInput = InputAction(Input.Enter);
 const EnterInputSelection = compose(InputAction, Input.EnterSelection);
+export const FocusInput = InputAction(Input.Focus);
 
 const OpenAssistant = AssistantAction(Assistant.Open);
 const CloseAssistant = AssistantAction(Assistant.Close);
@@ -280,6 +313,16 @@ const ExpandAssistant = AssistantAction(Assistant.Expand);
 
 const OpenSidebar = SidebarAction(Sidebar.Open);
 const CloseSidebar = SidebarAction(Sidebar.Close);
+
+const DockSidebar =
+  { type: "Sidebar"
+  , action: Sidebar.Attach
+  };
+
+const UndockSidebar =
+  { type: "Sidebar"
+  , action: Sidebar.Detach
+  };
 
 const HideOverlay = OverlayAction(Overlay.Hide);
 const ShowOverlay = OverlayAction(Overlay.Show);
@@ -323,7 +366,7 @@ const decodeKeyUp = Keyboard.bindings({
 const showWebView = model =>
   batch
   ( update
-  , model
+  , merge(model, {mode: 'show-web-view'})
   , [ HideInput
     , CloseAssistant
     , CloseSidebar
@@ -333,49 +376,10 @@ const showWebView = model =>
     ]
   );
 
-
-
-const submitInput = model =>
-  batch
-  ( update
-  , model
-  , [ NavigateTo(URI.read(model.input.value))
-    , ShowWebView
-    ]
-  );
-
-const openWebView = model =>
-  batch
-  ( update
-  , model
-  , [ Open
-      ( { uri: URI.read(model.input.value)
-        , inBackground: false
-        , name: ''
-        , features: ''
-        }
-      )
-    , ShowWebView
-    ]
-  );
-
-const focusWebView = model =>
-  update(model, FocusWebView)
-
-const exitInput = model =>
-  batch
-  ( update
-  , model
-  , [ InputAction(Input.Abort)
-    , CloseAssistant
-    , FocusWebView
-    ]
-  );
-
 const createWebView = model =>
   batch
   ( update
-  , model
+  , merge(model, {mode: 'create-web-view'})
   , [ ShowInput
     , ExpandAssistant
     , CloseSidebar
@@ -387,11 +391,12 @@ const createWebView = model =>
 const editWebView = model =>
   batch
   ( update
-  , model
+  , merge(model, {mode: 'edit-web-view'})
   , [ ShowInput
     , OpenAssistant
     , CloseSidebar
     , ShowOverlay
+    , FoldWebViews
     , EnterInputSelection(WebViews.getActiveURI(model.webViews, ''))
     ]
   );
@@ -399,7 +404,7 @@ const editWebView = model =>
 const showTabs = model =>
   batch
   ( update
-  , model
+  , merge(model, {mode: 'show-tabs'})
   , [ HideInput
     , CloseAssistant
     , OpenSidebar
@@ -408,11 +413,53 @@ const showTabs = model =>
     ]
   );
 
+
+const selectWebView = (model, action) =>
+  batch
+  ( update
+  , merge(model, {mode: 'select-web-view'})
+  , [ HideInput
+    , CloseAssistant
+    , OpenSidebar
+    , UnfoldWebViews
+    , FadeOverlay
+    ]
+  );
+
+
+const submitInput = model =>
+  update(model, NavigateTo(URI.read(model.input.value)));
+
+const openWebView = model =>
+  update
+  ( model
+  , Open
+    ( { uri: URI.read(model.input.value)
+      , inBackground: false
+      , name: ''
+      , features: ''
+      }
+    )
+  );
+
+const focusWebView = model =>
+  update(model, FocusWebView)
+
+const exitInput = model =>
+  batch
+  ( update
+  , model
+  , [ CloseAssistant
+    , FocusWebView
+    ]
+  );
+
+
 const attachSidebar = model =>
   batch
   ( update
   , model
-  , [ Sidebar.Attach
+  , [ DockSidebar
     , ShrinkWebViews
     ]
   );
@@ -421,26 +468,13 @@ const detachSidebar = model =>
   batch
   ( update
   , model
-  , [ Sidebar.Detach
+  , [ UndockSidebar
     , ExpandWebViews
     ]
   );
 
 const reloadRuntime = model =>
   [ model, Effects.task(Runtime.reload) ];
-
-const selectWebView = (model, action) =>
-  batch
-  ( update
-  , model
-  , [ HideInput
-    , CloseAssistant
-    , OpenSidebar
-    , UnfoldWebViews
-    , FadeOverlay
-    , WebViewAction(action)
-    ]
-  );
 
 
 // Unbox For actions and route them to their location.
@@ -459,6 +493,8 @@ export const update/*:type.update*/ = (model, action) =>
   ? showWebView(model)
   : action.type === 'ShowTabs'
   ? showTabs(model)
+  : action.type === 'SelectWebView'
+  ? selectWebView(model)
   // @TODO Change this to toggle tabs instead.
   : action.type === 'Escape'
   ? showTabs(model)
@@ -469,14 +505,24 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'ReloadRuntime'
   ? reloadRuntime(model)
 
-
   // Delegate to the appropriate module
   : action.type === 'Input'
-  ? updateInput(model, action.action)
+  ? updateInput(model, action.source)
+  : action.type === 'BlurInput'
+  ? updateInput(model, action.source)
+
   : action.type === 'WebViews'
-  ? updateWebViews(model, action.action)
+  ? updateWebViews(model, action.source)
+  : action.type === 'SelectTab'
+  ? updateWebViews(model, action.source)
+  : action.type === 'ActivateTab'
+  ? updateWebViews(model, action.source)
+
   : action.type === 'Shell'
-  ? updateShell(model, action.action)
+  ? updateShell(model, action.source)
+  : action.type === 'Focus'
+  ? updateShell(model, action.source)
+
   : action.type === 'Assistant'
   ? updateAssistant(model, action.action)
   : action.type === 'Devtools'
