@@ -57,9 +57,6 @@ const OverlayAction = action =>
   ? OverlayClicked
   : ({type: "Overlay", action});
 
-const InputAction = Browser.InputAction;
-const WebViewsAction = Browser.WebViewsAction;
-
 const updateSidebar = cursor({
   get: model => model.sidebar,
   set: (model, sidebar) => merge(model, {sidebar}),
@@ -153,13 +150,6 @@ const isSelectRelativeWebView = action =>
 const isSwitchSelectedWebView = action =>
   isSelectRelativeWebView(action) ||
   (isKeyDown(action) && isSelectRelativeWebView(action.action));
-
-
-const AnimationAction = action =>
-  ({type: "Animation", action});
-
-export const showTabsTransitionDuration = 600;
-export const hideTabsTransitionDuration = 200;
 
 
 export const update = (model, action) => {
@@ -430,10 +420,6 @@ export const update = (model, action) => {
 
 export const view/*:type.view*/ = (model, address) =>
   Browser.view(model.browser, address, [
-    thunk('web-views',
-          WebViews.view,
-          model.browser.webViews,
-          forward(address, WebViewsAction)),
     thunk('overlay',
           Overlay.view,
           model.overlay,
@@ -442,13 +428,5 @@ export const view/*:type.view*/ = (model, address) =>
           Sidebar.view,
           model.sidebar,
           model.browser.webViews,
-          forward(address, SidebarAction)),
-    thunk('suggestions',
-          Assistant.view,
-          model.browser.suggestions,
-          address),
-    thunk('input',
-          Input.view,
-          model.browser.input,
-          forward(address, InputAction))
+          forward(address, SidebarAction))
   ]);

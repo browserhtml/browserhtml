@@ -367,7 +367,7 @@ const styleSheet = StyleSheet.create({
   }
 });
 
-export const view/*:type.view*/ = (model, address, children) =>
+export const view/*:type.view*/ = (model, address, [overlay, sidebar]) =>
   html.div
   ( { className: 'root'
     , style: styleSheet.root
@@ -378,7 +378,26 @@ export const view/*:type.view*/ = (model, address, children) =>
     , onFocus: onWindow(address, always(Focus))
     , onUnload: onWindow(address, always(Unload))
     }
-  , [ ...children
+  , [ thunk
+      ( 'web-views'
+      , WebViews.view
+      , model.webViews
+      , forward(address, WebViewsAction)
+      )
+    , overlay
+    , sidebar
+    , thunk
+      ( 'assistant'
+      , Assistant.view
+      , model.suggestions
+      , forward(address, AssistantAction)
+      )
+    , thunk
+      ( 'input'
+      , Input.view
+      , model.input
+      , forward(address, InputAction)
+      )
     , thunk
       ( 'devtools'
       , Devtools.view
