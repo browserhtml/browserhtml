@@ -4,7 +4,8 @@ We welcome contribution from everyone. Here are the guidelines if you are thinki
 
 Contributions to Browser.html or its dependencies should be made in the form of GitHub pull requests. Each pull request will be reviewed by a core contributor (someone with permission to land patches) and either landed in the main tree or given feedback for changes that would be required. All contributions should follow this format, even those from core contributors.
 
-Check out [good first bugs](https://github.com/mozilla/browser.html/labels/good%20first%20bug) to find good tasks to start with.
+- [Hacking Browser.html](https://github.com/mozilla/browser.html/wiki/Hacking-Browser.html) has some helpful tips for developers.
+- Check out [good first bugs](https://github.com/mozilla/browser.html/labels/good%20first%20bug) to find good tasks to start with.
 
 
 ## Pull request checklist
