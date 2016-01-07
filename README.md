@@ -1,15 +1,20 @@
 [![build](https://travis-ci.org/mozilla/browser.html.svg?branch=master)](https://travis-ci.org/mozilla/browser.html) [![slack](https://browserhtml-slackin.herokuapp.com/badge.svg)](https://browserhtml-slackin.herokuapp.com/)
 
-*Browser.html* is a research project aimed at building native apps in HTML using [Servo](https://github.com/servo/servo). The project has 2 major pieces:
+# Browser.html
+
+*Browser.html* is a research project aimed at building native apps in HTML using [Servo](https://github.com/servo/servo). This project has 2 major pieces:
 
 - _Graphene_: a runtime for building native apps in HTML. It's currently in development and part of Servo.
 - _Browser.html_: an experimental browser UI for desktop.
 
-This repository is for Browser.html (the front-end). Active development of Graphene happens in the [Servo](https://github.com/servo/servo) repository.
+This repository is for Browser.html (the front-end). Active development of Graphene happens in the [Servo](https://github.com/servo/servo) repository. Questions? Check out the [FAQ](https://github.com/mozilla/browser.html/wiki/FAQ).
+
+![browser](./browser.gif)
+
+## Contributing
 
 We welcome contributions from anyone. See [CONTRIBUTING.md](https://github.com/mozilla/browser.html/blob/master/CONTRIBUTING.md) for help getting started.
 
-![browser](./browser.gif)
 
 ### Prerequisites and Setup
 
