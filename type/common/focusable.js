@@ -1,35 +1,23 @@
 /* @flow */
 
+import type {Effects} from "reflex/type/effects"
+
 export type Model = {
   isFocused: boolean
 }
 
-
-export type FocusRequest = {
-  type: "Focusable.FocusRequest"
-}
-
 export type Focus = {
-  type: "Focusable.Focus"
+  type: "Focus"
 }
 
 export type Blur = {
-  type: "Focusable.Blur"
+  type: "Blur"
 }
 
 export type Action
-  = FocusRequest
-  | Focus
+  = Focus
   | Blur
 
-export type Focusable <model>
-  = Model
-  & model
 
-export type asFocus = () => Focus
-export type asBlur = () => Blur
-export type asFocusRequest = () => FocusRequest
-
-export type focus <model> = (state:Focusable<model>) => Focusable<model>
-export type blur <model> = (state:Focusable<model>) => Focusable<model>
-export type update <model> = (state:Focusable<model>, action:Action) => Focusable<model>
+export type update <model:Model> = (model:model, action:Action) =>
+  [model, Effects<Action>]

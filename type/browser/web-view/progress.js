@@ -4,51 +4,57 @@ import type {VirtualTree} from "reflex/type"
 import type {Effects} from "reflex/type/effects"
 import type {Time} from "../../common/prelude"
 
-export type Model = {
-  // Updated when load starts.
-  loadStartTime: Time,
-  // Updated when load ends.
-  loadEndTime: Time,
-  // Updated on every animation frame while loading.
-  updateTime: Time
-}
+export type Idle
+  = void
+  | null
 
+export type Loading =
+  { loadStart: Time
+  , loadEnd: Time
+  , updateTime: Time
+  }
+export type Model
+  = Idle
+  | Loading
 
-export type Start = {
-  type: "WebView.Progress.Start",
-  timeStamp: Time
-}
+export type StartAction =
+  { type: "Start"
+  , time: Time
+  }
 
-export type End = {
-  type: "WebView.Progress.End",
-  timeStamp: Time
-}
+export type Start = (time:Time) =>
+  StartAction
 
-export type Change = {
-  type: "WebView.Progress.Change",
-  timeStamp: Time
-}
+export type EndAction =
+  { type: "End"
+  , time: Time
+  }
 
-export type Tick = {
-  type: "WebView.Progress.Tick",
-  timeStamp: Time
-}
+export type End = (time:Time) =>
+  EndAction
 
+export type ChangeAction =
+  { type: "Change"
+  , time: Time
+  }
+export type Change = (time:Time) =>
+  ChangeAction
 
-export type Response
-  = Tick
+export type TickAction =
+  { type: "Tick"
+  , time: Time
+  }
+
+export type Tick = (time:Time) =>
+  TickAction
+
 
 export type Action
-  = Start
-  | Change
-  | End
-  | Tick
+  = StartAction
+  | ChangeAction
+  | EndAction
+  | TickAction
 
-
-export type asStart = (time:Time) => Start
-export type asChange = (time:Time) => Change
-export type asEnd = (time:Time) => End
-export type asTick = (time:Time) => Tick
 
 
 // Invoked on Start action and returns starting state tick requesting effect:
@@ -60,14 +66,16 @@ export type asTick = (time:Time) => Tick
 //    },
 //    Effects.tick(asTick)
 //  ]
-export type start = (timeStamp:Time) => [Model, Effects<Response>]
+export type start = (time:Time) =>
+  [Model, Effects<Action>]
 
 // Invoked on End action and returns model with updated `timeStamp`:
 //  [
 //    {...model, loadEnd: timeStamp},
 //    Effects.none
 //  ]
-export type end = (timeStamp:Time, model:Model) => [Model, Effects<Response>]
+export type end = (time:Time, model:Loading) =>
+  [Model, Effects<Action>]
 
 
 // Invoked on every animation frame after load is started and returns
@@ -75,7 +83,11 @@ export type end = (timeStamp:Time, model:Model) => [Model, Effects<Response>]
 //    {...model, updateTime: timeStamp},
 //    Effects.tick(asTick)
 // ]
-export type tick = (timeStamp:Time, model:Model) => Model
+export type tick = (timeStamp:Time, model:Loading) =>
+  [Model, Effects<Action>]
+
+export type init = () =>
+  [Model, Effects<Action>]
 
 
 // @TODO shouldn't this be 0.0 - 1.0 range instead?
@@ -88,7 +100,8 @@ export type Progress = number // Implied to be 0 - 100 range
 export type progress = (model: ?Model) => Progress
 
 
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type update = (model:Model, action:Action) =>
+  [Model, Effects<Action>]
 
 
 export type view = (model:Model) => VirtualTree

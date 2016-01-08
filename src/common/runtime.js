@@ -1,114 +1,113 @@
 /* @flow */
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
 /*:: import * as type from "../../type/common/runtime" */
 import {always} from "../common/prelude";
-import {Task, Effects} from "reflex";
+import {Task} from "reflex";
 
 // Actions
 export const RemoteDebugRequest/*:type.RemoteDebugRequest*/
-  = {type: "Runtime.RemoteDebugRequest"};
+  = {type: "RemoteDebugRequest"};
 
 export const UpdateAvailable/*:type.UpdateAvailable*/
-  = {type: "Runtime.UpdateAvailable"};
+  = {type: "UpdateAvailable"};
 
 export const UpdateDownloaded/*:type.UpdateDownloaded*/
-  = {type: "Runtime.UpdateDownloaded"};
+  = {type: "UpdateDownloaded"};
 
 export const CheckUpdate/*:type.CheckUpdate*/
-  = {type: "Runtime.CheckUpdate"};
+  = {type: "CheckUpdate"};
 
 export const Restart/*:type.Restart*/
-  = {type: "Runtime.Restart"};
+  = {type: "Restart"};
 
 export const CleanRestart/*:type.CleanRestart*/
-  = {type: "Runtime.CleanRestart"};
+  = {type: "CleanRestart"};
 
 export const CleanReload/*:type.CleanReload*/
-  = {type: "Runtime.CleanReload"};
+  = {type: "CleanReload"};
 
 export const Reload/*:type.Reload*/
-  = {type: "Runtime.Reload"};
+  = {type: "Reload"};
 
-export const Closed/*:type.Closed*/
-  = {type: "Runtime.Closed"};
+export const Quit/*:type.Quit*/
+  = {type: "Quit"};
 
 export const Minimized/*:type.Minimized*/
-  = {type: "Runtime.Minimized"};
+  = {type: "Minimized"};
 
-export const FullScreenToggled/*:type.FullScreenToggled*/
-  = {type: "Runtime.FullScreenToggled"};
+export const FullscreenToggled/*:type.FullscreenToggled*/
+  = {type: "FullscreenToggled"};
 
 export const LiveReload/*:type.LiveReload*/
-  = {type: "Runtime.LiveReload"};
+  = {type: "LiveReload"};
 
 
 // Action annotations
-export const asUnknown/*:type.asUnknown*/ = detail => ({
-  type: "Runtime.Unknown",
-  detail
-});
+export const Unknown = /*::<detail>*/(detail/*:detail*/)/*:type.UnknownType<detail>*/ =>
+  ( { type: "Unknown"
+    , detail
+    }
+  )
 
-export const asRemoteDebugResponse/*:type.asRemoteDebugResponse*/ = value => ({
-  type: "Runtime.RemoteDebugResponse",
+export const RemoteDebugResponse/*:type.RemoteDebugResponse*/ = value => ({
+  type: "RemoteDebugResponse",
   value
 });
 
-export const asDownloadUpdate/*:type.asDownloadUpdate*/ = result => ({
-  type: "Runtime.DownloadUpdate",
+export const DownloadUpdate/*:type.DownloadUpdate*/ = result => ({
+  type: "DownloadUpdate",
   result
 });
 
 
 const dispatchRequest = data =>
-  dispatchEvent(new CustomEvent("mozContentEvent", {
+  window.dispatchEvent(new window.CustomEvent("mozContentEvent", {
     bubbles: false,
     cancelable: false,
     detail: data
   }));
 
-export const shutdown/*:type.minimize*/ = () =>
-  Effects.task(Task.io((deliver) => {
-    dispatchRequest({type: "shutdown-application"});
-    // We do not actually close a window but rather we shut down an app, there
-    // will be nothing handling a response so we don"t even bother with it.
-  }));
+export const quit/*:type.quit*/ = Task.io(deliver => {
+  dispatchRequest({type: "shutdown-application"});
+  // We do not actually close a window but rather we shut down an app, there
+  // will be nothing handling a response so we don"t even bother with it.
+});
 
 
-export const minimize/*:type.minimize*/ = () =>
-  Effects.task(Task.future(() => {
-    dispatchRequest({type: "minimize-native-window"});
-    // We do not get event back when window is minimized so we just pretend
-    // that we got it after a tick.
-    return Promise.resolve(Minimized);
-  }));
+export const minimize/*:type.minimize*/ = Task.future(() => {
+  dispatchRequest({type: "minimize-native-window"});
+  // We do not get event back when window is minimized so we just pretend
+  // that we got it after a tick.
+  return Promise.resolve(Minimized);
+});
 
-export const toggleFullScreen/*:type.toggleFullScreen*/ = () =>
-  Effects.task(Task.future(() => {
-    dispatchRequest({type: "toggle-fullscreen-native-window"});
-    // We do not get event back when window is maximized so we just pretend
-    // that we got it after a tick.
-    return Promise.resolve(FullScreenToggled);
-  }));
+export const toggleFullscreen/*:type.toggleFullscreen*/ = Task.future(() => {
+  dispatchRequest({type: "toggle-fullscreen-native-window"});
+  // We do not get event back when window is maximized so we just pretend
+  // that we got it after a tick.
+  return Promise.resolve(FullscreenToggled);
+});
 
-export const restart/*:type.restart*/ = () =>
-  Effects.task(Task.io((deliver) => {
-    console.warn(`Unsupported runtime task "restart" was triggered`);
-    dispatchRequest({type: "restart"});
-  }));
+export const restart/*:type.restart*/ = Task.io(deliver => {
+  console.warn(`Unsupported runtime task "restart" was triggered`);
+  dispatchRequest({type: "restart"});
+});
 
-export const cleanRestart/*:type.cleanRestart*/ = () =>
-  Effects.task(Task.io((deliver) => {
-    dispatchRequest({type: "clear-cache-and-restart"});
-  }));
+export const cleanRestart/*:type.cleanRestart*/ = Task.io(deliver => {
+  dispatchRequest({type: "clear-cache-and-restart"});
+});
 
-export const cleanReload/*:type.cleanReload*/ = () =>
-  Effects.task(Task.io((deliver) => {
-    dispatchRequest({type: "clear-cache-and-reload"});
-  }));
+export const cleanReload/*:type.cleanReload*/ = Task.io(deliver => {
+  dispatchRequest({type: "clear-cache-and-reload"});
+});
 
-export const reload/*:type.reload*/ = () =>
-  Effects.task(Task.io(deliver => {
-    try {
-      window.location.reload();
-    } catch (error) {}
-  }))
+export const reload/*:type.reload*/ = Task.io(deliver => {
+  try {
+    window.location.reload();
+  } catch (error) {}
+})

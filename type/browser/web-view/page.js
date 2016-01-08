@@ -4,94 +4,106 @@ import type {URI, ID} from "../../common/prelude"
 import type {Effects} from "reflex/type"
 import * as Pallet from "../pallet"
 
-export type Icon = {
-  href: URI,
-  sizes: ?string,
-  rel: ?string,
-}
+export type Icon =
+  { href: URI
+  , sizes: ?string
+  , rel: ?string
+  }
 
-export type Model = {
-  uri: URI,
-  title: ?string,
-  faviconURI: ?URI,
-  icon: ?Icon,
+export type Model =
+  { uri: URI
+  , title: ?string
+  , faviconURI: ?URI
+  , icon: ?Icon
 
-  themeColor: ?string,
-  curatedColor: ?string,
+  , themeColor: ?string
+  , curatedColor: ?Pallet.Theme
 
-  pallet: Pallet.Model
-}
+  , pallet: Pallet.Model
+  }
 
-export type ScreenshotUpdate = {
-  type: "WebView.Page.ScreenshotUpdate",
-  uri: URI,
-  image: URI
-}
+export type ScreenshotUpdateType =
+  { type: "ScreenshotUpdate"
+  , uri: URI
+  , image: URI
+  }
+export type ScreenshotUpdate = (uri:URI, image:URI) =>
+  ScreenshotUpdateType
 
-export type CuratedColorUpdate = {
-  type: "WebView.Page.CuratedColorUpdate",
-  uri: URI,
-  color: ?string
-}
+export type CuratedColorUpdate = (color:?Pallet.Theme) =>
+    CuratedColorUpdateType
 
-export type ColorScraped = {
-  type: "WebView.Page.ColorScraped",
-  uri: URI,
-  color: ?string
-}
+export type CuratedColorUpdateType =
+  { type: "CuratedColorUpdate"
+  , color: ?Pallet.Theme
+  }
 
-export type Response
-  = ScreenshotUpdate
-  | CuratedColorUpdate
-  | ColorScraped
+export type LoadStart = { type: "LoadStart" }
+export type LoadEnd = {type: "LoadEnd"}
+export type DocumentFirstPaint = {type: "DocumentFirstPaint"}
+export type FirstPaint = {type: "FirstPaint"}
+export type CreatePallet = {type: "CreatePallet"}
 
+export type LocationChangedType =
+  { type: "LocationChanged"
+  , uri: URI
+  }
+export type LocationChanged = (uri:URI) =>
+  LocationChangedType
 
+export type MetaChangedType =
+  { type: "MetaChanged"
+  , name: string
+  , content: string
+  }
+export type MetaChanged = (name:string, content:string) =>
+  MetaChangedType
 
-export type DocumentFirstPaint = {type: "WebView.Page.DocumentFirstPaint"}
-export type FirstPaint = {type: "WebView.Page.FirstPaint"}
+export type TitleChangedType =
+  { type: "TitleChanged"
+  , title: string
+  }
+export type TitleChanged = (title:string) =>
+  TitleChangedType
 
-export type MetaChanged = {
-  type: "WebView.Page.MetaChanged",
-  name: string,
-  content: string
-}
-export typee asMetaChanged = (name:string, content:string) => MetaChanged
+export type IconChangedType =
+  { type: "IconChanged"
+  , icon: Icon
+  }
+export type IconChanged = (icon:Icon) =>
+  IconChangedType
 
-export type TitleChanged = {
-  type: "WebView.Page.TitleChanged",
-  title: string
-}
-export type asTitleChanged = (title:string) => TitleChanged
+export type OverflowChangedType =
+  { type: "OverflowChanged"
+  , isOverflown: boolean
+  }
+export type OverflowChanged = (isOverflown:boolean) =>
+  OverflowChangedType
 
-export type IconChanged = {
-  type: "WebView.Page.IconChanged",
-  icon: Icon
-}
-export type asIconChanged = icon => IconChanged
-
-export type OverflowChanged = {
-  type: "WebView.Page.OverflowChanged",
-  isOverflown: boolean
-}
-export type asOverflowChanged = (isOverflown:boolean) => OverflowChanged
-
-export type Scrolled = {
-  type: "WebView.Page.Scrolled",
-  detail: any
-}
-export type asScrolled = (detail:any) => Scrolled
+export type ScrolledType =
+  { type: "Scrolled"
+  , detail: any
+  }
+export type Scrolled = (detail:any) =>
+  ScrolledType
 
 export type Action
   = DocumentFirstPaint
   | FirstPaint
-  | MetaChanged
-  | TitleChanged
-  | IconChanged
-  | OverflowChanged
-  | Scrolled
-  | ScreenshotUpdate
-  | CuratedColorUpdate
-  | ColorScraped
+  | MetaChangedType
+  | TitleChangedType
+  | IconChangedType
+  | OverflowChangedType
+  | ScrolledType
+  | ScreenshotUpdateType
+  | CuratedColorUpdateType
+  | CreatePallet
+  | LoadStart
+  | LoadEnd
+  | LocationChanged
 
-export type initialize = (uri:URI) => Model
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type init = (uri:URI) =>
+  [Model, Effects<Action>]
+
+export type update = (model:Model, action:Action) =>
+  [Model, Effects<Action>]

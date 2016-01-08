@@ -2,11 +2,12 @@
 
 import type {Address, VirtualTree} from "reflex/type"
 import type {Effects} from "reflex/type/effects"
-import type {URI, For} from "../common/prelude"
+import type {URI} from "../common/prelude"
 import * as WebViewList from "./web-views"
 import * as Browser from "./browser"
 import * as Animation from "../common/animation"
 import * as Overlay from "../browser/overlay"
+import * as Sidebar from "../browser/sidebar"
 
 // Application states (or modes rather) are expressed in terms of
 // model types (blue nodes from spec diagram)
@@ -48,10 +49,25 @@ export type Model
   | SelectWebView
   | ShowTabs
 
+type SidebarAction =
+  { type: "Sidebar"
+  , action: Sidebar.Action
+  }
+
+type OverlayAction =
+  { type: "Overlay"
+  , action: Overlay.Action
+  }
+
+type AnimationAction =
+  { type: "Animation"
+  , action: Animation.Action
+  }
+
 export type Action
   = Browser.Action
-  | For<"animation", Animation.Action>
-  | For<"overlay", Overlay.Action>
+  | OverlayAction
+  | SidebarAction
 
 export type ActionPredicate = (action:Action) => boolean
 
@@ -77,8 +93,8 @@ export type isSwitchSelectedWebView = ActionPredicate
 
 
 
-export type initilize = () => [Model, Effects<Action>]
-export type step = (model:Model, action:Action) => [Model, Effects<Action>]
+export type init = () => [Model, Effects<Action>]
+export type update = (model:Model, action:Action) => [Model, Effects<Action>]
 
 export type View <Model> = (model:Model, address:Address<Action>) => VirtualTree
 

@@ -3,93 +3,199 @@
 import type {Address, VirtualTree, Effects} from "reflex/type"
 import type {ID, URI} from "../common/prelude"
 import * as WebView from "./web-view"
+import * as Selector from "./selector"
+import * as Stopwatch from "../common/stopwatch"
 
-export type Model = {
-  nextID: ID,
-  selected: number,
-  active: number,
-  entries: Array<WebView.Model>
-}
+// # Model
 
-export type ByID = {
-  type: "WebViews.ByID",
-  id: ID,
-  action: WebView.Action
-}
+export type Model =
+  { nextID: ID
+  , selector: ?Selector.Model<ID>
+  , order: Array<ID>
+  , entries: {[key:ID]: WebView.Model}
+  , animation: Stopwatch.Model
+  , display: { rightOffset: number }
+  , isExpanded: boolean
+  , isFolded: boolean
+  }
 
-export type ByActive = {
-  type: "WebViews.ByActive",
-  action: WebView.Action
-}
+// # Actions
+
+// ### Navigate WebView
+
+export type NavigateToAction =
+  { type: "NavigateTo"
+  , uri: URI
+  }
+
+export type NavigateTo = (uri:URI) =>
+  NavigateToAction
+
+
+// ### Open WebView
 
 export type NewWebViewOptions = WebView.NewWebViewOptions
 
-export type Open = {
-  type: "WebViews.Open"
-  options: NewWebViewOptions
-}
+export type OpenAction =
+  { type: "Open"
+  , options: NewWebViewOptions
+  }
+export type Open = (options:NewWebViewOptions) =>
+  OpenAction
 
-export type NavigateTo = {
-  type: "WebViews.NavigateTo",
-  uri: URI
-}
+// ### Close WebView
 
-export type CloseActive = {
-  type: "WebViews.CloseActive"
-}
+export type CloseActive =
+  { type: "CloseActive"
+  }
 
-export type CloseByID = {
-  type: "WebViews.CloseByID",
-  id: ID
-}
+type CloseByIDAction =
+  { type: "CloseByID"
+  , id: ID
+  }
 
-export type SelectByID = {
-  type: "WebViews.SelectByID",
-  id: ID
-}
+export type CloseByID = (id:ID) =>
+  CloseByIDAction
 
-export type ActivateSelected = {
-  type: "WebViews.ActivateSelected"
-}
+type ClosedAction =
+  { type: "Closed"
+  , id: ID
+  }
 
-export type ActivateByID = {
-  type: "WebViews.ActivateByID",
-  id: ID
-}
+export type Closed = (id:ID) =>
+  ClosedAction
 
-export type SelectRelative {
-  type: "WebViews.SelectRelative",
-  offset: number
-}
+// ### Select WebView
+
+type SelectByIDAction =
+  { type: "SelectByID"
+  , id: ID
+  }
+
+export type SelectByID = (id:ID) =>
+  SelectByIDAction
+
+type SelectRelativeAction =
+  { type: "SelectRelative"
+  , offset: number
+  }
+
+export type SelectRelative = (offset:number) =>
+  SelectRelativeAction
+
+export type SelectedAction =
+  { type: "Selected"
+  , id: ID
+  }
+export type Selected = (id:ID) =>
+  SelectedAction
+
+// ### Activate WebView
+
+export type ActivateSelected =
+  { type: "ActivateSelected"
+  }
+
+type ActivateByIDAction =
+  { type: "ActivateByID"
+  , id: ID
+  }
+
+export type ActivateByID = (id:ID) =>
+  ActivateByIDAction
+
+
+type ActivatedAction =
+  { type: "Activated"
+  , id: ID
+  }
+export type Activated = (id:ID) =>
+  ActivatedAction
+
+// ### Switch mode
+
+// ZoomOut of the active WebView.
+export type Unfold =
+  { type: "Unfold"
+  }
+
+// ZoomIn into active WebView.
+export type Fold =
+  { type: "Fold"
+  }
+
+// Shrink view to accomodate sidebar on the right side.
+export type Shrink =
+  { type: "Shrink"
+  }
+
+// Expand view to disregard / cover sidebar on the right side.
+export type Expand =
+  { type: "Expand"
+  }
+
+// ### Tag WebView Action
+
+export type ActiveWebViewAction =
+  { type: "ActiveWebView"
+  , action: WebView.Action
+  }
+
+export type WebViewAction =
+  { type: "WebViewAction"
+  , action: WebView.Action
+  }
+
+
+type ByIDAction
+  = SelectedAction
+  | ActivatedAction
+  | ClosedAction
+  | WebView.OpenSyncWithMyIFrame
+  | WebViewAction
+
+export type ByID =
+  (id:ID) =>
+  (action:WebView.Action) =>
+  ByIDAction
+
+
+
+
 
 export type Action
-  = ByID | ByActive
-  | Open
-  | CloseByID | CloseActive
-  | SelectByID
-  | SelectRelative
-  | ActivateSelected | ActivateByID
+  = NavigateToAction
+  | OpenAction
 
-export type asByID = (id:ID) => (action:WebView.Action) => ByID
-export type asByActive = (action:WebView.Action) => ByID
-export type asNavigateTo = (uri:URI) => NavigateTo
+  | CloseActive
+  | CloseByID
+  | ClosedAction
 
-export type indexByID = (model:Model, id:ID) => number
-export type indexOfOffset = (index:number, size:number, offset:number, loop:boolean) => number
-export type open = (model:Model, options:NewWebViewOptions) => Model
+  | SelectByIDAction
+  | SelectRelativeAction
+  | SelectedAction
 
-export type closeActive = (model:Model) => Model
-export type closeByIndex = (model:Model, index:number) => Model
-export type closeByID = (model:Model, id:ID) => Model
+  | ActivateSelected
+  | ActivateByIDAction
+  | ActivatedAction
 
-export type selectByID = (model:Model, id:ID) => Model
-export type selectByIndex = (model:Model, index:number) => Model
-export type selectByOffset = (model:Model, offset:number) => Model
+  | Shrink
+  | Expand
 
-export type activateSelected = (model:Model) => Model
-export type activateByID = (model:Model, id:ID) => Model
+  | Fold
+  | Unfold
 
-export type step = (model:Model, action:Action) => [Model, Effects<Action>]
-export type stepByID = (model:Model, id:ID, action:WebView.Action) => [Model, Effects<Action>]
+  | ActiveWebViewAction
+  | WebViewAction
 
-export type view = (model:Model, address:Address<Action>) => VirtualTree
+export type getActiveURI <other> = (model:Model, fallback:other) =>
+  URI | other
+
+export type init = () =>
+  [Model, Effects<Action>]
+
+export type update = (model:Model, action:Action) =>
+  [Model, Effects<Action>]
+
+export type view = (model:Model, address:Address<Action>) =>
+  VirtualTree

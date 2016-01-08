@@ -1,34 +1,22 @@
 /* @flow */
 
-import {merge} from "../common/prelude"
-import {Effects} from "reflex"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+import {Effects} from "reflex";
+import {merge} from "../common/prelude";
+import * as Unknown from "../common/unknown";
 
 /*:: import * as type from "../../type/common/target" */
 
-export const overState/*:type.Model*/ = {
-  isPointerOver: true
-}
-
-export const outState/*:type.Model*/ = {
-  isPointerOver: false
-}
-
-export const initial = outState
-
-export const Over/*:type.Over*/ = {type: "Target.Over"}
-export const Out/*:type.Out*/ = {type: "Target.Out"}
-
-export const asOver/*:type.asOver*/ = () => Over
-export const asOut/*:type.asOut*/ = () => Out
-
-
-export const over/*:type.over*/ = model => merge(model, overState)
-export const out/*:type.out*/ = model => merge(model, outState)
+export const Over/*:type.Over*/ = {type: "Over"};
+export const Out/*:type.Out*/ = {type: "Out"};
 
 export const update/*:type.update*/ = (model, action) =>
-  action.type == "Target.Over" ?
-    over(model) :
-  // action.type == "Target.Out" ?
-    out(model)
-
-export const step = Effects.nofx(update)
+    action.type == "Over"
+  ? [merge(model, {isPointerOver: true}), Effects.none]
+  : action.type == "Out"
+  ? [merge(model, {isPointerOver: false}), Effects.none]
+  : Unknown.update(model, action)

@@ -5,19 +5,28 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-import type {VirtualTree} from "reflex/type"
+import type {VirtualTree, Address} from "reflex/type"
 import type {Effects} from "reflex/type/effects"
 import type {Time} from "../common/prelude"
-import type {Animation} from "../common/animation"
+import * as Animation from "../common/animation"
 
 export type Visible = 0.1
 export type Invisible = 0
 
-export type Model = {
-  opacity: Visible | Invisible,
-  isCapturing: boolean,
-  animation: ?Animation
-}
+type Display =
+  { opacity: Visible | Invisible
+  }
+
+export type Model =
+  { display: Display
+  , isCapturing: boolean
+  , isVisible: boolean
+  , animation: ?Animation.Model
+  }
+
+export type Overlay =
+  (data:{isCapturing:boolean, isVisible:boolean}) =>
+  Model;
 
 export type Show = {type: "Overlay.Show", time: Time}
 export type Hide = {type: "Overlay.Hide", time: Time}
@@ -49,5 +58,11 @@ export type fade = (model:Model, time:Time) =>
 export type tick = (model:Model, action:Animation.Tick) =>
   [Model, Effect]
 
-export type step = (model:Model, action:Action) =>
-  [Model, Effect]
+export type init = (isVisible:boolean, isCapturing:boolean) =>
+  [Model, Effects<Action>]
+
+export type update = (model:Model, action:Action) =>
+  [Model, Effects<Action>]
+
+export type view = (model:Model, address:Address<Action>) =>
+  VirtualTree;

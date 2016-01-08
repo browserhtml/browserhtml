@@ -1,4 +1,4 @@
-// @TODO write type signatures
+/* @noflow */
 
 /* this source code form is subject to the terms of the mozilla public
  * license, v. 2.0. if a copy of the mpl was not distributed with this

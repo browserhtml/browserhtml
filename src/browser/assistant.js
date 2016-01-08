@@ -1,4 +1,8 @@
-/* @flow */
+/* @noflow */
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {always, merge, take, move} from "../common/prelude"
 import {Effects, batch, nofx, html, thunk} from "reflex"
@@ -15,8 +19,15 @@ export const initial/*:type.Model*/ = {
 
   topHit: null,
   page: [],
-  search: []
+  search: [],
+
+  isVisible: false,
+  isExpanded: false
 };
+
+export const Open = {type: "Open"};
+export const Close = {type: "Close"};
+export const Expand = {type: "Expand"};
 
 export const Unselect/*:type.Unselect*/ = {type: "Assistant.Unselect"};
 export const asUnselect/*:type.asUnselect*/ = always(Unselect);
@@ -148,9 +159,32 @@ export const query/*:type.query*/ = (input, limit) => Effects.batch([
   Search.query(input, limit)
 ]);
 
+export const init/*:type.init*/ = () =>
+  [ initial, Effects.none ];
 
-export const step/*:type.step*/ = (model, action) => {
-  if (action.type === "Assistant.Reset") {
+export const update/*:type.update*/ = (model, action) => {
+  if (action.type === "Open") {
+    return (
+      [ merge(model, { isOpen: true, isExpanded: false })
+      , Effects.none
+      ]
+    );
+  }
+  else if (action.type === "Close") {
+    return (
+      [ merge(model, { isOpen: false, isExpanded: false })
+      , Effects.none
+      ]
+    );
+  }
+  else if (action.type === "Expand") {
+    return (
+      [ merge(model, {isOpen: true, isExpanded: true })
+      , Effects.none
+      ]
+    )
+  }
+  else if (action.type === "Assistant.Reset") {
     return [
       initial,
       Effects.none
@@ -209,6 +243,18 @@ const style = StyleSheet.create({
     // @WORKAROUND use percent instead of vw/vh to work around
     // https://github.com/servo/servo/issues/8754
     width: '100%'
+  },
+
+  assistantExpanded: {
+   height: '100%'
+  },
+
+  assistantOpen: {
+
+  },
+
+  assistantClosed: {
+    display: 'none'
   },
 
   icon: {
@@ -353,10 +399,19 @@ const viewResult = (model, index, selected, address) =>
   // model.type === 'Search.Match' ?
     viewSearch(model, index, selected, address);
 
-export const view/*:type.view*/ = (model, address, modeStyle) =>
+export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'assistant',
-    style: Style(style.assistant, modeStyle)
+    style:
+      Style
+      ( style.assistant
+      , ( model.isExpanded
+        ? style.assistantExpanded
+        : model.isOpen
+        ? style.assistantOpen
+        : style.assistantClosed
+        )
+      )
   }, [
     html.ol({
       className: 'assistant-results',

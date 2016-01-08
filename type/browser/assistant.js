@@ -82,4 +82,4 @@ export type Action
 export type query = (input:string, limit:number) => Effects<Response>
 
 
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type update = (model:Model, action:Action) => [Model, Effects<Response>]

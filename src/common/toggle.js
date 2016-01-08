@@ -1,17 +1,23 @@
 /* @flow */
 
-import {merge, cursor} from "../common/prelude"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+import {merge, always} from "../common/prelude"
+import {cursor} from "../common/cursor"
 import * as Unknown from "../common/unknown"
 import * as Target from "../common/target"
 import * as Focusable from "../common/focusable"
 import * as Button from "../common/button"
 import {Style} from "../common/style"
-import {html, Effects, Task} from "reflex"
+import {html, Effects, forward, Task} from "reflex"
 
 /*:: import * as type from "../../type/common/toggle" */
 
 
-export const init = () =>
+export const init/*:type.init*/ = () =>
   [
     {
       isDisabled: false,
@@ -24,45 +30,52 @@ export const init = () =>
   ];
 
 
-export const Model =
-  ({isDisabled, isActive, isPointerOver, isFocused, isChecked}) =>
-  ({isDisabled, isActive, isPointerOver, isFocused, isChecked});
+export const Model/*:type.Toggle*/ =
+  ({isDisabled, isFocused, isActive, isPointerOver, isChecked}) =>
+  ({isDisabled, isFocused, isActive, isPointerOver, isChecked});
 
 export const Press = {type: "Press"};
 export const Check = {type: "Check"};
 export const Uncheck = {type: "Uncheck"};
 
-const Point = action => ({type: "Point", action});
-const Focus = action => ({type: "Focus", action});
-const Hold = action => ({type: "Hold", action});
+const TargetAction = action => ({type: "Target", action});
+const FocusableAction = action => ({type: "Focusable", action});
+export const ButtonAction/*:type.ButtonAction*/ = action =>
+  ({type: "Button", action});
 
-const point = cursor({
-  update: Target.step,
-  tag: Point
+export const Focus = FocusableAction(Focusable.Focus);
+export const Blur = FocusableAction(Focusable.Blur);
+
+export const Over = TargetAction(Target.Over);
+export const Out = TargetAction(Target.Out);
+
+export const Down = ButtonAction(Button.Down);
+export const Up = ButtonAction(Button.Up);
+
+
+const updateTarget = cursor({
+  update: Target.update,
+  tag: TargetAction
 });
 
-const focus = cursor({
-  update: Focusable.step,
-  tag: Focus
+const updateFocusable = cursor({
+  update: Focusable.update,
+  tag: FocusableAction
 });
 
-const hold = cursor({
-  update: Button.step,
-  tag: Hold
+const updateButton = cursor({
+  update: Button.update,
+  tag: ButtonAction
 });
 
 
-export const step = (model, action) =>
-    action.type === "Press"
-  ? [   model.isDisabled
-      ? model
-      : merge(model, {isChecked: !model.isChecked})
-
-    ,   model.isDisabled
-      ? Effects.none
-      : model.isChecked
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === "Press"
+  ? [ merge(model, {isChecked: !model.isChecked})
+    , ( model.isChecked
       ? Effects.task(Task.succeed(Uncheck))
       : Effects.task(Task.succeed(Check))
+      )
     ]
 
   : action.type === "Check"
@@ -70,26 +83,31 @@ export const step = (model, action) =>
   : action.type === "Uncheck"
   ? [model, Effects.none]
 
-  : action.type === "Hold"
-  ? hold(model, action.action)
-  : action.type === "Point"
-  ? point(model, action.action)
-  : action.type === "Focus"
-  ? focus(model, action.action)
-  : Unknown.step(model, action);
+  : action.type === "Button"
+  ? updateButton(model, action.action)
+  : action.type === "Target"
+  ? updateTarget(model, action.action)
+  : action.type === "Focusable"
+  ? updateFocusable(model, action.action)
+  : Unknown.update(model, action)
+  );
 
 
-export const view = (key, styleSheet) => (model, address, contextStyle) =>
+export const view/*:type.view*/ = (key, styleSheet) => (model, address, contextStyle) =>
   html.button({
     key: key,
     className: key,
     style: Style
-      (
-          styleSheet.base
+      ( styleSheet.base
 
       ,   model.isFocused
         ? styleSheet.focused
         : styleSheet.blured
+
+      ,   model.isDisabled
+        ? styleSheet.disabled
+        : styleSheet.enabled
+
 
       ,  model.isPointerOver
         ? styleSheet.over
@@ -99,10 +117,6 @@ export const view = (key, styleSheet) => (model, address, contextStyle) =>
         ? styleSheet.active
         : styleSheet.inactive
 
-      ,   model.isDisabled
-        ? styleSheet.disabled
-        : styleSheet.enabled
-
       ,   model.isChecked
         ? styleSheet.checked
         : styleSheet.unchecked
@@ -110,14 +124,14 @@ export const view = (key, styleSheet) => (model, address, contextStyle) =>
       , contextStyle
     ),
 
-    onFocus: () => address(Focus(Focusable.Focus)),
-    onBlur: () => address(Focus(Focusable.Blur)),
+    onFocus: forward(address, always(Focus)),
+    onBlur: forward(address, always(Blur)),
 
-    onMouseOver: () => address(Point(Target.Over)),
-    onMouseOut: () => address(Point(Target.Out)),
+    onMouseOver: forward(address, always(Over)),
+    onMouseOut: forward(address, always(Out)),
 
-    onMouseDown: () => address(Hold(Button.Down)),
-    onMouseUp: () => address(Hold(Button.Up)),
+    onMouseDown: forward(address, always(Down)),
+    onMouseUp: forward(address, always(Up)),
 
-    onClick: () => address(Press),
+    onClick: forward(address, always(Press))
   });

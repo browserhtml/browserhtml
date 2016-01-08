@@ -8,64 +8,29 @@
 
 import {html, thunk, Effects, forward} from "reflex";
 import * as Driver from "driver";
-import {merge, always} from "../common/prelude";
+import {merge, setIn, remove, always, batch} from "../common/prelude";
+import {cursor} from "../common/cursor";
 import * as WebView from "../browser/web-view";
+import * as Unknown from "../common/unknown";
+import * as Stopwatch from "../common/stopwatch";
+import * as Easing from "eased";
 import {Style, StyleSheet} from "../common/style";
 
-export const initial = {
-  nextID: 0,
-  // @TODO selected field should probably live elsewhere and be maintained
-  // by a different component.
-  selected: -1,
-  active: -1,
-  entries: []
-};
 
-export const SelectNext = ({
-  type: "WebViews.SelectRelative",
-  offset: 1
-});
+// Model
 
-export const SelectPrevious = ({
-  type: "WebViews.SelectRelative",
-  offset: -1
-});
+// Returns true if model currently has no open web-views.
+const isEmpty = model =>
+  model.order.length === 0;
 
-export const ActivateSelected = ({
-  type: "WebViews.ActivateSelected"
-});
-
-export const indexByID/*:type.indexByID*/ = (model, id) =>
-  model.entries.findIndex(entry => entry.id === id);
-
-export const open/*:type.open*/ = (model, options) => {
-  const next = merge(model, {
-    nextID: model.nextID + 1,
-    selected: model.selected + 1,
-    active: model.active + 1,
-    entries: [WebView.open(model.nextID, options), ...model.entries]
-  });
-
-  return options.inBackground ?
-    next :
-    activateByID(next, model.nextID)
-};
-
-export const navigateTo = (model, uri) => {
-  if (model.active < 0) {
-    return [
-      open(model, {uri, inBackground: false, name: '', features: ''}),
-      Effects.none
-    ]
-  } else {
-    return stepByActive(model, WebView.asLoad(uri))
-  }
-}
-
-export const indexOfOffset/*:type.indexByOffset*/ = (index, size, offset, loop) => {
+// Returns position that is `offset` by given number from the given `index` if
+// total number of items is equal to given `size`. If `loop` is true and offset
+// is out of bounds position is calculated by looping. Otherwise last / first
+// index is retuned.
+const indexOfOffset = (index, offset, size, loop) => {
   const position = index + offset;
   if (size === 0) {
-    return - 1
+    return index
   } else if (loop) {
     const index = position - Math.trunc(position / size) * size
     return index < 0 ? index + size :  index
@@ -74,248 +39,594 @@ export const indexOfOffset/*:type.indexByOffset*/ = (index, size, offset, loop) 
   }
 }
 
-export const selectByIndex/*:type.selectByIndex*/ = (model, index) => {
-  // If selection does not change return model back.
-  if (index === model.selected) {
-    return [model, Effects.none];
-  }
-  // if selection is out of the bound log warning and return model back.
-  else if (index < 0 || index >= model.entries.length) {
-    console.warn(`Can not select WebView under ${index} index as it does not exists`, model);
-    return [model, Effects.none];
-  }
-  else {
-    const {selected} = model;
-    const entries = model.entries.slice(0);
 
-    // Initially there are no web-views and there for none is selected, we need
-    // in such case nothing needs to be unselected.
-    if (selected >= 0) {
-      const [unselect, unselectFx] = WebView.unselect(entries[selected]);
-      const [select, selectFx] = WebView.select(entries[index]);
-      entries[selected] = unselect
-      entries[index] = select
 
-      return [
-        merge(model, {selected: index, entries}),
-        Effects.batch([
-          unselectFx.map(asByID(unselect.id)),
-          selectFx.map(asByID(select.id))
-        ])
+// # Actions
+
+// ### Navigate WebView
+
+export const NavigateTo/*:type.NavigateTo*/ = uri =>
+  ({type: "NavigateTo", uri});
+
+// ### Open WebView
+
+export const Open/*:type.Open*/ = ({uri, inBackground, name, features}) =>
+  ( { type: "Open"
+    , options:
+      { uri
+      , inBackground: Boolean(inBackground)
+      , name: name == null ? '' : name
+      , features: features == null ? '' : features
+      }
+    }
+  );
+
+
+// ### Close WebView
+
+export const CloseActive/*:type.CloseActive*/ =
+  { type: "CloseActive"
+  };
+
+export const CloseByID/*:type.CloseByID*/ = id =>
+  ( { type: "CloseByID"
+    , id
+    }
+  );
+
+const Closed/*:type.Closed*/ = id =>
+  ( { type: "Closed"
+    , id
+    }
+  );
+
+// ### Select WebView
+
+export const SelectByID/*:type.SelectByID*/ = id =>
+  ( { type: "SelectByID"
+    , id
+    }
+  );
+
+const SelectRelative/*:type.SelectRelative*/ = offset =>
+  ( { type: "SelectRelative"
+    , offset
+    }
+  );
+
+export const SelectNext = SelectRelative(1);
+export const SelectPrevious = SelectRelative(-1);
+
+
+const Selected/*:type.Selected*/ = id =>
+  ( { type: "Selected"
+    , id
+    }
+  );
+
+// ### Activate WebView
+
+export const ActivateSelected/*:type.ActivateSelected*/ =
+  { type: "ActivateSelected"
+  };
+
+export const ActivateByID/*:type.ActivateByID*/ = id =>
+  ( { type: "ActivateByID"
+    , id
+    }
+  );
+
+const Activated/*:type.Activated*/ = id =>
+  ( { type: "Activated"
+    , id
+    }
+  );
+
+
+// ### Switch mode
+
+export const Fold/*:type.Fold*/ = {type: "Fold"};
+export const Folded/*:type.Folded*/ = {type: "Folded"};
+export const Unfold/*:type.Unfold*/ = {type: "Unfold"};
+export const Unfolded/*:type.Unfolded*/ = {type: "Unfolded"};
+
+// ### Tag WebView Action
+
+// Anotates `action` to target Active WebView
+const ActiveWebViewAction = action =>
+  ( { type: "ActiveWebView"
+    , action
+    }
+  );
+
+// Anotates `action` to target WebView with a given `id`. Some actions are
+// not anotated instead they produce special actions recognized by this module.
+const WebViewAction = (id, action) =>
+  ( action.type === "Open!WithMyIFrameAndInTheCurrentTick"
+  ? action
+  : action.type === "Selected"
+  ? Selected(id)
+  : action.type === "Activated"
+  ? Activated(id)
+  : action.type === "Closed"
+  ? Closed(id)
+  : action.type === "ShowTabs"
+  ? ShowTabs
+  : action.type === "Create"
+  ? Create
+  : action.type === "Edit"
+  ? Edit
+  : { type: "WebView"
+    , id
+    , action
+    }
+  );
+
+export const ActionByID = WebViewAction;
+
+
+// Utility function for anotating specific actions to target a WebView with a
+// give `id`.
+const ByID =
+  id =>
+  action =>
+  WebViewAction(id, action);
+
+
+// Animation
+
+const FoldAnimationAction = action =>
+  ( { type: "FoldAnimation"
+    , action
+    }
+  );
+
+
+// Set of exposed actions that embedders can use to trigger certain actions.
+// Note: Instead of defining action specifically for them we just anotate
+// WebView actions to tagret active WebView to reduce a boilerplate.
+
+export const ZoomIn = ActiveWebViewAction(WebView.ZoomIn);
+export const ZoomOut = ActiveWebViewAction(WebView.ZoomOut);
+export const ResetZoom = ActiveWebViewAction(WebView.ResetZoom);
+
+export const Stop = ActiveWebViewAction(WebView.Stop);
+export const Reload = ActiveWebViewAction(WebView.Reload);
+export const GoBack = ActiveWebViewAction(WebView.GoBack);
+export const GoForward = ActiveWebViewAction(WebView.GoForward);
+
+export const Focus = ActiveWebViewAction(WebView.Focus);
+
+export const ShowTabs = WebView.ShowTabs;
+export const Create = WebView.Create;
+export const Edit = WebView.Edit;
+
+
+// # Update
+
+
+export const init/*:type.init*/ = () =>
+  [ { nextID: 0
+    , selector: null
+    , order: []
+    , entries: {}
+    , display: { depth: 0 }
+
+    , resizeAnimation: null
+
+    , foldAnimation: null
+    , isFolded: true
+    }
+  , Effects.none
+  ];
+
+
+const updateByID = (model, id, action) => {
+  if ( model.order.indexOf(id) < 0) {
+    return (
+      [ model
+      , Effects.task(Unknown.error(`WebView with id: ${id} is not found`))
       ]
-    }
-    else {
-      // Mark web-view we intend to select as selected.
-      const [select, fx] = WebView.select(entries[index])
-      entries[index] = selected
-      return [
-        merge(model, {selected: index, entries}),
-        fx.map(asByID(select.id))
-      ];
-    }
-  }
-}
-
-export const selectByID/*:type.selectByID*/ = (model, id) =>
-  selectByIndex(model, indexByID(model, id));
-
-export const selectByOffset/*:type.selectByOffset*/ = (model, offset) =>
-  selectByIndex(model, indexOfOffset(model.selected,
-                                      model.entries.length,
-                                      offset,
-                                      true));
-
-export const activateByIndex/*:type.activateByIndex*/ = (model, index) => {
-  if (index === model.active) {
-    return model
-  }
-  else if (index < 0 || index >= model.entries.length) {
-    console.warn(`Can not activate WebView under ${index} index as it does not exists`, model);
-    return model;
+    );
   }
   else {
-    const {selected, active} = model;
-    const entries = model.entries.slice(0);
-    const count = entries.length;
-
-    if (selected >= 0 && selected !== index && selected < count) {
-      entries[selected] = merge(entries[selected], {isSelected: false});
-    }
-
-    if (active >= 0 && active !== index && active < count) {
-      entries[active] = WebView.deactivate(entries[active]);
-    }
-
-    entries[index] = WebView.activate(merge(entries[index], {isSelected: true}));
-
-    return merge(model, {selected: index, active: index, entries});
+    const [entry, fx] = WebView.update(model.entries[id], action);
+    return (
+      [ merge(model, {entries: merge(model.entries, {[id]: entry})})
+      , fx.map(ByID(id))
+      ]
+    );
   }
 }
 
-export const activateSelected/*:type.activateSelected*/ = (model) =>
-  activateByIndex(model, model.selected);
+const updateActive = (model, action) =>
+  ( isEmpty(model)
+  ? [ model, Effects.none ]
+  // Note: This case should never happen as there should be no active only
+  // if there are no open WebViews. But we still handle and log error if
+  // end up in such a broken state.
+  : model.selector == null
+  ? [ model
+    , Effects.task(Unknown.error(`Can not update non-existing active WebView`))
+    ]
+  : updateByID(model, model.selector.active, action)
+  );
 
-export const activateByID/*:type.activateByID*/ = (model, id) =>
-  activateByIndex(model, indexByID(model, id));
+// ### Navigate
 
-export const closeByIndex/*:type.closeByIndex*/ = (model, index) => {
-  if (index < 0 || index >= model.entries.length) {
-    console.warn(`Can not close WebView for the index: ${index}:`, model);
-    return model;
-  } else {
-    const {selected, active, entries} = model;
-    const count = entries.length;
+const navigateTo = (model, uri) =>
+  ( isEmpty(model)
+  // If there are 0 web-views open we open a first one.
+  ? open
+    ( model
+    , {uri, inBackground: false, name: '', features: '' }
+    , false
+    )
+  // Otherwise we load given `uri` into active one.
+  : load(model, uri)
+  );
 
-    const nextIndex
-        // If index of the view being closed comes after the currently selected
-        // view, selection index is not affected.
-      = index > selected ?
-          selected :
-        // If index of the view being closed comes before the curretly selected
-        // view, selection index is decremented to point to the new index of
-        // the view.
-        index < selected ?
-          selected - 1 :
+// ### Load
 
-        // If we got this far than view being closed is currently selected. This
-        // case has it's own branched logic described below.
+const load = (model, uri) =>
+  updateActive(model, WebView.Load(uri));
 
-        // If there was only one view than there is no selected view and index
-        // is set to -1.
-        count === 1 ?
-          -1 :
-        // If the view being closed is the first one selection is moved to the
-        // following view - first view remains selected.
-        selected === 0 ?
-          0 :
-          // Otherwise selection is kept for the same index although actual view
-          // will be different.
-          selected - 1;
+// ### Open WebView
 
-      return activateByIndex(merge(model, {entries: remove(entries, index)}),
-                              nextIndex)
-  }
+const open = (model, options, isForced=false) => {
+  const id = model.nextID;
+  const [ entry, initFX ] = WebView.init(id, options);
+
+  // Create a intermidate state where new WebView entry is opened,
+  // but selector has not being updated yet.
+  const intermidate = merge
+    ( model
+    , { nextID: model.nextID + 1
+      , order: [id, ...model.order]
+      , entries: merge(model.entries, {[id]: entry})
+      }
+    );
+
+  // Next state is a resulting state which matches intermidate state
+  // cumputed earlier or it's a version with selection changes.
+  const [ next, activateFX ] =
+    ( options.inBackground
+    ? [ intermidate, Effects.none ]
+    : activateByID(intermidate, id)
+    );
+
+  return (
+    [ next
+    , Effects.batch
+      ( [ initFX.map(ByID(id))
+        , activateFX
+        , ( isForced
+          ? Driver.Force
+          : Effects.none
+          )
+        ]
+      )
+    ]
+  )
 };
 
-export const closeActive/*:type.closeActive*/ = model =>
-  closeByIndex(model, model.active);
+// ### Close WebView
 
-export const closeByID/*:type.closeByID*/ = (model, id) =>
-  closeByIndex(model, indexByID(model, id))
+const closeActive = model =>
+  ( isEmpty(model)
+  ? [ model, Effects.none ]
+  : model.selector == null
+  ? [ model
+    , Effects.task(Unknown.error(`Unable to close active WebView if none is Active`))
+    ]
+  : closeByID(model, model.selector.active)
+  );
 
-export const stepByActive/*:type.stepByActive*/ = (model, action) =>
-  action.type === "WebView.Close" ?
-    [closeActive(model), Effects.none] :
-    stepByIndex(model, model.active, action);
+const closeByID = (model, id) =>
+  ( isEmpty(model)
+  ? [ model
+    , Effects.task(Unknown.error(`Can not close by id: ${id} since there are 0 WebViews open`))
+    ]
+  : model.selector == null
+  ? updateByID(model, id, WebView.Close)
 
-export const stepByID/*:type.stepByActive*/ = (model, id, action) =>
-  action.type === "WebView.Activate" ?
-    [activateByID(model, id), Effects.none] :
-  action.type === "WebView.Close" ?
-    [closeByID(model, id), Effects.none] :
-  action.type === "WebView.Select" ?
-    selectByID(model, id) :
-    stepByIndex(model, indexByID(model, id), action);
+  // If web-view being closed is currently active then we perform batch of
+  // updates:
+  // - Activate previous / next entry (next if it's first entry otheriwise
+  //   previous).
+  // - Delegate `WebView.Close` action to entry with a given `id`.
+  // Note entry is not removed yet as we allow `WebView` module to perform
+  // some tasks (like close animation) after which we expect `WebView.Closed`
+  // action which is when we actually remove the entry.
+  : model.selector.active === id
+  ? batch
+    ( update
+    , model
+    , [ ActivateByID
+        ( model.order[0] === id
+        ? model.order[1]
+        : model.order[model.order.indexOf(id) - 1]
+        )
+      , WebViewAction(id, WebView.Close)
+      ]
+    )
+  // If different WebView is being closed just delegate to it.
+  : updateByID(model, id, WebView.Close)
+  );
 
-const remove = (array, index) =>
-    index < 0 ?
-      array :
-    index >= array.length ?
-      array :
-    index === 0 ?
-      array.slice(1) :
-    index === array.length - 1 ?
-      array.slice(0, index) :
-      array.slice(0, index).concat(array.slice(index + 1));
+// @TODO: Properly handle edge case that may occur if close was requested but
+// while closed action is received given web-view is activated back.
+const removeByID = (model, id) =>
+  [ merge
+    ( model
+    , { entries: merge(model.entries, {[id]: void(0)})
+      , order: remove(model.order, model.order.indexOf(id))
+      }
+    )
+  , Effects.none
+  ];
 
-const set = (array, index, item) => {
-  const items = array.slice(0)
-  items[index] = item
-  return items
+
+// ### Activate WebView
+
+
+const activateSelected = model =>
+  ( isEmpty(model)
+  ? [ model, Effects.none ]
+  : model.selector == null
+  ? [ model
+    , Effects.task(Unknown.error(`Unable to activate selected WebView if no WebView is selected`))
+    ]
+  : activateByID(model, model.selector.selected)
+  );
+
+const activateByID = (model, id) =>
+  ( isEmpty(model)
+  ? [ model
+    , Effects.task(Unknown.warn(`Can not activate web-view by id: ${id} since there are 0 web-views`))
+    ]
+  // If there was no selection we create new one and just delegate to an
+  // appropriate web-view `WebView.Activate` action. Please not that in this
+  // case there is no `WebView.Select`, `WebView.Unselect` or
+  // `WebView.Deactivate` actions handled as selection did not existed before.
+  // This is a case for the very first WebView that is opened, so for WebView
+  // also is not going to get `WebView.Select` action.
+  : model.selector == null
+  ? updateByID
+    ( merge(model, {selector: {selected: id, active: id}})
+    , id
+    , WebView.Activate
+    )
+  // If WebView being activated is already active still attempt to select
+  // it in case seleciton was in the intermidate state.
+  : model.selector.active === id
+  ? selectByID(model, id)
+  // If different WebView was active then we do batch of updates:
+  // - Update selected WebView to match the WebView being activated (note that
+  //   may do nothing if selected WebView already matches it or will cause
+  //   update previously selected WebView with `WebView.Unselect` and will
+  //   update WebView with given `id` with `WebView.Select`.
+  // - Update active WebView with `WebView.Deactivate`.
+  // - Update WebView with given `id` with `WebView.Activate`.
+  : batch
+    ( update
+    , merge(model, {selector: merge(model.selector, {active: id})})
+    , [ SelectByID(id)
+      , WebViewAction(id, WebView.Activate)
+      , WebViewAction(model.selector.active, WebView.Deactivate)
+      ]
+    )
+  );
+
+
+// ### Select WebView
+
+const selectByOffset = (model, offset) =>
+  ( isEmpty(model)
+  ? [ model, Effects.none ]
+  : model.selector == null
+  ? [ model
+    , Effects.task(Unknown.error(`Unable to change selected WebView if no WebView is seleted`))
+    ]
+  : selectByID
+    ( model
+    , model.order
+      [ indexOfOffset
+        ( model.order.indexOf(model.selector.selected)
+        , offset
+        , model.order.length
+        , true
+        )
+      ]
+    )
+  );
+
+const selectByID = (model, id) =>
+  ( model.selector == null
+  ? update
+    ( merge(model, {selector: { selected: id, active: id } })
+    , WebViewAction(id, WebView.Select)
+    )
+  : model.selector.selected !== id
+  ? batch
+    ( update
+    , merge(model, { selector: merge(model.selector, { selected: id }) })
+    , [ WebViewAction(id, WebView.Select)
+      , WebViewAction(model.selector.selected, WebView.Unselect)
+      ]
+    )
+  : [ model, Effects.none ]
+  );
+
+// Animations
+
+const fold = model =>
+  ( model.isFolded
+  ? [ model, Effects.none ]
+  : startFoldAnimation(merge(model, {isFolded: true}))
+  );
+
+const unfold = model =>
+  ( model.isFolded
+  ? startFoldAnimation(merge(model, {isFolded: false}))
+  : [ model, Effects.none ]
+  );
+
+const startFoldAnimation = model => {
+  if (model.foldAnimation != null) {
+    return (
+      [ merge
+        ( model
+        , { foldAnimation: merge(model.foldAnimation, {elapsed: 0}) }
+        )
+      , Effects.none
+      ]
+    );
+  }
+  const [foldAnimation, fx] =
+    Stopwatch.update(model.foldAnimation, Stopwatch.Start);
+  return [merge(model, {foldAnimation}), fx.map(FoldAnimationAction)];
+};
+
+const endFoldAnimation = model => {
+  const [foldAnimation, fx] =
+    Stopwatch.update(model.foldAnimation, Stopwatch.End);
+
+  return [ merge(model, {foldAnimation}), Effects.none ];
 }
 
-export const getByID = (model, id) =>
-  getByIndex(model, id);
+const folded = endFoldAnimation;
+const unfolded = endFoldAnimation;
 
-export const getActive = (model) =>
-  getByIndex(model, model.active);
+const updateFoldAnimation = (model, action) => {
+  const [foldAnimation, fx] =
+    Stopwatch.update(model.foldAnimation, action);
 
-export const getByIndex = (model, index) =>
-  index < 0 ? null :
-  index >= model.entries.length ? null :
-  model.entries[index];
+  const [begin, end, duration] =
+    ( model.isFolded
+    ? [ -200, 0, 200 ]
+    : [ 0, -200, 500 ]
+    );
 
+  const result =
+    ( duration > foldAnimation.elapsed
+    ? [ merge
+        ( model
+        , { foldAnimation
+          , display:
+              merge
+              ( model.display
+              , { depth:
+                  Easing.ease
+                  ( Easing.easeOutCubic
+                  , Easing.float
+                  , begin
+                  , end
+                  , duration
+                  , foldAnimation.elapsed
+                  )
+                }
+              )
+          }
+        )
+      , fx.map(FoldAnimationAction)
+      ]
+    : [ merge
+        ( model
+        , { foldAnimation
+          , display: merge(model.display, {depth: end})
+          }
+        )
+      , Effects.receive
+        ( model.isFolded
+        ? Folded
+        : Unfolded
+        )
+      ]
+    );
 
-export const stepByIndex/*:type.stepByIndex*/ = (model, index, action) => {
-  const {entries} = model;
-  if (index < 0 || index >= entries.length) {
-    console.warn(`WebView by index: ${index} is not found:`, model);
-    return [model, Effects.none];
-  } else {
-    const [entry, fx] = WebView.step(entries[index], action);
-    return [
-      merge(model, {entries: set(entries, index, entry)}),
-      fx.map(asByID(entry.id))
-    ];
-  }
+  return result;
 }
 
 
-export const step/*:type.step*/ = (model, action) => {
-  if (action.type === "Focusable.FocusRequest") {
-    return stepByActive(model, action);
-  }
-  if (action.type === "WebViews.NavigateTo") {
-    return navigateTo(model, action.uri);
-  }
-  else if (action.type === "WebViews.Open") {
-    return [open(model, action.options), Effects.none];
-  }
-  else if (action.type === "WebViews.Open!WithMyIFrameAndInTheCurrentTick") {
-    return [open(model, action.options), Driver.force];
-  }
-  else if (action.type === "WebViews.SelectRelative") {
-    return selectByOffset(model, action.offset);
-  }
-  else if (action.type === "WebViews.ActivateSelected") {
-    return [activateSelected(model), Effects.none];
-  }
-  else if (action.type === "WebViews.ByActive") {
-    return stepByActive(model, action.action);
-  }
-  else if (action.type === "WebViews.ByID") {
-    return stepByID(model, action.id, action.action);
-  }
-  else {
-    console.warn(`WebViews module does not know how to handle ${action.type}`, action);
-    return [model, Effects.none];
-  }
-}
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === "NavigateTo"
+  ? navigateTo(model, action.uri)
 
-export const asOpen = ({uri, inBackground, name, features}) => ({
-  type: "WebViews.Open",
-  options: {
-    uri,
-    inBackground: inBackground == null ? false : inBackground,
-    name: name == null ? '' : name,
-    features: features == null ? '' : features
-  }
-});
+  // Open web-view
 
-export const asByID/*:type.asByID*/
-  = id => action => ({type: "WebViews.ByID", id, action});
+  : action.type === "Open"
+  ? open(model, action.options, false)
+  : action.type === "Open!WithMyIFrameAndInTheCurrentTick"
+  ? open(model, action.options, true)
 
-export const asByActive/*:type.asByActive*/
-  = action => ({type: "WebViews.ByActive", action});
+  // Close web-view
+  : action.type === "CloseActive"
+  ? closeActive(model)
 
-export const CloseActive = asByActive(WebView.Close);
-export const asCloseActive = always(CloseActive);
+  : action.type === "CloseByID"
+  ? closeByID(model, action.id)
 
-export const asNavigateTo/*:type.asNavigateTo*/
-  = uri => ({type: "WebViews.NavigateTo", uri});
+  : action.type === "Closed"
+  ? removeByID(model, action.id)
 
-const style = StyleSheet.create({
-  webviews: {
+  // Change activate web-view
+  : action.type === "ActivateSelected"
+  ? activateSelected(model)
+
+  : action.type === "ActivateByID"
+  ? activateByID(model, action.id)
+
+  : action.type === "Activated"
+  ? [ model, Effects.none ]
+
+  // Change selected web-view
+  : action.type === "SelectRelative"
+  ? selectByOffset(model, action.offset)
+
+  : action.type === "SelectByID"
+  ? selectByID(model, action.id)
+
+  // Currently we do nothing when selection has finished.
+  : action.type === "Selected"
+  ? [ model, Effects.none ]
+
+
+  // Fold / Unfold animations
+  : action.type === "Fold"
+  ? fold(model)
+  : action.type === "Unfold"
+  ? unfold(model)
+  : action.type === "FoldAnimation"
+  ? updateFoldAnimation(model, action.action)
+  : action.type === "Folded"
+  ? folded(model)
+  : action.type === "Unfolded"
+  ? unfolded(model)
+
+  // Delegate tagged action to one of the update functions.
+  : action.type === "ActiveWebView"
+  ? updateActive(model, action.action)
+
+  : action.type === "WebView"
+  ? updateByID(model, action.id, action.action)
+
+  : Unknown.update(model, action)
+  );
+
+
+
+export const getActiveURI/*:type.getActiveURI*/ = (model, fallback=null) =>
+  ( model.selector == null
+  ? fallback
+  : model.entries[model.selector.active] == null
+  ? fallback
+  : model.entries[model.selector.active].navigation.currentURI
+  )
+
+
+const styleSheet = StyleSheet.create({
+  base: {
     // @TODO box shadow slows down animations significantly (Gecko)
     // boxShadow: '0 50px 80px rgba(0,0,0,0.25)',
     // @WORKAROUND use percent instead of vw/vh to work around
@@ -327,18 +638,27 @@ const style = StyleSheet.create({
     position: 'absolute', // to position webviews relatively to stack
     top: 0,
     willChange: 'transform',
+    transformOrigin: 'left center'
     // WARNING: will slow down animations! (Gecko)
     // xBorderRadius: '4px',
   }
 });
 
-export const view/*:type.view*/ = (model, address, modeStyle) =>
-  html.div({
-    className: 'webviews-stack',
-    style: Style(style.webviews, modeStyle)
-  }, model
-      .entries
-      .map(entry => thunk(entry.id,
-                          WebView.view,
-                          entry,
-                          forward(address, asByID(entry.id)))))
+export const view/*:type.view*/ = (model, address) =>
+  html.div
+  ( { className: 'webviews-stack'
+    , style:
+        Style
+        ( styleSheet.base
+        , { transform: `translate3d(0, 0, ${model.display.depth}px)`
+          }
+        )
+    }
+  , model
+      .order
+      .map(id =>
+        thunk
+        ( String(id)
+        , WebView.view
+        , model.entries[id]
+        , forward(address, ByID(id)))));

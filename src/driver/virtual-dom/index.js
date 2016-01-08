@@ -1,3 +1,5 @@
+/* @noflow*/
+
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -18,19 +20,21 @@ class On {
         void(0) :
         handler.decode(event)
 
-      if (handler.stopPropagation) {
-        if (handler.stopPropagation(data)) {
-          event.stopPropagation()
+      if (data == null || data.type !== "AbortEvent") {
+        if (handler.stopPropagation) {
+          if (handler.stopPropagation(data)) {
+            event.stopPropagation()
+          }
         }
-      }
 
-      if (handler.preventDefault) {
-        if (handler.preventDefault(data)) {
-          event.preventDefault()
+        if (handler.preventDefault) {
+          if (handler.preventDefault(data)) {
+            event.preventDefault()
+          }
         }
-      }
 
-      handler.address(data)
+        handler.address(data)
+      }
     }
   }
   constructor(address, decode, options, getTarget) {

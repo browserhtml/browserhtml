@@ -4,47 +4,89 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {html, thunk, forward} from 'reflex';
+import {html, thunk, forward, Effects} from 'reflex';
 import {Style, StyleSheet} from '../../common/style';
 import * as Toggle from "../../common/toggle";
-import {merge, cursor} from "../../common/prelude";
+import * as Button from "../../common/button";
+import {merge} from "../../common/prelude";
+import {cursor} from "../../common/cursor";
+import * as Unknown from "../../common/unknown";
 
-export const Attach = {type: "Attach"};
-export const Detach = {type: "Detach"};
-export const CreateWebView = {type: "CreateWebView"};
+/*:: import * as type from "../../../type/browser/sidebar/toolbar" */
 
-const Pin = action =>
-    action.type === "Check"
+export const Attach/*:type.Attach*/ =
+  { type: "Attach"
+  };
+
+export const Detach/*:type.Detach*/ =
+  { type: "Detach"
+  };
+
+export const CreateWebView =
+  { type: "CreateWebView"
+  };
+
+const ToggleAction = action =>
+  ( action.type === "Check"
   ? Attach
   : action.type === "Uncheck"
   ? Detach
-  : ({type: "Pin", action});
+  : {type: "Toggle", action}
+  );
 
-const pin = cursor({
+const CloseButtonAction = action =>
+  ( action.type === "Press"
+  ? CreateWebView
+  : { type: "CloseButton"
+    , source: action
+    }
+  );
+
+const updateToggle = cursor({
   get: model => model.pin,
   set: (model, pin) => merge(model, {pin}),
-  tag: Pin,
-  update: Toggle.step
+  tag: ToggleAction,
+  update: Toggle.update
 });
 
-export const init = () => {
-  const [pin, fx] = Toggle.init()
+const updateCloseButton = cursor({
+  get: model => model.close,
+  set: (model, close) => merge(model, {close}),
+  tag: CloseButtonAction,
+  update: Button.update
+})
+
+export const init/*:type.init*/ = () => {
+  const [pin, pinFX] = Toggle.init();
+  const [close, closeFX] = Button.init(false, false, false, false, '');
   return [
-    {pin},
-    fx.map(Pin)
+    {pin, close},
+    Effects.batch
+    ( [ pinFX.map(ToggleAction)
+      , closeFX.map(CloseButtonAction)
+      ]
+    )
+
   ]
 }
 
-export const Model = ({pin}) => ({pin});
+export const Model/*:type.Toolbar*/ =
+  ({pin, close}) =>
+  ({pin, close});
 
-export const step = (model, action) =>
-    action.type === "Attach"
-  ? pin(model, Toggle.Check)
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === "Attach"
+  ? updateToggle(model, Toggle.Check)
   : action.type === "Detach"
-  ? pin(model, Toggle.Uncheck)
-  : action.type === "Pin"
-  ? pin(model, action.action)
-  : Unknown.step(model, action)
+  ? updateToggle(model, Toggle.Uncheck)
+
+  : action.type === "Toggle"
+  ? updateToggle(model, action.action)
+  : action.type === "CloseButton"
+  ? updateCloseButton(model, action.source)
+
+  : Unknown.update(model, action)
+  );
 
 export const styleSheet = StyleSheet.create({
   toolbar: {
@@ -53,30 +95,16 @@ export const styleSheet = StyleSheet.create({
     position: 'absolute',
     bottom: '0',
     width: '100%'
-  },
-
-  createTabButton: {
-    MozWindowDragging: 'no-drag',
-    color: 'rgba(255,255,255,0.8)',
-    fontFamily: 'FontAwesome',
-    fontSize: '18px',
-    lineHeight: '34px',
-    position: 'absolute',
-    textAlign: 'center',
-    bottom: '8px',
-    right: '8px',
-    width: '34px',
-    height: '34px',
   }
 });
 
 const viewPin = Toggle.view('pin-button', StyleSheet.create({
   base: {
     cursor: 'pointer',
-    borderRadius: '5px',
     height: '34px',
     width: '34px',
     margin: '8px',
+    borderRadius: '5px',
     backgroundRepeat: 'no-repeat',
     backgroundColor: 'transparent',
     backgroundPosition: 'center',
@@ -91,19 +119,33 @@ const viewPin = Toggle.view('pin-button', StyleSheet.create({
   }
 }));
 
-export const view = (model, address, {toolbarOpacity}) =>
+const viewClose = Button.view('create-tab-button', StyleSheet.create({
+  base:
+  { MozWindowDragging: 'no-drag'
+  , color: 'rgba(255,255,255,0.8)'
+  , fontFamily: 'FontAwesome'
+  , fontSize: '18px'
+  , lineHeight: '34px'
+  , position: 'absolute'
+  , textAlign: 'center'
+  , bottom: '8px'
+  , right: '8px'
+  , width: '34px'
+  , height: '34px'
+  , background: 'transparent'
+  }
+}));
+
+export const view/*:type.view*/ = (model, address, display) =>
   html.div({
     key: 'sidebar-toolbar',
     className: 'sidebar-toolbar',
-    style: Style(
-      styleSheet.toolbar,
-      {opacity: toolbarOpacity}
+    style:
+    Style
+    ( styleSheet.toolbar
+    , { opacity: display.toolbarOpacity }
     )
   }, [
-    thunk('pin', viewPin, model.pin, forward(address, Pin)),
-    html.div({
-      className: 'sidebar-create-tab-icon',
-      style: styleSheet.createTabButton,
-      onClick: () => address(CreateWebView)
-    }, [''])
+    thunk('pin', viewPin, model.pin, forward(address, ToggleAction)),
+    thunk('close', viewClose, model.close, forward(address, CloseButtonAction))
   ]);

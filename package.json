@@ -26,12 +26,10 @@
   },
   "dependencies": {
     "eased": "0.0.4",
-    "immutable": "3.7.0",
     "pouchdb": "4.0.0",
-    "reflex": "0.0.51",
+    "reflex": "0.1.0",
     "reflex-virtual-dom-driver": "0.0.2",
-    "tinycolor2": "1.1.2",
-    "typed-immutable": "0.0.7"
+    "tinycolor2": "1.1.2"
   },
   "devDependencies": {
     "babel-core": "5.8.23",
@@ -40,7 +38,7 @@
     "browserify": "11.0.1",
     "browserify-hmr": "0.3.1",
     "ecstatic": "0.8.0",
-    "flow-bin": "0.18.1",
+    "flow-bin": "0.20.1",
     "graphene-marionette-client": "1.0.0",
     "graphene-marionette-runner": "0.0.9",
     "gulp": "3.9.0",

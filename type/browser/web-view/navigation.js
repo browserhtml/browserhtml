@@ -1,10 +1,13 @@
 /* @flow */
 
-import type {Effects} from "reflex/type"
+import type {Task} from "reflex/type"
+import type {Effects, Never} from "reflex/type/effects"
 import type {ID, URI, Time} from "../../common/prelude"
+import type {Result} from  "../../common/result"
 
 
 export type Model = {
+  id: ID,
   canGoBack: boolean,
   canGoForward: boolean,
 
@@ -23,93 +26,107 @@ export type Model = {
 
 // Action is triggered whenever web-view start loading a new URI. Passed URI
 // directly corresponds `currentURI` in the model.
-export type LocationChanged = {
-  type: "WebView.Navigation.LocationChanged",
-  id: ID,
-  uri: URI,
-  timeStamp: Time
+type LocationChangedAction = {
+  type: "LocationChanged",
+  uri: URI
 }
 
-export type Request = {
-  type: "WebView.Navigation.Request",
-  id: ID,
-  action: RequestAction
-}
-
-// When model is updated with above action Effects with following Response
-// actions are triggered.
-export type CanGoBackChanged = {
-  type: "WebView.Navigation.CanGoBackChanged",
-  value: boolean
-}
-
-export type CanGoForwardChanged = {
-  type: "WebView.Navigation.CanGoForwardChanged",
-  value: boolean
-}
-
-
-
-// User interaction may also trigger on of the following request type actions:
-
+export type LocationChanged = (uri:URI) =>
+  LocationChangedAction
 
 // Editing uri in the location bar causes `ChangeLocation` action. It's
 // `uri` field directly corresponds to `initiatedURI` field on the model,
 // althoug this action also updates `currentURI`.
-export type Load = {
-  type: "WebView.Navigation.Load",
-  uri: URI
-}
+type LoadAction =
+  { type: "Load"
+  , uri: URI
+  }
+export type Load = (uri:URI) => LoadAction
 
 
-// User interaction interaction may also triggered following actions:
-export type Stop = {type: "WebView.Navigation.Stop"}
-export type Reload = {type: "WebView.Navigation.Reload"}
-export type GoBack = {type: "WebView.Navigation.GoBack"}
-export type GoForward = {type: "WebView.Navigation.GoForward"}
+
+// When model is updated with above action Effects with following Response
+// actions are triggered.
+type CanGoBackResult = Result<string, boolean>
+type CanGoBackChangedAction =
+  { type: "CanGoBackChanged"
+  , result: CanGoBackResult
+  }
+export type CanGoBackChanged = (result:CanGoBackResult) =>
+  CanGoBackChangedAction
+
+export type canGoBack = (id:ID) =>
+  Task<Never, CanGoBackResult>
 
 
-export type RequestAction
-  = Stop
-  | Reload
-  | GoBack
-  | GoForward
+type CanGoForwardResult = Result<string, boolean>
+type CanGoForwardChangedAction =
+  { type: "CanGoForwardChanged"
+  , result: CanGoForwardResult
+  }
+export type CanGoForwardChanged = (result:CanGoForwardResult) =>
+  CanGoForwardChangedAction
+
+export type canGoForward = (id:ID) =>
+  Task<Never, CanGoForwardResult>
 
 
-export type Response
-  = CanGoBackChanged
-  | CanGoForwardChanged
+// User interaction interaction may be triggered by following actions:
+type VoidResult = Result<string, void>
+
+export type Stop = {type: "Stop"}
+type StoppedAction =
+  { type: "Stopped"
+  , result: VoidResult
+  }
+export type Stopped = (result:VoidResult) =>
+  StoppedAction
+export type stop = (id:ID) => Task<Never, VoidResult>
+
+
+export type Reload = {type: "Reload"}
+type ReloadedAction =
+  { type: "Reloaded"
+  , result: VoidResult
+  }
+export type Reloaded = (result:VoidResult) =>
+  ReloadedAction
+export type reload = (id:ID) => Task<Never, VoidResult>
+
+export type GoBack = {type: "GoBack"}
+type WentBackAction =
+  { type: "WentBack"
+  , result: VoidResult
+  }
+export type WentBack = (result:VoidResult) =>
+  WentBackAction
+export type goBack = (id:ID) => Task<Never, VoidResult>
+
+export type GoForward = {type: "GoForward"}
+type WentForwardAction =
+  { type: "WentForward"
+  , result: VoidResult
+  }
+export type WentForward = (result:VoidResult) =>
+  WentForwardAction
+export type goForward = (id:ID) => Task<Never, VoidResult>
+
+
+
 
 
 export type Action
-  = LocationChanged
-  | Load
-  | Request
-  | Response
+  = Stop | Reload | GoBack | GoForward
+  | LocationChangedAction
+  | LoadAction
+
+  | CanGoBackChangedAction | CanGoForwardChangedAction
+  | StoppedAction | ReloadedAction | WentBackAction | WentForwardAction
 
 
 
-// IO
+export type init = (id:ID, uri:URI) =>
+  [Model, Effects<Action>]
 
-export type canGoBack = (id:ID) => Effects<CanGoBackChanged>
-export type canGoForward = (id:ID) => Effects<CanGoForwardChanged>
-export type stop = (id:ID) => Effects<void>
-export type reload = (id:ID) => Effects<void>
-export type goBack = (id:ID) => Effects<void>
-export type goForward = (id:ID) => Effects<void>
-
-// Returns:
-//  {canGoBack: false, canGoForward: false, initiatedURI: uri, currentURI: uri}
-export type initiate = (uri:URI) => Model
-
-// Returns:
-// {...model, initiatedURI: uri, currentURI: uri}
-export type load = (model:Model, uri:URI) => Model
-
-// Returns:
-// {...model, currentURI: uri}
-export type changeLocation = (model:Model, uri:URI) => Model
-
-export type asLoad = (uri:URI) => Load
-
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type update = (model:Model, action:Action) =>
+  [Model, Effects<Action>]

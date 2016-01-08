@@ -1,37 +1,69 @@
 /* @flow */
 
 import * as Focusable from "../../common/focusable"
-import type {Effects} from "reflex/type/effects"
+import type {Effects, Never} from "reflex/type/effects"
+import type {Task} from "reflex/type"
+import type {ID} from "../../common/prelude"
+import type {Result} from "../../common/result"
 
 // Model extends Focusable.Model with isVisible and zoom fields
 export type Model
-  = Focusable.Model
-  & {isVisible: boolean, zoom: number}
+  = { isVisible: boolean
+    , zoom: number
+    , isFocused: boolean
+    }
 
 
-export type ZoomIn = {type: "WebView.Shell.ZoomIn"}
-export type ZoomOut = {type: "WebView.Shell.ZoomOut"}
-export type ResetZoom = {type: "WebView.Shell.ResetZoom"}
+export type ZoomIn = { type: "ZoomIn" }
+export type ZoomOut = { type: "ZoomOut" }
+export type ResetZoom = { type: "ResetZoom" }
 
-export type VisibilityChanged = {
-  type: "WebView.Shell.VisibilityChanged",
-  value: boolean
-}
+type ZoomChangeResult = Result<string, number>
+type ZoomChangedAction =
+  { type: "ZoomChanged"
+  , result: ZoomChangeResult
+  }
+
+export type ZoomChanged = (result:ZoomChangeResult) =>
+  ZoomChangedAction
+
+export type MakeVisible = { type: "MakeVisible" }
+export type MakeNotVisible = { type: "MakeNotVisible" }
+
+type VisibilityChangeResult = Result<string, boolean>
+type VisibilityChangedAction =
+  { type: "VisibilityChanged"
+  , result: VisibilityChangeResult
+  }
+
+export type VisibilityChanged = (result:VisibilityChangeResult) =>
+  VisibilityChangedAction
+
+export type FocusableAction =
+  { type: "Focusable"
+  , action: Focusable.Action
+  }
 
 export type Action
-  = Focusable.Action
+  = FocusableAction
   | ZoomIn | ZoomOut | ResetZoom
-  | VisibilityChanged
+  | MakeVisible | MakeNotVisible
+  | ZoomChangedAction
+  | VisibilityChangedAction
 
 
-export type resetZoom = (model:Model) => Model
-export type zoomIn = (model:Model) => Model
-export type zoomOut = (model:Model) => Model
-export type focus = (model:Model) => Model
-export type blur = (model:Model) => Model
+export type zoomIn = (id:ID, zoom:number) =>
+  Task<Never, ZoomChangeResult>
 
-export type updateVisibility = (value:boolean, model:Model) => Model
+export type zoomOut = (id:ID, zoom:number) =>
+  Task<Never, ZoomChangeResult>
 
-export type blank = Model
-export type update = (model:Model, action:Action) => Model
-export type step = (model:Model, action:Action) => [Model, Effects<Action>]
+export type resetZoom = (id:ID) =>
+  Task<Never, ZoomChangeResult>
+
+export type setVisibility = (id:ID, isVisible:boolean) =>
+  Task<Never, VisibilityChangeResult>
+
+
+export type init = () => [Model, Effects<Action>]
+export type update = (model:Model, action:Action) => [Model, Effects<Action>]

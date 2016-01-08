@@ -6,286 +6,571 @@
 
 /*:: import * as type from "../../type/browser/web-view" */
 
-import {Effects, html} from 'reflex';
-import {merge, always, asFor} from '../common/prelude';
+import {Effects, html, forward} from 'reflex';
+import {merge, always, batch} from '../common/prelude';
+import {cursor} from '../common/cursor';
+import {compose} from '../lang/functional';
 import {on} from 'driver';
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
 import * as Security from './web-view/security';
 import * as Page from './web-view/page';
-import * as Tab from "./sidebar/tab";
+import * as Tab from './sidebar/tab';
+import * as Unknown from '../common/unknown';
+import * as Stopwatch from '../common/stopwatch';
 import {Style, StyleSheet} from '../common/style';
+import {readTitle, isDark} from './web-view/util';
 import * as Driver from 'driver';
 import * as URI from '../common/url-helper';
-import * as Animation from '../common/animation';
-import {ease, easeOutCubic, float} from 'eased';
+import * as Focusable from '../common/focusable';
+import * as Easing from 'eased';
 
-export const RequestZoomIn = Shell.asRequest(Shell.ZoomIn);
-export const RequestZoomOut = Shell.asRequest(Shell.ZoomOut);
-export const RequestZoomReset = Shell.asRequest(Shell.ResetZoom);
-export const RequestMakeVisibile = Shell.asRequest(Shell.asChangeVisibility(true));
-export const RequestMakeNotVisibile = Shell.asRequest(Shell.asChangeVisibility(false));
-export const RequestStop = Navigation.asRequest(Navigation.Stop);
-export const RequestReload = Navigation.asRequest(Navigation.Reload);
-export const RequestGoBack = Navigation.asRequest(Navigation.GoBack);
-export const RequestGoForward = Navigation.asRequest(Navigation.GoForward);
+/* import * as type from "../../type/browser/web-view" */
 
-export const Select/*:type.Select*/
-  = {type: "WebView.Select"};
+export const Select/*:type.Select*/ =
+  { type: "Select"
+  };
 
-export const Activate/*:type.Activate*/
-  = {type: "WebView.Activate"};
+export const Unselect/*:type.Unselect*/ =
+  { type: "Unselect"
+  };
 
-export const Close/*:type.Close*/
-  = {type: "WebView.Close"};
+export const Selected/*:type.Selected*/ =
+  { type: "Selected"
+  };
 
-export const Edit/*:type.Edit*/
-  = {type: 'WebView.Edit'};
+export const Unselected/*:type.Unselected*/ =
+  { type: "Unselected"
+  };
 
-export const RequestShowTabs/*:type.RequestShowTabs*/
- = {type: 'WebView.RequestShowTabs'};
+export const Activate/*:type.Activate*/ =
+  { type: "Activate"
+  };
 
-export const Create = ({type: 'WebView.Create'});
+export const Activated/*:type.Activated*/ =
+  { type: "Activated"
+  };
 
-export const open/*:type.open*/ = (id, options) => ({
-  id: id,
-  name: options.name,
-  features: options.name,
-  isSelected: !options.inBackground,
-  isActive: !options.inBackground,
-  shell: Shell.initial,
-  security: Security.initial,
-  navigation: Navigation.initiate(options.uri),
-  page: Page.initiate(options.uri),
-  tab: Tab.initial,
-  progress: null,
-  animation: null
-})
+export const Deactivate/*:type.Deactivate*/ =
+  { type: "Deactivate"
+  };
 
-const unselectTransitionDuration = 300;
-const selectTransitionDuration = 400;
+export const Deactivated/*:type.Deactivated*/ =
+  { type: "Deactivated"
+  };
 
-export const select/*:type.select*/ = model => {
-  if (model.isSelected) {
-    return [model, Effects.none];
-  }
-  else {
-    const [animation, fx]
-      = Animation.initialize(performance.now(), selectTransitionDuration);
+export const Close/*:type.Close*/ =
+  { type: "Close"
+  };
 
-    return [
-      merge(model, {isSelected: true, animation}),
-      fx
-    ]
-  }
-}
+export const Closed/*:type.Closed*/ =
+  { type: "Closed"
+  };
 
-export const unselect/*:type.unselect*/ = model => {
-  if (model.isSelected) {
-    const [animation, fx]
-      = Animation.initialize(performance.now(), unselectTransitionDuration);
+export const Edit/*:type.Edit*/ =
+  { type: "Edit"
+  };
 
-    return [
-      merge(model, {isSelected: false, animation}),
-      fx
-    ]
-  } else {
-    return [model, Effects.none];
-  }
-}
+export const ShowTabs/*:type.ShowTabs*/ =
+  { type: 'ShowTabs'
+  };
 
-export const activate/*:type.activate*/ = model =>
-  (model.isActive && model.isFocused) ?
-    model :
-    merge(model, {
-      isActive: true,
-      shell: Shell.focus(model.shell)
-    });
+export const Create/*:type.Create*/ =
+  { type: 'Create'
+  };
 
-export const deactivate/*:type.deactivate*/ = model =>
-  model.isActive ?
-    merge(model, {
-      isActive: false,
-      shell: Shell.blur(model.shell)
-    }) :
-    model;
+export const Focus/*:type.Focus*/ =
+  { type: 'Focus'
+  };
 
-export const asLoad = Navigation.asLoad;
-
-export const readTitle/*:type.readTitle*/ = (model, fallback) =>
-  (model.page && model.page.title && model.page.title !== '') ?
-    model.page.title :
-  model.navigation.currentURI.search(/^\s*$/) ?
-    URI.prettify(model.navigation.currentURI) :
-  fallback;
-
-export const readFaviconURI/*:type.readFaviconURI*/ = (model) =>
-  model.page && model.page.faviconURI ?
-    model.page.faviconURI :
-  // @TODO use a proper URL.join function. Need to add this to url-helper lib.
-  `${model.navigation.currentURI}/favicon.ico`;
-
-export const isDark/*:type.isDark*/ = (model) =>
-  model.page ? model.page.pallet.isDark : false;
-
-export const step/*:type.step*/ = (model, action) => {
-  if (action.type === "Point") {
-    return Tab.update(model, action);
-  }
-  // Shell actions
-  if (action.type === "WebView.Select") {
-    return select(model);
-  }
-  else if (action.type === "WebView.Activate") {
-    return [activate(model), Effects.none];
-  }
-  else if (action.type === "Focusable.FocusRequest") {
-    return [activate(model), Effects.none];
-  }
-  else if (action.type === "Focusable.Focus") {
-    return [activate(model), Effects.none];
-  }
-  else if (action.type === "Focusable.Blur") {
-    const [shell, fx] = Shell.step(model.shell, action);
-    return [merge(model, {shell}), fx];
-  }
-  // Progress actions
-  else if (action.type === 'WebView.Progress.Tick')
-  {
-    const [progress, fx] = Progress.step(model.progress, action);
-    return [merge(model, {progress}), fx];
-  }
-  else if (action.type === 'WebView.Progress.Start') {
-    const [progress, progressFx] = Progress.start(action.timeStamp);
-    const [page, pageFx] = Page.step(model.page, action);
-    const security = Security.initial;
-
-    return [
-      merge(model, {progress, page, security}),
-      Effects.batch([
-        progressFx,
-        pageFx
-      ])
-    ];
-
-  }
-  else if (action.type === 'WebView.Progress.End') {
-    const [progress, progressFx] = Progress.step(model.progress, action);
-    const [page, pageFx] = Page.step(model.page, action);
-
-    return [
-      merge(model, {progress, page}),
-      Effects.batch([
-        progressFx,
-        pageFx
-      ])
-    ];
-  }
-  // Note: WebView dispatches `WebView.LocationChanged` action but `Navigation`
-  // needs to know the id of the web-view to schedule effects. There for
-  // in here we create `WebView.Navigation.LocationChanged` action (name diff is
-  // subtle & would be nice to improve) that also contains id of the web-view.
-  else if (action.type === 'WebView.LocationChanged') {
-    const request = Navigation.asLocationChanged(model.id,
-                                                  action.uri,
-                                                  action.timeStamp);
-    const [navigation, navigationFx] = Navigation.step(model.navigation,
-                                                        request);
-    const [page, pageFx] = Page.step(model.page, action);
-    return [
-      merge(model, {navigation, page}),
-      Effects.batch([navigationFx, pageFx])
-    ];
-  }
-  else if (action.type === 'WebView.Navigation.Request') {
-    const request = Navigation.asRequestBy(model.id, action.action);
-    const [navigation, fx] = Navigation.step(model.navigation, request);
-    return [merge(model, {navigation}), fx];
-  }
-  else if (action.type === 'WebView.Navigation.Load' ||
-           action.type === 'WebView.Navigation.CanGoBackChanged' ||
-           action.type === 'WebView.Navigation.CanGoForwardChanged')
-  {
-    const [navigation, fx] = Navigation.step(model.navigation, action);
-    return [merge(model, {navigation}), fx];
-  }
-  else if (action.type === 'WebView.Security.Changed') {
-    const [security, fx] = Security.step(model.security, action);
-    return [merge(model, {security}), fx];
-  }
-  // Page actions
- else if (action.type === 'WebView.Page.ScreenshotUpdate'
-        || action.type === 'WebView.Page.CuratedColorUpdate'
-        || action.type === 'WebView.Page.ColorScraped'
-        || action.type === 'WebView.Page.DocumentFirstPaint'
-        || action.type === 'WebView.Page.FirstPaint'
-        || action.type === 'WebView.Page.DocumentFakePaint'
-        || action.type === 'WebView.Page.MetaChanged'
-        || action.type === 'WebView.Page.TitleChanged'
-        || action.type === 'WebView.Page.IconChanged'
-        || action.type === 'WebView.Page.OverflowChanged'
-        || action.type === 'WebView.Page.Scrolled')
-  {
-    const [page, fx] = Page.step(model.page, action);
-    return [merge(model, {page}), fx];
-  }
-  else if (action.type === "WebView.Shell.Request") {
-    const request = Shell.asRequestBy(model.id, action.action);
-    const [shell, fx] = Shell.step(model.shell, request);
-    return [merge(model, {shell}), fx];
-  }
-  else if (action.type === "WebView.Shell.ZoomChanged" ||
-           action.type === "WebView.Shell.VisibilityChanged") {
-    const [shell, fx] = Shell.step(model.shell, action);
-    return [merge(model, {shell}), fx];
-  }
-  else if (action.type === "Animation.Tick") {
-    // @TODO: Find out how do we end up in case where we have removed
-    // unimation but still get a tick.
-    if (model.animation) {
-      const [animation, fx] = Animation.step(model.animation, action);
-      return [merge(model, {animation}), fx];
-    } {
-      return [model, Effects.none];
+export const Load/*:type.Load*/ = uri =>
+  ( { type: 'Load'
+    , uri
     }
-  }
-  else if (action.type === "Animation.End") {
-    return [merge(model, {animation: null}), Effects.none]
-  }
-  else {
-    return [model, Effects.none];
-  }
+  );
+
+export const OpenSyncWithMyIFrame/*:type.OpenSyncWithMyIFrame*/ =
+  ({frameElement, uri, name, features}) => {
+    Driver.element.use(frameElement);
+    return {
+      type: "Open!WithMyIFrameAndInTheCurrentTick"
+    , isFoced: true
+    , options: {uri, name, features, inBackground: false}
+    };
+  };
+
+export const ModalPrompt/*:type.ModalPrompt*/ = detail =>
+  ({type: "ModalPrompt", detail});
+
+export const Authentificate/*:type.Authentificate*/ = detail =>
+  ({type: "Authentificate", detail});
+
+export const ReportError/*:type.ReportError*/ = detail =>
+  ({type: "Error", detail});
+
+export const LoadStart/*:type.LoadStart*/ = time =>
+  ({type: 'LoadStart', time});
+
+export const LoadEnd/*:type.LoadEnd*/ = time =>
+  ({type: 'LoadEnd', time});
+
+export const LocationChanged/*:type.LocationChanged*/ = (uri, time) =>
+  ({type: 'LocationChanged', uri, time});
+
+export const ContextMenu/*:type.ContextMenu*/ = detail =>
+  ({type: "ContextMenu", detail});
+
+const ShellAction = action =>
+  ({type: 'Shell', action});
+
+const FocusShell = ShellAction(Shell.Focus);
+const BlurShell = ShellAction(Shell.Blur);
+
+export const ZoomIn/*:type.ZoomIn*/ = ShellAction(Shell.ZoomIn);
+export const ZoomOut/*:type.ZoomOut*/ = ShellAction(Shell.ZoomOut);
+export const ResetZoom/*:type.ResetZoom*/ = ShellAction(Shell.ResetZoom);
+export const MakeVisibile/*:type.MakeVisibile*/ =
+  ShellAction(Shell.MakeVisibile);
+export const MakeNotVisible/*:type.MakeNotVisible*/ =
+  ShellAction(Shell.MakeNotVisible);
+
+const NavigationAction = action =>
+  ( {type: 'Navigation'
+    , action
+  });
+
+export const Stop/*:type.Stop*/ =
+  NavigationAction(Navigation.Stop);
+export const Reload/*:type.Reload*/ =
+  NavigationAction(Navigation.Reload);
+export const GoBack/*:type.GoBack*/ =
+  NavigationAction(Navigation.GoBack);
+export const GoForward/*:type.GoForward*/ =
+  NavigationAction(Navigation.GoForward);
+
+const SecurityAction = action =>
+  ({type: 'Security', action});
+
+const SecurityChanged =
+  compose
+  ( SecurityAction
+  , Security.Changed
+  );
+
+
+const PageAction = action =>
+  ({type: "Page", action});
+
+const FirstPaint = PageAction(Page.FirstPaint);
+const DocumentFirstPaint = PageAction(Page.DocumentFirstPaint);
+const TitleChanged =
+  compose
+  ( PageAction
+  , Page.TitleChanged
+  );
+const IconChanged =
+  compose
+  ( PageAction
+  , Page.IconChanged
+  );
+const MetaChanged =
+  compose
+  ( PageAction
+  , Page.MetaChanged
+  );
+const Scrolled =
+  compose
+  ( PageAction
+  , Page.Scrolled
+  );
+const OverflowChanged =
+  compose
+  ( PageAction
+  , Page.OverflowChanged
+  );
+
+const TabAction = action =>
+  ( action.type === "Close"
+  ? Close
+  : action.type === "Select"
+  ? Select
+  : action.type === "Activate"
+  ? Activate
+  : { type: "Tab"
+    , source: action
+    }
+  );
+
+const ProgressAction/*type.ProgressAction*/ = action =>
+  ({type: "Progress", action});
+
+const AnimationAction =
+  End =>
+  action =>
+  ( action.type === "End"
+  ? End
+  : { type: "Animation", action }
+  );
+
+const SelectAnimationAction = action =>
+  ( action.type === "End"
+  ? Selected
+  : { type: "SelectAnimation"
+    , action
+    }
+  );
+
+const UnselectAnimationAction = action =>
+  ( action.type === "End"
+  ? Unselected
+  : { type: "UnselectAnimation"
+    , action
+    }
+  );
+
+
+
+
+
+const updateProgress = cursor
+  ( { get: model => model.progress
+    , set: (model, progress) => merge(model, {progress})
+    , tag: ProgressAction
+    , update: (model, action) =>
+        Progress.update
+        ( model
+        , ( action.type === "LoadStart"
+          ? Progress.Start(action.time)
+          : action.type === "LoadEnd"
+          ? Progress.End(action.time)
+          : action
+          )
+        )
+    }
+  );
+
+
+const updatePage = cursor
+  ( { get: model => model.page
+    , set: (model, page) => merge(model, {page})
+    , tag: PageAction
+    , update: (model, action) =>
+        Page.update
+        ( model
+        , ( action.type === "LoadStart"
+          ? Page.LoadStart
+          : action.type === "LoadEnd"
+          ? Page.LoadEnd
+          : action
+          )
+        )
+    }
+  );
+
+const updateTab = cursor
+  ( { get: model => model.tab
+    , set: (model, tab) => merge(model, {tab})
+    , tag: TabAction
+    , update: Tab.update
+    }
+  );
+
+const updateShell = cursor
+  ( { get: model => model.shell
+    , set: (model, shell) => merge(model, {shell})
+    , tag: ShellAction
+    , update: Shell.update
+    }
+  );
+
+const updateSecurity = cursor
+  ( { get: model => model.security
+    , set: (model, security) => merge(model, {security})
+    , tag: SecurityAction
+    , update: Security.update
+    })
+
+const updateNavigation = cursor
+  ( { get: model => model.navigation
+    , set: (model, navigation) => merge(model, {navigation})
+    , tag: NavigationAction
+    , update: Navigation.update
+    }
+  );
+
+const updateStopwatch = cursor
+  ( { get: model => model.animation
+    , set: (model, animation) => merge(model, {animation})
+    , tag: AnimationAction
+    , update: Stopwatch.update
+    }
+  );
+
+const updateAnimation = tag => (model, action) => {
+  const [animation, fx] = Stopwatch.update(model.animation, action);
+  const [begin, end, duration] =
+    ( model.isSelected
+    ? [0, 1, 400]
+    : [1, 0, 300]
+    );
+
+  return (duration > animation.elapsed
+  ? [ merge
+      ( model
+      , { animation
+        , display:
+          { opacity:
+            Easing.ease
+            ( Easing.easeOutCubic
+            , Easing.float
+            , begin
+            , end
+            , duration
+            , animation.elapsed
+            )
+          }
+        }
+      )
+    , fx.map(tag)
+    ]
+  : [ merge(model, {animation: null, display: {opacity: end} })
+    , Effects
+      .receive(Stopwatch.End)
+      .map(tag)
+    ]
+  )
+};
+
+const updateSelectAnimation = updateAnimation(SelectAnimationAction);
+const updateUnselectAnimation = updateAnimation(UnselectAnimationAction);
+
+export const init/*:type.init*/ = (id, options) => {
+  const [shell, shellFx] = Shell.init(id, !options.inBackground);
+  const [navigation, navigationFx] = Navigation.init(id, options.uri);
+  const [page, pageFx] = Page.init(options.uri);
+  const [security, securityFx] = Security.init();
+  const [progress, progressFx] = Progress.init();
+  const [animation, animationFx] = Stopwatch.init();
+  const [tab, tabFx] = Tab.init();
+
+  return [
+    { id
+    , name: options.name
+    , features: options.name
+    , isSelected: false
+    , isActive: false
+    , display:
+      { opacity:
+          ( options.inBackground
+          ? 0
+          : 1
+          )
+      }
+    , shell
+    , security
+    , navigation
+    , page
+    , tab
+    , progress
+    , animation
+    }
+  , Effects.batch
+    ( [ shellFx.map(ShellAction)
+      , pageFx.map(PageAction)
+      , tabFx.map(TabAction)
+      , securityFx.map(SecurityAction)
+      , navigationFx.map(NavigationAction)
+      , progressFx.map(ProgressAction)
+      , animationFx.map(AnimationAction)
+      , ( options.inBackground
+        ? Effects.none
+        : Effects.receive(Activate)
+        )
+      ]
+    )
+  ]
+};
+
+const startSelectAnimation = model => {
+  const [animation, fx] = Stopwatch.update(model.animation, Stopwatch.Start);
+  return (
+    [ merge(model, {animation})
+    , fx.map(SelectAnimationAction)
+    ]
+  );
 }
+
+const startUnselectAnimation = model => {
+  const [animation, fx] = Stopwatch.update(model.animation, Stopwatch.Start)
+  return (
+    [ merge(model, {animation})
+    , fx.map(UnselectAnimationAction)
+    ]
+  );
+}
+
+const select = model =>
+  ( model.isSelected
+  ? [ model, Effects.none ]
+  : startSelectAnimation(merge(model, {isSelected: true}))
+  );
+
+const selected = model =>
+  [ model
+  , Effects.receive(Selected)
+  ];
+
+const unselect = model =>
+  ( model.isSelected
+  ? startUnselectAnimation(merge(model, {isSelected: false}))
+  : [ model, Effects.none ]
+  );
+
+const unselected = model =>
+  [ model
+  , Effects.receive(Unselected)
+  ];
+
+const activate = model =>
+  ( model.isActive
+  ? [ model, Effects.none ]
+  : [ merge(model, {isActive: true, isSelected: true})
+    , Effects.receive(Activated)
+    ]
+  );
+
+const activated = model =>
+  updateShell(model, Shell.Focus);
+
+const deactivate = model =>
+  ( model.isActive
+  ? [ merge(model, {isActive: false})
+    , Effects.receive(Deactivated)
+    ]
+  : [ model, Effects.none ]
+  );
+
+const deactivated = model =>
+  [ model, Effects.none ];
+
+const focus = model =>
+  ( model.isActive
+  ? updateShell(model, Shell.Focus)
+  : activate(model)
+  );
+
+const load = (model, uri) =>
+  updateNavigation(model, Navigation.Load(uri));
+
+
+const startLoad = (model, time) =>
+  batch
+  ( update
+  , model
+  , [ ProgressAction(Progress.Start(time))
+    , PageAction(Page.LoadStart)
+    , SecurityAction(Security.LoadStart)
+    ]
+  );
+
+const endLoad = (model, time) =>
+  batch
+  ( update
+  , model
+  , [ ProgressAction(Progress.End(time))
+    , PageAction(Page.LoadEnd)
+    ]
+  );
+
+const changeLocation = (model, uri) =>
+  batch
+  ( update
+  , model
+  , [ NavigationAction(Navigation.LocationChanged(uri))
+    , PageAction(Page.LocationChanged(uri))
+    ]
+  );
+
+const close = model =>
+  [ model, Effects.receive(Closed) ];
+
+export const update/*:type.update*/ = (model, action) =>
+  ( action.type === "Select"
+  ? select(model)
+  : action.type === "Selected"
+  ? [ model, Effects.none ]
+
+  : action.type === "Unselect"
+  ? unselect(model)
+  : action.type === "Unselected"
+  ? [ model, Effects.none ]
+
+  : action.type === "Activate"
+  ? activate(model)
+  : action.type === "Activated"
+  ? activated(model)
+  : action.type === "Deactivate"
+  ? deactivate(model)
+  : action.type === "Deactivated"
+  ? deactivated(model)
+  : action.type === "Focus"
+  ? focus(model)
+
+  : action.type === 'Load'
+  ? load(model, action.uri)
+
+  // Dispatch
+
+  : action.type === "LoadStart"
+  ? startLoad(model, action.time)
+
+  : action.type === "LoadEnd"
+  ? endLoad(model, action.time)
+
+  : action.type === "LocationChanged"
+  ? changeLocation(model, action.uri)
+
+  : action.type === "Close"
+  ? close(model)
+
+  // Shell Requests
+  : action.type === "ZoomIn"
+  ? updateShell(model, Shell.ZoomIn(model.id))
+  : action.type === "ZoomOut"
+  ? updateShell(model, Shell.ZoomOut(model.id))
+  : action.type === "ResetZoom"
+  ? updateShell(model, Shell.ResetZoom(model.id))
+
+  // Animation
+  : action.type === "SelectAnimation"
+  ? updateSelectAnimation(model, action.action)
+  : action.type === "UnselectAnimation"
+  ? updateUnselectAnimation(model, action.action)
+
+  // Delegate
+
+  : action.type === "Progress"
+  ? updateProgress(model, action.action)
+  : action.type === "Shell"
+  ? updateShell(model, action.action)
+  : action.type === "Page"
+  ? updatePage(model, action.action)
+  : action.type === "Tab"
+  ? updateTab(model, action.source)
+  : action.type === "Security"
+  ? updateSecurity(model, action.action)
+  : action.type === "Navigation"
+  ? updateNavigation(model, action.action)
+
+  : Unknown.update(model, action)
+  );
 
 const topBarHeight = '27px';
 const comboboxHeight = '21px';
 const comboboxWidth = '250px';
 
-const transition = {
-  select(animation) {
-    return animation == null
-      ? null
-      : {opacity: ease(easeOutCubic,
-                        float,
-                        0,
-                        1,
-                        Animation.duration(animation),
-                        Animation.progress(animation))};
-  },
-  unselect(animation) {
-    return animation == null
-      ? style.webViewInactive
-      : {opacity: ease(easeOutCubic,
-                        float,
-                        1,
-                        0,
-                        Animation.duration(animation),
-                        Animation.progress(animation))};
-  }
-}
-
-const style = StyleSheet.create({
+const styleSheet = StyleSheet.create({
   webview: {
     position: 'absolute', // to stack webview on top of each other
     top: 0,
@@ -298,7 +583,15 @@ const style = StyleSheet.create({
     zIndex: 2
   },
 
-  webViewInactive: {
+  webviewActive: {
+
+  },
+
+  webviewSelected: {
+
+  },
+
+  webviewInactive: {
     pointerEvents: 'none',
     visibility: 'hidden',
     opacity: 0,
@@ -397,6 +690,8 @@ const style = StyleSheet.create({
     backgroundPosition: '0 -50px'
   },
 
+  iconShowTabsBright: null,
+
   iconCreateTab: {
     MozWindowDragging: 'no-drag',
     color: 'rgba(0,0,0,0.8)',
@@ -413,7 +708,8 @@ const style = StyleSheet.create({
 
   iconCreateTabDark: {
     color: 'rgba(255,255,255,0.8)',
-  }
+  },
+  iconCreateTabBright: null
 });
 
 const viewFrame = (model, address) =>
@@ -424,7 +720,7 @@ const viewFrame = (model, address) =>
     'data-name': model.name,
     'data-features': model.features,
     element: Driver.element,
-    style: Style(style.iframe),
+    style: styleSheet.iframe,
     attributes: {
       mozbrowser: true,
       remote: true,
@@ -440,10 +736,10 @@ const viewFrame = (model, address) =>
 
     // Events
 
-    onBlur: on(address, decodeBlur),
-    onFocus: on(address, decodeFocus),
+    onBlur: on(address, always(BlurShell)),
+    onFocus: on(address, always(FocusShell)),
     // onMozbrowserAsyncScroll: on(address, decodeAsyncScroll),
-    onMozBrowserClose: on(address, decodeClose),
+    onMozBrowserClose: on(address, always(Close)),
     onMozBrowserOpenWindow: on(address, decodeOpenWindow),
     onMozBrowserOpenTab: on(address, decodeOpenTab),
     onMozBrowserContextMenu: on(address, decodeContexMenu),
@@ -459,131 +755,142 @@ const viewFrame = (model, address) =>
     onMozBrowserLocationChange: on(address, decodeLocationChange),
     onMozBrowserSecurityChange: on(address, decodeSecurityChange),
     onMozBrowserTitleChange: on(address, decodeTitleChange),
-    onMozBrowserShowModalPrompt: on(address, decodeShowModalPrompt),
+    onMozBrowserShowModalPrompt: on(address, decodeModalPrompt),
     onMozBrowserUserNameAndPasswordRequired: on(address, decodeAuthenticate),
     onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
   });
 
 export const view/*:type.view*/ = (model, address) => {
   const isModelDark = isDark(model);
-  return html.div({
-    className: isModelDark ? 'webview webview-is-dark' : 'webview',
-    style: Style(
-      style.webview,
-      model.isSelected
-        ? transition.select(model.animation)
-        : transition.unselect(model.animation)
-    )
-  }, [
-    viewFrame(model, address),
-    html.div({
-      className: 'webview-topbar',
-      style: Style(
-        style.topbar,
-        model.page.pallet.background && {backgroundColor: model.page.pallet.background}
+  return html.div
+  ( { className:
+      ( isModelDark
+      ? `webview webview-is-dark web-view-${model.id}`
+      : `webview web-view-${model.id}`
       )
-    }, [
-      html.div({
-        className: 'webview-combobox',
-        style: Style(
-          style.combobox,
-          isModelDark ? style.darkText : style.lightText
-        ),
-        onClick: on(address, always(Edit))
-      }, [
-        html.span({
-          className: 'webview-search-icon',
-          style: style.iconSearch
-        }, ['']),
-        html.div({
-          className: 'webview-title-container',
-          style: style.titleContainer
-        }, [
-          html.span({
-            className: 'webview-security-icon',
-            style: model.security.secure ?
-              style.iconSecure : style.iconInsecure
-          }, ['']),
-          html.span({
-            className: 'webview-title'
-          }, [
-            // @TODO localize this string
-            readTitle(model, 'Untitled')
-          ])
-        ])
-      ]),
-      html.div({
-        className: 'webview-show-tabs-icon',
-        style: Style(
-          style.iconShowTabs,
-          isModelDark && style.iconShowTabsDark
-        ),
-        onClick: on(address, always(RequestShowTabs))
-      })
-    ]),
-    Progress.view(model.progress, address),
-    html.div({
-      className: 'global-create-tab-icon',
-      style: Style(
-        style.iconCreateTab,
-        isModelDark && style.iconCreateTabDark
-      ),
-      onClick: () => address(Create)
-    }, [''])
-  ]);
+    , style: Style
+      ( styleSheet.webview
+      , ( model.isActive
+        ? styleSheet.webviewActive
+        : model.isSelected
+        ? styleSheet.webviewSelected
+        : styleSheet.webviewInactive
+        )
+      , model.display
+      )
+    }
+  , [ viewFrame(model, address)
+    , html.div
+      ( { className: 'webview-topbar'
+        , style: Style
+          ( styleSheet.topbar
+          , ( model.page.pallet.background != null
+            ? { backgroundColor: model.page.pallet.background }
+            : null
+            )
+          )
+        }
+      , [ html.div
+          ( { className: 'webview-combobox'
+            , style: Style
+              ( styleSheet.combobox
+              , ( isModelDark
+                ? styleSheet.darkText
+                : styleSheet.lightText
+                )
+              )
+            , onClick: forward(address, always(Edit))
+            }
+          , [ html.span
+              ( { className: 'webview-search-icon'
+                , style: styleSheet.iconSearch
+                }
+              , ['']
+              )
+            , html.div
+              ( { className: 'webview-title-container'
+                , style: styleSheet.titleContainer
+                }
+              , [ html.span
+                  ( { className: 'webview-security-icon'
+                    , style:
+                      ( model.security.secure
+                      ? styleSheet.iconSecure
+                      : styleSheet.iconInsecure
+                      )
+                    }
+                  , ['']
+                  )
+                , html.span
+                  ( { className: 'webview-title' }
+                  // @TODO localize this string
+                  , [ readTitle(model, 'Untitled') ]
+                  )
+                ]
+              )
+            ]
+          )
+        , html.div
+          ( { className: 'webview-show-tabs-icon'
+            , style:
+                Style
+                ( styleSheet.iconShowTabs
+                , ( isModelDark
+                  ? styleSheet.iconShowTabsDark
+                  : styleSheet.iconShowTabsBright
+                  )
+                )
+            , onClick: forward(address, always(ShowTabs))
+            }
+          )
+        ]
+      )
+    , Progress.view(model.progress, address)
+    , html.div
+      ( { className: 'global-create-tab-icon'
+        , style:
+            Style
+            ( styleSheet.iconCreateTab
+            , ( isModelDark
+              ? styleSheet.iconCreateTabDark
+              : styleSheet.iconCreateTabBright
+              )
+            )
+        , onClick: forward(address, always(Create))
+        }
+      , ['']
+      )
+    ]
+  );
 };
 
 
 const decodeClose = always(Close);
 
+// TODO: Figure out what's in detail
+const decodeDetail = ({detail}) => detail;
+const decodeTime = ({detail}) => performance.now();
 
-const decodeOpenWindow = ({detail}) => {
-  Driver.element.use(detail.frameElement);
-  return {
-    type: "WebViews.Open!WithMyIFrameAndInTheCurrentTick",
-    inBackground: false,
-    uri: detail.uri,
-    name: detail.name,
-    features: detail.features
-  };
-};
 
-const decodeOpenTab = ({detail}) => {
-  Driver.element.use(detail.frameElement);
-  return {
-    type: "WebViews.Open!WithMyIFrameAndInTheCurrentTick",
-    inBackground: true,
-    uri: detail.uri,
-    name: detail.name,
-    features: detail.features
-  };
-};
+const decodeOpenWindow = compose(OpenSyncWithMyIFrame, decodeDetail);
+const decodeOpenTab = compose(OpenSyncWithMyIFrame, decodeDetail);
+
+
+const decodeContexMenu = compose(ContextMenu, decodeDetail);
 
 // TODO: Figure out what's in detail
-const decodeContexMenu = ({detail}) =>
-  ({type: "WebView.ContextMenu", detail});
+const decodeModalPrompt = compose(ModalPrompt, decodeDetail);
 
 // TODO: Figure out what's in detail
-const decodeShowModalPrompt = ({detail}) =>
-  ({type: "WebView.ModalPrompt", detail});
+const decodeAuthenticate = compose(Authentificate, decodeDetail);
 
 // TODO: Figure out what's in detail
-const decodeAuthenticate = ({detail}) =>
-  ({type: "WebView.Authentificate", detail});
-
-// TODO: Figure out what's in detail
-const decodeError = ({detail}) =>
-  ({type: "WebView.Failure", detail});
-
-// Shell
-
-const decodeFocus = always(Shell.Focus);
-const decodeBlur = always(Shell.Blur);
+const decodeError = compose(ReportError, decodeDetail);
 
 // Navigation
 
-const decodeLocationChange = ({detail: uri, timeStamp}) =>
-  ({type: "WebView.LocationChanged", uri, timeStamp: performance.now()});
+const decodeLocationChange = ({detail: uri}) =>
+  LocationChanged(uri, performance.now());
 
 // Progress
 
@@ -591,35 +898,27 @@ const decodeLocationChange = ({detail: uri, timeStamp}) =>
 // the same format as `performance.now()` so that time passed through animation
 // frames is in the same format, but for now we just call `performance.now()`.
 
-const decodeLoadStart = ({timeStamp}) =>
-  Progress.asStart(performance.now());
+const decodeLoadStart = compose(LoadStart, decodeTime);
 
-const decodeProgressChange = ({timeStamp}) =>
-  Progress.asChange(performance.now());
+const decodeProgressChange = compose(Progress.Change, decodeTime);
 
-const decodeLoadEnd = ({timeStamp}) =>
-  Progress.asEnd(performance.now());
+const decodeLoadEnd = compose(LoadEnd, decodeTime);
 
 // Page
 
-const decodeFirstPaint = always(Page.FirstPaint);
-const decodeDocumentFirstPaint = always(Page.DocumentFirstPaint);
+const decodeFirstPaint = always(FirstPaint);
+const decodeDocumentFirstPaint = always(DocumentFirstPaint);
+const decodeTitleChange = compose(TitleChanged, decodeDetail);
+const decodeIconChange = compose(IconChanged, decodeDetail);
 
-const decodeTitleChange = ({detail: title}) =>
-  Page.asTitleChanged(title);
-
-const decodeIconChange = ({target, detail: icon}) =>
-  Page.asIconChanged(icon);
-
-const decodeMetaChange = ({detail: {content, name}}) =>
-  Page.asMetaChanged(name, content);
+const decodeMetaChange = ({detail: {name, content}}) =>
+  MetaChanged(name, content);
 
 // TODO: Figure out what's in detail
 const decodeAsyncScroll = ({detail}) =>
-  Page.asScrolled(detail);
+  Scrolled(detail);
 
 const decodeScrollAreaChange = ({detail, target}) =>
-  Page.asOverflowChanged(detail.height > target.parentNode.clientHeight);
+  OverflowChanged(detail.height > target.parentNode.clientHeight);
 
-const decodeSecurityChange = ({detail}) =>
-  Security.asChanged(detail.state, detail.extendedValidation);
+const decodeSecurityChange = compose(SecurityChanged, decodeDetail);

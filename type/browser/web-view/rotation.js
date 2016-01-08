@@ -64,7 +64,7 @@ export type release = (model:Model, action:StopForce) => Model
 
 export type animate = (model:Model, action:Animate) => [Model, Effects<Response>]
 
-export type step = (model:Model, action:Action) => [Model, Effects<Response>]
+export type update = (model:Model, action:Action) => [Model, Effects<Response>]
 
 // Takes model, target view to be rotated and returns a view that wraps target
 // into a div which that reports actions to the address and updates model on

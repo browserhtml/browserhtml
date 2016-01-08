@@ -9,13 +9,14 @@ import {Task, Effects} from "reflex";
 import {merge, always} from "../common/prelude";
 
 export const End/*:type.End*/ = {
-  type: "Animation.End"
+  type: "End"
 }
 
-export const asTick/*:type.asTick*/ = time => ({
-  type: "Animation.Tick",
-  time
-});
+export const Tick/*:type.Tick*/ = time =>
+  ( { type: "Tick"
+    , time
+    }
+  );
 
 
 const endfx = Effects.task(Task.future(always(Promise.resolve(End))));
@@ -23,19 +24,19 @@ const endfx = Effects.task(Task.future(always(Promise.resolve(End))));
 export const create/*:type.create*/ = (time, duration) =>
   ({start: time, now: time, end: time + duration});
 
-export const initialize/*:type.initialize*/ = (time, duration) =>
+export const init/*:type.init*/ = (time, duration) =>
   [
     create(time, duration),
-    Effects.tick(asTick)
+    Effects.tick(Tick)
   ];
 
 
-export const step/*:type.step*/ = (model, tick) => {
-  if (tick.type === "Animation.Tick") {
+export const update/*:type.update*/ = (model, tick) => {
+  if (tick.type === "Tick") {
     return [
       merge(model, {now: tick.time}),
       model.end > tick.time ?
-        Effects.tick(asTick) :
+        Effects.tick(Tick) :
         endfx
     ]
   } else {
@@ -44,7 +45,7 @@ export const step/*:type.step*/ = (model, tick) => {
   }
 };
 
-export const progress/*type.progress*/ = (model) =>
+export const progress/*:type.progress*/ = (model) =>
   model.now - model.start;
 
 export const duration/*:type.duration*/ = (model) =>

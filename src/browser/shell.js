@@ -1,62 +1,98 @@
 /* @flow */
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+import {Effects, Task, forward} from "reflex";
+import {merge, always} from "../common/prelude";
+import {cursor} from "../common/cursor";
 import * as Focusable from "../common/focusable";
 import * as Target from "../common/target";
 import * as Runtime from "../common/runtime";
-import {Effects} from "reflex";
-import {merge, always} from "../common/prelude";
+import * as Controls from "./shell/controls";
+import * as Unknown from "../common/unknown";
 
 /*:: import * as type from "../../type/browser/shell" */
 
-export const initial/*:type.Model*/ = {
-  isFocused: false,
-  isPointerOver: false,
-  isMinimized: false,
-  isMaximized: false
+// @TODO: IO stuff should probably live elsewhere.
+const fetchFocus = Task.io(deliver => {
+  const action
+    // @FlowIssue: Flow does not know about `document.hasFocus()`
+    = document.hasFocus()
+    ? Focus
+    : Blur;
+  return Task.succeed(action);
+});
+
+
+export const init/*:type.init*/ = () => {
+  const [controls, fx] = Controls.init(false, false, false);
+  return [
+    ( { isFocused: false
+      , isMinimized: false
+      , isMaximized: false
+      , controls: controls
+      }
+    )
+  , Effects.batch(
+    [ fx,
+      // Check if window is actually focused
+      Effects.task(fetchFocus)
+    ])
+  ]
 }
 
-export const RequestClose/*:type.RequestClose*/
-  =  {type: "Shell.RequestClose"};
+export const Focus/*:type.Focus*/ = {type: "Focus"};
+export const Blur/*:type.Blur*/ = {type: "Blur"};
+export const Close/*:type.Close*/ = {type: "Close"};
+export const Minimize/*:type.Minimize*/ = {type: "Minimize"};
+export const ToggleFullscreen/*:type.ToggleFullscreen*/ =
+  {type: "ToggleFullscreen"};
 
-export const RequestMinimize/*:type.RequestMinimize*/
-  = {type: "Shell.RequestMinimize"};
-
-export const RequestFullScreenToggle/*:type.RequestMaximize*/
-  = {type: "Shell.RequestFullScreenToggle"};
-
-
-export const asRequestClose/*:type.asRequestClose*/
-  = always(RequestClose);
-export const asRequestMinimize/*:type.asRequestMinimize*/
-  = always(RequestMinimize);
-export const asRequestFullScreenToggle/*:type.asRequestMaximize*/
-  = always(RequestFullScreenToggle);
+export const Closed/*:type.Closed*/ = {type: "Closed"};
+export const Minimized/*:type.Minimized*/ = Runtime.Minimized;
+export const FullscreenToggled/*:type.FullscreenToggled*/ = Runtime.FullscreenToggled;
 
 
-export const step/*:type.step*/ = (model, action) =>
-  action.type === "Focusable.FocusRequest" ?
-    [Focusable.update(model, action), Effects.none] :
-  action.type === "Focusable.Focus" ?
-    [
-      merge(Focusable.update(model, action), {
-        isMinimized: false
-      }),
-      Effects.none
-    ] :
-  action.type === "Focusable.Blur" ?
-    [Focusable.update(model, action), Effects.none] :
-  action.type === "Target.Over" ?
-    [Target.update(model, action), Effects.none] :
-  action.type === "Target.Out" ?
-    [Target.update(model, action), Effects.none] :
-  action.type === "Runtime.Minimized" ?
-    [merge(model, {isMinimized: true}), Effects.none] :
-  action.type === "Runtime.FullScreenToggled" ?
-    [merge(model, {isMaximized: !model.isMaximized}), Effects.none] :
-  action.type === "Shell.RequestClose" ?
-    [model, Runtime.shutdown()] :
-  action.type === "Shell.RequestMinimize" ?
-    [model, Runtime.minimize()] :
-  action.type === "Shell.RequestFullScreenToggle" ?
-    [model, Runtime.toggleFullScreen()] :
-    [model, Effects.none];
+const ControlsAction = action =>
+    action.type === 'CloseWindow'
+  ? Close
+  : action.type === 'MinimizeWindow'
+  ? Minimize
+  : action.type === 'ToggleWindowFullscreen'
+  ? ToggleFullscreen
+  : {type: "Controls", action};
+
+const updateControls = cursor({
+  get: model => model.controls,
+  set: (model, controls) => merge(model, {controls}),
+  update: Controls.update,
+  tag: ControlsAction
+});
+
+
+export const update/*:type.update*/ = (model, action) =>
+    action.type === "Focus"
+  ? updateControls
+    ( merge(model, {isFocused: true, isMinimized: false})
+    , Controls.Enable
+    )
+  : action.type === "Blur"
+  ? updateControls(merge(model, {isFocused: false}), Controls.Disable)
+  : action.type === "Minimized"
+  ? [merge(model, {isMinimized: true}), Effects.none]
+  : action.type === "FullscreenToggled"
+  ? [merge(model, {isMaximized: !model.isMaximized}), Effects.none]
+  : action.type === "Close"
+  ? [model, Effects.task(Runtime.quit).map(always(Closed))]
+  : action.type === "Minimize"
+  ? [model, Effects.task(Runtime.minimize)]
+  : action.type === "ToggleFullscreen"
+  ? [model, Effects.task(Runtime.toggleFullscreen)]
+  : action.type === "Controls"
+  ? updateControls(model, action.action)
+  : Unknown.update(model, action);
+
+export const view/*:type.view*/ = (model, address) =>
+  Controls.view(model.controls, forward(address, ControlsAction));

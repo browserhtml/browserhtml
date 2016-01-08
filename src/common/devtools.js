@@ -1,21 +1,20 @@
+/* @flow */
+
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* @flow */
 
 /*:: import * as type from '../../type/common/devtools' */
 
 import * as Settings from '../common/settings';
 import * as Runtime from '../common/runtime';
-import {merge} from '../common/prelude';
-import {Effects, html, thunk} from 'reflex';
+import * as Unknown from '../common/unknown';
+import {merge, always} from '../common/prelude';
+import {cursor} from '../common/cursor';
+import {Effects, html, thunk, forward} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
 
-export const initial/*:type.Model*/ = {
-  isActive: false,
-  settings: null
-};
 
 const descriptions = {
   'debugger.remote-mode': 'Enable Remote DevTools',
@@ -47,88 +46,68 @@ const readValue = (key, value) =>
     )
   : value
 
-const settings = Object.keys(descriptions);
-
 export const Toggle =
-  {type: "Devtools.Toggle"};
+  {type: "Toggle"};
 
-export const RequestRestart =
-  {type: "Devtools.RequestRestart"};
+export const Restart =
+  {type: "Restart"};
 
-export const RequestCleanRestart =
-  {type: "Devtools.RequestCleanRestart"};
+export const CleanRestart =
+  {type: "CleanRestart"};
 
-export const RequestCleanReload =
-  {type: "Devtools.RequestCleanReload"};
+export const CleanReload =
+  {type: "CleanReload"};
 
-export const asRequestSettingUpdate = (name, value) =>
-  ({type: "Devtools.RequestSettingUpdate", name, value});
+const Change = (name, value) =>
+  ({type: "Change", name, value});
 
-export const initialize/*:type.initialize*/ = () =>
-  [
-    initial,
-    Effects.batch([
-      Settings.fetch(settings),
-      ...settings.map(Settings.observe)
-    ])
+export const init/*:type.init*/ = () => {
+  const [settings, fx] = Settings.init(Object.keys(descriptions));
+  return [
+    {isActive: false, settings}
+  , fx.map(SettingsAction)
   ];
-
-const updateSetting = (model, name, value) =>
-  settings.indexOf(name) < 0 ?
-    model :
-  model.settings == null ?
-    model :
-    merge(model, {
-      settings: merge(model.settings, {
-        [name]: value
-      })
-    });
-
-export const step/*:type.step*/ = (model, action) =>
-  action.type === 'Devtools.Toggle' ?
-    [merge(model, {isActive: !model.isActive}), Effects.none] :
-  action.type === 'Settings.NotSupported' ?
-    // TODO: Report error
-    [model, Effects.none] :
-  action.type === 'Settings.Changed' ?
-    [
-      updateSetting(model, action.name, action.value),
-      Settings.observe(action.name)
-    ] :
-  action.type === 'Settings.Fetched' ?
-    [
-      merge(model, {settings: action.settings}),
-      Effects.none
-    ] :
-  action.type === 'Settings.FetchError' ?
-    // TODO: Handle fetch error
-    [
-      model,
-      Effects.none
-    ] :
-  action.type === 'Settings.Updated' ?
-    // We updated UI on user request so there should be no need
-    // to do anything in here. Although likely it's better to mark
-    // setting as not yet commited and reset it if update fails.
-    [model, Effects.none] :
-  action.type === 'Settings.UpdateError' ?
-    [model, Effects.none] :
-
-  action.type === 'Devtools.RequestSettingUpdate' ?
-    [
-      updateSetting(model, action.name, action.value),
-      Settings.update({[action.name]: action.value})
-    ] :
-  action.type === 'Devtools.RequestRestart' ?
-    [model, Runtime.restart()] :
-  action.type === 'Devtools.RequestCleanRestart' ?
-    [model, Runtime.clearRestart()] :
-  action.type === 'Devtools.RequestCleanReload' ?
-    [model, Runtime.cleanReload()] :
-    [model, Effects.none];
+}
 
 
-const style = StyleSheet.create({
+const SettingsAction = action =>
+  ({type: 'Settings', action});
+
+const updateSettings = cursor({
+  get: model => model.settings,
+  set: (model, settings) => merge(model, {settings}),
+  tag: SettingsAction,
+  update: Settings.update
+})
+
+export const update/*:type.update*/ = (model, action) =>
+    action.type === 'Toggle'
+  ? [ merge(model, {isActive: !model.isActive}), Effects.none ]
+
+  // Button actions
+  : action.type === 'Restart'
+  ? [ model, Effects.task(Runtime.restart) ]
+  : action.type === 'CleanRestart'
+  ? [ model, Effects.task(Runtime.cleanRestart) ]
+  : action.type === 'CleanReload'
+  ? [ model, Effects.task(Runtime.cleanReload) ]
+
+  : action.type === 'Change'
+  ? [ model
+    , Effects
+        .task(Settings.change({[action.name]: action.value}))
+        .map(SettingsAction)
+    ]
+
+  : action.type === 'Settings'
+  ? updateSettings(model, action.action)
+
+  : Unknown.update(model, action);
+
+
+
+
+const styleSheet = StyleSheet.create({
   checkbox: {
     marginRight: '6px',
     MozAppearance: 'checkbox',
@@ -168,25 +147,24 @@ const style = StyleSheet.create({
   },
 });
 
-export const viewSetting = (key, value, address) => {
+const viewSetting = (key, value, address) => {
   const isChecked = readValue(key, value);
 
   return html.label({
     key: key,
-    style: style.label,
+    style: styleSheet.label,
   }, [
     html.input({
       type: 'checkbox',
       checked: isChecked ? true : void(0),
-      style: style.checkbox,
-      onChange: _ =>
-        address(asRequestSettingUpdate(key, writeValue(key, !isChecked)))
+      style: styleSheet.checkbox,
+      onChange: forward(address, () => Change(key, writeValue(key, !isChecked)))
     }),
     descriptions[key]
   ]);
 };
 
-export const viewSettings = (settings, address) =>
+const viewSettings = (settings, address) =>
   html.div({
     key: 'devtools-settings',
     className: 'devtools settings',
@@ -197,24 +175,29 @@ export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'devtools toolbox',
     key: 'devtools-toolbox',
-    style: Style(style.toolbox,
-                 model.settings == null ?
-                  style.initializing :
-                model.isActive ?
-                  style.visible :
-                  style.hidden)
+    style: Style
+            ( styleSheet.toolbox,
+
+              ( model.isActive
+              ? styleSheet.visible
+              : styleSheet.hidden
+              )
+            )
   }, [
-    thunk('settings', viewSettings, model.settings, address),
+    ( model.settings == null
+    ? html.div({}, ['Initializing'])
+    : thunk('settings', viewSettings, model.settings, address)
+    ),
     html.button({
-      style: style.button,
-      onClick: _ => address(RequestRestart)
+      style: styleSheet.button,
+      onClick: forward(address, always(Restart))
     }, ['Restart']),
     html.button({
-      style: style.button,
-      onClick: _ => address(RequestCleanRestart)
+      style: styleSheet.button,
+      onClick: forward(address, always(CleanRestart))
     }, ['Clear cache and restart']),
     html.button({
-      style: style.button,
-      onClick: _ => address(RequestCleanReload)
+      style: styleSheet.button,
+      onClick: forward(address, always(CleanReload))
     }, ['Clear cache and reload'])
   ]);

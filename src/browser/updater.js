@@ -1,7 +1,14 @@
 /* @flow */
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
 import {Effects, Task} from "reflex"
-import {always, asOk, asError} from "../common/prelude"
+import {always} from "../common/prelude"
+import * as Result from "../common/result"
+
 /*:: import * as type from "../../type/browser/updater" */
 
 const second = 1000;
@@ -62,18 +69,18 @@ const requestApplicationVersion = () =>
         return response
           .text()
           .then(asApplicationVersion)
-          .then(asOk)
+          .then(Result.ok)
           .catch(String)
-          .then(asError)
+          .then(Result.error)
       } else {
-        return asError(`Failed to fetch local HEAD: ${response.statusText}`)
+        return Result.error(`Failed to fetch local HEAD: ${response.statusText}`)
       }
     })))
 
 const decodeAvailableVersion = (eTag, pollInterval) => json =>
   (json != null && json.data != null && json.data.content != null) ?
-    asOk(asLatestApplicationVersion(eTag, pollInterval, json.data.content.toString())) :
-    asError(`Failed to fetch application version`);
+    Result.ok(asLatestApplicationVersion(eTag, pollInterval, json.data.content.toString())) :
+    Result.error(`Failed to fetch application version`);
 
 
 const asAvailableAppVersion = (eTag, pollInterval) => version =>
@@ -100,11 +107,11 @@ const checkApplicationUpdate/*:type.checkApplicationUpdate*/ = (uri, eTag) =>
             .json()
             .then(decodeAvailableVersion(eTag, pollInterval))
             .catch(String)
-            .then(asError)
+            .then(Result.error)
         } else if (response.status === 304) {
-          return asOk(ApplicationUpdateUnavailable)
+          return Result.ok(ApplicationUpdateUnavailable)
         } else {
-          return asError(`Failed to check remote updates ${response.statusText}`)
+          return Result.error(`Failed to check remote updates ${response.statusText}`)
         }
       })
   }));
@@ -123,7 +130,7 @@ const checkRuntimeUpdate/*:type.checkRuntimeUpdate*/
     // TODO: Implement code to trigger runtime event.
   }))
 
-export const initilize/*:type.initilize*/
+export const init/*:type.init*/
   = (uri) => [
       uri == null ?
         initial :
@@ -136,14 +143,14 @@ export const initilize/*:type.initilize*/
     ]
 
 
-export const step/*:type.step*/ = (((model, action) => {
-  if (action.type === "Error") {
+export const update/*:type.update*/ = (((model, action) => {
+  if (action.isError) {
     // TODO: Should distinguish between error coming from `requestApplicationVersion`
     // and `checkApplicationUpdate` to try over appropriate task. For now just do
     // nothing.
     console.error(action.error);
     return [model, Effects.none];
-  } else if (action.type === "Ok") {
+  } else if (action.isOk) {
     const response = action.value
     if (response.type === "Updater.ApplicationUpdateUnavailable") {
       return [
