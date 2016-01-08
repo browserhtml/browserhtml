@@ -125,10 +125,6 @@ const Activated/*:type.Activated*/ = id =>
 
 // ### Switch mode
 
-export const Expand/*:type.Expand*/ = {type: "Expand"};
-export const Expanded/*:type.Expanded*/ = {type: "Expanded"};
-export const Shrink/*:type.Shrink*/ = {type: "Shrink"};
-export const Shrinked/*:type.Shrinked*/ = {type: "Shrinked"};
 export const Fold/*:type.Fold*/ = {type: "Fold"};
 export const Folded/*:type.Folded*/ = {type: "Folded"};
 export const Unfold/*:type.Unfold*/ = {type: "Unfold"};
@@ -179,12 +175,6 @@ const ByID =
 
 // Animation
 
-const ResizeAnimationAction = action =>
-  ( { type: "ResizeAnimation"
-    , action
-    }
-  );
-
 const FoldAnimationAction = action =>
   ( { type: "FoldAnimation"
     , action
@@ -220,10 +210,9 @@ export const init/*:type.init*/ = () =>
     , selector: null
     , order: []
     , entries: {}
-    , display: { rightOffset: 0 }
+    , display: { depth: 0 }
 
     , resizeAnimation: null
-    , isExpanded: true
 
     , foldAnimation: null
     , isFolded: true
@@ -471,86 +460,6 @@ const selectByID = (model, id) =>
 
 // Animations
 
-const expand = model =>
-  ( model.isExpanded
-  ? [ model, Effects.none ]
-  : startResizeAnimation(merge(model, {isExpanded: true}))
-  );
-
-const shrink = model =>
-  ( model.isExpanded
-  ? startResizeAnimation(merge(model, {isExpanded: false}))
-  : [ model, Effects.none ]
-  );
-
-
-const startResizeAnimation = model => {
-  const [resizeAnimation, fx] =
-    Stopwatch.update(model.resizeAnimation, Stopwatch.Start);
-  return [ merge(model, {resizeAnimation}), fx.map(ResizeAnimationAction) ];
-}
-
-const endResizeAnimation = model => {
-  const [resizeAnimation, fx] =
-    Stopwatch.update(model.resizeAnimation, Stopwatch.End);
-
-  return [ merge(model, {resizeAnimation}), Effects.none ];
-}
-
-const shrinked = endResizeAnimation;
-const expanded = endResizeAnimation;
-
-const updateResizeAnimation = (model, action) => {
-  const [resizeAnimation, fx] =
-    Stopwatch.update(model.resizeAnimation, action);
-  const duration = 300;
-
-  const [begin, end] =
-    ( model.isExpanded
-    ? [50, 0]
-    : [0, 50]
-    );
-
-  const result =
-    ( duration > resizeAnimation.elapsed
-    ? [ merge
-        ( model
-        , { resizeAnimation
-          , display:
-              merge
-              ( model.display
-              , { rightOffset
-                  : Easing.ease
-                    ( Easing.easeOutCubic
-                    , Easing.float
-                    , begin
-                    , end
-                    , duration
-                    , resizeAnimation.elapsed
-                    )
-                }
-              )
-          }
-        )
-      , fx.map(ResizeAnimationAction)
-      ]
-    : [ merge
-        ( model
-        , { resizeAnimation
-          , display: merge(model.display, { rightOffset: end })
-          }
-        )
-      , Effects.receive
-        ( model.isExpanded
-        ? Expanded
-        : Shrinked
-        )
-      ]
-    );
-
-  return result;
-}
-
 const fold = model =>
   ( model.isFolded
   ? [ model, Effects.none ]
@@ -682,17 +591,6 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === "Selected"
   ? [ model, Effects.none ]
 
-  // Expand / Shrink animations
-  : action.type === "Expand"
-  ? expand(model)
-  : action.type === "Shrink"
-  ? shrink(model)
-  : action.type === "ResizeAnimation"
-  ? updateResizeAnimation(model, action.action)
-  : action.type === "Expanded"
-  ? expanded(model)
-  : action.type === "Shrinked"
-  ? shrinked(model)
 
   // Fold / Unfold animations
   : action.type === "Fold"
@@ -752,8 +650,7 @@ export const view/*:type.view*/ = (model, address) =>
     , style:
         Style
         ( styleSheet.base
-        , { width: `calc(100% - ${model.display.rightOffset}px)`
-          , transform: `translate3d(0, 0, ${model.display.depth}px)`
+        , { transform: `translate3d(0, 0, ${model.display.depth}px)`
           }
         )
     }

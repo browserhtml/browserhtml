@@ -18,7 +18,8 @@ import * as Unknown from "../common/unknown";
 import * as Focusable from "../common/focusable";
 import * as OS from '../common/os';
 import * as Keyboard from '../common/keyboard';
-
+import * as Stopwatch from "../common/stopwatch";
+import * as Easing from "eased";
 import {merge, always, batch} from "../common/prelude";
 import {cursor} from "../common/cursor";
 import {Style, StyleSheet} from '../common/style';
@@ -50,6 +51,9 @@ export const init/*:type.init*/ = () => {
     , overlay
     // , updater
     , devtools
+
+    , display: { rightOffset: 0 }
+    , isExpanded: true
     };
 
   const fx =
@@ -279,6 +283,14 @@ export const BlurInput =
   , source: Input.Blur
   };
 
+// ## Resize actions
+
+export const Expand/*:type.Expand*/ = {type: "Expand"};
+export const Expanded/*:type.Expanded*/ = {type: "Expanded"};
+export const Shrink/*:type.Shrink*/ = {type: "Shrink"};
+export const Shrinked/*:type.Shrinked*/ = {type: "Shrinked"};
+
+
 // Following Browser actions directly delegate to a `WebViews` module, there for
 // they are just tagged versions of `WebViews` actions, but that is Just an
 // implementation detail.
@@ -294,8 +306,6 @@ export const SelectPrevious = WebViewsAction(WebViews.SelectPrevious);
 export const ActivateSeleted = WebViewsAction(WebViews.ActivateSelected);
 export const FocusWebView = WebViewsAction(WebViews.Focus);
 export const NavigateTo = compose(WebViewsAction, WebViews.NavigateTo);
-const ExpandWebViews = WebViewsAction(WebViews.Expand);
-const ShrinkWebViews = WebViewsAction(WebViews.Shrink);
 const UnfoldWebViews = WebViewsAction(WebViews.Unfold);
 const FoldWebViews = WebViewsAction(WebViews.Fold);
 const Open = compose(WebViewsAction, WebViews.Open);
@@ -343,6 +353,16 @@ const UndockSidebar =
 const HideOverlay = OverlayAction(Overlay.Hide);
 const ShowOverlay = OverlayAction(Overlay.Show);
 const FadeOverlay = OverlayAction(Overlay.Fade);
+
+// Animation
+
+const ResizeAnimationAction = action =>
+  ( { type: "ResizeAnimation"
+    , action
+    }
+  );
+
+
 
 
 const modifier = OS.platform() == 'linux' ? 'alt' : 'accel';
@@ -476,7 +496,7 @@ const attachSidebar = model =>
   ( update
   , model
   , [ DockSidebar
-    , ShrinkWebViews
+    , Shrink
     ]
   );
 
@@ -485,12 +505,95 @@ const detachSidebar = model =>
   ( update
   , model
   , [ UndockSidebar
-    , ExpandWebViews
+    , Expand
     ]
   );
 
 const reloadRuntime = model =>
   [ model, Effects.task(Runtime.reload) ];
+
+// Animations
+
+const expand = model =>
+  ( model.isExpanded
+  ? [ model, Effects.none ]
+  : startResizeAnimation(merge(model, {isExpanded: true}))
+  );
+
+const shrink = model =>
+  ( model.isExpanded
+  ? startResizeAnimation(merge(model, {isExpanded: false}))
+  : [ model, Effects.none ]
+  );
+
+
+const startResizeAnimation = model => {
+  const [resizeAnimation, fx] =
+    Stopwatch.update(model.resizeAnimation, Stopwatch.Start);
+  return [ merge(model, {resizeAnimation}), fx.map(ResizeAnimationAction) ];
+}
+
+const endResizeAnimation = model => {
+  const [resizeAnimation, fx] =
+    Stopwatch.update(model.resizeAnimation, Stopwatch.End);
+
+  return [ merge(model, {resizeAnimation}), Effects.none ];
+}
+
+const shrinked = endResizeAnimation;
+const expanded = endResizeAnimation;
+
+const updateResizeAnimation = (model, action) => {
+  const [resizeAnimation, fx] =
+    Stopwatch.update(model.resizeAnimation, action);
+  const duration = 300;
+
+  const [begin, end] =
+    ( model.isExpanded
+    ? [50, 0]
+    : [0, 50]
+    );
+
+  const result =
+    ( duration > resizeAnimation.elapsed
+    ? [ merge
+        ( model
+        , { resizeAnimation
+          , display:
+              merge
+              ( model.display
+              , { rightOffset
+                  : Easing.ease
+                    ( Easing.easeOutCubic
+                    , Easing.float
+                    , begin
+                    , end
+                    , duration
+                    , resizeAnimation.elapsed
+                    )
+                }
+              )
+          }
+        )
+      , fx.map(ResizeAnimationAction)
+      ]
+    : [ merge
+        ( model
+        , { resizeAnimation
+          , display: merge(model.display, { rightOffset: end })
+          }
+        )
+      , Effects.receive
+        ( model.isExpanded
+        ? Expanded
+        : Shrinked
+        )
+      ]
+    );
+
+  return result;
+}
+
 
 
 // Unbox For actions and route them to their location.
@@ -520,6 +623,19 @@ export const update/*:type.update*/ = (model, action) =>
   ? detachSidebar(model)
   : action.type === 'ReloadRuntime'
   ? reloadRuntime(model)
+
+
+  // Expand / Shrink animations
+  : action.type === "Expand"
+  ? expand(model)
+  : action.type === "Shrink"
+  ? shrink(model)
+  : action.type === "ResizeAnimation"
+  ? updateResizeAnimation(model, action.action)
+  : action.type === "Expanded"
+  ? expanded(model)
+  : action.type === "Shrinked"
+  ? shrinked(model)
 
   // Delegate to the appropriate module
   : action.type === 'Input'
@@ -564,6 +680,12 @@ const styleSheet = StyleSheet.create({
     overflow: 'hidden',
     position: 'absolute',
     MozWindowDragging: 'drag',
+  },
+  content: {
+    position: 'absolute',
+    perspective: '1000px',
+    height: '100%',
+    width: '100%'
   }
 });
 
@@ -578,42 +700,54 @@ export const view/*:type.view*/ = (model, address) =>
     , onFocus: onWindow(address, always(Focus))
     , onUnload: onWindow(address, always(Unload))
     }
-  , [ thunk
-      ( 'web-views'
-      , WebViews.view
-      , model.webViews
-      , forward(address, WebViewsAction)
+  , [ html.div
+      ( { className: 'browser-content'
+        , style:
+          Style
+          ( styleSheet.content
+          , { width: `calc(100% - ${model.display.rightOffset}px)`
+            }
+          )
+        }
+      , [ thunk
+          ( 'web-views'
+          , WebViews.view
+          , model.webViews
+          , forward(address, WebViewsAction)
+          )
+        , thunk
+          ( 'overlay'
+          , Overlay.view
+          , model.overlay
+          , forward(address, OverlayAction))
+        , thunk
+          ( 'assistant'
+          , Assistant.view
+          , model.suggestions
+          , forward(address, AssistantAction)
+          )
+        , thunk
+          ( 'input'
+          , Input.view
+          , model.input
+          , forward(address, InputAction)
+          )
+        , thunk
+          ( 'devtools'
+          , Devtools.view
+          , model.devtools
+          , forward(address, DevtoolsAction)
+          )
+        ]
       )
-    , thunk
-      ( 'overlay'
-      , Overlay.view
-      , model.overlay
-      , forward(address, OverlayAction))
-    , thunk
+      , thunk
       ( 'sidebar'
       , Sidebar.view
       , model.sidebar
       , model.webViews
       , forward(address, SidebarAction)
       )
-    , thunk
-      ( 'assistant'
-      , Assistant.view
-      , model.suggestions
-      , forward(address, AssistantAction)
-      )
-    , thunk
-      ( 'input'
-      , Input.view
-      , model.input
-      , forward(address, InputAction)
-      )
-    , thunk
-      ( 'devtools'
-      , Devtools.view
-      , model.devtools
-      , forward(address, DevtoolsAction)
-      )
+
     , thunk
       ( 'shell'
       , Shell.view
