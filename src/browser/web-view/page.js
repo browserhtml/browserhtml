@@ -146,17 +146,23 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'CreatePallet'
   ? updatePallet(model)
   : action.type === 'LocationChanged'
-  ? [ merge
-      ( model
-      , { uri: action.uri
-        , curatedColor: null
-        , themeColor: null
-        }
-      )
+  // Sometimes location change is triggered even though actual location
+  // remains same. In such case we want to keep extracted colors as we
+  // may not get those this time around.
+  ? ( action.uri !== model.uri
+    ? [ merge
+          ( model
+          , { uri: action.uri
+            , curatedColor: null
+            , themeColor: null
+            }
+          )
       , Effects
           .task(Pallet.requestCuratedColor(action.uri))
           .map(CuratedColorUpdate)
-    ]
+      ]
+    : [ model, Effects.none ]
+    )
   // Ignore
   : action.type === 'FirstPaint'
   ? [ model, Effects.none ]
