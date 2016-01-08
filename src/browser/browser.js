@@ -425,6 +425,7 @@ const createWebView = model =>
     , ExpandAssistant
     , CloseSidebar
     , HideOverlay
+    , FoldWebViews
     , EnterInput
     ]
   );
