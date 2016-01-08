@@ -17,7 +17,7 @@ import * as Unknown from '../../common/unknown';
 const styleSheet = StyleSheet.create({
   base: {
     width: '100%',
-    height: `calc(100% - ${Toolbar.styleSheet.toolbar.height})`,
+    height: `calc(100% - ${Toolbar.styleSheet.base.height})`,
     paddingTop: '34px',
     overflowY: 'scroll',
     boxSizing: 'border-box'
