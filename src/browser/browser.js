@@ -130,6 +130,10 @@ const WebViewsAction = action =>
   ? { type: "SelectTab"
     , source: action
     }
+  : action.type === "SelectByID"
+  ? { type: "SelectTabByID"
+    , source: action
+    }
   : action.type === "ActivateSelected"
   ? { type: "ActivateTab"
     , source: action
@@ -647,6 +651,8 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'WebViews'
   ? updateWebViews(model, action.source)
   : action.type === 'SelectTab'
+  ? updateWebViews(model, action.source)
+  : action.type === 'SelectTabByID'
   ? updateWebViews(model, action.source)
   : action.type === 'ActivateTab'
   ? updateWebViews(model, action.source)

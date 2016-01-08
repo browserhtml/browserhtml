@@ -104,6 +104,14 @@ export const update = (model, action) =>
     ? Browser.update(model, Browser.ShowWebView)
     : action.type === 'OverlayClicked'
     ? Browser.update(model, Browser.ShowWebView)
+    : action.type === 'SelectTabByID'
+    ? batch
+      ( Browser.update
+      , model
+      , [ action
+        , Browser.ShowWebView
+        ]
+      )
     : Browser.update(model, action)
     )
   : model.mode === 'select-web-view'
