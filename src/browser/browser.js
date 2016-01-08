@@ -424,7 +424,7 @@ const showTabs = model =>
   , [ HideInput
     , CloseAssistant
     , OpenSidebar
-    , FadeOverlay
+    , ShowOverlay
     , UnfoldWebViews
     ]
   );
