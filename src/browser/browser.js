@@ -130,10 +130,6 @@ const WebViewsAction = action =>
   ? { type: "SelectTab"
     , source: action
     }
-  : action.type === "SelectByID"
-  ? { type: "SelectTab"
-    , source: action
-    }
   : action.type === "ActivateSelected"
   ? { type: "ActivateTab"
     , source: action
