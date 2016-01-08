@@ -89,12 +89,16 @@ export const update/*:type.update*/ = (model, action) =>
   );
 
 export const styleSheet = StyleSheet.create({
-  toolbar: {
+  base: {
     left: '0',
     height: '50px',
     position: 'absolute',
     bottom: '0',
     width: '100%'
+  },
+  invisible: {
+    opacity: 0,
+    pointerEvents: 'none'
   }
 });
 
@@ -142,8 +146,11 @@ export const view/*:type.view*/ = (model, address, display) =>
     className: 'sidebar-toolbar',
     style:
     Style
-    ( styleSheet.toolbar
-    , { opacity: display.toolbarOpacity }
+    ( styleSheet.base
+    , ( display.toolbarOpacity === 0
+      ? styleSheet.invisible
+      : { opacity: display.toolbarOpacity }
+      )
     )
   }, [
     thunk('pin', viewPin, model.pin, forward(address, ToggleAction)),
