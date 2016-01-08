@@ -38,7 +38,7 @@
     "browserify": "11.0.1",
     "browserify-hmr": "0.3.1",
     "ecstatic": "0.8.0",
-    "flow-bin": "0.18.1",
+    "flow-bin": "0.20.1",
     "graphene-marionette-client": "1.0.0",
     "graphene-marionette-runner": "0.0.9",
     "gulp": "3.9.0",
