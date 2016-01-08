@@ -589,28 +589,14 @@ const endFoldAnimation = model => {
 const folded = endFoldAnimation;
 const unfolded = endFoldAnimation;
 
-const interpolateFold = (from, to, progress) =>
-  ( progress === 0
-  ? from
-  : { angle: Easing.float(from.angle, to.angle, progress)
-    , depth: Easing.float(from.depth, to.depth, progress)
-    }
-  );
-
 const updateFoldAnimation = (model, action) => {
   const [foldAnimation, fx] =
     Stopwatch.update(model.foldAnimation, action);
 
   const [begin, end, duration] =
     ( model.isFolded
-    ? [ {angle: 10, depth: -600}
-      , {angle: 0, depth: 0}
-      , 200
-      ]
-    : [ {angle: 0, depth: 0}
-      , {angle: 10, depth: -600}
-      , 600
-      ]
+    ? [ -200, 0, 200 ]
+    : [ 0, -200, 500 ]
     );
 
   const result =
@@ -621,20 +607,27 @@ const updateFoldAnimation = (model, action) => {
           , display:
               merge
               ( model.display
-              , Easing.ease
-                ( Easing.easeOutCubic
-                , interpolateFold
-                , begin
-                , end
-                , duration
-                , foldAnimation.elapsed
-                )
+              , { depth:
+                  Easing.ease
+                  ( Easing.easeOutCubic
+                  , Easing.float
+                  , begin
+                  , end
+                  , duration
+                  , foldAnimation.elapsed
+                  )
+                }
               )
           }
         )
       , fx.map(FoldAnimationAction)
       ]
-    : [ merge(model, {foldAnimation, display: merge(model.display, end) })
+    : [ merge
+        ( model
+        , { foldAnimation
+          , display: merge(model.display, {depth: end})
+          }
+        )
       , Effects.receive
         ( model.isFolded
         ? Folded
@@ -760,7 +753,7 @@ export const view/*:type.view*/ = (model, address) =>
         Style
         ( styleSheet.base
         , { width: `calc(100% - ${model.display.rightOffset}px)`
-          , transform: `translate3d(0, 0, ${model.display.depth}px) rotateY(${model.display.angle}deg)`
+          , transform: `translate3d(0, 0, ${model.display.depth}px)`
           }
         )
     }
