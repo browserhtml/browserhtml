@@ -81,7 +81,6 @@ export const receive = /*::<message>*/
   (type/*:string*/)/*:Task<Never, message>*/ =>
   Task.io(deliver => {
     const onMessage = ({detail: message}) => {
-      debugger;
       if (message.type === type) {
         window.removeEventListener('mozChromeEvent', onMessage);
         deliver(Task.succeed(message));
