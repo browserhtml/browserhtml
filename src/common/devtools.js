@@ -16,136 +16,203 @@ import {Effects, html, thunk, forward} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
 
 
-const descriptions = {
-  'debugger.remote-mode': 'Enable Remote DevTools',
-  'apz.overscroll.enabled': 'Enable overscroll effect',
-  'debug.fps.enabled': 'FPS',
-  'debug.paint-flashing.enabled': 'Paint flashing',
-  'layers.low-precision': 'Low precision buffer & paint',
-  'layers.low-opacity': 'Low precision opacity',
-  'layers.draw-borders': 'Draw layer borders',
-  'layers.draw-tile-borders': 'Draw tile borders',
-  'layers.dump': 'Layers dump',
-  'layers.enable-tiles': 'Enable tiles',
-  'layers.async-pan-zoom.enabled': 'Enable APZC (restart required)'
-};
+const descriptions =
+  { 'debugger.remote-mode': 'Enable Remote DevTools'
+  , 'apz.overscroll.enabled': 'Enable overscroll effect'
+  , 'debug.fps.enabled': 'FPS'
+  , 'debug.paint-flashing.enabled': 'Paint flashing'
+  , 'layers.low-precision': 'Low precision buffer & paint'
+  , 'layers.low-opacity': 'Low precision opacity'
+  , 'layers.draw-borders': 'Draw layer borders'
+  , 'layers.draw-tile-borders': 'Draw tile borders'
+  , 'layers.dump': 'Layers dump'
+  , 'layers.enable-tiles': 'Enable tiles'
+  , 'layers.async-pan-zoom.enabled': 'Enable APZC (restart required)'
+  };
 
 const writeValue = (key, value) =>
-    key === 'debugger.remote-mode'
+  ( key === 'debugger.remote-mode'
   ? ( value === true
     ? 'adb-devtools'
     : 'disabled'
     )
   : value
+  );
 
 const readValue = (key, value) =>
-    key === 'debugger.remote-mode'
+  ( key === 'debugger.remote-mode'
   ? ( value === 'adb-devtools'
     ? true
     : false
     )
   : value
+  );
 
 export const Toggle =
-  {type: "Toggle"};
+  { type: "Toggle"
+  };
 
 export const Restart =
-  {type: "Restart"};
+  { type: "Restart"
+  };
+
+const Report = result =>
+  ( { type: "Report"
+    , result: result
+    }
+  );
 
 export const CleanRestart =
-  {type: "CleanRestart"};
+  { type: "CleanRestart"
+  };
 
 export const CleanReload =
-  {type: "CleanReload"};
+  { type: "CleanReload"
+  };
 
 const Change = (name, value) =>
-  ({type: "Change", name, value});
-
-export const init/*:type.init*/ = () => {
-  const [settings, fx] = Settings.init(Object.keys(descriptions));
-  return [
-    {isActive: false, settings}
-  , fx.map(SettingsAction)
-  ];
-}
+  ( { type: "Change"
+    , name
+    , value
+    }
+  );
 
 
 const SettingsAction = action =>
-  ({type: 'Settings', action});
+  ( { type: 'Settings'
+    , action
+    }
+  );
 
-const updateSettings = cursor({
-  get: model => model.settings,
-  set: (model, settings) => merge(model, {settings}),
-  tag: SettingsAction,
-  update: Settings.update
-})
+const updateSettings = cursor
+  ( { get: model => model.settings
+    , set: (model, settings) => merge(model, {settings})
+    , tag: SettingsAction
+    , update: Settings.update
+    }
+  );
+
+const toggle = model =>
+  [ merge(model, {isActive: !model.isActive})
+  , Effects.none
+  ];
+
+const restart = model =>
+  [ model
+  , Effects
+    .task(Runtime.restart)
+    .map(Return)
+  ];
+
+const cleanRestart = model =>
+  [ model
+  , Effects
+    .task(Runtime.cleanRestart)
+    .map(Return)
+  ];
+
+const cleanReload = model =>
+  [ model
+  , Effects
+    .task(Runtime.cleanReload)
+    .map(Return)
+  ];
+
+const changeSetting = (model, {name, value}) =>
+  [ model
+  , Effects
+    .task(Settings.change({[name]: value}))
+    .map(SettingsAction)
+  ];
+
+const report = (model, result) =>
+  [ model
+  , ( result.isOk
+    ? Effects.none
+    : Effects.task(Unknown.error(result.error))
+    )
+  ];
+
+export const init/*:type.init*/ = () => {
+  const [settings, fx] = Settings.init(Object.keys(descriptions));
+  const result =
+    [ { isActive: false
+      , settings
+      }
+    , fx.map(SettingsAction)
+    ];
+
+  return result;
+};
+
+
 
 export const update/*:type.update*/ = (model, action) =>
-    action.type === 'Toggle'
-  ? [ merge(model, {isActive: !model.isActive}), Effects.none ]
+  ( action.type === 'Toggle'
+  ? toggle(model)
 
   // Button actions
   : action.type === 'Restart'
-  ? [ model, Effects.task(Runtime.restart) ]
+  ? restart(model)
   : action.type === 'CleanRestart'
-  ? [ model, Effects.task(Runtime.cleanRestart) ]
+  ? clearRestart(model)
   : action.type === 'CleanReload'
-  ? [ model, Effects.task(Runtime.cleanReload) ]
+  ? clearReload(model)
+  : action.type === 'Report'
+  ? report(model, action.result)
 
   : action.type === 'Change'
-  ? [ model
-    , Effects
-        .task(Settings.change({[action.name]: action.value}))
-        .map(SettingsAction)
-    ]
+  ? changeSetting(model, action)
 
   : action.type === 'Settings'
   ? updateSettings(model, action.action)
 
-  : Unknown.update(model, action);
+  : Unknown.update(model, action)
+  );
 
 
 
 
-const styleSheet = StyleSheet.create({
-  checkbox: {
-    marginRight: '6px',
-    MozAppearance: 'checkbox',
-  },
-  label: {
-    padding: '6px',
-    MozUserSelect: 'none',
-    display: 'block',
-  },
-  button: {
-    display: 'block',
-    border: '1px solid #AAA',
-    padding: '3px 6px',
-    margin: '6px',
-    borderRadius: '3px',
-  },
-  toolbox: {
-    padding: '10px',
-    position: 'absolute',
-    bottom: '10px',
-    left: '10px',
-    width: '300px',
-    height: '400px',
-    color: 'black',
-    backgroundColor: 'white',
-    border: '2px solid #F06',
-    overflow: 'scroll',
-  },
-  initializing: {
-    display: 'none'
-  },
-  hidden: {
-    display: 'none'
-  },
-  visible: {
-    display: 'block'
-  },
-});
+const styleSheet = StyleSheet.create
+  ( { checkbox:
+      { marginRight: '6px'
+      , MozAppearance: 'checkbox'
+      }
+    , label:
+      { padding: '6px'
+      , MozUserSelect: 'none'
+      , display: 'block'
+      }
+    , button:
+      { display: 'block'
+      , border: '1px solid #AAA'
+      , padding: '3px 6px'
+      , margin: '6px'
+      , borderRadius: '3px'
+      }
+    , toolbox:
+      { padding: '10px'
+      , position: 'absolute'
+      , bottom: '10px'
+      , left: '10px'
+      , width: '300px'
+      , height: '400px'
+      , color: 'black'
+      , backgroundColor: 'white'
+      , border: '2px solid #F06'
+      , overflow: 'scroll'
+      }
+    , initializing:
+      { display: 'none'
+      }
+    , hidden:
+      { display: 'none'
+      }
+    , visible:
+      { display: 'block'
+      }
+    }
+  );
 
 const viewSetting = (key, value, address) => {
   const isChecked = readValue(key, value);

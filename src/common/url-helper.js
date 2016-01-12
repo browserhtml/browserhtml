@@ -28,6 +28,7 @@ export const getProtocol = url => parse(url).protocol;
 export const getManifestURL = () => new URL('./manifest.webapp', getBaseURI());
 export const getPathname = input => parse(input).pathname;
 
+
 const isHttpOrHttps = (url) => {
   const {protocol} = parse(url);
   return (protocol === 'http:' || protocol === 'https:');
@@ -80,9 +81,12 @@ export const read = input =>
   !hasScheme(input) ? `http://${input}` :
   input;
 
-export const resolve = uri =>
+export const normalize = uri =>
   isAboutURL(uri) ? readAboutURL(uri) :
   uri;
+
+export const resolve = (from, to) =>
+  new URL(to, from).href;
 
 const aboutPattern = /\/about\/([^\/]+)\/index.html$/;
 

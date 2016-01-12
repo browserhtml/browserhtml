@@ -6,7 +6,6 @@
 
 import {start, Effects} from "reflex";
 import * as UI from "./perspective-ui";
-import * as Runtime from "../common/runtime";
 
 // import * as Session from "./session";
 import {version} from "../../package.json";
@@ -30,7 +29,7 @@ const isReload = window.application != null;
 // If hotswap change address so it points to a new mailbox &r
 // re-render.
 if (isReload) {
-  window.application.address(Runtime.LiveReload);
+  window.application.address(UI.LiveReload);
 }
 
 const application = start({

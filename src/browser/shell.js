@@ -16,15 +16,9 @@ import * as Unknown from "../common/unknown";
 /*:: import * as type from "../../type/browser/shell" */
 
 // @TODO: IO stuff should probably live elsewhere.
-const fetchFocus = Task.io(deliver => {
-  const action
-    // @FlowIssue: Flow does not know about `document.hasFocus()`
-    = document.hasFocus()
-    ? Focus
-    : Blur;
-  return Task.succeed(action);
-});
-
+const fetchFocus =
+  // @FlowIssue: Flow does not know about `document.hasFocus()`
+  Task.io(deliver => Task.succeed(document.hasFocus()));
 
 export const init/*:type.init*/ = () => {
   const [controls, fx] = Controls.init(false, false, false);
@@ -38,61 +32,155 @@ export const init/*:type.init*/ = () => {
   , Effects.batch(
     [ fx,
       // Check if window is actually focused
-      Effects.task(fetchFocus)
+      Effects
+      .task(fetchFocus)
+      .map(isFocused => isFocused ? Focus : Blur)
     ])
   ]
 }
 
-export const Focus/*:type.Focus*/ = {type: "Focus"};
-export const Blur/*:type.Blur*/ = {type: "Blur"};
-export const Close/*:type.Close*/ = {type: "Close"};
-export const Minimize/*:type.Minimize*/ = {type: "Minimize"};
-export const ToggleFullscreen/*:type.ToggleFullscreen*/ =
-  {type: "ToggleFullscreen"};
+export const Focus/*:type.Focus*/ =
+  { type: "Focus"
+  };
 
-export const Closed/*:type.Closed*/ = {type: "Closed"};
-export const Minimized/*:type.Minimized*/ = Runtime.Minimized;
-export const FullscreenToggled/*:type.FullscreenToggled*/ = Runtime.FullscreenToggled;
+export const Blur/*:type.Blur*/ =
+  { type: "Blur"
+  };
+
+export const Close/*:type.Close*/ =
+  { type: "Close"
+  };
+
+export const Minimize/*:type.Minimize*/ =
+  { type: "Minimize"
+  };
+
+export const ToggleFullscreen/*:type.ToggleFullscreen*/ =
+  { type: "ToggleFullscreen"
+  };
+
+const Closed = result =>
+  ( { type: "Closed"
+    , result
+    }
+  )
+
+const Minimized = result =>
+  ( { type: "Minimized"
+    , result
+    }
+  );
+
+const FullscreenToggled = result =>
+  ( { type: "FullscreenToggled"
+    , result
+    }
+  );
 
 
 const ControlsAction = action =>
-    action.type === 'CloseWindow'
+  ( action.type === 'CloseWindow'
   ? Close
   : action.type === 'MinimizeWindow'
   ? Minimize
   : action.type === 'ToggleWindowFullscreen'
   ? ToggleFullscreen
-  : {type: "Controls", action};
+  : { type: "Controls"
+    , source: action
+    }
+  );
 
-const updateControls = cursor({
-  get: model => model.controls,
-  set: (model, controls) => merge(model, {controls}),
-  update: Controls.update,
-  tag: ControlsAction
-});
+const updateControls = cursor
+  ( { get: model => model.controls
+    , set: (model, controls) => merge(model, {controls})
+    , update: Controls.update
+    , tag: ControlsAction
+    }
+  );
+
+
+const focus = model =>
+  updateControls
+  ( merge(model, {isFocused: true, isMinimized: false})
+  , Controls.Enable
+  );
+
+const blur = model =>
+  updateControls
+  ( merge(model, {isFocused: false})
+  , Controls.Disable
+  );
+
+const minimized = (model, result) =>
+  ( result.isOk
+  ? [ merge(model, {isMinimized: true}), Effects.none ]
+  : [ model, Effects.task(Unknown.error(result.error)) ]
+  );
+
+const fullscreenToggled = (model, result) =>
+  ( result.isOk
+  ? updateControls
+    ( merge(model, {isMaximized: !model.isMaximized})
+    , Controls.FullscreenToggled
+    )
+  : [ model, Effects.task(Unknown.error(result.error)) ]
+  );
+
+const closed = (model, result) =>
+  ( result.isOk
+  ? [ model, Effects.none ]
+  : [ model, Effects.task(Unknown.error(result.error)) ]
+  );
+
+const close = model =>
+  [ model
+  , Effects
+    .task(Runtime.quit)
+    .map(Closed)
+  ];
+
+const minimize = model =>
+  [ model
+  , Effects
+    .task(Runtime.minimize)
+    .map(Minimized)
+  ];
+
+const toggleFullscreen = model =>
+  [ model
+  , Effects
+    .task(Runtime.toggleFullscreen)
+    .map(FullscreenToggled)
+  ];
 
 
 export const update/*:type.update*/ = (model, action) =>
-    action.type === "Focus"
-  ? updateControls
-    ( merge(model, {isFocused: true, isMinimized: false})
-    , Controls.Enable
-    )
+  ( action.type === "Focus"
+  ? focus(model)
   : action.type === "Blur"
-  ? updateControls(merge(model, {isFocused: false}), Controls.Disable)
-  : action.type === "Minimized"
-  ? [merge(model, {isMinimized: true}), Effects.none]
-  : action.type === "FullscreenToggled"
-  ? [merge(model, {isMaximized: !model.isMaximized}), Effects.none]
-  : action.type === "Close"
-  ? [model, Effects.task(Runtime.quit).map(always(Closed))]
+  ? blur(model)
+
   : action.type === "Minimize"
-  ? [model, Effects.task(Runtime.minimize)]
+  ? minimize(model)
+  : action.type === "Minimized"
+  ? minimized(model, action.result)
+
+  : action.type === "Close"
+  ? close(model)
+  : action.type === "Closed"
+  ? closed(model, action.result)
+
   : action.type === "ToggleFullscreen"
-  ? [model, Effects.task(Runtime.toggleFullscreen)]
+  ? toggleFullscreen(model)
+  : action.type === "FullscreenToggled"
+  ? fullscreenToggled(model, action.result)
+
+
   : action.type === "Controls"
-  ? updateControls(model, action.action)
-  : Unknown.update(model, action);
+  ? updateControls(model, action.source)
+
+  : Unknown.update(model, action)
+  );
 
 export const view/*:type.view*/ = (model, address) =>
   Controls.view(model.controls, forward(address, ControlsAction));

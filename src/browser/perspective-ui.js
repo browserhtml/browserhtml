@@ -8,6 +8,8 @@ import {Effects, Task} from 'reflex';
 import {merge, batch} from '../common/prelude';
 import * as Browser from './browser';
 
+export const LiveReload = Browser.LiveReload;
+
 export const init = Browser.init
 
 export const update = (model, action) =>
