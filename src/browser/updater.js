@@ -147,8 +147,7 @@ const checkApplicationVersion/*:type.checkApplicationVersion*/ =
   (applicationURI) =>
   Task.future(() => {
     const uri = URI.resolve(applicationURI, 'HEAD');
-    const hostname = URI.parse(uri);
-
+    const {hostname} = URI.parse(uri);
 
     const isLocal =
       hostname === '0.0.0.0' ||
