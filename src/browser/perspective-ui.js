@@ -114,6 +114,14 @@ export const update = (model, action) =>
         , Browser.ShowWebView
         ]
       )
+    : action.type === 'SelectTab'
+    ? batch
+      ( Browser.update
+      , model
+      , [ action
+        , Browser.SelectWebView
+        ]
+      )
     : Browser.update(model, action)
     )
   : model.mode === 'select-web-view'
