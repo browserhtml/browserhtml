@@ -72,6 +72,9 @@ export const init/*:type.init*/ = () => {
       , suggestionsFx.map(AssistantAction)
       , overlayFx.map(OverlayAction)
       , Effects.receive(CreateWebView)
+      , Effects
+        .task(Runtime.receive('mozbrowseropenwindow'))
+        .map(OpenURL)
       ]
     );
 
@@ -347,6 +350,15 @@ export const NavigateTo = compose(WebViewsAction, WebViews.NavigateTo);
 const UnfoldWebViews = WebViewsAction(WebViews.Unfold);
 const FoldWebViews = WebViewsAction(WebViews.Fold);
 const Open = compose(WebViewsAction, WebViews.Open);
+const ReceiveOpenURLNotification =
+  { type: "ReceiveOpenURLNotification"
+  };
+
+const OpenURL = ({url}) =>
+  ( { type: "OpenURL"
+    , uri: url
+    }
+  );
 
 export const ActivateWebViewByID =
   compose(WebViewsAction, WebViews.ActivateByID);
@@ -521,6 +533,30 @@ const openWebView = model =>
     )
   );
 
+const openURL = (model, uri) =>
+  batch
+  ( update
+  , model
+  , [ Open
+      ( { uri
+        , inBackground: false
+        , name: ''
+        , features: ''
+        }
+      )
+    , ShowWebView
+    , ReceiveOpenURLNotification
+    ]
+  );
+
+const reciveOpenURLNotification = model =>
+  [ model
+  , Effects
+    .task(Runtime.receive('mozbrowseropenwindow'))
+    .map(OpenURL)
+  ];
+
+
 const focusWebView = model =>
   update(model, FocusWebView)
 
@@ -649,6 +685,10 @@ export const update/*:type.update*/ = (model, action) =>
   ? submitInput(model)
   : action.type === 'OpenWebView'
   ? openWebView(model)
+  : action.type === 'OpenURL'
+  ? openURL(model, action.uri)
+  : action.type === 'ReceiveOpenURLNotification'
+  ? reciveOpenURLNotification(model)
   : action.type === 'ExitInput'
   ? exitInput(model)
   : action.type === 'CreateWebView'
