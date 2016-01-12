@@ -29,40 +29,53 @@ export const Enable = {type: "Enable"};
 export const Disable = {type: "Disable"};
 
 const ignore = action =>
-    action.type === "Target"
+  ( action.type === "Target"
   ? Ignore
   : action.type === "Focusable"
   ? Ignore
-  : action;
+  : action
+  );
 
 
 const CloseButtonAction = compose
   ( action =>
-        action === Ignore
-      ? Ignore
-      : action.type === "Press"
-      ? CloseWindow
-      : ({type: "CloseButton", action})
+    ( action === Ignore
+    ? Ignore
+    : action.type === "Press"
+    ? CloseWindow
+    : ( { type: "CloseButton"
+        , source: action
+        }
+      )
+    )
   , ignore
   );
 
 const MinimizeButtonAction = compose
   ( action =>
-        action === Ignore
-      ? Ignore
-      : action.type === "Press"
-      ? MinimizeWindow
-      : ({type: "MinimizeButton", action})
+    ( action === Ignore
+    ? Ignore
+    : action.type === "Press"
+    ? MinimizeWindow
+    : ( { type: "MinimizeButton"
+        , source: action
+        }
+      )
+    )
   , ignore
   );
 
 const ToggleButtonAction = compose
   ( action =>
-        action === Ignore
-      ? Ignore
-      : action.type === "Press"
-      ? ToggleWindowFullscreen
-      : ({type: "ToggleButton", action})
+    ( action === Ignore
+    ? Ignore
+    : action.type === "Press"
+    ? ToggleWindowFullscreen
+    : ( { type: "ToggleButton"
+        , source: action
+        }
+      )
+    )
   , ignore
   );
 
@@ -86,8 +99,8 @@ const updateMinimize = cursor({
 
 const updateToggle = cursor({
   get: model => model.toggle,
-  set: (model, toggle) => merge(model, {merge}),
-  update: Button.update,
+  set: (model, toggle) => merge(model, {toggle}),
+  update: Toggle.update,
   tag: ToggleButtonAction
 });
 
@@ -154,11 +167,11 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'Ignore'
   ? [model, Effects.none]
   : action.type === 'CloseButton'
-  ? updateClose(model, action.action)
+  ? updateClose(model, action.source)
   : action.type === 'MinimizeButton'
-  ? updateMinimize(model, action.action)
+  ? updateMinimize(model, action.source)
   : action.type === 'ToggleButton'
-  ? updateToggle(model, action.action)
+  ? [model, Effects.none]
   : Unknown.update(model, action)
   );
 

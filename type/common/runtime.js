@@ -2,20 +2,12 @@
 
 import type {Never} from "reflex/type/effects"
 import type {Task} from "reflex/type"
-
-export type UnknownType <detail> = {
-  type: "Unknown",
-  detail: detail
-}
+import type {Result} from "../common/result"
 
 // Action is triggered when application JS is hot swapped
 export type LiveReload = {
   type: "LiveReload"
 }
-
-export type Unknown = <detail> (detail:detail) =>
-  UnknownType<detail>
-
 export type RemoteDebugRequest = {
   type: "RemoteDebugRequest",
 }
@@ -26,10 +18,6 @@ export type UpdateAvailable = {
 
 export type UpdateDownloaded = {
   type: "UpdateDownloaded",
-}
-
-export type CheckUpdate = {
-  type: "CheckUpdate",
 }
 
 export type RemoteDebugResponseType = {
@@ -80,12 +68,27 @@ export type Quit = {
 
 // @TODO: need to be notified when unminimized.
 
-export type quit = () => Task<Never, Quit>;
-export type minimize = Task<Never, Minimized>;
-export type toggleFullscreen = Task<Never, FullscreenToggled>;
+export type never = <result> () => Task<Never, result>
 
-export type reload = Task<Never, Reload>;
-export type restart = Task<Never, Restart>;
+export type respond = <message> (message:message) =>
+  Task<Never, message>
 
-export type cleanReload = Task<Never, CleanReload>;
-export type cleanRestart = Task<Never, CleanRestart>;
+export type receive = <type, message> (type:type) =>
+  Task<Never, message>
+
+export type send = <message> (request:message) =>
+  Task<Never, message>
+
+export type request = <type, request, response>
+  (type:type, message:request) =>
+  Task<Never, response>
+
+export type quit = Task<Never, Result<Error, void>>;
+export type minimize = Task<Never, Result<Error, void>>;
+export type toggleFullscreen = Task<Never, Result<Error, void>>;
+
+export type reload = Task<Never, Result<Error, void>>;
+export type restart = Task<Never, Result<Error, void>>;
+
+export type cleanReload = Task<Never, Result<Error, void>>;
+export type cleanRestart = Task<Never, Result<Error, void>>;

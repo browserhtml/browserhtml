@@ -15,7 +15,7 @@ import * as Sidebar from './sidebar';
 import * as WebViews from "./web-views";
 import * as Overlay from './overlay';
 
-// import * as Updater from "./updater"
+import * as Updater from "./updater"
 import * as Devtools from "../common/devtools";
 import * as Runtime from "../common/runtime";
 import * as URI from '../common/url-helper';
@@ -37,7 +37,7 @@ import {onWindow} from "driver";
 
 export const init/*:type.init*/ = () => {
   const [devtools, devtoolsFx] = Devtools.init();
-  // const [updater, updaterFx] = Updater.init();
+  const [updater, updaterFx] = Updater.init();
   const [input, inputFx] = Input.init(false, false, "");
   const [shell, shellFx] = Shell.init();
   const [webViews, webViewsFx] = WebViews.init();
@@ -54,7 +54,7 @@ export const init/*:type.init*/ = () => {
     , webViews
     , sidebar
     , overlay
-    // , updater
+    , updater
     , devtools
 
     , display: { rightOffset: 0 }
@@ -67,7 +67,7 @@ export const init/*:type.init*/ = () => {
       , inputFx.map(InputAction)
       , shellFx.map(ShellAction)
       , webViewsFx.map(WebViewsAction)
-      // , updaterFx.map(UpdaterAction)
+      , updaterFx.map(UpdaterAction)
       , sidebarFx.map(SidebarAction)
       , suggestionsFx.map(AssistantAction)
       , overlayFx.map(OverlayAction)
@@ -169,6 +169,12 @@ const AssistantAction = action =>
     }
   );
 
+const UpdaterAction = action =>
+  ( { type: 'Updater'
+    , source: action
+    }
+  );
+
 const updateInput = cursor({
   get: model => model.input,
   set: (model, input) => merge(model, {input}),
@@ -218,8 +224,35 @@ const updateOverlay = cursor({
   update: Overlay.update
 });
 
+const updateUpdater = cursor
+  ( { get: model => model.updater
+    , set: (model, updater) => merge(model, {updater})
+    , tag: UpdaterAction
+    , update: Updater.update
+    }
+  );
+
+
+const Reloaded =
+  { type: "Reloaded"
+  };
+
+const Failure = error =>
+  ( { type: "Failure"
+    , error: error
+    }
+  );
+
+const ReloadAction =
+  result =>
+  ( result.isOk
+  ? Reloaded
+  : Failure(result.error)
+  )
+
 
 // ### Mode changes
+
 
 export const CreateWebView/*:type.CreateWebView*/ =
   { type: 'CreateWebView'
@@ -358,6 +391,10 @@ const UndockSidebar =
 const HideOverlay = OverlayAction(Overlay.Hide);
 const ShowOverlay = OverlayAction(Overlay.Show);
 const FadeOverlay = OverlayAction(Overlay.Fade);
+
+export const LiveReload =
+  { type: 'LiveReload'
+  };
 
 // Animation
 
@@ -516,7 +553,11 @@ const detachSidebar = model =>
   );
 
 const reloadRuntime = model =>
-  [ model, Effects.task(Runtime.reload) ];
+  [ model
+  , Effects
+    .task(Runtime.reload)
+    .map(Reloaded)
+  ];
 
 // Animations
 
@@ -671,6 +712,20 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateSidebar(model, action.action)
   : action.type === 'Overlay'
   ? updateOverlay(model, action.action)
+  : action.type === 'Updater'
+  ? updateUpdater(model, action.source)
+
+  : action.type === 'Failure'
+  ? [ model
+    , Effects.task(Unknown.error(action.error))
+    ]
+
+  // Ignore some actions.
+  : action.type === 'Reloaded'
+  ? [model, Effects.none]
+  // TODO: Delegate to modules that need to do cleanup.
+  : action.type === 'LiveReload'
+  ? [model, Effects.none]
 
   : Unknown.update(model, action)
   );
@@ -739,6 +794,12 @@ export const view/*:type.view*/ = (model, address) =>
           , Input.view
           , model.input
           , forward(address, InputAction)
+          )
+        , thunk
+          ( 'updater'
+          , Updater.view
+          , model.updater
+          , forward(address, UpdaterAction)
           )
         , thunk
           ( 'devtools'

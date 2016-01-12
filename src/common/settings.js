@@ -7,7 +7,6 @@
 /*:: import * as type from "../../type/common/settings" */
 
 import * as Settings from '../common/settings';
-import * as Runtime from '../common/runtime';
 import * as Result from '../common/result';
 import * as Unknown from '../common/unknown';
 import {merge} from '../common/prelude';
