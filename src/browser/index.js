@@ -15,9 +15,15 @@ import {Renderer} from "driver";
 const logger = (update) => (model, action) => {
   console.log('>>> Action:', action);
 
-  console.group();
+  if (console.group != null) {
+    console.group();
+  }
+  
   const out = update(model, action);
-  console.groupEnd();
+  
+  if (console.groupEnd != null) {
+    console.groupEnd();
+  }
 
   console.log('<<< Model:', out[0])
   console.log('<<< Effects:', out[1]);
