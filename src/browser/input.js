@@ -155,31 +155,36 @@ const readSelect = compose
       Editable.Select(readSelection(target))
   );
 
-const inputWidth = '460px';
-const inputHeight = '40px';
+const inputWidth = 460;
+const inputHeight = 40;
+const inputXPadding = 32;
 
 const style = StyleSheet.create({
   combobox: {
-    background: '#EBEEF2',
-    borderRadius: '5px',
     height: inputHeight,
     left: '50%',
-    marginLeft: `calc(-1 * (${inputWidth} / 2))`,
+    marginLeft: `calc(-1 * (${inputWidth}px / 2))`,
     position: 'absolute',
     top: '40px',
-    width: inputWidth
+    width: `${inputWidth}px`
   },
   field: {
-    background: 'transparent',
-    borderWidth: 0,
+    background: '#EBEEF2',
+    borderRadius: '5px',
+    borderWidth: '3px',
+    borderStyle: 'solid',
+    borderColor: 'transparent',
     display: 'block',
     fontSize: '14px',
     MozAppearance: 'none',
-    height: inputHeight,
-    lineHeight: inputHeight,
+    height: `${inputHeight - 6}px`,
+    lineHeight: `${inputHeight - 6}px`,
     margin: 0,
-    padding: '0 32px',
-    width: `calc(${inputWidth} - ${32 * 2}px)`
+    padding: `0 ${inputXPadding}px`,
+    width: `calc(${inputWidth - 6}px - ${inputXPadding * 2}px)`
+  },
+  fieldFocused: {
+    borderColor: '#3D91F2'
   },
   inactive: {
     opacity: 0,
@@ -236,7 +241,9 @@ export const view/*:type.view*/ = (model, address) =>
     html.input({
       className: 'input-field',
       placeholder: 'Search or enter address',
-      style: style.field,
+      style: Style( style.field
+                  , model.isFocused && style.fieldFocused
+                  ),
       type: 'text',
       value: model.value,
       isFocused: focus(model.isFocused),
