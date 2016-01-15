@@ -226,7 +226,7 @@ const viewSetting = (key, value, address) => {
   }, [
     html.input({
       type: 'checkbox',
-      checked: isChecked ? true : void(0),
+      checked: isChecked,
       style: styleSheet.checkbox,
       onChange: forward(address, () => Change(key, writeValue(key, !isChecked)))
     }),
