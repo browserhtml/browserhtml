@@ -166,9 +166,8 @@ const style = StyleSheet.create({
     left: '50%',
     marginLeft: `calc(-1 * (${inputWidth} / 2))`,
     position: 'absolute',
-    padding: '0 32px',
     top: '40px',
-    width: `calc(${inputWidth} - ${32 * 2}px)`
+    width: inputWidth
   },
   field: {
     background: 'transparent',
@@ -179,7 +178,7 @@ const style = StyleSheet.create({
     height: inputHeight,
     lineHeight: inputHeight,
     margin: 0,
-    padding: 0,
+    padding: '0 32px',
     width: `calc(${inputWidth} - ${32 * 2}px)`
   },
   inactive: {
