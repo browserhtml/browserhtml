@@ -155,32 +155,36 @@ const readSelect = compose
       Editable.Select(readSelection(target))
   );
 
-const inputWidth = '460px';
-const inputHeight = '40px';
+const inputWidth = 460;
+const inputHeight = 40;
+const inputXPadding = 32;
 
 const style = StyleSheet.create({
   combobox: {
-    background: '#EBEEF2',
-    borderRadius: '5px',
     height: inputHeight,
     left: '50%',
-    marginLeft: `calc(-1 * (${inputWidth} / 2))`,
+    marginLeft: `${-1 * (inputWidth / 2)}px`,
     position: 'absolute',
-    padding: '0 32px',
     top: '40px',
-    width: `calc(${inputWidth} - ${32 * 2}px)`
+    width: `${inputWidth}px`
   },
   field: {
-    background: 'transparent',
-    borderWidth: 0,
+    background: '#EBEEF2',
+    borderRadius: '5px',
+    borderWidth: '3px',
+    borderStyle: 'solid',
+    borderColor: 'transparent',
     display: 'block',
     fontSize: '14px',
     MozAppearance: 'none',
-    height: inputHeight,
-    lineHeight: inputHeight,
+    height: `${inputHeight - 6}px`,
+    lineHeight: `${inputHeight - 6}px`,
     margin: 0,
-    padding: 0,
-    width: `calc(${inputWidth} - ${32 * 2}px)`
+    padding: `0 ${inputXPadding}px`,
+    width: `${(inputWidth - 6) - (inputXPadding * 2)}px`
+  },
+  fieldFocused: {
+    borderColor: '#3D91F2'
   },
   inactive: {
     opacity: 0,
@@ -206,9 +210,6 @@ const style = StyleSheet.create({
   clearIconInactive: {
     opacity: 0
   },
-  visible: {
-
-  },
   hidden: {
     opacity: 0,
     pointerEvents: 'none'
@@ -219,9 +220,7 @@ export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'input-combobox',
     style: Style( style.combobox
-                ,   model.isVisible
-                  ? style.visible
-                  : style.hidden
+                , !model.isVisible && style.hidden
                 )
   }, [
     html.span({
@@ -242,7 +241,9 @@ export const view/*:type.view*/ = (model, address) =>
     html.input({
       className: 'input-field',
       placeholder: 'Search or enter address',
-      style: style.field,
+      style: Style( style.field
+                  , model.isFocused && style.fieldFocused
+                  ),
       type: 'text',
       value: model.value,
       isFocused: focus(model.isFocused),
