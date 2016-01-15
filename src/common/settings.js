@@ -9,81 +9,111 @@
 import * as Settings from '../common/settings';
 import * as Result from '../common/result';
 import * as Unknown from '../common/unknown';
-import {merge} from '../common/prelude';
+import {merge, always} from '../common/prelude';
 import {Effects, Task} from 'reflex';
 
 export const NotSupported =
   ReferenceError('navigator.mozSettings API is not available');
 
 export const Fetched/*:type.Fetched*/ = result =>
-  ({type: "Fetched", result});
+  ( { type: "Fetched"
+    , result
+    }
+  );
 
 export const Updated/*:type.Updated*/ = result =>
-  ({type: "Updated", result});
+  ( { type: "Updated"
+    , result
+    }
+  );
 
 export const Changed/*:type.Changed*/ = result =>
-  ({type: "Changed", result});
-
-const makeHash = pairs =>
-  pairs.reduce((result, [key, value]) => {
-    result[key] = value
-    return result
-  }, {});
-
-
-export const fetch/*:type.fetch*/ = (names) => Task.future(() => {
-  if (navigator.mozSettings) {
-    const lock = navigator.mozSettings.createLock();
-    const settings = names
-      .map(name =>
-            lock.get(name)
-                .then(result => [name, result[name]]));
-
-    return Promise.all(settings)
-                  .then(makeHash)
-                  .then(Result.ok)
-                  .catch(Result.error)
-                  .then(Fetched);
-  } else {
-    return Promise.resolve(Fetched(Result.error(NotSupported)));
-  }
-});
-
-
-export const change/*:type.change*/ = settings => Task.future(() => {
-  if (navigator.mozSettings) {
-    const lock = navigator.mozSettings.createLock();
-    return lock.set(settings)
-               .then(Result.ok)
-               .catch(Result.error)
-               .then(Changed);
-  } else {
-    return Promise.resolve(Changed(Result.error(NotSupported)));
-  }
-});
-
-export const observe/*:type.observe*/ = name => Task.io(deliver => {
-  const observer = change => {
-    if (navigator.mozSettings) {
-      navigator.mozSettings.removeObserver(name, observer);
+  ( { type: "Changed"
+    , result
     }
-    deliver(Task.succeed(Updated(Result.ok({[change.settingName]: change.settingValue}))));
-  }
+  );
 
-  if (navigator.mozSettings) {
-    navigator.mozSettings.addObserver(name, observer);
-  } else {
-    deliver(Task.fail(Updated(Result.error(NotSupported))));
-  }
-});
+const merges =
+  records =>
+  ( records.length === 1
+  ? records[0]
+  : records.reduce
+    ( (result, record) => {
+        for (let name in record) {
+          if (record.hasOwnProperty(name)) {
+            result[name] = record[name]
+          }
+        }
+        return result
+      }
+    )
+  );
 
-const observers = settings =>
-  Object.keys(settings)
-        .map(observe)
+export const fetch/*:type.fetch*/ =
+  names =>
+  Task.future(() => {
+    if (navigator.mozSettings) {
+      const lock = navigator.mozSettings.createLock();
+      const settings = names.map(name => lock.get(name));
+
+      return Promise.all(settings)
+                    .then(merges)
+                    .then(Result.ok, Result.error);
+    } else {
+      return Promise.resolve(Result.error(NotSupported));
+    }
+  });
+
+
+export const change/*:type.change*/ =
+  settings =>
+  Task.future(() => {
+    if (navigator.mozSettings) {
+      return navigator
+        .mozSettings
+        .createLock()
+        .set(settings)
+        .then(always(Result.ok(settings)), Result.error);
+    } else {
+      return Promise.resolve(Result.error(NotSupported));
+    }
+  });
+
+export const observe/*:type.observe*/ =
+  name =>
+  Task.io(deliver => {
+    const onChange = change => {
+      if (navigator.mozSettings) {
+        if (name === "*") {
+          navigator.mozSettings.removeEventListener("settingchange", onChange);
+        }
+        else {
+          navigator.mozSettings.removeObserver(name, onChange);
+        }
+      }
+
+      deliver(Task.succeed(Result.ok({[change.settingName]: change.settingValue})));
+    }
+
+    if (navigator.mozSettings) {
+      if (name === "*") {
+        navigator.mozSettings.addEventListener("settingchange", onChange);
+      }
+      else {
+        navigator.mozSettings.addObserver(name, onChange);
+      }
+    } else {
+      deliver(Task.fail(Result.error(NotSupported)));
+    }
+  });
 
 
 export const init/*:type.init*/ = names =>
-  [null, Effects.task(fetch(names))];
+  [ null
+  , Effects
+    .task(fetch(names))
+    .map(Fetched)
+  ];
 
 const updateSettings = (model, settings) =>
   // @TODO: Ignore unknown settings
@@ -93,32 +123,32 @@ const updateSettings = (model, settings) =>
     )
   , Effects.batch
     ( Object
-        .keys(settings)
-        .map(observe)
-        .map(Effects.task)
+      .keys(settings)
+      .map(name => Effects.task(observe(name)).map(Updated))
     )
   ];
 
-const reportError = (model, action) => {
-  console.error(`Unhandled Settings ${action.type} error`, action.result.error);
+const report = (model, error) => {
+  console.error(`Unhandled error occured `, error);
   return [model, Effects.none]
 }
 
 
 export const update/*:type.update*/ = (model, action) =>
-    action.type === 'Fetched'
+  ( action.type === 'Fetched'
   ? ( action.result.isOk
     ? updateSettings(model, action.result.value)
-    : reportError(model, action)
+    : report(model, action.result.error)
     )
   : action.type === 'Updated'
   ? ( action.result.isOk
     ? updateSettings(model, action.result.value)
-    : reportError(model, action)
+    : report(model, action.result.error)
     )
   : action.type === 'Changed'
   ? ( action.result.isOk
     ? updateSettings(model, action.result.value)
-    : reportError(model, action)
+    : report(model, action.result.error)
     )
   : Unknown.update(model, action)
+  );

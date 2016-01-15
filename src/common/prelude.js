@@ -148,3 +148,12 @@ export const batch = /*:: <model, action>*/
 
   return [model, FX.batch(effects)];
 }
+
+export const tag = /*::<tag:string, kind>*/
+  (tag/*:tag*/)/*:(value:kind) => type.Tagged<tag, kind>*/ =>
+  value =>
+  ({ type: tag, source: value });
+
+export const tagged = /*::<tag:string, kind>*/
+  (tag/*:tag*/, value/*:kind*/)/*:type.Tagged<tag, kind>*/ =>
+  ({ type: tag, source: value });

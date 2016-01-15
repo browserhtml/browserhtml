@@ -22,3 +22,8 @@ export type batch = <model, action>
   , model:model
   , actions:Array<action>
   ) => [model, Effects<action>]
+
+export type Tagged <tag:string, kind>
+  = { type: tag
+    , source: kind
+    }

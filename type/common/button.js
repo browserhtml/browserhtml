@@ -1,9 +1,11 @@
 /* @flow */
 
-import {VirtualTree, Address} from "reflex/type";
-import {Effects} from "reflex/type/effects";
+import type {VirtualTree, Address} from "reflex/type";
+import type {Effects} from "reflex/type/effects";
+import type {Tagged} from "../common/prelude";
 import * as Target from "../common/target";
 import * as Focusable from "../common/focusable";
+import * as Control from "../common/control";
 import {Style} from "../common/style";
 
 export type Down =
@@ -18,32 +20,17 @@ export type Up =
   { type: "Up"
   }
 
-export type Disable =
-  { type: "Disable"
-  }
+export type Enable = Tagged<"Control", Control.Enable>
+export type Disable = Tagged<"Control", Control.Disable>
 
-export type Enable =
-  { type: "Enable"
-  }
-
-type FocusableAction =
-  { type: "Focusable"
-  , action: Focusable.Action
-  }
-
-type TargetAction =
-  { type: "Target"
-  , action: Target.Action
-  }
 
 export type Action
   = Down
   | Up
   | Press
-  | Disable
-  | Enable
-  | FocusableAction
-  | TargetAction
+  | Tagged<"Control", Control.Action>
+  | Tagged<"Focusable", Focusable.Action>
+  | Tagged<"Target", Target.Action>
 
 export type Model =
   { isDisabled: boolean

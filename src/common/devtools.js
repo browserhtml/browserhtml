@@ -101,27 +101,28 @@ const restart = model =>
   [ model
   , Effects
     .task(Runtime.restart)
-    .map(Return)
+    .map(Report)
   ];
 
 const cleanRestart = model =>
   [ model
   , Effects
     .task(Runtime.cleanRestart)
-    .map(Return)
+    .map(Report)
   ];
 
 const cleanReload = model =>
   [ model
   , Effects
     .task(Runtime.cleanReload)
-    .map(Return)
+    .map(Report)
   ];
 
 const changeSetting = (model, {name, value}) =>
   [ model
   , Effects
     .task(Settings.change({[name]: value}))
+    .map(Settings.Changed)
     .map(SettingsAction)
   ];
 
@@ -134,7 +135,9 @@ const report = (model, result) =>
   ];
 
 export const init/*:type.init*/ = () => {
-  const [settings, fx] = Settings.init(Object.keys(descriptions));
+  const [settings, fx] =
+    Settings.init(Object.keys(descriptions));
+
   const result =
     [ { isActive: false
       , settings
@@ -155,9 +158,9 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'Restart'
   ? restart(model)
   : action.type === 'CleanRestart'
-  ? clearRestart(model)
+  ? cleanRestart(model)
   : action.type === 'CleanReload'
-  ? clearReload(model)
+  ? cleanReload(model)
   : action.type === 'Report'
   ? report(model, action.result)
 

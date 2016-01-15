@@ -12,40 +12,48 @@ export type Value
   | void
 
 
-export type Settings = {
-  [key:Name]:Value
-}
+export type Settings =
+  { [key:Name]: Value
+  }
 
 export type Model = ?Settings
 
+export type ResultSettings =
+  Result<Error, Settings>
 
-export type FetchResult =
+export type FetchedAction =
   { type: "Fetched"
-  , result: Result<Error, Settings>
+  , result: ResultSettings
   }
 
-export type UpdateResult =
+export type UpdatedAction =
   { type: "Updated"
-  , result: Result<Error, Settings>
+  , result: ResultSettings
   }
 
-export type ChangeResult =
+export type ChangedAction =
   { type: "Changed"
-  , result: Result<Error, Settings>
+  , result: ResultSettings
   }
 
 export type Action
-  = FetchResult
-  | UpdateResult
-  | ChangeResult
+  = FetchedAction
+  | UpdatedAction
+  | ChangedAction
 
-export type Fetched = (result:Result<Error, Settings>) => FetchResult
-export type Updated = (result:Result<Error, Settings>) => UpdateResult
-export type Changed = (result:Result<Error, Settings>) => ChangeResult
+export type Fetched = (result:ResultSettings) =>
+  FetchedAction
+export type Updated = (result:ResultSettings) =>
+  UpdatedAction
+export type Changed = (result:ResultSettings) =>
+  ChangedAction
 
-export type fetch = (names:Array<Name>) => Task<Never, FetchResult>
-export type change = (settings:Settings) => Task<Never, ChangeResult>
-export type observe = (namePattern:string) => Task<Never, UpdateResult>
+export type fetch = (names:Array<Name>) =>
+  Task<Never, ResultSettings>
+export type change = (settings:Settings) =>
+  Task<Never, ResultSettings>
+export type observe = (namePattern:string) =>
+  Task<Never, ResultSettings>
 
 export type init = (names:Array<Name>) =>
   [Model, Effects<Action>]
