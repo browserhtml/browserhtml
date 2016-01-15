@@ -163,7 +163,7 @@ const style = StyleSheet.create({
   combobox: {
     height: inputHeight,
     left: '50%',
-    marginLeft: `calc(-1 * (${inputWidth}px / 2))`,
+    marginLeft: `${-1 * (inputWidth / 2)}px`,
     position: 'absolute',
     top: '40px',
     width: `${inputWidth}px`
@@ -181,7 +181,7 @@ const style = StyleSheet.create({
     lineHeight: `${inputHeight - 6}px`,
     margin: 0,
     padding: `0 ${inputXPadding}px`,
-    width: `calc(${inputWidth - 6}px - ${inputXPadding * 2}px)`
+    width: `${(inputWidth - 6) - (inputXPadding * 2)}px`
   },
   fieldFocused: {
     borderColor: '#3D91F2'
