@@ -37,7 +37,7 @@ export const init/*:type.init*/ = () => {
     , isOpen: false
     , animation: null
     , display:
-      { x: 500
+      { x: 550
       , shadow: 0.5
       , spacing: 34
       , toolbarOpacity: 1
@@ -149,7 +149,7 @@ const display =
     , tabWidth: 34
     }
   , closed:
-    { x: 500
+    { x: 550
     , shadow: 0.5
     , spacing: 34
     , toolbarOpacity: 1
@@ -169,7 +169,7 @@ const animationProjection = model =>
 
 const animationDuration = model =>
   ( model.isOpen
-  ? 500
+  ? 550
   : 200
   );
 
