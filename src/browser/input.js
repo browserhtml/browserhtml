@@ -205,9 +205,6 @@ const style = StyleSheet.create({
   clearIconInactive: {
     opacity: 0
   },
-  visible: {
-
-  },
   hidden: {
     opacity: 0,
     pointerEvents: 'none'
@@ -218,9 +215,7 @@ export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'input-combobox',
     style: Style( style.combobox
-                ,   model.isVisible
-                  ? style.visible
-                  : style.hidden
+                , !model.isVisible && style.hidden
                 )
   }, [
     html.span({
