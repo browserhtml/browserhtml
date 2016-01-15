@@ -5,24 +5,28 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-import {merge, always} from "../common/prelude"
+import {merge, always, tag, tagged} from "../common/prelude"
 import {cursor} from "../common/cursor"
 import * as Unknown from "../common/unknown"
 import * as Target from "../common/target"
 import * as Focusable from "../common/focusable"
+import * as Control from "../common/control"
 import {Style} from "../common/style"
 import {html, Effects, forward} from "reflex"
 
 /*:: import * as type from "../../type/common/button" */
 
-export const Down = {type: "Down"};
-export const Press = {type: "Press"};
-export const Up = {type: "Up"};
-export const Disable = {type: "Disable"};
-export const Enable = {type: "Enable"};
+const TargetAction = tag("Target");
+const FocusableAction = tag("Focusable");
+const ControlAction = tag("Control");
 
-const TargetAction = action => ({type: "Target", action});
-const FocusableAction = action => ({type: "Focusable", action});
+export const Down/*:type.Down*/ = tagged("Down");
+export const Press/*:type.Press*/ = tagged("Press");
+export const Up/*:type.Up*/ = tagged("Up");
+
+export const Disable/*:type.Disable*/ = ControlAction(Control.Disable);
+export const Enable/*:type.Enable*/ = ControlAction(Control.Enable);
+
 
 export const Focus = FocusableAction(Focusable.Focus);
 export const Blur = FocusableAction(Focusable.Blur);
@@ -30,19 +34,26 @@ export const Blur = FocusableAction(Focusable.Blur);
 export const Over = TargetAction(Target.Over);
 export const Out = TargetAction(Target.Out);
 
+const updateFocusable = cursor
+  ( { tag: FocusableAction
+    , update: Focusable.update
+    }
+  );
 
-const updateFocusable = cursor({
-  tag: FocusableAction,
-  update: Focusable.update
-});
+const updateTarget = cursor
+  ( { tag: TargetAction
+    , update: Target.update
+    }
+  );
 
-const updateTarget = cursor({
-  tag: TargetAction,
-  update: Target.update
-});
+const updateControl = cursor
+  ( { tag: ControlAction
+    , update: Control.update
+    }
+  );
 
-
-export const init/*:type.init*/ = (isDisabled, isFocused, isActive, isPointerOver, text='') =>
+export const init/*:type.init*/ =
+  (isDisabled, isFocused, isActive, isPointerOver, text='') =>
   [ ({isDisabled: false
     , isFocused: false
     , isActive: false
@@ -52,7 +63,8 @@ export const init/*:type.init*/ = (isDisabled, isFocused, isActive, isPointerOve
   , Effects.none
   ]
 
-export const Model/*:type.Button*/ = ({isDisabled, isActive, isPointerOver, isFocused}) =>
+export const Model/*:type.Button*/ =
+  ({isDisabled, isActive, isPointerOver, isFocused}) =>
   ({isDisabled, isActive, isPointerOver, isFocused});
 
 export const update/*:type.update*/ = (model, action) =>
@@ -62,14 +74,12 @@ export const update/*:type.update*/ = (model, action) =>
   ? [merge(model, {isActive: false}), Effects.none]
   : action.type === "Press"
   ? [model, Effects.none]
-  : action.type === "Enable"
-  ? [merge(model, {isDisabled: false}), Effects.none]
-  : action.type === "Disable"
-  ? [merge(model, {isDisabled: true}), Effects.none]
+  : action.type === "Control"
+  ? updateControl(model, action.source)
   : action.type === "Target"
-  ? updateTarget(model, action.action)
+  ? updateTarget(model, action.source)
   : action.type === "Focusable"
-  ? updateFocusable(model, action.action)
+  ? updateFocusable(model, action.source)
   : Unknown.update(model, action)
   );
 

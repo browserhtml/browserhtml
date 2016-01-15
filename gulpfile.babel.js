@@ -154,7 +154,7 @@ gulp.task('hotreload', function() {
     port: 3125,
     url: "http://localhost:3125"
   }]]
-  settings.plugins['about/settings/index'] = [[hmr, {
+  settings.plugins['about/settings/main'] = [[hmr, {
     port: 3126,
     url: "http://localhost:3126"
   }]]
@@ -164,20 +164,20 @@ gulp.task('hotreload', function() {
 
 bundler('browser/index');
 bundler('service/history-worker');
-bundler('about/settings/index');
+bundler('about/settings/main');
 
 gulp.task('build', [
   'compressor',
   'browser/index',
   // 'service/history-worker',
-  // 'about/settings/index'
+  'about/settings/main'
 ]);
 
 gulp.task('watch', [
   'watcher',
   'browser/index',
   // 'service/history-worker',
-  // 'about/settings/index'
+  'about/settings/main'
 ]);
 
 gulp.task('develop', sequencial('watch', 'server', 'application'));

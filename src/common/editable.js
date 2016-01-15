@@ -32,6 +32,13 @@ const change = (model, action) =>
 const clear = model =>
   merge(model, {value: "", selection: null});
 
+export const init/*:type.init*/ = (value, selection=null) =>
+  [ { value
+    , selection
+    }
+  , Effects.none
+  ]
+
 export const update/*:type.update*/ = (model, action) =>
     action.type === "Clear"
   ? [clear(model), Effects.none]

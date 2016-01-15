@@ -79,6 +79,7 @@ const readAboutURL = input =>
 export const read = input =>
   isNotURL(input) ? readSearchURL(input) :
   !hasScheme(input) ? `http://${input}` :
+  isAboutURL(input) ? readAboutURL(input) :
   input;
 
 export const normalize = uri =>
