@@ -150,14 +150,24 @@ gulp.task('hotreload', function() {
     port: 3124,
     url: "http://localhost:3124"
   }]]
+
   settings.plugins['service/history-worker'] = [[hmr, {
     port: 3125,
     url: "http://localhost:3125"
   }]]
+
   settings.plugins['about/settings/main'] = [[hmr, {
     port: 3126,
     url: "http://localhost:3126"
   }]]
+
+  settings.plugins['about/repl/main'] =
+    [ [ hmr
+      , { port: 3127
+        , url: "http://localhost:3127"
+        }
+      ]
+    ]
 
   settings.transform.push(hotify);
 });
@@ -165,19 +175,22 @@ gulp.task('hotreload', function() {
 bundler('browser/index');
 bundler('service/history-worker');
 bundler('about/settings/main');
+bundler('about/repl/main');
 
 gulp.task('build', [
   'compressor',
   'browser/index',
   // 'service/history-worker',
-  'about/settings/main'
+  'about/settings/main',
+  'about/repl/main'
 ]);
 
 gulp.task('watch', [
   'watcher',
   'browser/index',
   // 'service/history-worker',
-  'about/settings/main'
+  'about/settings/main',
+  'about/repl/main'
 ]);
 
 gulp.task('develop', sequencial('watch', 'server', 'application'));
