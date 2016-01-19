@@ -48,6 +48,7 @@ const styleSheet = StyleSheet.create
       , display: 'block'
       , lineHeight: 'inherit'
       , paddingTop: '8px'
+      , whiteSpace: 'pre-wrap'
       }
     , ok:
       {

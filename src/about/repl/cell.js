@@ -82,6 +82,7 @@ const styleSheet = StyleSheet.create
       , borderColor: '#073642'
       , borderLeftColor: '#073642'
       , borderBottom: '1px dotted #073642'
+      , position: 'relative'
       }
     , editing:
       { borderLeftColor: '#586e75'

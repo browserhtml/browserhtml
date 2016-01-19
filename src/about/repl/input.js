@@ -88,6 +88,9 @@ export const update =
 const styleSheet = StyleSheet.create
   ( { base:
       { cursor: 'text'
+      , display: 'block'
+      , width: '100%'
+      , position: 'relative'
       }
     , entry:
       { fontSize: 'inherit'
@@ -110,14 +113,17 @@ const styleSheet = StyleSheet.create
       , border: 'none'
       , display: 'block'
       , lineHeight: 'inherit'
-      , paddingBottom: '6px'
+      , marginBottom: '6px'
       }
     , visible:
       {
 
       }
+    // servo$: display none seems to cause bugs in servo.
     , hidden:
-      { display: 'none'
+      { zIndex: -1
+      , position: 'absolute'
+      , opacity: '0'
       }
     }
   );

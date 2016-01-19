@@ -177,6 +177,7 @@ const styleSheet = StyleSheet.create
       , fontSize: '12px'
       , fontFamily: 'Menlo, Courier, monospace'
       , lineHeight: '14px'
+      , overflow: 'auto'
       }
     }
   );
