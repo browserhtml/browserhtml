@@ -20,8 +20,9 @@ import hotify from 'hotify';
 var settings = {
   port: process.env.BROWSER_HTML_PORT ||
         '6060',
-  runtimePath: process.env.BROWSER_HTML_RUNTIME_PATH ||
+  geckoPath: process.env.BROWSER_HTML_GECKO_PATH ||
         '/Applications/Browser.html.app/Contents/MacOS/graphene',
+  servoPath: process.env.BROWSER_HTML_SERVO_PATH,
   profilePath: process.env.BROWSER_HTML_PROFILE_PATH ||
                './.profile',
   cache: {},
@@ -114,11 +115,31 @@ gulp.task('server', function() {
 
 
 // Starts a garphene build that loads browser.html app from the localhost:6060
-gulp.task('application', function() {
-  var app = child.spawn(settings.runtimePath, [
+gulp.task('gecko', function() {
+  var app = child.spawn(settings.geckoPath, [
     '--profile',
     settings.profilePath,
     '--start-manifest=http://localhost:' + settings.port + '/manifest.webapp'
+  ], {
+    stdio: 'inherit'
+  });
+
+  var exit = function(code) {
+    app.kill();
+    process.exit(code);
+  }
+
+  process.on('SIGINT', exit);
+  app.on('close', exit);
+});
+
+gulp.task('servo', function() {
+  var app = child.spawn(settings.servoPath, [
+    '-w',
+    '-b',
+    '--pref',
+    'dom.mozbrowser.enabled',
+    'http://localhost:' + settings.port
   ], {
     stdio: 'inherit'
   });
@@ -193,7 +214,7 @@ gulp.task('watch', [
   'about/repl/main'
 ]);
 
-gulp.task('develop', sequencial('watch', 'server', 'application'));
+gulp.task('develop', sequencial('watch', 'server', 'gecko'));
 gulp.task('build-server', sequencial('watch', 'server'));
 
 gulp.task('live', ['hotreload', 'develop']);
