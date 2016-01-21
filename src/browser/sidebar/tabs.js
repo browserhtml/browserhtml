@@ -18,7 +18,8 @@ const styleSheet = StyleSheet.create({
   base: {
     width: '100%',
     height: `calc(100% - ${Toolbar.styleSheet.base.height})`,
-    paddingTop: '34px',
+    // This padding matches title bar height.
+    paddingTop: '32px',
     overflowY: 'scroll',
     boxSizing: 'border-box'
   }

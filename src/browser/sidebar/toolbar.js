@@ -91,7 +91,7 @@ export const update/*:type.update*/ = (model, action) =>
 export const styleSheet = StyleSheet.create({
   base: {
     left: '0',
-    height: '50px',
+    height: '48px',
     position: 'absolute',
     bottom: '0',
     width: '100%'
@@ -105,8 +105,8 @@ export const styleSheet = StyleSheet.create({
 const viewPin = Toggle.view('pin-button', StyleSheet.create({
   base: {
     cursor: 'pointer',
-    height: '34px',
-    width: '34px',
+    height: '32px',
+    width: '32px',
     margin: '8px',
     borderRadius: '5px',
     backgroundRepeat: 'no-repeat',
@@ -129,13 +129,13 @@ const viewClose = Button.view('create-tab-button', StyleSheet.create({
   , color: 'rgba(255,255,255,0.8)'
   , fontFamily: 'FontAwesome'
   , fontSize: '18px'
-  , lineHeight: '34px'
+  , lineHeight: '32px'
   , position: 'absolute'
   , textAlign: 'center'
   , bottom: '8px'
   , right: '8px'
-  , width: '34px'
-  , height: '34px'
+  , width: '32px'
+  , height: '32px'
   , background: 'transparent'
   }
 }));
