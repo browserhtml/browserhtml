@@ -55,15 +55,15 @@ const styleSheet = StyleSheet.create({
   base: {
     MozWindowDragging: 'no-drag',
     borderRadius: '5px',
-    height: '34px',
+    height: '32px',
     color: '#fff',
     overflow: 'hidden'
   },
 
   container: {
-    height: '34px',
-    lineHeight: '34px',
-    width: '312px',
+    height: '32px',
+    lineHeight: '32px',
+    width: '288px',
     color: '#fff',
     fontSize: '14px',
     overflow: 'hidden',
@@ -78,9 +78,9 @@ const styleSheet = StyleSheet.create({
 
   title: {
     display: 'block',
-    margin: '0 10px 0 34px',
+    margin: '0 10px 0 32px',
     overflow: 'hidden',
-    width: '270px',
+    width: '246px',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
   },
@@ -93,8 +93,8 @@ const styleSheet = StyleSheet.create({
       rgba(36,48,61,0) 0%,
       rgba(36,48,61,1) 20%,
       rgba(36,48,61,1) 100%)`,
-    width: '34px',
-    height: '34px',
+    width: '32px',
+    height: '32px',
     position: 'absolute',
     paddingLeft: '10px',
     right: 0,
@@ -125,9 +125,9 @@ const styleSheet = StyleSheet.create({
     color: '#fff',
     fontFamily: 'FontAwesome',
     fontSize: '12px',
-    width: '34px',
-    height: '34px',
-    lineHeight: '34px',
+    width: '32px',
+    height: '32px',
+    lineHeight: '32px',
     textAlign: 'center'
   }
 });
@@ -135,9 +135,9 @@ const styleSheet = StyleSheet.create({
 const viewIcon = Image.view('favicon', StyleSheet.create({
   base: {
     borderRadius: '3px',
-    left: '9px',
+    left: '8px',
     position: 'absolute',
-    top: '9px',
+    top: '8px',
     width: '16px',
     height: '16px'
   }

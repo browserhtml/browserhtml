@@ -23,7 +23,7 @@ const styleSheet = StyleSheet.create({
   , position: 'absolute'
   , right: 0
   , top: 0
-  , width: '380px'
+  , width: '320px'
   , boxSizing: 'border-box'
   , zIndex: 2 // @TODO This is a hack to avoid resizing new tab / edit tab views.
   }
@@ -39,10 +39,10 @@ export const init/*:type.init*/ = () => {
     , display:
       { x: 550
       , shadow: 0.5
-      , spacing: 34
+      , spacing: 16
       , toolbarOpacity: 1
       , titleOpacity: 1
-      , tabWidth: 312
+      , tabWidth: 288
       }
     , toolbar
     },
@@ -135,26 +135,26 @@ const display =
   { open:
     { x: 0
     , shadow: 0.5
-    , spacing: 34
+    , spacing: 16
     , toolbarOpacity: 1
     , titleOpacity: 1
-    , tabWidth: 312
+    , tabWidth: 288
     }
   , attached:
-    { x: 330
+    { x: 270
     , shadow: 0
-    , spacing: 8
+    , spacing: 9
     , toolbarOpacity: 0
     , titleOpacity: 0
-    , tabWidth: 34
+    , tabWidth: 32
     }
   , closed:
     { x: 550
     , shadow: 0.5
-    , spacing: 34
+    , spacing: 16
     , toolbarOpacity: 1
     , titleOpacity: 1
-    , tabWidth: 312
+    , tabWidth: 288
     }
   };
 
