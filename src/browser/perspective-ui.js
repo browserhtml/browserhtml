@@ -80,7 +80,7 @@ export const update = (model, action) =>
     ? Browser.update(model, Browser.ShowTabs)
     // When tab is selected in show-web-view mode activate
     // select-web-view mode & delegate original action.
-    : action.type === 'ActivateTab'
+    : action.type === 'SelectTab'
     ? batch
       ( Browser.update
       , model
@@ -114,7 +114,7 @@ export const update = (model, action) =>
         , Browser.ShowWebView
         ]
       )
-    : action.type === 'ActivateTab'
+    : action.type === 'SelectTab'
     ? batch
       ( Browser.update
       , model
