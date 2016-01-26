@@ -80,7 +80,7 @@ export const update = (model, action) =>
     ? Browser.update(model, Browser.ShowTabs)
     // When tab is selected in show-web-view mode activate
     // select-web-view mode & delegate original action.
-    : action.type === 'SelectTab'
+    : action.type === 'ActivateTab'
     ? batch
       ( Browser.update
       , model
@@ -106,7 +106,7 @@ export const update = (model, action) =>
     ? Browser.update(model, Browser.ShowWebView)
     : action.type === 'OverlayClicked'
     ? Browser.update(model, Browser.ShowWebView)
-    : action.type === 'SelectTabByID'
+    : action.type === 'ActivateTabByID'
     ? batch
       ( Browser.update
       , model
@@ -114,7 +114,7 @@ export const update = (model, action) =>
         , Browser.ShowWebView
         ]
       )
-    : action.type === 'SelectTab'
+    : action.type === 'ActivateTab'
     ? batch
       ( Browser.update
       , model

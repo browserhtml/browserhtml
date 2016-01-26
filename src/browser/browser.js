@@ -86,8 +86,6 @@ const SidebarAction = action =>
   ? CreateWebView
   : action.type === "ActivateTab"
   ? ActivateWebViewByID(action.id)
-  : action.type === "SelectTab"
-  ? SelectWebViewByID(action.id)
   : action.type === "CloseTab"
   ? CloseWebViewByID(action.id)
   : action.type === "Tabs"
@@ -133,16 +131,12 @@ const WebViewsAction = action =>
   ? { type: "SelectTab"
     , source: action
     }
-  : action.type === "SelectByID"
-  ? { type: "SelectTabByID"
-    , source: action
-    }
   : action.type === "ActivateSelected"
   ? { type: "ActivateTab"
     , source: action
     }
   : action.type === "ActivateByID"
-  ? { type: "ActivateTab"
+  ? { type: "ActivateTabByID"
     , source: action
     }
   : { type: 'WebViews'
@@ -362,8 +356,6 @@ const OpenURL = ({url}) =>
 
 export const ActivateWebViewByID =
   compose(WebViewsAction, WebViews.ActivateByID);
-const SelectWebViewByID =
-  compose(WebViewsAction, WebViews.SelectByID);
 const WebViewActionByID =
   compose(WebViewsAction, WebViews.ActionByID);
 
@@ -734,7 +726,7 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateWebViews(model, action.source)
   : action.type === 'SelectTab'
   ? updateWebViews(model, action.source)
-  : action.type === 'SelectTabByID'
+  : action.type === 'ActivateTabByID'
   ? updateWebViews(model, action.source)
   : action.type === 'ActivateTab'
   ? updateWebViews(model, action.source)

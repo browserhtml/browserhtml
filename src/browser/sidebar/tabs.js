@@ -31,11 +31,6 @@ export const Close/*:type.Close*/ = id =>
     }
   );
 
-export const Select/*:type.Select*/ = id =>
-  ( { type: "Select"
-    , id
-    }
-  );
 
 export const Activate/*:type.Activate*/ = id =>
   ( { type: "Activate"
@@ -48,8 +43,6 @@ export const ByID/*:type.ByID*/ =
   action =>
   ( action.type === "Close"
   ? Close(id)
-  : action.type === "Select"
-  ? Select(id)
   : action.type === "Activate"
   ? Activate(id)
   : { type: "Tab"

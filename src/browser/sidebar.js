@@ -65,20 +65,15 @@ export const Detach =
 
 export const Open = {type: "Open"};
 export const Close = {type: "Close"};
-export const Select = {type: "Select"};
 export const Activate = {type: "Activate"};
 export const CloseTab/*:type.CloseTab*/ = id =>
   ({type: "CloseTab", id});
-export const SelectTab/*:type.SelectTab*/ = id =>
-  ({type: "SelectTab", id});
 export const ActivateTab/*:type.ActivateTab*/ = id =>
   ({type: "ActivateTab", id});
 
 const TabsAction = action =>
   (  action.type === "Close"
   ? CloseTab(action.id)
-  : action.type === "Select"
-  ? SelectTab(action.id)
   : action.type === "Activate"
   ? ActivateTab(action.id)
   : { type: "Tabs"
