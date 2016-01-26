@@ -13,38 +13,38 @@ import {prettify} from '../common/url-helper';
 
 /*:: import * as type from "../../type/browser/assistant" */
 
-export const initial/*:type.Model*/ = {
-  query: "",
-  selected: -1,
-
-  topHit: null,
-  page: [],
-  search: [],
-
-  isVisible: false,
-  isExpanded: false
-};
 
 export const Open = {type: "Open"};
 export const Close = {type: "Close"};
 export const Expand = {type: "Expand"};
 
-export const Unselect/*:type.Unselect*/ = {type: "Assistant.Unselect"};
-export const asUnselect/*:type.asUnselect*/ = always(Unselect);
+export const Unselect/*:type.Unselect*/ =
+  { type: "Unselect"
+  };
 
-export const Reset/*:type.Reset*/ = {type: "Assistant.Reset"};
-export const asReset/*:type.asReset*/ = always(Reset);
+export const Reset/*:type.Reset*/ =
+  { type: "Reset"
+  };
 
-export const asSelectRelative/*:type.asSelectRelative*/ = offset =>
-  ({type: "Assistant.SelectRelative", offset});
+export const SelectRelative/*:type.asSelectRelative*/ =
+  offset =>
+  ( { type: "SelectRelative"
+    , offset
+    }
+  );
 
-export const asQuery/*:type.asQuery*/ = input =>
-  ({type: "Assistant.Query", input});
+export const Query/*:type.asQuery*/ =
+  input =>
+  ( { type: "Query"
+    , input
+    }
+  );
 
 const MAX_RESULTS = 5;
 
 // Counts number of available suggestions in the above defined model instance.
-export const countAllSuggestions/*:type.countAllSuggestions*/ = ({topHit, search, page}) =>
+export const countAllSuggestions/*:type.countAllSuggestions*/ =
+  ({topHit, search, page}) =>
   (topHit != null ? 1 : 0) +
   Math.min(search.length + page.length, MAX_RESULTS);
 
@@ -71,7 +71,7 @@ export const selectRelative/*:type.selectRelative*/ = (model, offset) => {
                       last :
                       to;
 
-  return merge(model, {selected});
+  return [merge(model, {selected}), Effects.none];
 };
 
 
@@ -159,175 +159,194 @@ export const query/*:type.query*/ = (input, limit) => Effects.batch([
   Search.query(input, limit)
 ]);
 
-export const init/*:type.init*/ = () =>
-  [ initial, Effects.none ];
+export const init/*:type.init*/ =
+  () => {
+    const query = ""
+    const {topHit, topFX} = TopHit.init(query)
+    const {page, pageFX} = Page.init(query)
+    const {search, searchFX} = Search.init(query)
 
-export const update/*:type.update*/ = (model, action) => {
-  if (action.type === "Open") {
-    return (
-      [ merge(model, { isOpen: true, isExpanded: false })
-      , Effects.none
-      ]
-    );
-  }
-  else if (action.type === "Close") {
-    return (
-      [ merge(model, { isOpen: false, isExpanded: false })
-      , Effects.none
-      ]
-    );
-  }
-  else if (action.type === "Expand") {
-    return (
-      [ merge(model, {isOpen: true, isExpanded: true })
-      , Effects.none
-      ]
+    const model =
+      { query
+      , selected: null
+      , isOpen: false
+      , isExpanded: false
+
+      , topHit
+      , page
+      , search
+      }
+
+    const fx = Effects.batch
+      ( [ topFX.map(TopAction)
+        , pageFX.map(PageAction)
+        , searchFX.map(SearchAction)
+        ]
+      )
+
+    return [model, fx];
+  };
+
+const reset =
+  model =>
+  init();
+
+const open =
+  model =>
+  [ merge
+    ( model
+    , { isOpen: true
+      , isExpanded: true
+      }
     )
-  }
-  else if (action.type === "Assistant.Reset") {
-    return [
-      initial,
-      Effects.none
-    ]
-  } else if (action.type === "Assistant.Unselect") {
-    return [
-      merge(model, {selected: initial.selected}),
-      Effects.none
-    ]
-  } else if (action.type === "Assistant.SelectRelative") {
-    return [
-      selectRelative(model, action.offset),
-      Effects.none
-    ]
-  } else if (action.type === "Assistant.Query") {
-    if (model.query === action.input) {
-      return [model, Effects.none]
-    } else {
-      return [
-        merge(model, {query: action.input}),
-        query(action.input, MAX_RESULTS)
-      ]
-    }
-  } else if (action.type === "History.Result") {
-    if (action.query === model.query) {
-      return [
-        retainSelected(model, merge(model, {
-          topHit: action.topHit,
-          page: action.matches
-        })),
-        Effects.none
-      ]
-    } else {
-      return [model, Effects.none]
-    }
-  } else /*if (action.type === "Search.Result")*/ {
-    if (action.query === model.query) {
-      return [
-        retainSelected(model, merge(model, {
-          search: action.matches
-        })),
-        Effects.none
-      ]
-    } else {
-      return [model, Effects.none]
-    }
-  }
-}
+  , Effects.none
+  ];
 
-const style = StyleSheet.create({
-  assistant: {
-    background: '#fff',
-    left: 0,
-    position: 'absolute',
-    top: 0,
-    // @WORKAROUND use percent instead of vw/vh to work around
-    // https://github.com/servo/servo/issues/8754
-    width: '100%'
-  },
-
-  assistantExpanded: {
-   height: '100%'
-  },
-
-  assistantOpen: {
-
-  },
-
-  assistantClosed: {
-    display: 'none'
-  },
-
-  icon: {
-    color: 'rgba(0,0,0,0.7)',
-    fontFamily: 'FontAwesome',
-    fontSize: '17px',
-    left: '10px',
-    position: 'absolute'
-  },
-
-  iconSelected: {
-    color: '#fff'
-  },
-
-  results: {
-    listStyle: 'none',
-    margin: '120px auto 0',
-    padding: 0,
-    width: '460px'
-  },
-
-  result: {
-    borderBottom: '1px solid rgba(0,0,0,0.08)',
-    lineHeight: '40px',
-    overflow: 'hidden',
-    paddingLeft: '35px',
-    paddingRight: '10px',
-    position: 'relative', // Contains absolute elements.
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis'
-  },
-
-  resultTitle: {
-    color: 'rgba(0,0,0,0.7)',
-    fontSize: '14px'
-  },
-
-  resultTitleSelected: {
-    color: '#fff'
-  },
-
-  resultUrl: {
-    color: '#4A90E2',
-    fontSize: '14px'
-  },
-
-  resultUrlSelected: {
-    color: 'rgba(255,255,255,0.7)'
-  },
-
-  resultSelected: {
-    background: '#4A90E2',
-    borderBottomColor: 'transparent',
-    borderRadius: '3px'
-  },
-
-  resultAdjacentToSelected: {
-    borderColor: 'transparent'
-  }
-});
-
-// @TODO localize this string.
-const fallbackTitle = 'Untitled';
-
-// Render a title in a result
-const viewTitle = (model, index, selected) =>
-  html.span({
-    className: 'assistant-title',
-    style: Style(
-      style.resultTitle,
-      index === selected && style.resultTitleSelected
+const close =
+  model =>
+  [ merge
+    ( model
+    , { isOpen: false
+      , isExpanded: false
+      }
     )
-  }, [History.readTitle(model, fallbackTitle)]);
+  , Effects.none
+  ];
+
+const expand =
+  model =>
+  [ merge
+    ( model
+    , { isOpen: true
+      , isExpanded: true
+      }
+    )
+  , Effects.none
+  ];
+
+const unselect =
+  model =>
+  [ merge
+    ( model
+    , { selected: -1
+      }
+    )
+  , Effects.none
+  ];
+
+const query =
+  (model, input) =>
+  ( model.query === input
+  ? [ model
+    , Effects.none
+    ]
+  : [ merge
+      ( model
+      , { query: input
+        }
+      )
+    , Effects.batch
+      ( [ Effects
+          .task(History.query(input))
+          .map(HistoryResult)
+        , Effects
+          .task(Search.query(input))
+          .map(SearchResult)
+        ]
+      )
+    ]
+  );
+
+const updateHistoryResults =
+  (model, topHit, page) =>
+  [ retainSelected
+    ( model
+    , merge
+      ( model
+      , { topHit
+        , page
+        }
+      )
+    )
+  , Effects.none
+  ];
+
+const updateSearchResults =
+  (model, search) =>
+  [ retainSelected
+    ( model
+    , merge
+      ( model
+      , { search
+        }
+      )
+    )
+  , Effects.none
+  ];
+
+
+export const update/*:type.update*/ =
+  (model, action) =>
+  ( action.type === "Open"
+  ? open(model)
+  : action.type === "Close")
+  ? close(model)
+  : action.type === "Expand"
+  ? expand(model)
+  : action.type === "Reset"
+  ? reset(model)
+  : action.type === "Unselect"
+  ? unselect(model)
+  : action.type === "SelectRelative"
+  ? selectRelative(model, action.offset)
+  : action.type === "Query"
+  ? query(model, action.input)
+  : action.type === "HistoryResult"
+  ? updateHistoryResults(model, action.topHit, action.matches)
+  : action.type === "SearchResult"
+  ? updateSearchResults(model, action.matches)
+  : Unknown.update(model, action)
+  );
+
+const styleSheet = StyleSheet.create
+  ( { assistant:
+      { background: '#fff'
+      , left: '0px'
+      , position: 'absolute'
+      , top: '0px'
+      , width: '100%'
+      }
+    , assistantExpanded:
+      { height: '100%'
+      }
+    , assistantOpen:
+      {
+      },
+
+      assistantClosed:
+      { display: 'none'
+      }
+
+    , results:
+      { listStyle: 'none'
+      , margin: '120px auto 0'
+      , padding: '0px'
+      , width: '460px'
+      }
+    , resultUrl:
+      { color: '#4A90E2'
+      , fontSize: '14px'
+      }
+
+    , resultUrlSelected:
+      { color: 'rgba(255,255,255,0.7)'
+      }
+
+    , resultAdjacentToSelected:
+      { borderColor: 'transparent'
+      }
+    }
+  );
 
 // Returns an array of vdom nodes. There's only one top hit, but returning
 // an array keeps the return value type consistent with the other 2 result view
@@ -370,25 +389,6 @@ const viewHistory = (model, index, selected, address) =>
     }, [` — ${prettify(model.uri)}`])
   ]);
 
-// Returns an array of vdom nodes
-const viewSearch = (model, index, selected, address) =>
-  html.li({
-    classname: 'assistant-result assistant-search',
-    style: Style(
-      style.result,
-      index === selected && style.resultSelected,
-      index === selected - 1 && style.resultAdjacentToSelected
-    )
-  }, [
-    html.div({
-      className: 'assistant-icon',
-      style: Style(
-        style.icon,
-        index === selected && style.iconSelected
-      )
-    }, ['']),
-    viewTitle(model, index, selected)
-  ]);
 
 // Renders a result, picking the view function based on the model type.
 const viewResult = (model, index, selected, address) =>

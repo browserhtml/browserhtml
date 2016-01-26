@@ -1,0 +1,61 @@
+/* @flow */
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+import {Effects, html, forward, thunk} from "reflex";
+import {merge, always, batch} from "../../common/prelude";
+import {Style, StyleSheet} from '../../common/style';
+import * as URI from '../../common/url-helper';
+
+/*::
+import * as URL from "../../../type/browser/assistant/url"
+*/
+
+
+const styleSheet = StyleSheet.create
+  ( { base:
+      { color: '#4A90E2'
+      , fontSize: '14px'
+      }
+    , selected:
+      { color: 'rgba(255,255,255,0.7)'
+      }
+    , unselected:
+      {
+
+      }
+    }
+  );
+
+const preventDefault =
+  event =>
+  event.preventDefault();
+
+export const render/*:URL.view*/ =
+  model =>
+  html.a
+  ( { className: 'assistant url'
+    , style: Style
+      ( styleSheet.base
+      , ( model.isSelected
+        ? styleSheet.selected
+        : styleSheet.unselected
+        )
+      )
+    , href: model.uri
+    , onClick: preventDefault
+    }
+  , [ ` - ${URI.prettify(model.uri)}`
+    ]
+  );
+
+export const view/*:URL.view*/ =
+  model =>
+  thunk
+  ( model.id
+  , render
+  , model
+  );
