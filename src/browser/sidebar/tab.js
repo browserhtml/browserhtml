@@ -180,7 +180,6 @@ export const view/*:type.view*/ = (model, address, {tabWidth, titleOpacity}) =>
       )
     , onMouseOver: forward(address, always(Over))
     , onMouseOut: forward(address, always(Out))
-    , onMouseDown: forward(address, always(Select))
     , onMouseUp: forward(address, always(Activate))
     }
   , [ html.div
