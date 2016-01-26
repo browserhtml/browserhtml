@@ -163,7 +163,13 @@ const viewClose = ({isSelected, tab}, address) =>
       html.div
       ( { className: 'tab-close-icon'
         , style: styleSheet.closeIcon
-        , onClick: forward(address, always(Close))
+        , onClick:
+            event => {
+              // Should prevent propagation so that tab won't trigger
+              // Activate action when close button is clicked.
+              event.stopPropagation();
+              address(Close);
+            }
         }, [''])
   ]);
 
@@ -180,7 +186,7 @@ export const view/*:type.view*/ = (model, address, {tabWidth, titleOpacity}) =>
       )
     , onMouseOver: forward(address, always(Over))
     , onMouseOut: forward(address, always(Out))
-    , onMouseUp: forward(address, always(Activate))
+    , onClick: forward(address, always(Activate))
     }
   , [ html.div
       ( { className: 'sidebar-tab-inner'
