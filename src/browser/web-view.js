@@ -95,7 +95,7 @@ export const OpenSyncWithMyIFrame/*:type.OpenSyncWithMyIFrame*/ =
     Driver.element.use(frameElement);
     return {
       type: "Open!WithMyIFrameAndInTheCurrentTick"
-    , isFoced: true
+    , isForced: true
     , options: {uri, name, features, inBackground: false}
     };
   };
