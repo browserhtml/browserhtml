@@ -301,7 +301,7 @@ const open = (model, options, isForced=false) => {
       ( [ initFX.map(ByID(id))
         , activateFX
         , ( isForced
-          ? Driver.Force
+          ? Driver.force
           : Effects.none
           )
         ]
