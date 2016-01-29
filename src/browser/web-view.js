@@ -871,9 +871,19 @@ const decodeClose = always(Close);
 const decodeDetail = ({detail}) => detail;
 const decodeTime = ({detail}) => performance.now();
 
+// Detail is different in each case, so we define a special reader function
+// for this particular case.
+const decodeOpenDetail = ({detail}) =>
+  ( { frameElement: detail.frameElement
+    // Change url to uri for naming consistency.
+    , uri: detail.url
+    , name: detail.name
+    , features: detail.features
+    }
+  );
 
-const decodeOpenWindow = compose(OpenSyncWithMyIFrame, decodeDetail);
-const decodeOpenTab = compose(OpenSyncWithMyIFrame, decodeDetail);
+const decodeOpenWindow = compose(OpenSyncWithMyIFrame, decodeOpenDetail);
+const decodeOpenTab = compose(OpenSyncWithMyIFrame, decodeOpenDetail);
 
 
 const decodeContexMenu = compose(ContextMenu, decodeDetail);
