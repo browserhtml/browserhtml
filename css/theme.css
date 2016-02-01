@@ -13,8 +13,16 @@
   /* image-rendering: -moz-crisp-edges; */
 }
 
+:focus {
+  border: 0;
+  outline: 0;
+}
+
+/* @WORKAROUND: can't combine with above rule because of
+  https://github.com/servo/servo/issues/9476 */
 *::-moz-focus-inner {
   border: 0;
+  outline: 0;
 }
 
 /* @WORKAROUND using percentage instead of vh/vw to work around
