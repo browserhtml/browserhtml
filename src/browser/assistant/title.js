@@ -30,28 +30,29 @@ const styleSheet = StyleSheet.create
   );
 
 export const render/*:Title.view*/ =
-  model =>
+  (title, isSelected) =>
   html.span
   ( { className: 'assistant title'
     , style: Style
       ( styleSheet.base
-      , ( model.isSelected
+      , ( isSelected
         ? styleSheet.selected
         : styleSheet.unselected
         )
       )
     }
-  , [ ( model.title == null
+  , [ ( title == null
       ? 'Untitled'
-      : model.title
+      : `${title}`
       )
     ]
   );
 
 export const view/*:Title.view*/ =
-  model =>
+  (title, isSelected) =>
   thunk
-  ( String(model.title)
+  ( `${title}`
   , render
-  , model
+  , title
+  , isSelected
   );

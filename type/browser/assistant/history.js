@@ -38,7 +38,7 @@ export type Model =
   }
 
 export type view =
-  (model:Model, address:Address<Action>) =>
+  (model:Match, address:Address<Action>) =>
   VirtualTree
 
 export type search =

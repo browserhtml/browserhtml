@@ -114,6 +114,8 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateFocusable(model, action.source)
   : action.type === 'Editable'
   ? updateEditable(model, action.source)
+  : action.type === 'Change'
+  ? updateEditable(model, Editable.Change(action.value, action.selection))
   : action.type === 'Show'
   ? [merge(model, {isVisible: true}), Effects.none]
   : action.type === 'Hide'
@@ -141,10 +143,12 @@ const readSelection = target => ({
 
 // Read change action from a dom event.
 // @TODO type signature
-const readChange = compose
-  ( EditableAction
-  , ({target}) =>
-      Editable.Change(target.value, readSelection(target))
+const readChange =
+  ({target}) =>
+  ( { type: "Change"
+    , value: target.value
+    , selection: readSelection(target)
+    }
   );
 
 // Read select action from a dom event.

@@ -10,6 +10,8 @@ import type {Style} from "../../common/style";
 
 export type Model <model> =
   { id: string
+  , isSelected: boolean
+  , content: model
   }
 
 export type InnerView <model, action> =

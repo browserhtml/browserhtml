@@ -20,9 +20,9 @@ import * as Page from "../../../type/browser/assistant/page"
 
 
 const innerView =
-  (model, address) =>
-  [ Icon.view(model, '')
-  , Title.view(model)
+  (model, address, isSelected) =>
+  [ Icon.view('', isSelected)
+  , Title.view(model.title, isSelected)
   , URL.view(model)
   ];
 

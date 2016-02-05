@@ -6,102 +6,44 @@
 
 
 import {Effects, Task, html, forward, thunk} from "reflex";
-import {merge, always, tag, tagged, batch} from "../../common/prelude";
+import {merge, always, tag, batch} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
 import * as Result from '../../common/result';
 
+import * as Page from './page';
+import * as TopHit from './top-hit';
 import * as Title from "./title";
+import * as URL from "./url";
 import * as Icon from "./icon";
 import * as Suggestion from "./suggestion";
 import * as Unknown from '../../common/unknown';
 
 /*::
-import * as Search from "../../../type/browser/assistant/search"
+import * as History from "../../../type/browser/assistant/history"
 */
 
 
 const Abort = tag("Abort");
-export const SelectNext = tagged("SelectNext");
-export const SelectPrevious = tagged("SelectPrevious");
 export const Query = tag("Query");
 const UpdateMatches = tag("UpdateMatches");
-const byURI =
-  uri =>
-  action =>
-  tagged("ByURI", {uri, action});
 
-const decodeFailure = ({target: request}) =>
-  Result.error
-  // @FlowIssue: Flow does not know about `request.url`
-  (Error(`Failed to send request to ${request.url} : ${request.statusText}`));
-
-const decodeResponseFailure =
-  request =>
-  // @FlowIssue: Flow does not know about `request.response`
-  Result.error(Error(`Can not decode ${request.respose} received from ${request.url}`))
-
-const decodeMatches =
-  matches =>
-  ( Array.isArray(matches)
-  ? Result.ok(matches.map(decodeMatch))
-  : Result.error(Error(`Can not decode non array matches ${matches}`))
-  );
-
-const decodeMatch =
-  match =>
-  ( { title: match
-    , uri: `https://duckduckgo.com/?q=${encodeURIComponent(match)}`
-    }
-  );
-
-const decodeResponse = ({target: request}) =>
-  // @FlowIssue: Flow does not know about `request.responseType`
-  ( request.responseType !== 'json'
-  // @FlowIssue: Flow does not know about `request.url`
-  ? Result.error(Error(`Can not decode ${request.responseType} type response from ${request.url}`))
-  : request.response == null
-  ? decodeResponseFailure(request)
-  : request.response[1] == null
-  ? decodeResponseFailure(request)
-  : decodeMatches(request.response[1])
-  );
 
 const pendingRequests = Object.create(null);
 
 const abort =
   id =>
-  Task.io(deliver => {
-    if (pendingRequests[id] != null) {
-      pendingRequests[id].abort();
-      delete pendingRequests[id];
-    }
-  })
+  Task.future(() => new Promise(resolve => {
 
-const search/*:Search.search*/ =
+  }));
+
+const search/*:History.search*/ =
   (id, input, limit) =>
   Task.future(() => new Promise(resolve => {
-    const request = new XMLHttpRequest({ mozSystem: true });
-    pendingRequests[id] = request;
 
-    request.open
-    ( 'GET'
-    , `https://ac.duckduckgo.com/ac/?q=${input}&type=list`
-    , true
-    );
-    request.responseType = 'json';
-    request.send();
-    request.onerror = event => {
-      delete pendingRequests[id];
-      resolve(decodeFailure(event));
-    };
-    request.onload = event => {
-      delete pendingRequests[id];
-      resolve(decodeResponse(event));
-    };
   }));
 
 
-export const init/*:Search.init*/ =
+export const init/*:History.init*/ =
   (query, limit) =>
   [ { query
     , size: 0
@@ -156,19 +98,6 @@ const updateQuery =
   (model, query) =>
   ( model.query === query
   ? [ model, Effects.none ]
-  : query.trim() === ""
-  ? [ merge
-      ( model
-      , { query: ""
-        , selected: null
-        , matches: {}
-        , items: []
-        }
-      )
-    , Effects.task
-      (abort(model.queryID))
-      .map(Abort)
-    ]
   : [ merge(model, {query, queryID: model.queryID + 1 })
     , Effects.batch
       ( [ Effects.task
@@ -218,11 +147,7 @@ const retainSelected = (model, {matches, items}) => {
   return merge(model, {size, selected, items, matches})
 };
 
-const updateByURI =
-  (model, {uri, action}) =>
-  [model, Effects.none];
-
-export const update/*:Search.update*/ =
+export const update/*:History.update*/ =
   (model, action) =>
   ( action.type === "Query"
   ? updateQuery(model, action.source)
@@ -234,18 +159,18 @@ export const update/*:Search.update*/ =
   ? unselect(model)
   : action.type === "UpdateMatches"
   ? updateMatches(model, action.source)
-  : action.type === "ByURI"
-  ? updateByURI(model, action.source)
   : Unknown.update(model, action)
   )
 
 const innerView =
   (model, address, isSelected) =>
-  [ Icon.view('', isSelected)
+  [ Icon.view('', isSelected)
   , Title.view(model.title, isSelected)
+  , URL.view(model)
   ];
 
-export const render/*:Search.view*/ =
+
+export const render/*:History.view*/ =
   (model, address) =>
   html.embed
   ( null
@@ -262,10 +187,10 @@ export const render/*:Search.view*/ =
     )
   )
 
-export const view/*:Search.view*/ =
+export const view/*:History.view*/ =
   (model, address) =>
   thunk
-  ( 'search'
+  ( 'history'
   , render
   , model
   , address

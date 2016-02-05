@@ -14,10 +14,8 @@ export type Action
   = Action
 
 export type Model =
-  { id: string
-  , title: ?string
+  { title: ?string
   , uri: string
-  , isSelected: boolean
   }
 
 export type view =

@@ -33,12 +33,12 @@ const styleSheet = StyleSheet.create
   );
 
 export const render/*:Icon.view*/ =
-  (model, content) =>
+  (content, isSelected) =>
   html.span
   ( { className: 'assistant icon'
     , style: Style
       ( styleSheet.base
-      , ( model.isSelected
+      , ( isSelected
         ? styleSheet.selected
         : styleSheet.unselected
         )
@@ -49,10 +49,10 @@ export const render/*:Icon.view*/ =
   );
 
 export const view/*:Icon.view*/ =
-  (model, content) =>
+  (content, isSelected) =>
   thunk
-  ( model.id
+  ( `${content}`
   , render
-  , model
   , content
+  , isSelected
   );

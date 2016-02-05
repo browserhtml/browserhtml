@@ -8,14 +8,6 @@ import type {VirtualTree, Address} from "reflex/type"
 import type {Effects} from "reflex/type/effects"
 import type {Style} from "../../common/style";
 
-export type Model =
-  { id: string
-  , isSelected: boolean
-  }
-
-export type Content =
-  VirtualTree
-
 export type view =
-  (model:Model, content:Content) =>
+  (content:string, isSelected:boolean) =>
   VirtualTree

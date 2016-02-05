@@ -17,8 +17,8 @@ import * as TopHit from "../../../type/browser/assistant/top-hit"
 */
 
 const innerView =
-  (model, address) =>
-  [ Title.view(model)
+  (model, address, isSelected) =>
+  [ Title.view(model.title, isSelected)
   ];
 
 export const render/*:TopHit.view*/ =

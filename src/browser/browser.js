@@ -25,7 +25,7 @@ import * as OS from '../common/os';
 import * as Keyboard from '../common/keyboard';
 import * as Stopwatch from "../common/stopwatch";
 import * as Easing from "eased";
-import {merge, always, batch} from "../common/prelude";
+import {merge, always, batch, tag, tagged} from "../common/prelude";
 import {cursor} from "../common/cursor";
 import {Style, StyleSheet} from '../common/style';
 
@@ -115,9 +115,9 @@ const InputAction = action =>
   ? ExitInput
   : action.type === 'Blur'
   ? BlurInput
-  : { type: 'Input'
-    , source: action
-    }
+  : action.type === 'Change'
+  ? tagged('InputChange', action)
+  : tagged('Input', action)
   );
 
 const WebViewsAction = action =>
@@ -160,11 +160,7 @@ const DevtoolsAction = action =>
     }
   );
 
-const AssistantAction = action =>
-  ( { type: 'Assistant'
-    , action
-    }
-  );
+const AssistantAction = tag('Assistant');
 
 const UpdaterAction = action =>
   ( { type: 'Updater'
@@ -378,6 +374,7 @@ export const FocusInput = InputAction(Input.Focus);
 const OpenAssistant = AssistantAction(Assistant.Open);
 const CloseAssistant = AssistantAction(Assistant.Close);
 const ExpandAssistant = AssistantAction(Assistant.Expand);
+const QueryAssistant = compose(AssistantAction, Assistant.Query);
 
 const OpenSidebar = SidebarAction(Sidebar.Open);
 const CloseSidebar = SidebarAction(Sidebar.Close);
@@ -587,6 +584,17 @@ const reloadRuntime = model =>
     .map(Reloaded)
   ];
 
+
+const updateQuery =
+  (model, action) =>
+  batch
+  ( update
+  , model
+  , [ tagged('Input', action)
+    , tagged('Assistant', Assistant.Query(action.value))
+    ]
+  )
+
 // Animations
 
 const expand = model =>
@@ -719,6 +727,9 @@ export const update/*:type.update*/ = (model, action) =>
   // Delegate to the appropriate module
   : action.type === 'Input'
   ? updateInput(model, action.source)
+  : action.type === 'InputChange'
+  ? updateQuery(model, action.source)
+
   : action.type === 'BlurInput'
   ? updateInput(model, action.source)
 
@@ -737,7 +748,7 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateShell(model, action.source)
 
   : action.type === 'Assistant'
-  ? updateAssistant(model, action.action)
+  ? updateAssistant(model, action.source)
   : action.type === 'Devtools'
   ? updateDevtools(model, action.action)
   : action.type === 'Sidebar'

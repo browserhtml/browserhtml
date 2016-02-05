@@ -14,6 +14,7 @@ import * as Icon from "./icon";
 
 /*::
 import * as Suggestion from "../../../type/browser/assistant/suggestion"
+import type {Address, VirtualTree} from "reflex/type"
 */
 
 
@@ -40,26 +41,19 @@ const styleSheet = StyleSheet.create
     }
   );
 
-export const render = /*::<model:Suggestion.Model, action>*/
-  (model/*:model*/, address/*:Suggestion.Address<action>*/, innerView/*:Suggestion.InnerView<model, action>*/)/*:Suggestion.VirtualTree*/ =>
+export const render =
+  (isSelected/*:boolean*/, content/*:Array<VirtualTree>*/)/*:VirtualTree*/ =>
   html.li
   ( { className: 'assistant suggestion'
     , style: Style
       ( styleSheet.base
-      , ( model.isSelected
+      , ( isSelected
         ? styleSheet.selected
         : styleSheet.unselected
         )
       )
     }
-  , innerView(model, address)
+  , content
   );
 
-export const view = /*::<model:Suggestion.Model, action>*/
-  (model/*:model*/, address/*:Suggestion.Address<action>*/, innerView/*:Suggestion.InnerView<model, action>*/)/*:Suggestion.VirtualTree*/ =>
-  thunk
-  ( model.id
-  , render
-  , model
-  , innerView
-  );
+export const view = render
