@@ -115,8 +115,12 @@ const InputAction = action =>
   ? ExitInput
   : action.type === 'Blur'
   ? BlurInput
-  : action.type === 'Change'
-  ? tagged('InputChange', action)
+  : action.type === 'Query'
+  ? Query(action.source)
+  : action.type === 'SuggestNext'
+  ? SuggestNext
+  : action.type === 'SuggestPrevious'
+  ? SuggestPrevious
   : tagged('Input', action)
   );
 
@@ -160,7 +164,12 @@ const DevtoolsAction = action =>
     }
   );
 
-const AssistantAction = tag('Assistant');
+const AssistantAction =
+  action =>
+  ( action.type === 'Suggest'
+  ? Suggest(action.source)
+  : tagged('Assistant', action)
+  );
 
 const UpdaterAction = action =>
   ( { type: 'Updater'
@@ -316,6 +325,9 @@ export const BlurInput =
 
 // ## Resize actions
 
+export const SuggestNext = tagged('SuggestNext');
+export const SuggestPrevious = tagged('SuggestPrevious');
+export const Suggest = tag('Suggest');
 export const Expand/*:type.Expand*/ = {type: "Expand"};
 export const Expanded/*:type.Expanded*/ = {type: "Expanded"};
 export const Shrink/*:type.Shrink*/ = {type: "Shrink"};
@@ -349,6 +361,7 @@ const OpenURL = ({url}) =>
     , uri: url
     }
   );
+const Query = tag('Query');
 
 export const ActivateWebViewByID =
   compose(WebViewsAction, WebViews.ActivateByID);
@@ -587,13 +600,10 @@ const reloadRuntime = model =>
 
 const updateQuery =
   (model, action) =>
-  batch
-  ( update
-  , model
-  , [ tagged('Input', action)
-    , tagged('Assistant', Assistant.Query(action.value))
-    ]
-  )
+  updateAssistant
+  ( model
+  , Assistant.Query(model.input.value)
+  );
 
 // Animations
 
@@ -711,7 +721,6 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'ReloadRuntime'
   ? reloadRuntime(model)
 
-
   // Expand / Shrink animations
   : action.type === "Expand"
   ? expand(model)
@@ -727,8 +736,8 @@ export const update/*:type.update*/ = (model, action) =>
   // Delegate to the appropriate module
   : action.type === 'Input'
   ? updateInput(model, action.source)
-  : action.type === 'InputChange'
-  ? updateQuery(model, action.source)
+  : action.type === 'Suggest'
+  ? updateInput(model, Input.Suggest(action.source))
 
   : action.type === 'BlurInput'
   ? updateInput(model, action.source)
@@ -747,8 +756,16 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'Focus'
   ? updateShell(model, action.source)
 
+  // Assistant
   : action.type === 'Assistant'
   ? updateAssistant(model, action.source)
+  : action.type === 'Query'
+  ? updateQuery(model)
+  : action.type === 'SuggestNext'
+  ? updateAssistant(model, Assistant.SuggestNext)
+  : action.type === 'SuggestPrevious'
+  ? updateAssistant(model, Assistant.SuggestPrevious)
+
   : action.type === 'Devtools'
   ? updateDevtools(model, action.action)
   : action.type === 'Sidebar'

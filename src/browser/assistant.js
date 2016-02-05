@@ -21,11 +21,18 @@ export const Close = tagged("Close");
 export const Expand = tagged("Expand");
 export const Unselect = tagged("Unselect");
 export const Reset = tagged("Reset");
-export const SelectNext = tagged("SelectNext");
-export const SelectPrevious = tagged("SelectPrevious");
+export const SuggestNext = tagged("SuggestNext");
+export const SuggestPrevious = tagged("SuggestPrevious");
+export const Suggest = tag("Suggest");
 export const Query = tag("Query");
 
-const SearchAction = tag("Search");
+const SearchAction =
+  action =>
+  ( action.type === "Suggest"
+  ? Suggest(action.source)
+  : tagged("Search", action)
+  );
+
 const HistoryAction = tag("History");
 
 export const init =
@@ -100,7 +107,7 @@ const unselect =
   ];
 
 const query = (model, query) =>
-  ( model.query === query
+  ( model.query === query || console.log('Query', model.query, query)
   ? [ model
     , Effects.none
     ]
@@ -133,11 +140,11 @@ const updateHistory =
 
 // TODO: This actually should work across the suggestion
 // groups.
-const selectNext =
+const suggestNext =
   model =>
   updateSearch(model, Search.SelectNext);
 
-const selectPrevious =
+const suggestPrevious =
   model =>
   updateSearch(model, Search.SelectPrevious);
 
@@ -153,16 +160,18 @@ export const update/*:type.update*/ =
   ? reset(model)
   : action.type === "Unselect"
   ? unselect(model)
-  : action.type === "SelectNext"
-  ? selectNext(model)
-  : action.type === "SelectPrevious"
-  ? selectPrevious(model)
+  : action.type === "SuggestNext"
+  ? suggestNext(model)
+  : action.type === "SuggestPrevious"
+  ? suggestPrevious(model)
   : action.type === "Query"
   ? query(model, action.source)
   : action.type === "History"
   ? updateHistory(model, action.source)
   : action.type === "Search"
   ? updateSearch(model, action.source)
+  : action.type === "Suggest"
+  ? [model, Effects.none]
   : Unknown.update(model, action)
   );
 
@@ -182,9 +191,9 @@ const styleSheet = StyleSheet.create
 
     , open:
       {
-      },
+      }
 
-      closed:
+    , closed:
       { display: 'none'
       }
 

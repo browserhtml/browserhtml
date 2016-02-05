@@ -10,6 +10,7 @@ import {html, thunk, Effects, forward} from "reflex";
 import * as Driver from "driver";
 import {merge, setIn, remove, always, batch} from "../common/prelude";
 import {cursor} from "../common/cursor";
+import {indexOfOffset} from "../common/selector";
 import * as WebView from "../browser/web-view";
 import * as Unknown from "../common/unknown";
 import * as Stopwatch from "../common/stopwatch";
@@ -22,23 +23,6 @@ import {Style, StyleSheet} from "../common/style";
 // Returns true if model currently has no open web-views.
 const isEmpty = model =>
   model.order.length === 0;
-
-// Returns position that is `offset` by given number from the given `index` if
-// total number of items is equal to given `size`. If `loop` is true and offset
-// is out of bounds position is calculated by looping. Otherwise last / first
-// index is retuned.
-const indexOfOffset = (index, offset, size, loop) => {
-  const position = index + offset;
-  if (size === 0) {
-    return index
-  } else if (loop) {
-    const index = position - Math.trunc(position / size) * size
-    return index < 0 ? index + size :  index
-  } else {
-    return Math.min(size - 1, Math.max(0, position))
-  }
-}
-
 
 
 // # Actions

@@ -8,6 +8,7 @@
 import {Effects, Task, html, forward, thunk} from "reflex";
 import {merge, always, tag, tagged, batch} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
+import {indexOfOffset} from "../../common/selector";
 import * as Result from '../../common/result';
 
 import * as Title from "./title";
@@ -23,6 +24,7 @@ import * as Search from "../../../type/browser/assistant/search"
 const Abort = tag("Abort");
 export const SelectNext = tagged("SelectNext");
 export const SelectPrevious = tagged("SelectPrevious");
+export const Suggest = tag("Suggest");
 export const Query = tag("Query");
 const UpdateMatches = tag("UpdateMatches");
 const byURI =
@@ -107,7 +109,7 @@ export const init/*:Search.init*/ =
     , size: 0
     , queryID: 0
     , limit
-    , selected: null
+    , selected: -1
     , matches: {}
     , items: []
     }
@@ -116,40 +118,46 @@ export const init/*:Search.init*/ =
 
 const unselect =
   model =>
-  [ merge(model, {selected: null})
+  [ merge(model, {selected: -1})
   , Effects.none
+  ]
+
+const suggest = model =>
+  [ model
+  , Effects.receive
+    (Suggest(model.matches[model.items[model.selected]]))
   ]
 
 const selectNext =
   model =>
-  ( model.selected == null
-  ? [ ( model.size === 0
-      ? model
-      : merge(model, {selected: 0})
-      )
-    , Effects.none
-    ]
-  : model.selected === model.size - 1
-  ? unselect(model)
-  : [ merge(model, {selected: model.selected + 1 })
-    , Effects.none
-    ]
+  suggest
+  ( merge
+    ( model
+    , { selected:
+        indexOfOffset
+        ( model.selected
+        , 1
+        , model.size
+        , true
+        )
+      }
+    )
   )
 
 const selectPrevious =
   model =>
-  ( model.selected == null
-  ? [ ( model.size === 0
-      ? model
-      : merge(model, {selected: model.size -1 })
-      )
-    , Effects.none
-    ]
-  : model.selected == 0
-  ? unselect(model)
-  : [ merge(model, {selected: model.selected - 1 })
-    , Effects.none
-    ]
+  suggest
+  ( merge
+    ( model
+    , { selected:
+        indexOfOffset
+        ( model.selected
+        , -1
+        , model.size
+        , true
+        )
+      }
+    )
   )
 
 const updateQuery =
@@ -160,7 +168,7 @@ const updateQuery =
   ? [ merge
       ( model
       , { query: ""
-        , selected: null
+        , selected: -1
         , matches: {}
         , items: []
         }
@@ -196,17 +204,22 @@ const replaceMatches = (model, results) => {
   const items = results.map(match => match.uri)
   const matches = {}
   results.forEach(match => matches[match.uri] = match)
-  return [retainSelected(model, {matches, items}), Effects.none]
+  // With new suggestions code retaining suggestions does not seems
+  // to make much sense. So disabling it for now.
+  // return [retainSelected(model, {matches, items}), Effects.none]
+  const size = Math.min(model.limit, items.length)
+  const selected = -1
+  return [merge(model, {matches, items, size, selected}), Effects.none]
 }
 
 // If updated entries no longer have item that was selected we reset
-// a selection. Otherwise we update a selection to have it keep the item
+// a selection  . Otherwise we update a selection to have it keep the item
 // which was selected.
 const retainSelected = (model, {matches, items}) => {
   // If there was no selected entry there is nothing to retain so
   // return as is.
   let selected = model.selected
-  if (model.selected != null) {
+  if (model.selected >= 0) {
     const uri = model.items[model.selected]
     if (matches[uri] == null) {
       matches[uri] = model.matches[uri]
@@ -236,6 +249,8 @@ export const update/*:Search.update*/ =
   ? updateMatches(model, action.source)
   : action.type === "ByURI"
   ? updateByURI(model, action.source)
+  : action.type === "Suggest"
+  ? [model, Effects.none]
   : Unknown.update(model, action)
   )
 
@@ -249,7 +264,10 @@ export const render/*:Search.view*/ =
   (model, address) =>
   html.embed
   ( null
-  , model.items.map
+  , model
+    .items
+    .slice(0, model.limit)
+    .map
     ( (uri, index) =>
       Suggestion.view
       ( model.selected === index

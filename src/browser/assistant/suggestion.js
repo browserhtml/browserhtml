@@ -20,8 +20,7 @@ import type {Address, VirtualTree} from "reflex/type"
 
 const styleSheet = StyleSheet.create
   ( { base:
-      { borderBottom: '1px solid rgba(0,0,0,0.08)'
-      , lineHeight: '40px'
+      { lineHeight: '40px'
       , overflow: 'hidden'
       , paddingLeft: '35px'
       , paddingRight: '10px'
@@ -29,13 +28,17 @@ const styleSheet = StyleSheet.create
       , position: 'relative'
       , whiteSpace: 'nowrap'
       , textOverflow: 'ellipsis'
+      , borderBottom: '1px solid'
+      , borderTop: '1px solid'
       }
     , unselected:
-      {
+      { borderBottomColor: 'rgba(0,0,0,0.08)'
+      , borderTopColor: 'transparent'
       }
     , selected:
       { background: '#4A90E2'
       , borderBottomColor: 'transparent'
+      , borderTopColor: 'transparent'
       , borderRadius: '3px'
       }
     }

@@ -7,7 +7,7 @@
 import {html, forward, Effects} from 'reflex';
 import {on, focus, selection} from 'driver';
 import {identity} from '../lang/functional';
-import {always, merge} from '../common/prelude';
+import {always, merge, tagged, tag} from '../common/prelude';
 import {cursor} from "../common/cursor";
 import {compose} from '../lang/functional';
 import * as Focusable from '../common/focusable';
@@ -27,6 +27,10 @@ export const initial/*:type.Model*/ =
   };
 
 // Create a new input submit action.
+export const Query = tag('Query');
+export const Suggest = tag('Suggest');
+export const SuggestNext = tagged('SuggestNext');
+export const SuggestPrevious = tagged('SuggestPrevious');
 export const Submit/*:type.Submit*/ = {type: 'Submit'};
 export const Abort/*:type.Abort*/ = {type: 'Abort'};
 export const Enter/*:type.Enter*/ = {type: 'Enter'};
@@ -120,15 +124,21 @@ export const update/*:type.update*/ = (model, action) =>
   ? [merge(model, {isVisible: true}), Effects.none]
   : action.type === 'Hide'
   ? [merge(model, {isVisible: false}), Effects.none]
+  : action.type === 'SuggestNext'
+  ? [model, Effects.none]
+  : action.type === 'SuggestPrevious'
+  ? [model, Effects.none]
+  : action.type === 'Suggest'
+  ? enterSelection(model, action.source.uri)
   : Unknown.update(model, action)
   );
 
 
 const decodeKeyDown = Keyboard.bindings({
-  // 'up': _ => Suggestions.SelectPrevious(),
-  // 'control p': _ => Suggestions.SelectPrevious(),
-  // 'down': _ => Suggestions.SelectNext(),
-  // 'control n': _ => Suggestions.SelectNext(),
+  'up': always(SuggestPrevious),
+  'control p': always(SuggestPrevious),
+  'down': always(SuggestNext),
+  'control n': always(SuggestNext),
   'enter': always(Submit),
   'escape': always(Abort)
 });
@@ -223,9 +233,11 @@ const style = StyleSheet.create({
 export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'input-combobox',
-    style: Style( style.combobox
-                , !model.isVisible && style.hidden
-                )
+    style: Style
+    ( style.combobox
+    , !model.isVisible && style.hidden
+    ),
+    onKeyPress: forward(address, Query)
   }, [
     html.span({
       className: 'input-search-icon',
