@@ -9,7 +9,7 @@ import {on, focus, selection} from 'driver';
 import {identity} from '../lang/functional';
 import {always, merge, tagged, tag} from '../common/prelude';
 import {cursor} from "../common/cursor";
-import {compose} from '../lang/functional';
+import {compose, debounce} from '../lang/functional';
 import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
 import * as Keyboard from '../common/keyboard';
@@ -249,7 +249,12 @@ export const view/*:type.view*/ = (model, address) =>
     ( style.combobox
     , !model.isVisible && style.hidden
     ),
-    onKeyPress: forward(address, Query)
+    // Hack: Problem is `input.oninput` & `input.onkeyup` are both
+    // fired only after `input.parentNode.onkeypress` which means
+    // that at this point in time `model.value` is different from
+    // what we expect it to be. To workaround that we delay submitting
+    // a query.
+    onKeyPress: debounce(forward(address, Query), 0, false)
   }, [
     html.span({
       className: 'input-search-icon',
