@@ -39,32 +39,42 @@ const SearchAction =
 const HistoryAction = tag("History");
 
 export const init =
-  () => {
+  () =>
+  clear
+  ( { isOpen: false
+    , isExpanded: false
+    }
+  )
+
+const reset =
+  model =>
+  init();
+
+const clear =
+  model => {
     const query = null
     const [search, fx1] = Search.init(query, 5);
     const [history, fx2] = History.init(query, 5);
-    const model =
-      { query
-      , isOpen: false
-      , isExpanded: false
-      , search
-      , history
-      , selected: -1
-      }
-
     const fx = Effects.batch
     ( [ fx1.map(SearchAction)
       , fx2.map(HistoryAction)
       ]
     )
 
-    return [model, fx]
+    const result =
+      [ merge
+        ( model
+        , { query
+          , search
+          , history
+          , selected: -1
+          }
+        )
+      , fx
+      ]
+
+    return result
   }
-
-
-const reset =
-  model =>
-  init();
 
 const expand =
   model =>
@@ -90,14 +100,14 @@ const open =
 
 const close =
   model =>
-  [ merge
+  clear
+  ( merge
     ( model
     , { isOpen: false
       , isExpanded: false
       }
     )
-  , Effects.none
-  ];
+  );
 
 const unselect =
   model =>
