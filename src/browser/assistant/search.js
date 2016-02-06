@@ -205,18 +205,18 @@ const updateMatches = (model, result) =>
   : [ model
     , Unknown.error(result.error)
     ]
-  )
+  );
 
 const replaceMatches = (model, results) => {
-  const items = results.map(match => match.uri)
-  const matches = {}
-  results.forEach(match => matches[match.uri] = match)
+  const items = results.map(match => match.uri);
+  const matches = {};
+  results.forEach(match => matches[match.uri] = match);
   // With new suggestions code retaining suggestions does not seems
   // to make much sense. So disabling it for now.
   // return [retainSelected(model, {matches, items}), Effects.none]
-  const size = Math.min(model.limit, items.length)
-  const selected = -1
-  return [merge(model, {matches, items, size, selected}), Effects.none]
+  const size = Math.min(model.limit, items.length);
+  const selected = 0;
+  return suggest(merge(model, {matches, items, size, selected}));
 }
 
 // If updated entries no longer have item that was selected we reset

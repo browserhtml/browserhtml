@@ -101,7 +101,7 @@ export const init/*:type.init*/ = (isVisible=false, isFocused=false, value='') =
 export const suggest = (model, {query, match, hint}) =>
   enterSelectionRange
   ( model
-  , `${query}${match.substr(query.length)}`
+  , match
   , query.length
   , match.length
   )
