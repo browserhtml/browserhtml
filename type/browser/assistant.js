@@ -6,6 +6,10 @@ import type {Tagged} from "../common/prelude"
 import * as History from "./history"
 import * as Search from "./search"
 
+export type Suggestion =
+  { match: string
+  , hint: ?string
+  }
 
 export type Model =
   { query: string
@@ -25,12 +29,17 @@ export type Open = Tagged<"Open", void>
 export type Close = Tagged<"Close", void>
 export type Expand = Tagged<"Expand", void>
 export type Reset = Tagged<"Reset", void>
+export type Activate = Tagged<"Activate", void>
+export type Trigger = Tagged<"Trigger", void>
 
 
 export type Action
   = Tagged<"History", History.Action>
   | Tagged<"Search", Search.Action>
   | Tagged<"Query", string>
+  | Tagged<"Suggest", Suggestion>
+  | Trigger
+  | Activate
   | SelectNext
   | SelectPrevious
   | Unselect

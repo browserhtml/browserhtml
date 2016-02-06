@@ -26,6 +26,8 @@ export const SelectNext = tagged("SelectNext");
 export const SelectPrevious = tagged("SelectPrevious");
 export const Suggest = tag("Suggest");
 export const Query = tag("Query");
+export const Execute = tag("Execute");
+export const Activate = tag("Activate");
 const UpdateMatches = tag("UpdateMatches");
 const byURI =
   uri =>
@@ -125,7 +127,12 @@ const unselect =
 const suggest = model =>
   [ model
   , Effects.receive
-    (Suggest(model.matches[model.items[model.selected]]))
+    ( Suggest
+      ( { match: model.matches[model.items[model.selected]].title
+        , hint: null
+        }
+      )
+    )
   ]
 
 const selectNext =
@@ -235,6 +242,17 @@ const updateByURI =
   (model, {uri, action}) =>
   [model, Effects.none];
 
+const activate =
+  model =>
+  [ model
+  , ( model.selected < 0
+    ? Effects.none
+    : Effects.receive
+      ( Load(model.matches[model.items[model.selected]].uri)
+      )
+    )
+  ]
+
 export const update/*:Search.update*/ =
   (model, action) =>
   ( action.type === "Query"
@@ -249,8 +267,8 @@ export const update/*:Search.update*/ =
   ? updateMatches(model, action.source)
   : action.type === "ByURI"
   ? updateByURI(model, action.source)
-  : action.type === "Suggest"
-  ? [model, Effects.none]
+  : action.type === "Activate"
+  ? activate(model)
   : Unknown.update(model, action)
   )
 

@@ -42,7 +42,7 @@ export const init/*:type.init*/ = () => {
   const [shell, shellFx] = Shell.init();
   const [webViews, webViewsFx] = WebViews.init();
   const [sidebar, sidebarFx] = Sidebar.init();
-  const [suggestions, suggestionsFx] = Assistant.init();
+  const [assistant, assistantFx] = Assistant.init();
   const [overlay, overlayFx] = Overlay.init(false, false);
 
   const model =
@@ -50,7 +50,7 @@ export const init/*:type.init*/ = () => {
     , mode: 'create-web-view'
     , shell
     , input
-    , suggestions
+    , assistant
     , webViews
     , sidebar
     , overlay
@@ -69,7 +69,7 @@ export const init/*:type.init*/ = () => {
       , webViewsFx.map(WebViewsAction)
       , updaterFx.map(UpdaterAction)
       , sidebarFx.map(SidebarAction)
-      , suggestionsFx.map(AssistantAction)
+      , assistantFx.map(AssistantAction)
       , overlayFx.map(OverlayAction)
       , Effects.receive(CreateWebView)
       , Effects
@@ -206,8 +206,8 @@ const updateDevtools = cursor({
 });
 
 const updateAssistant = cursor({
-  get: model => model.suggestions,
-  set: (model, suggestions) => merge(model, {suggestions}),
+  get: model => model.assistant,
+  set: (model, assistant) => merge(model, {assistant}),
   update: Assistant.update,
   tag: AssistantAction
 });
@@ -737,7 +737,15 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'Input'
   ? updateInput(model, action.source)
   : action.type === 'Suggest'
-  ? updateInput(model, Input.Suggest(action.source))
+  ? updateInput
+    ( model
+    , Input.Suggest
+      ( { query: model.assistant.query
+        , match: action.source.match
+        , hint: action.source.hint
+        }
+      )
+    )
 
   : action.type === 'BlurInput'
   ? updateInput(model, action.source)
@@ -846,7 +854,7 @@ export const view/*:type.view*/ = (model, address) =>
         , thunk
           ( 'assistant'
           , Assistant.view
-          , model.suggestions
+          , model.assistant
           , forward(address, AssistantAction)
           )
         , thunk

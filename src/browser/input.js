@@ -75,10 +75,14 @@ const enter = (model) => {
   return [result, Effects.batch([focusFx, editFx])];
 }
 
-const enterSelection = (model, value) => {
+const enterSelection = (model, value) =>
+  enterSelectionRange(model, value, 0, value.length);
+
+const enterSelectionRange = (model, value, start, end) => {
+  console.log(value, start, end);
   const [next, focusFx] = updateFocusable(model, Focusable.Focus);
   const [result, editFx] = updateEditable(next, Editable.Change(value, {
-    start: 0, end: value.length, direction: 'forward'
+    start, end, direction: 'forward'
   }));
 
 
@@ -93,6 +97,14 @@ export const init/*:type.init*/ = (isVisible=false, isFocused=false, value='') =
     })
   , Effects.none
   ];
+
+export const suggest = (model, {query, match, hint}) =>
+  enterSelectionRange
+  ( model
+  , `${query}${match.substr(query.length)}`
+  , query.length
+  , match.length
+  )
 
 export const update/*:type.update*/ = (model, action) =>
   ( action.type === 'Abort'
@@ -129,7 +141,7 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'SuggestPrevious'
   ? [model, Effects.none]
   : action.type === 'Suggest'
-  ? enterSelection(model, action.source.uri)
+  ? suggest(model, action.source)
   : Unknown.update(model, action)
   );
 

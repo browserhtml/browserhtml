@@ -25,6 +25,9 @@ export const SuggestNext = tagged("SuggestNext");
 export const SuggestPrevious = tagged("SuggestPrevious");
 export const Suggest = tag("Suggest");
 export const Query = tag("Query");
+export const Execute = tag("Execute");
+export const Activate = tag("Activate");
+
 
 const SearchAction =
   action =>
@@ -107,7 +110,7 @@ const unselect =
   ];
 
 const query = (model, query) =>
-  ( model.query === query || console.log('Query', model.query, query)
+  ( model.query === query
   ? [ model
     , Effects.none
     ]
