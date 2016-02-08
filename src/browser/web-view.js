@@ -423,7 +423,7 @@ const selected = model =>
 
 const unselect = model =>
   ( model.isSelected
-  ? startUnselectAnimation(merge(model, {isSelected: false}))
+  ? [ merge(model, {isSelected: false}), Effects.none ]
   : [ model, Effects.none ]
   );
 
