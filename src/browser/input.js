@@ -79,7 +79,6 @@ const enterSelection = (model, value) =>
   enterSelectionRange(model, value, 0, value.length);
 
 const enterSelectionRange = (model, value, start, end) => {
-  console.log(value, start, end);
   const [next, focusFx] = updateFocusable(model, Focusable.Focus);
   const [result, editFx] = updateEditable(next, Editable.Change(value, {
     start, end, direction: 'forward'
