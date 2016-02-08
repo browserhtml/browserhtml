@@ -588,7 +588,7 @@ const styleSheet = StyleSheet.create({
   },
 
   webviewSelected: {
-
+    zIndex: 2
   },
 
   webviewInactive: {
