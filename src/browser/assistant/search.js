@@ -37,7 +37,7 @@ const byURI =
 const decodeFailure = ({target: request}) =>
   Result.error
   // @FlowIssue: Flow does not know about `request.url`
-  (Error(`Failed to send request to ${request.url} : ${request.statusText}`));
+  (Error(`Network request to ${request.url} has failed: ${request.statusText}`));
 
 const decodeResponseFailure =
   request =>
@@ -86,14 +86,15 @@ const search/*:Search.search*/ =
   Task.future(() => new Promise(resolve => {
     const request = new XMLHttpRequest({ mozSystem: true });
     pendingRequests[id] = request;
-
+    const uri = `http://ac.duckduckgo.com/ac/?q=${input}&type=list`
     request.open
     ( 'GET'
-    , `https://ac.duckduckgo.com/ac/?q=${input}&type=list`
+    , uri
     , true
     );
     request.responseType = 'json';
-    request.send();
+    request.url = uri;
+
     request.onerror = event => {
       delete pendingRequests[id];
       resolve(decodeFailure(event));
@@ -102,6 +103,8 @@ const search/*:Search.search*/ =
       delete pendingRequests[id];
       resolve(decodeResponse(event));
     };
+
+    request.send();
   }));
 
 
