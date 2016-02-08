@@ -25,7 +25,7 @@ import * as OS from '../common/os';
 import * as Keyboard from '../common/keyboard';
 import * as Stopwatch from "../common/stopwatch";
 import * as Easing from "eased";
-import {merge, always, batch} from "../common/prelude";
+import {merge, always, batch, tag, tagged} from "../common/prelude";
 import {cursor} from "../common/cursor";
 import {Style, StyleSheet} from '../common/style';
 
@@ -42,7 +42,7 @@ export const init/*:type.init*/ = () => {
   const [shell, shellFx] = Shell.init();
   const [webViews, webViewsFx] = WebViews.init();
   const [sidebar, sidebarFx] = Sidebar.init();
-  const [suggestions, suggestionsFx] = Assistant.init();
+  const [assistant, assistantFx] = Assistant.init();
   const [overlay, overlayFx] = Overlay.init(false, false);
 
   const model =
@@ -50,7 +50,7 @@ export const init/*:type.init*/ = () => {
     , mode: 'create-web-view'
     , shell
     , input
-    , suggestions
+    , assistant
     , webViews
     , sidebar
     , overlay
@@ -69,7 +69,7 @@ export const init/*:type.init*/ = () => {
       , webViewsFx.map(WebViewsAction)
       , updaterFx.map(UpdaterAction)
       , sidebarFx.map(SidebarAction)
-      , suggestionsFx.map(AssistantAction)
+      , assistantFx.map(AssistantAction)
       , overlayFx.map(OverlayAction)
       , Effects.receive(CreateWebView)
       , Effects
@@ -115,9 +115,13 @@ const InputAction = action =>
   ? ExitInput
   : action.type === 'Blur'
   ? BlurInput
-  : { type: 'Input'
-    , source: action
-    }
+  : action.type === 'Query'
+  ? Query(action.source)
+  : action.type === 'SuggestNext'
+  ? SuggestNext
+  : action.type === 'SuggestPrevious'
+  ? SuggestPrevious
+  : tagged('Input', action)
   );
 
 const WebViewsAction = action =>
@@ -160,10 +164,11 @@ const DevtoolsAction = action =>
     }
   );
 
-const AssistantAction = action =>
-  ( { type: 'Assistant'
-    , action
-    }
+const AssistantAction =
+  action =>
+  ( action.type === 'Suggest'
+  ? Suggest(action.source)
+  : tagged('Assistant', action)
   );
 
 const UpdaterAction = action =>
@@ -201,8 +206,8 @@ const updateDevtools = cursor({
 });
 
 const updateAssistant = cursor({
-  get: model => model.suggestions,
-  set: (model, suggestions) => merge(model, {suggestions}),
+  get: model => model.assistant,
+  set: (model, assistant) => merge(model, {assistant}),
   update: Assistant.update,
   tag: AssistantAction
 });
@@ -320,6 +325,9 @@ export const BlurInput =
 
 // ## Resize actions
 
+export const SuggestNext = tagged('SuggestNext');
+export const SuggestPrevious = tagged('SuggestPrevious');
+export const Suggest = tag('Suggest');
 export const Expand/*:type.Expand*/ = {type: "Expand"};
 export const Expanded/*:type.Expanded*/ = {type: "Expanded"};
 export const Shrink/*:type.Shrink*/ = {type: "Shrink"};
@@ -353,6 +361,7 @@ const OpenURL = ({url}) =>
     , uri: url
     }
   );
+const Query = tag('Query');
 
 export const ActivateWebViewByID =
   compose(WebViewsAction, WebViews.ActivateByID);
@@ -378,6 +387,7 @@ export const FocusInput = InputAction(Input.Focus);
 const OpenAssistant = AssistantAction(Assistant.Open);
 const CloseAssistant = AssistantAction(Assistant.Close);
 const ExpandAssistant = AssistantAction(Assistant.Expand);
+const QueryAssistant = compose(AssistantAction, Assistant.Query);
 
 const OpenSidebar = SidebarAction(Sidebar.Open);
 const CloseSidebar = SidebarAction(Sidebar.Close);
@@ -587,6 +597,14 @@ const reloadRuntime = model =>
     .map(Reloaded)
   ];
 
+
+const updateQuery =
+  (model, action) =>
+  updateAssistant
+  ( model
+  , Assistant.Query(model.input.value)
+  );
+
 // Animations
 
 const expand = model =>
@@ -703,7 +721,6 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'ReloadRuntime'
   ? reloadRuntime(model)
 
-
   // Expand / Shrink animations
   : action.type === "Expand"
   ? expand(model)
@@ -719,6 +736,17 @@ export const update/*:type.update*/ = (model, action) =>
   // Delegate to the appropriate module
   : action.type === 'Input'
   ? updateInput(model, action.source)
+  : action.type === 'Suggest'
+  ? updateInput
+    ( model
+    , Input.Suggest
+      ( { query: model.assistant.query
+        , match: action.source.match
+        , hint: action.source.hint
+        }
+      )
+    )
+
   : action.type === 'BlurInput'
   ? updateInput(model, action.source)
 
@@ -736,8 +764,16 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === 'Focus'
   ? updateShell(model, action.source)
 
+  // Assistant
   : action.type === 'Assistant'
-  ? updateAssistant(model, action.action)
+  ? updateAssistant(model, action.source)
+  : action.type === 'Query'
+  ? updateQuery(model)
+  : action.type === 'SuggestNext'
+  ? updateAssistant(model, Assistant.SuggestNext)
+  : action.type === 'SuggestPrevious'
+  ? updateAssistant(model, Assistant.SuggestPrevious)
+
   : action.type === 'Devtools'
   ? updateDevtools(model, action.action)
   : action.type === 'Sidebar'
@@ -818,7 +854,7 @@ export const view/*:type.view*/ = (model, address) =>
         , thunk
           ( 'assistant'
           , Assistant.view
-          , model.suggestions
+          , model.assistant
           , forward(address, AssistantAction)
           )
         , thunk

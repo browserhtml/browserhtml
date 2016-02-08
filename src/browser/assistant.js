@@ -1,421 +1,252 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {always, merge, take, move} from "../common/prelude"
-import {Effects, batch, nofx, html, thunk} from "reflex"
-import * as History from "../common/history"
-import * as Search from "../common/search"
+import {always, batch, merge, take, tag, tagged, move} from "../common/prelude"
+import {Effects, html, thunk, forward} from "reflex"
+import * as History from "./assistant/history"
+import * as Search from "./assistant/search"
 import {StyleSheet, Style} from '../common/style';
+import {cursor} from '../common/cursor';
 import {prettify} from '../common/url-helper';
+import * as Unknown from '../common/unknown';
 
 /*:: import * as type from "../../type/browser/assistant" */
 
-export const initial/*:type.Model*/ = {
-  query: "",
-  selected: -1,
 
-  topHit: null,
-  page: [],
-  search: [],
-
-  isVisible: false,
-  isExpanded: false
-};
-
-export const Open = {type: "Open"};
-export const Close = {type: "Close"};
-export const Expand = {type: "Expand"};
-
-export const Unselect/*:type.Unselect*/ = {type: "Assistant.Unselect"};
-export const asUnselect/*:type.asUnselect*/ = always(Unselect);
-
-export const Reset/*:type.Reset*/ = {type: "Assistant.Reset"};
-export const asReset/*:type.asReset*/ = always(Reset);
-
-export const asSelectRelative/*:type.asSelectRelative*/ = offset =>
-  ({type: "Assistant.SelectRelative", offset});
-
-export const asQuery/*:type.asQuery*/ = input =>
-  ({type: "Assistant.Query", input});
-
-const MAX_RESULTS = 5;
-
-// Counts number of available suggestions in the above defined model instance.
-export const countAllSuggestions/*:type.countAllSuggestions*/ = ({topHit, search, page}) =>
-  (topHit != null ? 1 : 0) +
-  Math.min(search.length + page.length, MAX_RESULTS);
-
-export const countSuggestions/*:type.countSuggestions*/ = model => {
-  const half = Math.floor(MAX_RESULTS / 2);
-  const topHit = model.topHit != null ? 1 : 0;
-  const search = Math.min(model.search.length,
-                          Math.max(MAX_RESULTS - model.page.length, half));
-  const page = MAX_RESULTS - search;
-  return {topHit, search, page}
-}
-
-// Selects suggestion `n` items away relative to currently selected suggestion.
-// Selection over suggestion entries is moved in a loop although there is extra
-// "no selection" entry between last and first suggestions. Given `n` can be negative
-// or positive in order to select suggestion before or after the current one.
-export const selectRelative/*:type.selectRelative*/ = (model, offset) => {
-  const none = -1;
-  const last = countAllSuggestions(model) - 1;
-  const to = model.selected + offset;
-  const selected = to > last ?
-                      none :
-                    to < none ?
-                      last :
-                      to;
-
-  return merge(model, {selected});
-};
+export const Open = tagged("Open");
+export const Close = tagged("Close");
+export const Expand = tagged("Expand");
+export const Unselect = tagged("Unselect");
+export const Reset = tagged("Reset");
+export const SuggestNext = tagged("SuggestNext");
+export const SuggestPrevious = tagged("SuggestPrevious");
+export const Suggest = tag("Suggest");
+export const Query = tag("Query");
+export const Execute = tag("Execute");
+export const Activate = tag("Activate");
 
 
-// Returns entries in the form of a list `[topHit, ...search, ...page]` where
-// there can be at most one `topHit` and sum of search and page entries are
-// at most MAX_RESULTS also entries per type is split by even when possible.
-// @TODO we should limit search results to max 3... history can be more.
-const getAllSuggestions/*:type.getAllSuggestions*/ = model => {
-  const sizes = countSuggestions(model);
-  return (model.topHit == null ? [] : [model.topHit])
-    .concat(take(model.search, sizes.search))
-    .concat(take(model.page, sizes.page));
-};
+const SearchAction =
+  action =>
+  ( action.type === "Suggest"
+  ? Suggest(action.source)
+  : tagged("Search", action)
+  );
 
-// FIXME: We end up inlining type signatures because flow currently has a bug
-// that prevents external polymorphic type declarations from working properly:
-// https://github.com/facebook/flow/issues/1046
-// const retainSuggestion/*:type.retainSuggestion*/ = (previous, next, retained, size) => {
-const retainSuggestion = /*::<x:type.Suggestion>*/(previous/*:Array<x>*/, next/*:Array<x>*/, retained/*:x*/, size/*:number*/)/*:Array<x>*/ => {
-  const nextIndex = next.findIndex(x => x.uri === retained.uri);
-  // If retained suggestion is not contained in the next suggestions then
-  // check if it's previous index is with in the next suggestions. If so
-  // insert retained suggestion under previous index to preserve it's
-  // position, otherwise add retained suggestion to the end of the next
-  // suggestions. Later case implies that number of displayed suggestion for
-  // this group has reduced there for displaying retained suggestion as last
-  // in the new suggestions makes most sense.
-  if (nextIndex < 0) {
-    const previousIndex = previous.indexOf(retained);
-    const index = Math.min(previousIndex, size - 1);
-    return next.splice(index, 0, retained);
-  }
-  // If retained suggestion is contaned by the next suggestions. Then check
-  // if it is with in the displayed range. If it is just return next as is
-  // otherwise move retained suggestion to the last visible position in the
-  // list.
-  else {
-    if (nextIndex < size) {
-      return next
-    } else {
-      return move(next, nextIndex, size - 1)
+const HistoryAction = tag("History");
+
+export const init =
+  () =>
+  clear
+  ( { isOpen: false
+    , isExpanded: false
     }
-  }
-};
+  )
 
-// If updated entries no longer have item that was selected we reset
-// a selection. Otherwise we update a selection to have it keep the item
-// which was selected.
-const retainSelected/*:type.retainSelected*/ = (before, after) => {
-  // If there was no selected entry there is nothing to retain so
-  // return as is.
-  if (before.selected < 0) {
-    return after
-  } else {
-    // Grab entry that we wish to retain and act by it's type. We also need
-    const retained = getAllSuggestions(before)[before.selected];
+const reset =
+  model =>
+  init();
 
-    const next =
-      retained.type === "History.TopHit" ?
-        merge(after, {topHit: retained}) :
-      retained.type === "Search.Match" ?
-        merge(after, {
-          search: retainSuggestion(before.search,
-                                    after.search,
-                                    (retained:type.SearchMatch),
-                                    countSuggestions(after).search)
-        }) :
-      retained.type === "History.PageMatch" ?
-        merge(after, {
-          page: retainSuggestion((before.page:Array<type.PageMatch>),
-                                  (after.page:Array<type.PageMatch>),
-                                  (retained:type.PageMatch),
-                                  countSuggestions(after).page)
-        }) :
-        after
-
-    return merge(next, {
-      selected: getAllSuggestions(next).indexOf(retained)
-    })
-  }
-};
-
-export const query/*:type.query*/ = (input, limit) => Effects.batch([
-  History.query(input, limit),
-  Search.query(input, limit)
-]);
-
-export const init/*:type.init*/ = () =>
-  [ initial, Effects.none ];
-
-export const update/*:type.update*/ = (model, action) => {
-  if (action.type === "Open") {
-    return (
-      [ merge(model, { isOpen: true, isExpanded: false })
-      , Effects.none
-      ]
-    );
-  }
-  else if (action.type === "Close") {
-    return (
-      [ merge(model, { isOpen: false, isExpanded: false })
-      , Effects.none
-      ]
-    );
-  }
-  else if (action.type === "Expand") {
-    return (
-      [ merge(model, {isOpen: true, isExpanded: true })
-      , Effects.none
+const clear =
+  model => {
+    const query = null
+    const [search, fx1] = Search.init(query, 5);
+    const [history, fx2] = History.init(query, 5);
+    const fx = Effects.batch
+    ( [ fx1.map(SearchAction)
+      , fx2.map(HistoryAction)
       ]
     )
+
+    const result =
+      [ merge
+        ( model
+        , { query
+          , search
+          , history
+          , selected: -1
+          }
+        )
+      , fx
+      ]
+
+    return result
   }
-  else if (action.type === "Assistant.Reset") {
-    return [
-      initial,
-      Effects.none
+
+const expand =
+  model =>
+  [ merge
+    ( model
+    , { isOpen: true
+      , isExpanded: true
+      }
+    )
+  , Effects.none
+  ];
+
+const open =
+  model =>
+  [ merge
+    ( model
+    , { isOpen: true
+      , isExpanded: false
+      }
+    )
+  , Effects.none
+  ];
+
+const close =
+  model =>
+  clear
+  ( merge
+    ( model
+    , { isOpen: false
+      , isExpanded: false
+      }
+    )
+  );
+
+const unselect =
+  model =>
+  [ merge
+    ( model
+    , { selected: -1
+      }
+    )
+  , Effects.none
+  ];
+
+const query = (model, query) =>
+  ( model.query === query
+  ? [ model
+    , Effects.none
     ]
-  } else if (action.type === "Assistant.Unselect") {
-    return [
-      merge(model, {selected: initial.selected}),
-      Effects.none
-    ]
-  } else if (action.type === "Assistant.SelectRelative") {
-    return [
-      selectRelative(model, action.offset),
-      Effects.none
-    ]
-  } else if (action.type === "Assistant.Query") {
-    if (model.query === action.input) {
-      return [model, Effects.none]
-    } else {
-      return [
-        merge(model, {query: action.input}),
-        query(action.input, MAX_RESULTS)
+  : batch
+    ( update
+    , merge(model, {query})
+    , [ SearchAction(Search.Query(query))
+      , HistoryAction(History.Query(query))
       ]
+    )
+  )
+
+const updateSearch =
+  cursor
+  ( { get: model => model.search
+    , set: (model, search) => merge(model, {search})
+    , update: Search.update
+    , tag: SearchAction
     }
-  } else if (action.type === "History.Result") {
-    if (action.query === model.query) {
-      return [
-        retainSelected(model, merge(model, {
-          topHit: action.topHit,
-          page: action.matches
-        })),
-        Effects.none
-      ]
-    } else {
-      return [model, Effects.none]
+  );
+
+const updateHistory =
+  cursor
+  ( { get: model => model.history
+    , set: (model, history) => merge(model, {history})
+    , update: History.update
+    , tag: HistoryAction
     }
-  } else /*if (action.type === "Search.Result")*/ {
-    if (action.query === model.query) {
-      return [
-        retainSelected(model, merge(model, {
-          search: action.matches
-        })),
-        Effects.none
-      ]
-    } else {
-      return [model, Effects.none]
+  );
+
+// TODO: This actually should work across the suggestion
+// groups.
+const suggestNext =
+  model =>
+  updateSearch(model, Search.SelectNext);
+
+const suggestPrevious =
+  model =>
+  updateSearch(model, Search.SelectPrevious);
+
+export const update/*:type.update*/ =
+  (model, action) =>
+  ( action.type === "Open"
+  ? open(model)
+  : action.type === "Close"
+  ? close(model)
+  : action.type === "Expand"
+  ? expand(model)
+  : action.type === "Reset"
+  ? reset(model)
+  : action.type === "Unselect"
+  ? unselect(model)
+  : action.type === "SuggestNext"
+  ? suggestNext(model)
+  : action.type === "SuggestPrevious"
+  ? suggestPrevious(model)
+  : action.type === "Query"
+  ? query(model, action.source)
+  : action.type === "History"
+  ? updateHistory(model, action.source)
+  : action.type === "Search"
+  ? updateSearch(model, action.source)
+  : action.type === "Suggest"
+  ? [model, Effects.none]
+  : Unknown.update(model, action)
+  );
+
+const styleSheet = StyleSheet.create
+  ( { base:
+      { background: '#fff'
+      , left: '0px'
+      , position: 'absolute'
+      , top: '0px'
+      , width: '100%'
+      }
+    , expanded:
+      { height: '100%'
+      }
+    , shrinked:
+      {}
+
+    , open:
+      {
+      }
+
+    , closed:
+      { display: 'none'
+      }
+
+    , results:
+      { listStyle: 'none'
+      , margin: '120px auto 0'
+      , padding: '0px'
+      , width: '460px'
+      }
     }
-  }
-}
-
-const style = StyleSheet.create({
-  assistant: {
-    background: '#fff',
-    left: 0,
-    position: 'absolute',
-    top: 0,
-    // @WORKAROUND use percent instead of vw/vh to work around
-    // https://github.com/servo/servo/issues/8754
-    width: '100%'
-  },
-
-  assistantExpanded: {
-   height: '100%'
-  },
-
-  assistantOpen: {
-
-  },
-
-  assistantClosed: {
-    display: 'none'
-  },
-
-  icon: {
-    color: 'rgba(0,0,0,0.7)',
-    fontFamily: 'FontAwesome',
-    fontSize: '17px',
-    left: '10px',
-    position: 'absolute'
-  },
-
-  iconSelected: {
-    color: '#fff'
-  },
-
-  results: {
-    listStyle: 'none',
-    margin: '120px auto 0',
-    padding: 0,
-    width: '460px'
-  },
-
-  result: {
-    borderBottom: '1px solid rgba(0,0,0,0.08)',
-    lineHeight: '40px',
-    overflow: 'hidden',
-    paddingLeft: '35px',
-    paddingRight: '10px',
-    position: 'relative', // Contains absolute elements.
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis'
-  },
-
-  resultTitle: {
-    color: 'rgba(0,0,0,0.7)',
-    fontSize: '14px'
-  },
-
-  resultTitleSelected: {
-    color: '#fff'
-  },
-
-  resultUrl: {
-    color: '#4A90E2',
-    fontSize: '14px'
-  },
-
-  resultUrlSelected: {
-    color: 'rgba(255,255,255,0.7)'
-  },
-
-  resultSelected: {
-    background: '#4A90E2',
-    borderBottomColor: 'transparent',
-    borderRadius: '3px'
-  },
-
-  resultAdjacentToSelected: {
-    borderColor: 'transparent'
-  }
-});
-
-// @TODO localize this string.
-const fallbackTitle = 'Untitled';
-
-// Render a title in a result
-const viewTitle = (model, index, selected) =>
-  html.span({
-    className: 'assistant-title',
-    style: Style(
-      style.resultTitle,
-      index === selected && style.resultTitleSelected
-    )
-  }, [History.readTitle(model, fallbackTitle)]);
-
-// Returns an array of vdom nodes. There's only one top hit, but returning
-// an array keeps the return value type consistent with the other 2 result view
-// functions.
-const viewTopHit = (model, index, selected, address) =>
-  html.li({
-    classname: 'assistant-result assistant-top-hit',
-    style: Style(
-      style.result,
-      index === selected && style.resultSelected
-    )
-  }, [
-    viewTitle(model, index, selected)
-  ]);
-
-// Returns an array of vdom nodes
-const viewHistory = (model, index, selected, address) =>
-  html.li({
-    classname: 'assistant-result assistant-history',
-    style: Style(
-      style.result,
-      index === selected && style.resultSelected,
-      index === selected - 1 && style.resultAdjacentToSelected
-    )
-  }, [
-    html.div({
-      className: 'assistant-icon',
-      style: Style(
-        style.icon,
-        index === selected && style.iconSelected
-      )
-    }, ['']),
-    viewTitle(model, index, selected),
-    html.span({
-      className: 'assistant-url',
-      style: Style(
-        style.resultUrl,
-        index === selected && style.resultUrlSelected
-      )
-    }, [` — ${prettify(model.uri)}`])
-  ]);
-
-// Returns an array of vdom nodes
-const viewSearch = (model, index, selected, address) =>
-  html.li({
-    classname: 'assistant-result assistant-search',
-    style: Style(
-      style.result,
-      index === selected && style.resultSelected,
-      index === selected - 1 && style.resultAdjacentToSelected
-    )
-  }, [
-    html.div({
-      className: 'assistant-icon',
-      style: Style(
-        style.icon,
-        index === selected && style.iconSelected
-      )
-    }, ['']),
-    viewTitle(model, index, selected)
-  ]);
-
-// Renders a result, picking the view function based on the model type.
-const viewResult = (model, index, selected, address) =>
-  model.type === 'History.TopHit' ?
-    viewTopHit(model, index, selected, address) :
-  model.type === 'History.PageMatch' ?
-    viewHistory(model, index, selected, address) :
-  // model.type === 'Search.Match' ?
-    viewSearch(model, index, selected, address);
+  );
 
 export const view/*:type.view*/ = (model, address) =>
-  html.div({
-    className: 'assistant',
-    style:
-      Style
-      ( style.assistant
+  html.div
+  ( { className: 'assistant'
+    , style: Style
+      ( styleSheet.base
       , ( model.isExpanded
-        ? style.assistantExpanded
-        : model.isOpen
-        ? style.assistantOpen
-        : style.assistantClosed
+        ? styleSheet.expanded
+        : styleSheet.shrinked
+        )
+      , ( model.isOpen
+        ? styleSheet.open
+        : styleSheet.closed
         )
       )
-  }, [
-    html.ol({
-      className: 'assistant-results',
-      style: style.results
-    }, getAllSuggestions(model).map((entry, index) =>
-      thunk(entry.id, viewResult, entry, index, model.selected, address)))
-  ]);
+    }
+  , [ html.ol
+      ( { className: 'assistant-results'
+        , style: styleSheet.results
+        }
+      , [ History.view
+          ( model.history
+          , forward(address, HistoryAction)
+          )
+        , Search.view
+          ( model.search
+          , forward(address, SearchAction)
+          )
+        ]
+      )
+    ]
+  );

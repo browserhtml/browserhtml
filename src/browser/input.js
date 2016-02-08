@@ -7,9 +7,9 @@
 import {html, forward, Effects} from 'reflex';
 import {on, focus, selection} from 'driver';
 import {identity} from '../lang/functional';
-import {always, merge} from '../common/prelude';
+import {always, merge, tagged, tag} from '../common/prelude';
 import {cursor} from "../common/cursor";
-import {compose} from '../lang/functional';
+import {compose, debounce} from '../lang/functional';
 import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
 import * as Keyboard from '../common/keyboard';
@@ -27,6 +27,10 @@ export const initial/*:type.Model*/ =
   };
 
 // Create a new input submit action.
+export const Query = tag('Query');
+export const Suggest = tag('Suggest');
+export const SuggestNext = tagged('SuggestNext');
+export const SuggestPrevious = tagged('SuggestPrevious');
 export const Submit/*:type.Submit*/ = {type: 'Submit'};
 export const Abort/*:type.Abort*/ = {type: 'Abort'};
 export const Enter/*:type.Enter*/ = {type: 'Enter'};
@@ -71,10 +75,13 @@ const enter = (model) => {
   return [result, Effects.batch([focusFx, editFx])];
 }
 
-const enterSelection = (model, value) => {
+const enterSelection = (model, value) =>
+  enterSelectionRange(model, value, 0, value.length);
+
+const enterSelectionRange = (model, value, start, end) => {
   const [next, focusFx] = updateFocusable(model, Focusable.Focus);
   const [result, editFx] = updateEditable(next, Editable.Change(value, {
-    start: 0, end: value.length, direction: 'forward'
+    start, end, direction: 'forward'
   }));
 
 
@@ -89,6 +96,14 @@ export const init/*:type.init*/ = (isVisible=false, isFocused=false, value='') =
     })
   , Effects.none
   ];
+
+export const suggest = (model, {query, match, hint}) =>
+  enterSelectionRange
+  ( model
+  , match
+  , query.length
+  , match.length
+  )
 
 export const update/*:type.update*/ = (model, action) =>
   ( action.type === 'Abort'
@@ -114,19 +129,27 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateFocusable(model, action.source)
   : action.type === 'Editable'
   ? updateEditable(model, action.source)
+  : action.type === 'Change'
+  ? updateEditable(model, Editable.Change(action.value, action.selection))
   : action.type === 'Show'
   ? [merge(model, {isVisible: true}), Effects.none]
   : action.type === 'Hide'
   ? [merge(model, {isVisible: false}), Effects.none]
+  : action.type === 'SuggestNext'
+  ? [model, Effects.none]
+  : action.type === 'SuggestPrevious'
+  ? [model, Effects.none]
+  : action.type === 'Suggest'
+  ? suggest(model, action.source)
   : Unknown.update(model, action)
   );
 
 
 const decodeKeyDown = Keyboard.bindings({
-  // 'up': _ => Suggestions.SelectPrevious(),
-  // 'control p': _ => Suggestions.SelectPrevious(),
-  // 'down': _ => Suggestions.SelectNext(),
-  // 'control n': _ => Suggestions.SelectNext(),
+  'up': always(SuggestPrevious),
+  'control p': always(SuggestPrevious),
+  'down': always(SuggestNext),
+  'control n': always(SuggestNext),
   'enter': always(Submit),
   'escape': always(Abort)
 });
@@ -141,10 +164,12 @@ const readSelection = target => ({
 
 // Read change action from a dom event.
 // @TODO type signature
-const readChange = compose
-  ( EditableAction
-  , ({target}) =>
-      Editable.Change(target.value, readSelection(target))
+const readChange =
+  ({target}) =>
+  ( { type: "Change"
+    , value: target.value
+    , selection: readSelection(target)
+    }
   );
 
 // Read select action from a dom event.
@@ -216,12 +241,16 @@ const style = StyleSheet.create({
   }
 });
 
+
 export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'input-combobox',
-    style: Style( style.combobox
-                , !model.isVisible && style.hidden
-                )
+    style: Style
+    ( style.combobox
+    , !model.isVisible && style.hidden
+    ),
+    // Note we submit new query only on `onInput` that's when we expect
+    onInput: forward(address, Query)
   }, [
     html.span({
       className: 'input-search-icon',
@@ -252,15 +281,6 @@ export const view/*:type.view*/ = (model, address) =>
       onSelect: on(address, readSelect),
       onFocus: on(address, always(Focus)),
       onBlur: on(address, always(Blur)),
-      onKeyDown: on(address, decodeKeyDown),
-      // DOM does not fire selection events when you hit arrow
-      // keys or when you click in the input field. There for we
-      // need to handle those events to keep our model in sync with
-      // actul input field state.
-
-      // @HACK In servo input event does not seem to fire as expected
-      // so we use onKeyUp instead here.
-      onKeyUp: on(address, readChange),
-      onMouseOut: on(address, readSelect)
+      onKeyDown: on(address, decodeKeyDown)
     })
   ]);
