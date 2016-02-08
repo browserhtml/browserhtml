@@ -241,6 +241,7 @@ const style = StyleSheet.create({
   }
 });
 
+
 export const view/*:type.view*/ = (model, address) =>
   html.div({
     className: 'input-combobox',
@@ -248,12 +249,8 @@ export const view/*:type.view*/ = (model, address) =>
     ( style.combobox
     , !model.isVisible && style.hidden
     ),
-    // Hack: Problem is `input.oninput` & `input.onkeyup` are both
-    // fired only after `input.parentNode.onkeypress` which means
-    // that at this point in time `model.value` is different from
-    // what we expect it to be. To workaround that we delay submitting
-    // a query.
-    onKeyPress: debounce(forward(address, Query), 0, false)
+    // Note we submit new query only on `onInput` that's when we expect
+    onInput: forward(address, Query)
   }, [
     html.span({
       className: 'input-search-icon',
@@ -284,15 +281,6 @@ export const view/*:type.view*/ = (model, address) =>
       onSelect: on(address, readSelect),
       onFocus: on(address, always(Focus)),
       onBlur: on(address, always(Blur)),
-      onKeyDown: on(address, decodeKeyDown),
-      // DOM does not fire selection events when you hit arrow
-      // keys or when you click in the input field. There for we
-      // need to handle those events to keep our model in sync with
-      // actul input field state.
-
-      // @HACK In servo input event does not seem to fire as expected
-      // so we use onKeyUp instead here.
-      onKeyUp: on(address, readChange),
-      onMouseOut: on(address, readSelect)
+      onKeyDown: on(address, decodeKeyDown)
     })
   ]);
