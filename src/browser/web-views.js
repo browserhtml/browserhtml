@@ -363,7 +363,10 @@ const removeByID = (model, id) =>
       , order: remove(model.order, model.order.indexOf(id))
       }
     )
-  , Effects.none
+  , ( model.order.length === 1
+    ? Effects.receive(Create)
+    : Effects.none
+    )
   ];
 
 
