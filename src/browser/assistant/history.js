@@ -117,7 +117,7 @@ const updateMatches = (model, result) =>
   ( result.isOk
   ? replaceMatches(model, result.value)
   : [ model
-    , Unknown.error(result.error)
+    , Effects.task(Unknown.error(result.error))
     ]
   )
 
