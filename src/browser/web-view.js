@@ -221,18 +221,6 @@ const SelectAnimationAction = action =>
     }
   );
 
-const UnselectAnimationAction = action =>
-  ( action.type === "End"
-  ? Unselected
-  : { type: "UnselectAnimation"
-    , action
-    }
-  );
-
-
-
-
-
 const updateProgress = cursor
   ( { get: model => model.progress
     , set: (model, progress) => merge(model, {progress})
@@ -307,13 +295,9 @@ const updateStopwatch = cursor
     }
   );
 
-const updateAnimation = tag => (model, action) => {
+const updateSelectAnimation = (model, action) => {
   const [animation, fx] = Stopwatch.update(model.animation, action);
-  const [begin, end, duration] =
-    ( model.isSelected
-    ? [0, 1, 400]
-    : [1, 0, 300]
-    );
+  const [begin, end, duration] = [0, 1, 200];
 
   return (duration > animation.elapsed
   ? [ merge
@@ -332,18 +316,15 @@ const updateAnimation = tag => (model, action) => {
           }
         }
       )
-    , fx.map(tag)
+    , fx.map(SelectAnimationAction)
     ]
   : [ merge(model, {animation: null, display: {opacity: end} })
     , Effects
       .receive(Stopwatch.End)
-      .map(tag)
+      .map(SelectAnimationAction)
     ]
   )
 };
-
-const updateSelectAnimation = updateAnimation(SelectAnimationAction);
-const updateUnselectAnimation = updateAnimation(UnselectAnimationAction);
 
 export const init/*:type.init*/ = (id, options) => {
   const [shell, shellFx] = Shell.init(id, !options.inBackground);
@@ -401,15 +382,6 @@ const startSelectAnimation = model => {
   );
 }
 
-const startUnselectAnimation = model => {
-  const [animation, fx] = Stopwatch.update(model.animation, Stopwatch.Start)
-  return (
-    [ merge(model, {animation})
-    , fx.map(UnselectAnimationAction)
-    ]
-  );
-}
-
 const select = model =>
   ( model.isSelected
   ? [ model, Effects.none ]
@@ -423,7 +395,14 @@ const selected = model =>
 
 const unselect = model =>
   ( model.isSelected
-  ? startUnselectAnimation(merge(model, {isSelected: false}))
+  ? [ merge
+      ( model
+      , { isSelected: false
+        , display: {opacity: 1}
+        }
+      )
+    , Effects.none
+    ]
   : [ model, Effects.none ]
   );
 
@@ -545,8 +524,6 @@ export const update/*:type.update*/ = (model, action) =>
   // Animation
   : action.type === "SelectAnimation"
   ? updateSelectAnimation(model, action.action)
-  : action.type === "UnselectAnimation"
-  ? updateUnselectAnimation(model, action.action)
 
   // Delegate
 
@@ -579,7 +556,6 @@ const styleSheet = StyleSheet.create({
     height: '100%',
     mozUserSelect: 'none',
     cursor: 'default',
-    opacity: 1,
     zIndex: 2
   },
 
@@ -588,13 +564,11 @@ const styleSheet = StyleSheet.create({
   },
 
   webviewSelected: {
-
+    zIndex: 3
   },
 
   webviewInactive: {
     pointerEvents: 'none',
-    visibility: 'hidden',
-    opacity: 0,
     zIndex: 1
   },
 
