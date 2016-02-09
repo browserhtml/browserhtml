@@ -295,13 +295,9 @@ const updateStopwatch = cursor
     }
   );
 
-const updateAnimation = tag => (model, action) => {
+const updateSelectAnimation = (model, action) => {
   const [animation, fx] = Stopwatch.update(model.animation, action);
-  const [begin, end, duration] =
-    ( model.isSelected
-    ? [0, 1, 400]
-    : [1, 0, 300]
-    );
+  const [begin, end, duration] = [0, 1, 200];
 
   return (duration > animation.elapsed
   ? [ merge
@@ -320,17 +316,15 @@ const updateAnimation = tag => (model, action) => {
           }
         }
       )
-    , fx.map(tag)
+    , fx.map(SelectAnimationAction)
     ]
   : [ merge(model, {animation: null, display: {opacity: end} })
     , Effects
       .receive(Stopwatch.End)
-      .map(tag)
+      .map(SelectAnimationAction)
     ]
   )
 };
-
-const updateSelectAnimation = updateAnimation(SelectAnimationAction);
 
 export const init/*:type.init*/ = (id, options) => {
   const [shell, shellFx] = Shell.init(id, !options.inBackground);
