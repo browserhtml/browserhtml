@@ -221,18 +221,6 @@ const SelectAnimationAction = action =>
     }
   );
 
-const UnselectAnimationAction = action =>
-  ( action.type === "End"
-  ? Unselected
-  : { type: "UnselectAnimation"
-    , action
-    }
-  );
-
-
-
-
-
 const updateProgress = cursor
   ( { get: model => model.progress
     , set: (model, progress) => merge(model, {progress})
@@ -343,7 +331,6 @@ const updateAnimation = tag => (model, action) => {
 };
 
 const updateSelectAnimation = updateAnimation(SelectAnimationAction);
-const updateUnselectAnimation = updateAnimation(UnselectAnimationAction);
 
 export const init/*:type.init*/ = (id, options) => {
   const [shell, shellFx] = Shell.init(id, !options.inBackground);
@@ -397,15 +384,6 @@ const startSelectAnimation = model => {
   return (
     [ merge(model, {animation})
     , fx.map(SelectAnimationAction)
-    ]
-  );
-}
-
-const startUnselectAnimation = model => {
-  const [animation, fx] = Stopwatch.update(model.animation, Stopwatch.Start)
-  return (
-    [ merge(model, {animation})
-    , fx.map(UnselectAnimationAction)
     ]
   );
 }
@@ -552,8 +530,6 @@ export const update/*:type.update*/ = (model, action) =>
   // Animation
   : action.type === "SelectAnimation"
   ? updateSelectAnimation(model, action.action)
-  : action.type === "UnselectAnimation"
-  ? updateUnselectAnimation(model, action.action)
 
   // Delegate
 
