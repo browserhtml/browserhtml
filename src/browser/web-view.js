@@ -423,7 +423,14 @@ const selected = model =>
 
 const unselect = model =>
   ( model.isSelected
-  ? [ merge(model, {isSelected: false}), Effects.none ]
+  ? [ merge
+      ( model
+      , { isSelected: false
+        , display: {opacity: 1}
+        }
+      )
+    , Effects.none
+    ]
   : [ model, Effects.none ]
   );
 
@@ -579,7 +586,6 @@ const styleSheet = StyleSheet.create({
     height: '100%',
     mozUserSelect: 'none',
     cursor: 'default',
-    opacity: 1,
     zIndex: 2
   },
 
@@ -588,13 +594,11 @@ const styleSheet = StyleSheet.create({
   },
 
   webviewSelected: {
-    zIndex: 2
+    zIndex: 3
   },
 
   webviewInactive: {
     pointerEvents: 'none',
-    visibility: 'hidden',
-    opacity: 0,
     zIndex: 1
   },
 
