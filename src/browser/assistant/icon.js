@@ -21,6 +21,9 @@ const styleSheet = StyleSheet.create
       , fontSize: '17px'
       , left: '10px'
       , position: 'absolute'
+      // top:0 should not be required, but it's necessary for Servo.
+      // See https://github.com/servo/servo/issues/9687
+      , top: '0'
       }
     , selected:
       { color: '#fff'
