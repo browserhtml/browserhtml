@@ -16,13 +16,15 @@ import sequencial from 'gulp-sequence';
 import ecstatic from 'ecstatic';
 import hmr from 'browserify-hmr';
 import hotify from 'hotify';
+var fs = require('fs');
 
 var settings = {
   port: process.env.BROWSER_HTML_PORT ||
         '6060',
   geckoPath: process.env.BROWSER_HTML_GECKO_PATH ||
         '/Applications/Browser.html.app/Contents/MacOS/graphene',
-  servoPath: process.env.BROWSER_HTML_SERVO_PATH,
+  servoPath: process.env.BROWSER_HTML_SERVO_PATH || 
+        '/usr/local/bin/servo',
   profilePath: process.env.BROWSER_HTML_PROFILE_PATH ||
                './.profile',
   cache: {},
@@ -116,41 +118,54 @@ gulp.task('server', function() {
 
 // Starts a garphene build that loads browser.html app from the localhost:6060
 gulp.task('gecko', function() {
-  var app = child.spawn(settings.geckoPath, [
-    '--profile',
-    settings.profilePath,
-    '--start-manifest=http://localhost:' + settings.port + '/manifest.webapp'
-  ], {
-    stdio: 'inherit'
+  fs.exists(settings.geckoPath, function (exists) {
+    if(exists) {
+      var app = child.spawn(settings.geckoPath, [
+          '--profile',
+          settings.profilePath,
+          '--start-manifest=http://localhost:' + settings.port + '/manifest.webapp'
+      ], {
+          stdio: 'inherit'
+      });
+      var exit = function(code) {
+          app.kill();
+          process.exit(code);
+      }
+
+      process.on('SIGINT', exit);
+      app.on('close', exit);
+    } else {
+      console.error("Error: Gecko binary not found: " + settings.geckoPath);
+      process.exit(1);
+    } 
   });
-
-  var exit = function(code) {
-    app.kill();
-    process.exit(code);
-  }
-
-  process.on('SIGINT', exit);
-  app.on('close', exit);
 });
 
 gulp.task('servo', function() {
-  var app = child.spawn(settings.servoPath, [
-    '-w',
-    '-b',
-    '--pref',
-    'dom.mozbrowser.enabled',
-    'http://localhost:' + settings.port
-  ], {
-    stdio: 'inherit'
+  fs.exists(settings.servoPath, function (exists) {
+    if(exists) {
+      var app = child.spawn(settings.servoPath, [
+          '-w',
+          '-b',
+          '--pref',
+          'dom.mozbrowser.enabled',
+          'http://localhost:' + settings.port
+      ], {
+          stdio: 'inherit'
+      });
+
+      var exit = function(code) {
+          app.kill();
+          process.exit(code);
+      }
+
+      process.on('SIGINT', exit);
+      app.on('close', exit);
+    } else {
+      console.error("Error: Servo binary not found: " + settings.servoPath);
+      process.exit(1);
+    } 
   });
-
-  var exit = function(code) {
-    app.kill();
-    process.exit(code);
-  }
-
-  process.on('SIGINT', exit);
-  app.on('close', exit);
 });
 
 gulp.task('compressor', function() {
