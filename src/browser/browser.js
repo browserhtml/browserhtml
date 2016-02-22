@@ -6,6 +6,7 @@
 
 
 import {version} from "../../package.json";
+import * as Config from "../../browserhtml.json";
 import {Effects, html, forward, thunk} from "reflex";
 
 import * as Shell from "./shell";
@@ -36,7 +37,7 @@ import {onWindow} from "driver";
 /*:: import * as type from "../../type/browser/browser" */
 
 export const init/*:type.init*/ = () => {
-  const [devtools, devtoolsFx] = Devtools.init();
+  const [devtools, devtoolsFx] = Devtools.init({isActive: Config.devtools});
   const [updater, updaterFx] = Updater.init();
   const [input, inputFx] = Input.init(false, false, "");
   const [shell, shellFx] = Shell.init();

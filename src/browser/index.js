@@ -9,6 +9,7 @@ import * as UI from "./perspective-ui";
 
 // import * as Session from "./session";
 import {version} from "../../package.json";
+import * as Config from "../../browserhtml.json";
 import {Renderer} from "driver";
 
 
@@ -42,7 +43,7 @@ const application = start({
   initial: isReload ?
             window.application.model.value :
             UI.init(),
-  step: logger(UI.update),
+  step: Config.logging ? logger(UI.update) : UI.update,
   view: UI.view
 });
 
