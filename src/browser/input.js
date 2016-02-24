@@ -194,7 +194,7 @@ const style = StyleSheet.create({
     width: `${inputWidth}px`
   },
   field: {
-    background: '#EBEEF2',
+    backgroundColor: '#EBEEF2',
     borderRadius: '5px',
     borderWidth: '3px',
     borderStyle: 'solid',
@@ -209,6 +209,7 @@ const style = StyleSheet.create({
     width: `${(inputWidth - 6) - (inputXPadding * 2)}px`
   },
   fieldFocused: {
+    backgroundColor: '#fff',
     borderColor: '#3D91F2'
   },
   inactive: {
