@@ -200,7 +200,8 @@ const styleSheet = StyleSheet.create
       { height: '100%'
       }
     , shrinked:
-      {}
+      { minHeight: '120px'
+      }
 
     , open:
       {
