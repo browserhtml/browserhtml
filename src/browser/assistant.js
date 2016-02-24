@@ -212,7 +212,7 @@ const styleSheet = StyleSheet.create
 
     , results:
       { listStyle: 'none'
-      , margin: '120px auto 0'
+      , margin: '90px auto 40px'
       , padding: '0px'
       , width: '480px'
       }
