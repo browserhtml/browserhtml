@@ -224,17 +224,6 @@ const style = StyleSheet.create({
     position: 'absolute',
     top: 0
   },
-  clearIcon: {
-    color: 'rgba(0,0,0,0.5)',
-    fontFamily: 'FontAwesome',
-    fontSize: '16px',
-    right: '10px',
-    lineHeight: '40px',
-    position: 'absolute'
-  },
-  clearIconInactive: {
-    opacity: 0
-  },
   hidden: {
     opacity: 0,
     pointerEvents: 'none'
@@ -256,17 +245,6 @@ export const view/*:type.view*/ = (model, address) =>
       className: 'input-search-icon',
       style: style.searchIcon
     }, ['']),
-    html.span({
-      className: 'input-clear-icon',
-      style: Style(
-        style.clearIcon,
-        ( model.value === ''
-        ? style.clearIconInactive
-        : null
-        )
-      ),
-      onClick: () => address(Clear)
-    }, ['']),
     html.input({
       className: 'input-field',
       placeholder: 'Search or enter address',
