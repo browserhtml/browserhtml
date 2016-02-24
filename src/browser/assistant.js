@@ -214,7 +214,7 @@ const styleSheet = StyleSheet.create
       { listStyle: 'none'
       , margin: '120px auto 0'
       , padding: '0px'
-      , width: '460px'
+      , width: '480px'
       }
     }
   );

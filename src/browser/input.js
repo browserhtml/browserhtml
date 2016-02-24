@@ -180,7 +180,7 @@ const readSelect = compose
       Editable.Select(readSelection(target))
   );
 
-const inputWidth = 460;
+const inputWidth = 480;
 const inputHeight = 40;
 const inputXPadding = 32;
 
