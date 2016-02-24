@@ -219,7 +219,7 @@ const style = StyleSheet.create({
     color: 'rgba(0,0,0,0.5)',
     fontFamily: 'FontAwesome',
     fontSize: '16px',
-    left: '10px',
+    left: '13px',
     lineHeight: '40px',
     position: 'absolute',
     top: 0
