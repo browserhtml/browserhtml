@@ -617,6 +617,7 @@ const styleSheet = StyleSheet.create({
   },
 
   titleContainer: {
+    fontSize: '13px',
     position: 'absolute',
     top: 0,
     left: 0,
@@ -624,7 +625,6 @@ const styleSheet = StyleSheet.create({
     paddingRight: '30px',
     width: 'calc(100% - 60px)',
     textAlign: 'center',
-    fontWeight: 'bold',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis'
