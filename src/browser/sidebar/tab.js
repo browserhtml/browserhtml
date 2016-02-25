@@ -98,7 +98,9 @@ const styleSheet = StyleSheet.create({
     position: 'absolute',
     paddingLeft: '10px',
     right: 0,
-    top: 0
+    top: 0,
+    transition: `transform 400ms cubic-bezier(0.215, 0.610, 0.355, 1.000),
+                opacity 300ms ease-out`
   },
 
   closeMaskSelected: {
@@ -114,6 +116,7 @@ const styleSheet = StyleSheet.create({
 
   closeMaskHidden: {
     opacity: 0,
+    transform: 'translateX(16px)',
     pointerEvents: 'none'
   },
 
