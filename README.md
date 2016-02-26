@@ -36,7 +36,7 @@ Then, start the front-end local server:
 
 Finally, start Servo with the browser.html flags turned on in either debug (`-d`) or release (`-r`) mode:
 
-    ./mach run -r -- -b --pref dom.mozbrowser.enabled http://localhost:6060
+    ./mach run -r -- -b -w --pref dom.mozbrowser.enabled http://localhost:6060
 
 
 ### Running in Gecko
