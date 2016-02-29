@@ -575,9 +575,13 @@ const exitInput = model =>
 const attachSidebar = model =>
   batch
   ( update
-  , model
+  , merge(model, {mode: 'show-web-view'})
   , [ DockSidebar
     , Shrink
+    , CloseSidebar
+    , HideOverlay
+    , FoldWebViews
+    , FocusWebView
     ]
   );
 
@@ -639,7 +643,7 @@ const expanded = endResizeAnimation;
 const updateResizeAnimation = (model, action) => {
   const [resizeAnimation, fx] =
     Stopwatch.update(model.resizeAnimation, action);
-  const duration = 300;
+  const duration = 200;
 
   const [begin, end] =
     ( model.isExpanded
