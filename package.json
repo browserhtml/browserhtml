@@ -47,6 +47,7 @@
     "gulp-sourcemaps": "1.5.2",
     "gulp-uglify": "1.2.0",
     "gulp-util": "3.0.6",
+    "gulp-watch": "4.3.5",
     "hotify": "0.0.1",
     "jscs": "1.8.1",
     "mocha": "2.2.4",
