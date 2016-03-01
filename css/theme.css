@@ -40,7 +40,6 @@ body {
   line-height: 1.5;
   overflow: hidden;
   border-radius: 6px;
-  background-color: white;
 }
 
 .webview-combobox:hover {
