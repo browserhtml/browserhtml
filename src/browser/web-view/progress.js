@@ -110,7 +110,7 @@ const loadEnd = (time, model) =>
         , updateTime: time
         }
       )
-    , Effects.tick(Tick)
+    , Effects.none
     ]
   );
 
