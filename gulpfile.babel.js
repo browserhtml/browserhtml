@@ -19,6 +19,8 @@ import hmr from 'browserify-hmr';
 import hotify from 'hotify';
 var fs = require('fs');
 
+var dist = gutil.env.dist || "./dist/";
+
 var settings = {
   port: process.env.BROWSER_HTML_PORT ||
         '6060',
@@ -95,7 +97,7 @@ Bundler.prototype.build = function() {
                     error.message);
     })
     .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('./dist/'))
+    .pipe(gulp.dest(dist))
     .on('end', () => {
       gutil.log(`Completed bundling: '${this.entry}'`);
     });
@@ -110,7 +112,7 @@ var bundler = function(entry) {
 // Starts a static http server that serves browser.html directory.
 gulp.task('server', function() {
   var server = http.createServer(ecstatic({
-    root: path.join(module.filename, '../dist/'),
+    root: dist,
     cache: 0
   }));
   server.listen(settings.port);
@@ -209,13 +211,17 @@ gulp.task('hotreload', function() {
   settings.transform.push(hotify);
 });
 
+function copy_files(src, dst) {
+  var s = gulp.src(src);
+  if (settings.watch) {
+    s = s.pipe(watch(src));
+  }
+  s.pipe(gulp.dest(dst));
+}
+
 gulp.task('copydist', function() {
-  gulp.src('./index.html')
-      .pipe(watch('./index.html'))
-      .pipe(gulp.dest('./dist/'));
-  gulp.src('./css/*')
-      .pipe(watch('./css/*'))
-      .pipe(gulp.dest('./dist/css/'));
+  copy_files('./index.html', dist);
+  copy_files('./css/*', path.join(dist, "css/"));
 });
 
 bundler('browser/index');
