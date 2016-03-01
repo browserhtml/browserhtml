@@ -231,7 +231,7 @@ const updateProgress = cursor
         , ( action.type === "LoadStart"
           ? Progress.Start(action.time)
           : action.type === "LoadEnd"
-          ? Progress.End(action.time)
+          ? Progress.LoadEnd(action.time)
           : action
           )
         )
@@ -457,8 +457,16 @@ const endLoad = (model, time) =>
   batch
   ( update
   , model
-  , [ ProgressAction(Progress.End(time))
+  , [ ProgressAction(Progress.LoadEnd(time))
     , PageAction(Page.LoadEnd)
+    ]
+  );
+
+const connect = (model, time) =>
+  batch
+  ( update
+  , model
+  , [ ProgressAction(Progress.Connect(time))
     ]
   );
 
@@ -506,6 +514,9 @@ export const update/*:type.update*/ = (model, action) =>
 
   : action.type === "LoadEnd"
   ? endLoad(model, action.time)
+
+  : action.type === "Connect"
+  ? connect(model, action.time)
 
   : action.type === "LocationChanged"
   ? changeLocation(model, action.uri)
@@ -719,10 +730,10 @@ const viewFrame = (model, address) =>
     onMozBrowserContextMenu: on(address, decodeContexMenu),
     onMozBrowserError: on(address, decodeError),
     onMozBrowserLoadStart: on(address, decodeLoadStart),
+    onMozBrowserConnected: on(address, decodeConnected),
     onMozBrowserLoadEnd: on(address, decodeLoadEnd),
     onMozBrowserFirstPaint: on(address, decodeFirstPaint),
     onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
-    onMozBrowserLoadProgressChange: on(address, decodeProgressChange),
     onMozBrowserLocationChange: on(address, decodeLocationChange),
     onMozBrowserMetaChange: on(address, decodeMetaChange),
     onMozBrowserIconChange: on(address, decodeIconChange),
@@ -884,7 +895,7 @@ const decodeLocationChange = ({detail: uri}) =>
 
 const decodeLoadStart = compose(LoadStart, decodeTime);
 
-const decodeProgressChange = compose(Progress.Change, decodeTime);
+const decodeConnected = compose(Progress.Connect, decodeTime);
 
 const decodeLoadEnd = compose(LoadEnd, decodeTime);
 

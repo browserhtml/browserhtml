@@ -11,7 +11,7 @@ export type Idle
 export type Loading =
   { loadStart: Time
   , loadEnd: Time
-  , updateTime: Time
+  , connectTime: ?Time
   }
 export type Model
   = Idle
@@ -25,20 +25,20 @@ export type StartAction =
 export type Start = (time:Time) =>
   StartAction
 
-export type EndAction =
-  { type: "End"
+export type LoadEndAction =
+  { type: "LoadEnd"
   , time: Time
   }
 
-export type End = (time:Time) =>
-  EndAction
+export type LoadEnd = (time:Time) =>
+  LoadEndAction
 
-export type ChangeAction =
-  { type: "Change"
+export type ConnectAction =
+  { type: "Connect"
   , time: Time
   }
-export type Change = (time:Time) =>
-  ChangeAction
+export type Connect = (time:Time) =>
+  ConnectAction
 
 export type TickAction =
   { type: "Tick"
@@ -52,7 +52,8 @@ export type Tick = (time:Time) =>
 export type Action
   = StartAction
   | ChangeAction
-  | EndAction
+  | LoadEndAction
+  | ConnectAction
   | TickAction
 
 
@@ -90,13 +91,8 @@ export type init = () =>
   [Model, Effects<Action>]
 
 
-// @TODO shouldn't this be 0.0 - 1.0 range instead?
-export type Progress = number // Implied to be 0 - 100 range
+export type Progress = number // Implied to be 0.0 - 1.0 range
 // Invoked from the view function and returns calculated progress:
-//  ease(bezier(0, 0.5, 0, 0.5),
-//        float, 0, 100,
-//        model.loadEnd - model.loadStart,
-//        model.updateTime)
 export type progress = (model: ?Model) => Progress
 
 
