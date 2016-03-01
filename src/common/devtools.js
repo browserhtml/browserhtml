@@ -134,12 +134,12 @@ const report = (model, result) =>
     )
   ];
 
-export const init/*:type.init*/ = () => {
+export const init/*:type.init*/ = ({isActive}) => {
   const [settings, fx] =
     Settings.init(Object.keys(descriptions));
 
   const result =
-    [ { isActive: false
+    [ { isActive
       , settings
       }
     , fx.map(SettingsAction)
