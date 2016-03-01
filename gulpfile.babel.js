@@ -8,6 +8,7 @@ import uglify from 'gulp-uglify';
 import sourcemaps from 'gulp-sourcemaps';
 import gutil from 'gulp-util';
 import watchify from 'watchify';
+import watch from 'gulp-watch';
 import child from 'child_process';
 import http from 'http';
 import path from 'path';
@@ -109,7 +110,7 @@ var bundler = function(entry) {
 // Starts a static http server that serves browser.html directory.
 gulp.task('server', function() {
   var server = http.createServer(ecstatic({
-    root: path.join(module.filename, '../'),
+    root: path.join(module.filename, '../dist/'),
     cache: 0
   }));
   server.listen(settings.port);
@@ -208,6 +209,15 @@ gulp.task('hotreload', function() {
   settings.transform.push(hotify);
 });
 
+gulp.task('copydist', function() {
+  gulp.src('./index.html')
+      .pipe(watch('./index.html'))
+      .pipe(gulp.dest('./dist/'));
+  gulp.src('./css/*')
+      .pipe(watch('./css/*'))
+      .pipe(gulp.dest('./dist/css/'));
+});
+
 bundler('browser/index');
 bundler('service/history-worker');
 bundler('about/settings/main');
@@ -218,7 +228,8 @@ gulp.task('build', [
   'browser/index',
   // 'service/history-worker',
   'about/settings/main',
-  'about/repl/main'
+  'about/repl/main',
+  'copydist'
 ]);
 
 gulp.task('watch', [
@@ -226,7 +237,8 @@ gulp.task('watch', [
   'browser/index',
   // 'service/history-worker',
   'about/settings/main',
-  'about/repl/main'
+  'about/repl/main',
+  'copydist'
 ]);
 
 gulp.task('develop', sequencial('watch', 'server', 'gecko'));
