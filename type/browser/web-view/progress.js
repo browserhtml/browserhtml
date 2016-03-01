@@ -4,18 +4,12 @@ import type {VirtualTree} from "reflex/type"
 import type {Effects} from "reflex/type/effects"
 import type {Time} from "../../common/prelude"
 
-export type Idle
-  = void
-  | null
-
-export type Loading =
-  { loadStart: Time
-  , loadEnd: Time
+export type Model =
+  { loadStart: ?Time
+  , loadEnd: ?Time
+  , updateTime: ?Time
   , connectTime: ?Time
   }
-export type Model
-  = Idle
-  | Loading
 
 export type StartAction =
   { type: "Start"
@@ -75,7 +69,7 @@ export type start = (time:Time) =>
 //    {...model, loadEnd: timeStamp},
 //    Effects.none
 //  ]
-export type end = (time:Time, model:Loading) =>
+export type end = (time:Time, model:Model) =>
   [Model, Effects<Action>]
 
 
@@ -84,7 +78,7 @@ export type end = (time:Time, model:Loading) =>
 //    {...model, updateTime: timeStamp},
 //    Effects.tick(asTick)
 // ]
-export type tick = (timeStamp:Time, model:Loading) =>
+export type tick = (timeStamp:Time, model:Model) =>
   [Model, Effects<Action>]
 
 export type init = () =>

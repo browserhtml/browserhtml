@@ -45,7 +45,7 @@ export const Tick/*:type.Tick*/ = time =>
 // Zone C is when the page is fully loaded and we finish the animation
 
 const limitA = 0.2; // what is the limit for the A zone. It will never reach this point, but tend to it. 1 is 100% of the width
-const limitB = 0.9;
+const limitB = 0.7;
 const inflectionA = (1 * second); // After how many ms it stops accelerating to slowing approaching the limit
 const inflectionB = (2 * second);
 const durationC = 200;
@@ -88,11 +88,17 @@ export const progress/*:type.progress*/ = model =>
 
 // Start a new progress cycle.
 const start = time =>
-  [ { loadStart: time
-    , loadEnd: null
-    , updateTime: time
-    , connectTime: null
-    }
+  [ merge
+    ( { loadStart: time
+      , loadEnd: null
+      , updateTime: time
+      , connectTime: null
+      , display:
+        { opacity: 1
+        , x: 0
+        }
+      }
+    )
   , Effects.tick(Tick)
   ];
 
@@ -117,19 +123,44 @@ const loadEnd = (time, model) =>
 // Update the progress and request another tick.
 // Returns a new model and a tick effect.
 export const tick/*:type.tick*/ = (time, model) =>
-  ( [ merge(model, {updateTime: time})
+  ( [ merge
+      ( model
+      , { updateTime: time
+        , display:
+          { opacity: 1
+          , x: (-100 + (100 * progress(model)))
+          }
+        }
+      )
     , Effects.tick(Tick)
     ]
   );
 
 const end = (time, model) =>
-  ( [ model
+  ( [ merge
+      ( model
+      , { display:
+          { opacity: 0
+          , x: 0
+          }
+        }
+      )
     , Effects.none
     ]
   );
 
 export const init/*:type.init*/ = () =>
-  [null, Effects.none];
+  [ { loadStart: null
+    , loadEnd: null
+    , updateTime: null
+    , connectTime: null
+    , display:
+      { opacity: 0
+      , x: 0
+      }
+    }
+  , Effects.none
+  ];
 
 export const update/*:type.update*/ = (model, action) =>
   ( action.type === 'Start'
@@ -152,7 +183,8 @@ const style = StyleSheet.create({
     position: 'absolute',
     top: '27px',
     height: '4px',
-    width: '100%'
+    width: '100%',
+    pointerEvents: 'none'
   },
   // This is the angle that we have at the end of the progress bar
   arrow: {
@@ -169,8 +201,8 @@ export const view/*:type.view*/ = (model) =>
     className: 'progressbar',
     style: Style(style.bar, {
       backgroundColor: '#4A90E2',
-      transform: `translateX(${-100 + (100 * progress(model))}%)`,
-      visibility: progress(model) < 1 ? 'visible' : 'hidden'
+      transform: `translateX(${model.display.x}%)`,
+      opacity: model.display.opacity
     }),
   }, [html.div({
     className: 'progressbar-arrow',
