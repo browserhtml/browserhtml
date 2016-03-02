@@ -5,8 +5,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import * as URI from '../../common/url-helper';
+import * as Favicon from '../../common/favicon';
 
-export const readTitle/*:type.readTitle*/ = (model, fallback) =>
+/*::
+import * as Util from "./util"
+*/
+
+export const readTitle/*:Util.readTitle*/ = (model, fallback) =>
  ( (model.page && model.page.title && model.page.title !== '')
  ? model.page.title
  : model.navigation.currentURI.search(/^\s*$/)
@@ -14,14 +19,14 @@ export const readTitle/*:type.readTitle*/ = (model, fallback) =>
  : fallback
  );
 
-export const readFaviconURI/*:type.readFaviconURI*/ = (model) =>
- ( (model.page && model.page.faviconURI)
- ? model.page.faviconURI
- // @TODO use a proper URL.join function. Need to add this to url-helper lib.
- : `${model.navigation.currentURI}/favicon.ico`
- );
+export const readFaviconURI/*:Util.readFaviconURI*/ =
+  (model) =>
+  ( (model.page && model.page.faviconURI)
+  ? model.page.faviconURI
+  : Favicon.getFallback(model.navigation.currentURI)
+  );
 
-export const isDark/*:type.isDark*/ = (model) =>
+export const isDark/*:Util.isDark*/ = (model) =>
  ( model.page
  ? model.page.pallet.isDark
  : false
