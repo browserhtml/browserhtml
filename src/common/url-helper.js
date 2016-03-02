@@ -39,7 +39,7 @@ export const isAboutURL = url =>
 
 export const isPrivileged = uri => {
   // FIXME: not safe. White list?
-  return uri && uri.startsWith(new URL('./src/about/', getBaseURI()));
+  return uri && uri.startsWith(new URL('./components/about/', getBaseURI()));
 };
 
 const rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
@@ -74,7 +74,7 @@ const readSearchURL = input =>
 
 const readAboutURL = input =>
   input === 'about:blank' ? input :
-  `${getBaseURI()}src/about/${input.replace('about:', '')}/index.html`;
+  `${getBaseURI()}componnents/about/${input.replace('about:', '')}/index.html`;
 
 export const read = input =>
   isNotURL(input) ? readSearchURL(input) :
