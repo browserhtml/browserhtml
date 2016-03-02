@@ -5,5 +5,3 @@ node_modules/
 !.profile
 !.profile/user.js
 dist/
-Cargo.lock
-target/
