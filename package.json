@@ -28,8 +28,8 @@
   "dependencies": {
     "eased": "0.0.4",
     "pouchdb": "4.0.0",
-    "reflex": "0.1.0",
-    "reflex-virtual-dom-driver": "0.0.4",
+    "reflex": "0.1.1",
+    "reflex-virtual-dom-driver": "0.0.5",
     "tinycolor2": "1.1.2"
   },
   "devDependencies": {
