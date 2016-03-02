@@ -22,6 +22,7 @@
     "servo": "gulp servo",
     "deploy": "./.bin/deploy.sh",
     "build": "NODE_ENV=production gulp build",
+    "build-cargo": "NODE_ENV=production gulp cargo",
     "build-server": "gulp build-server",
     "live-server": "gulp live-server"
   },
