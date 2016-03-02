@@ -226,7 +226,6 @@ gulp.task('copydist', function() {
   copy_files('./src/**/*.html', path.join(dist, "components"));
   copy_files('./src/**/*.json', path.join(dist, "components"));
   copy_files('./*.json', path.join(dist, "components"));
-  copy_files('./src/about/*.json', dist);
 });
 
 bundler('browser/index');
