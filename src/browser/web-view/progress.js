@@ -20,16 +20,14 @@ export const Start/*:type.Start*/ = time =>
     }
   );
 
-// @TODO Is change supposed to be connected to http progress events from
-// the browser? In this case would it modify the loadEnd estimate in the model?
-export const Change/*:type.Change*/ = time =>
-  ( { type: "Change"
+export const Connect/*:type.Connect*/ = time =>
+  ( { type: 'Connect'
     , time
     }
   );
 
-export const End/*:type.End*/ = time =>
-  ( { type: "End"
+export const LoadEnd/*:type.LoadEnd*/ = time =>
+  ( { type: "LoadEnd"
     , time
     }
   );
@@ -40,33 +38,82 @@ export const Tick/*:type.Tick*/ = time =>
     }
   );
 
+// Parameters
+
+// Zone A is while connecting (waiting for the server to respond). This can be very fast (especially if server has beeen reached before).
+// Zone B is downloading the page and loading it.
+// Zone C is when the page is fully loaded and we finish the animation
+
+const limitA = 0.2; // what is the limit for the A zone. It will never reach this point, but tend to it. 1 is 100% of the width
+const limitB = 0.7;
+const inflectionA = (1 * second); // After how many ms it stops accelerating to slowing approaching the limit
+const inflectionB = (2 * second);
+const durationC = 200;
+
+const TAU = Math.PI / 2;
+
+const curve = (currentTime, inflectionTime) =>
+  (Math.atan((TAU / 2) * (currentTime / inflectionTime)) / TAU);
+
+const progressConnecting = ({loadStart, updateTime}) =>
+  limitA * curve(updateTime - loadStart, inflectionA);
+
+const progressLoading = model => {
+  const {connectTime, updateTime} = model;
+  const padding = progressConnecting(model);
+  const toFill = limitB - padding;
+  return padding + toFill * curve(updateTime - connectTime, inflectionB);
+}
+
+const isConnected = model => model.connectTime;
+const isLoaded = model => model.loadEnd;
+
+const progressLoaded = model => {
+  const {loadEnd, updateTime} = model;
+  const padding = progressLoading(model);
+  const toFill = 1 - padding;
+  return padding + toFill * (updateTime - loadEnd) / durationC;
+}
+
+export const progress/*:type.progress*/ = model =>
+  ( model
+  ? ( isLoaded(model)
+    ? progressLoaded(model)
+    : isConnected(model)
+    ? progressLoading(model)
+    : progressConnecting(model)
+    )
+  : 0
+  );
+
 // Start a new progress cycle.
 const start = time =>
-  [ { loadStart: time
-    // Predict a 7s load if we don't know.
-    , loadEnd: time + (7 * second)
-    , updateTime: time
-    }
+  [ merge
+    ( { loadStart: time
+      , loadEnd: null
+      , updateTime: time
+      , connectTime: null
+      , display:
+        { opacity: 1
+        , x: 0
+        }
+      }
+    )
   , Effects.tick(Tick)
   ];
 
+const connect = (time, model) =>
+  ( [ merge(model, {connectTime: time})
+    , Effects.none
+    ]
+  );
+
 // Invoked on End action and returns model with updated `timeStamp`:
-//  [
-//    {...model, loadEnd: timeStamp},
-//    Effects.none
-//  ]
-const end = (time, model) =>
-  // It maybe that our estimated load time was naive and we finished load
-  // animation before we received loadEnd. In such case we update both `loadEnd`
-  // & `updateTime` so that load progress will remain complete. Otherwise we
-  // update `loadEnd` with `timeStamp + 500` to make progressbar sprint to the
-  // end in next 500ms.
-  ( model.loadEnd > model.updateTime
-  ? [ merge(model, {loadEnd: time + 500}), Effects.none ]
-  : [ merge
+const loadEnd = (time, model) =>
+  ( [ merge
       ( model
-      , { loadEnd: time + 500
-        , updateTime: time + 500
+      , { loadEnd: time
+        , updateTime: time
         }
       )
     , Effects.none
@@ -76,37 +123,68 @@ const end = (time, model) =>
 // Update the progress and request another tick.
 // Returns a new model and a tick effect.
 export const tick/*:type.tick*/ = (time, model) =>
-  ( model.loadEnd > time
-  ? [ merge(model, {updateTime: time}), Effects.tick(Tick) ]
-  : [ merge(model, {updateTime: time}), Effects.none ]
+  ( [ merge
+      ( model
+      , { updateTime: time
+        , display:
+          { opacity: 1
+          , x: (-100 + (100 * progress(model)))
+          }
+        }
+      )
+    , Effects.tick(Tick)
+    ]
+  );
+
+const end = (time, model) =>
+  ( [ merge
+      ( model
+      , { display:
+          { opacity: 0
+          , x: 0
+          }
+        }
+      )
+    , Effects.none
+    ]
   );
 
 export const init/*:type.init*/ = () =>
-  [null, Effects.none];
+  [ { loadStart: null
+    , loadEnd: null
+    , updateTime: null
+    , connectTime: null
+    , display:
+      { opacity: 0
+      , x: 0
+      }
+    }
+  , Effects.none
+  ];
 
 export const update/*:type.update*/ = (model, action) =>
   ( action.type === 'Start'
   ? start(action.time)
   : model == null
   ? start(action.time)
-  : action.type === 'End'
-  ? end(action.time, model)
-  : action.type === 'Tick'
+  : action.type === 'LoadEnd'
+  ? loadEnd(action.time, model)
+  : action.type === 'Connect'
+  ? connect(action.time, model)
+  : action.type === 'Tick' && progress(model) < 1
   ? tick(action.time, model)
+  : action.type === 'Tick'
+  ? end(action.time, model)
   : Unknown.update(model, action)
   );
-
-export const progress/*:type.progress*/ = (model) =>
-  model ?
-    ease(easeOutQuart, float, 0, 100,
-      model.loadEnd - model.loadStart, model.updateTime - model.loadStart) : 0;
 
 const style = StyleSheet.create({
   bar: {
     position: 'absolute',
     top: '27px',
     height: '4px',
-    width: '100%'
+    width: '100%',
+    pointerEvents: 'none'
   },
   // This is the angle that we have at the end of the progress bar
   arrow: {
@@ -123,9 +201,8 @@ export const view/*:type.view*/ = (model) =>
     className: 'progressbar',
     style: Style(style.bar, {
       backgroundColor: '#4A90E2',
-      // @TODO this progress treatment is extremely naive and ugly. Fix it.
-      transform: `translateX(${-100 + progress(model)}%)`,
-      visibility: progress(model) < 100 ? 'visible' : 'hidden'
+      transform: `translateX(${model.display.x}%)`,
+      opacity: model.display.opacity
     }),
   }, [html.div({
     className: 'progressbar-arrow',
