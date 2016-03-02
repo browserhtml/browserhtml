@@ -26,7 +26,7 @@ var settings = {
         '6060',
   geckoPath: process.env.BROWSER_HTML_GECKO_PATH ||
         '/Applications/Browser.html.app/Contents/MacOS/graphene',
-  servoPath: process.env.BROWSER_HTML_SERVO_PATH || 
+  servoPath: process.env.BROWSER_HTML_SERVO_PATH ||
         '/usr/local/bin/servo',
   profilePath: process.env.BROWSER_HTML_PROFILE_PATH ||
                './.profile',
@@ -97,7 +97,7 @@ Bundler.prototype.build = function() {
                     error.message);
     })
     .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest(dist))
+    .pipe(gulp.dest(path.join(dist, "components")))
     .on('end', () => {
       gutil.log(`Completed bundling: '${this.entry}'`);
     });
@@ -140,7 +140,7 @@ gulp.task('gecko', function() {
     } else {
       console.error("Error: Gecko binary not found: " + settings.geckoPath);
       process.exit(1);
-    } 
+    }
   });
 });
 
@@ -167,7 +167,7 @@ gulp.task('servo', function() {
     } else {
       console.error("Error: Servo binary not found: " + settings.servoPath);
       process.exit(1);
-    } 
+    }
   });
 });
 
@@ -222,6 +222,10 @@ function copy_files(src, dst) {
 gulp.task('copydist', function() {
   copy_files('./index.html', dist);
   copy_files('./css/*', path.join(dist, "css/"));
+  copy_files('.src/**/*.css', path.join(dist, "components"));
+  copy_files('./src/**/*.html', path.join(dist, "components"));
+  copy_files('./src/**/*.json', path.join(dist, "components"));
+  copy_files('./*.json', path.join(dist, "components"));
 });
 
 bundler('browser/index');
