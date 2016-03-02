@@ -1,6 +1,6 @@
 {
   "name": "browser.html",
-  "description": "browser.html",
+  "description": "Experimental Servo browser built in HTML",
   "version": "0.0.11",
   "homepage": "https://github.com/mozilla/browser.html",
   "repository": {
@@ -55,5 +55,8 @@
     "vinyl-source-stream": "1.1.0",
     "watchify": "3.3.1"
   },
+  "contributors": [
+    "The Browserhtml Project Developers"
+  ],
   "license": "MPL-2.0"
 }

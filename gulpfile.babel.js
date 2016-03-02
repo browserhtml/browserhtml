@@ -17,7 +17,8 @@ import sequencial from 'gulp-sequence';
 import ecstatic from 'ecstatic';
 import hmr from 'browserify-hmr';
 import hotify from 'hotify';
-var fs = require('fs');
+import * as manifest from './package.json';
+import * as fs from 'fs';
 
 var dist = gutil.env.dist || "./dist/";
 
@@ -220,6 +221,9 @@ function copy_files(src, dst) {
 }
 
 gulp.task('copydist', function() {
+  copy_files('LICENSE', dist);
+  copy_files('README.md', dist);
+  copy_files('browser.gif', dist);
   copy_files('./index.html', dist);
   copy_files('./css/*', path.join(dist, "css/"));
   copy_files('.src/**/*.css', path.join(dist, "components"));
@@ -250,6 +254,54 @@ gulp.task('watch', [
   'about/repl/main',
   'copydist'
 ]);
+
+const readName =
+  contributor =>
+  ( contributor.name == null
+  ? ``
+  : `${contributor.name}`
+  );
+
+const readEmail =
+  contributor =>
+  ( contributor.email == null
+  ? ``
+  : `<${contributor.email}>`
+  );
+
+const readURL =
+  contributor =>
+  ( contributor.url == null
+  ? ``
+  : `${contributor.url}`
+  );
+
+const toAuthor =
+  contributor =>
+  ( typeof(contributor) === "string"
+  ? `"${contributor}"`
+  : `"${[readName(contributor), readEmail(contributor), readURL(contributor)].join(" ")}"`
+  );
+
+gulp.task('cargo', () => {
+  const lib = source('./src/lib.rs')
+  const cargo = source('./Cargo.toml')
+
+  lib.end(`/* file intentionally blank */\n`);
+
+  cargo.end(`[package]
+name = "${manifest.name}"
+version = "${manifest.version}"
+authors = [${manifest.contributors.map(toAuthor).join(", ")}]
+license = "${manifest.license}"
+repository = "${manifest.repository.url}"
+homepage = "${manifest.homepage}"
+exclude = [ "node_modules/*" ]
+`);
+
+  lib.pipe(gulp.dest(dist));
+  cargo.pipe(gulp.dest(dist));
+});
 
 gulp.task('develop', sequencial('watch', 'server', 'gecko'));
 gulp.task('build-server', sequencial('watch', 'server'));
