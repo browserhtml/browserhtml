@@ -208,6 +208,14 @@ gulp.task('hotreload', function() {
       ]
     ]
 
+  settings.plugins['about/newtab/main'] =
+    [ [ hmr
+      , { port: 3128
+        , url: "http://localhost:3128"
+        }
+      ]
+    ]
+
   settings.transform.push(hotify);
 });
 
@@ -222,9 +230,12 @@ function copy_files(src, dst) {
 gulp.task('copydist', function() {
   copy_files('./index.html', dist);
   copy_files('./css/*', path.join(dist, "css/"));
-  copy_files('.src/**/*.css', path.join(dist, "components"));
+  copy_files('./src/**/*.css', path.join(dist, "components"));
   copy_files('./src/**/*.html', path.join(dist, "components"));
   copy_files('./src/**/*.json', path.join(dist, "components"));
+  copy_files('./src/**/*.png', path.join(dist, "components"));
+  copy_files('./src/**/*.jpg', path.join(dist, "components"));
+  copy_files('./src/**/*.gif', path.join(dist, "components"));
   copy_files('./*.json', path.join(dist, "components"));
 });
 
@@ -232,6 +243,7 @@ bundler('browser/index');
 bundler('service/history-worker');
 bundler('about/settings/main');
 bundler('about/repl/main');
+bundler('about/newtab/main');
 
 gulp.task('build', [
   'compressor',
@@ -239,6 +251,7 @@ gulp.task('build', [
   // 'service/history-worker',
   'about/settings/main',
   'about/repl/main',
+  'about/newtab/main',
   'copydist'
 ]);
 
@@ -247,6 +260,7 @@ gulp.task('watch', [
   'browser/index',
   // 'service/history-worker',
   'about/settings/main',
+  'about/newtab/main',
   'about/repl/main',
   'copydist'
 ]);
