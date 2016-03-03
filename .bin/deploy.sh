@@ -9,7 +9,7 @@ git config --global user.name "travis"
 TAG=`git tag -l | sort -g | tail -n 1`
 LATEST_REV=`git rev-parse $TAG`
 HEAD=`git rev-parse HEAD`
-DEPLOYED_REV=`curl https://raw.githubusercontent.com/mozilla/browser.html/gh-pages/HEAD`
+DEPLOYED_REV=`curl https://raw.githubusercontent.com/browserhtml/browserhtml/gh-pages/HEAD`
 
 if [ "$HEAD" = "$LATEST_REV" ]; then
   if [ "$HEAD" != "$DEPLOYED_REV" ]; then
