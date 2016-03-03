@@ -221,6 +221,7 @@ function copy_files(src, dst) {
 
 gulp.task('copydist', function() {
   copy_files('./index.html', dist);
+  copy_files('./manifest.webapp', dist);
   copy_files('./css/*', path.join(dist, "css/"));
 });
 
