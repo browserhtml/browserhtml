@@ -22,7 +22,7 @@ if [ "$HEAD" = "$LATEST_REV" ]; then
     git init
     git add .
     git commit -m "Deploy version ${TAG}"
-    git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" gh-pages > /dev/null 2>&1
+    git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" gh-pages &2>/dev/null
     git status
   else
     echo "Version ${TAG} is already deployed"
