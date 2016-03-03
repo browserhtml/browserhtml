@@ -233,6 +233,7 @@ gulp.task('copydist', function() {
   copy_files('README.md', dist);
   copy_files('browser.gif', dist);
   copy_files('./index.html', dist);
+  copy_files('./manifest.webapp', dist);
   copy_files('./css/*', path.join(dist, "css/"));
   copy_files('./src/**/*.css', path.join(dist, "components"));
   copy_files('./src/**/*.html', path.join(dist, "components"));
