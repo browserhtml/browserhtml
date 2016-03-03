@@ -305,7 +305,7 @@ gulp.task('cargo', () => {
   lib.end(`/* file intentionally blank */\n`);
 
   cargo.end(`[package]
-name = "${manifest.name}"
+name = "${manifest.name.replace(/\./g, "")}"
 version = "${manifest.version}"
 authors = [${manifest.contributors.map(toAuthor).join(", ")}]
 license = "${manifest.license}"
