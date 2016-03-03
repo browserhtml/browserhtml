@@ -101,7 +101,10 @@ export const suggest = (model, {query, match, hint}) =>
   enterSelectionRange
   ( model
   , match
-  , query.length
+  , ( match.toLowerCase().startsWith(query.toLowerCase())
+    ? query.length
+    : match.length
+    )
   , match.length
   )
 

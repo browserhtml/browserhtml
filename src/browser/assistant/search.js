@@ -211,6 +211,14 @@ const updateMatches = (model, result) =>
   );
 
 const replaceMatches = (model, results) => {
+  const top = results[0]
+  const query = model.query
+  if (top != null && query != null) {
+    if (!top.title.toLowerCase().startsWith(query.toLowerCase())) {
+      results.unshift(decodeMatch(query))
+    }
+  }
+
   const items = results.map(match => match.uri);
   const matches = {};
   results.forEach(match => matches[match.uri] = match);
