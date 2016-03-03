@@ -1,4 +1,4 @@
-[![build](https://travis-ci.org/mozilla/browser.html.svg?branch=master)](https://travis-ci.org/mozilla/browser.html) [![slack](https://browserhtml-slackin.herokuapp.com/badge.svg)](https://browserhtml-slackin.herokuapp.com/)
+[![build](https://travis-ci.org/browserhtml/browserhtml.svg?branch=master)](https://travis-ci.org/browserhtml/browserhtml) [![slack](https://browserhtml-slackin.herokuapp.com/badge.svg)](https://browserhtml-slackin.herokuapp.com/)
 
 # Browser.html
 
