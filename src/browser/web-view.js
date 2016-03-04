@@ -916,4 +916,6 @@ const decodeAsyncScroll = ({detail}) =>
 const decodeScrollAreaChange = ({detail, target}) =>
   OverflowChanged(detail.height > target.parentNode.clientHeight);
 
-const decodeSecurityChange = compose(SecurityChanged, decodeDetail);
+const decodeSecurityChange =
+  ({detail: {state, extendedValidation}}) =>
+  SecurityChanged(state, extendedValidation);
