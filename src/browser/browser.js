@@ -16,7 +16,6 @@ import * as Sidebar from './sidebar';
 import * as WebViews from "./web-views";
 import * as Overlay from './overlay';
 
-import * as Updater from "./updater"
 import * as Devtools from "../common/devtools";
 import * as Runtime from "../common/runtime";
 import * as URI from '../common/url-helper';
@@ -38,7 +37,6 @@ import {onWindow} from "driver";
 
 export const init/*:type.init*/ = () => {
   const [devtools, devtoolsFx] = Devtools.init({isActive: Config.devtools});
-  const [updater, updaterFx] = Updater.init();
   const [input, inputFx] = Input.init(false, false, "");
   const [shell, shellFx] = Shell.init();
   const [webViews, webViewsFx] = WebViews.init();
@@ -55,7 +53,6 @@ export const init/*:type.init*/ = () => {
     , webViews
     , sidebar
     , overlay
-    , updater
     , devtools
 
     , display: { rightOffset: 0 }
@@ -68,7 +65,6 @@ export const init/*:type.init*/ = () => {
       , inputFx.map(InputAction)
       , shellFx.map(ShellAction)
       , webViewsFx.map(WebViewsAction)
-      , updaterFx.map(UpdaterAction)
       , sidebarFx.map(SidebarAction)
       , assistantFx.map(AssistantAction)
       , overlayFx.map(OverlayAction)
@@ -172,12 +168,6 @@ const AssistantAction =
   : tagged('Assistant', action)
   );
 
-const UpdaterAction = action =>
-  ( { type: 'Updater'
-    , source: action
-    }
-  );
-
 const updateInput = cursor({
   get: model => model.input,
   set: (model, input) => merge(model, {input}),
@@ -227,15 +217,6 @@ const updateOverlay = cursor({
   update: Overlay.update
 });
 
-const updateUpdater = cursor
-  ( { get: model => model.updater
-    , set: (model, updater) => merge(model, {updater})
-    , tag: UpdaterAction
-    , update: Updater.update
-    }
-  );
-
-
 const Reloaded =
   { type: "Reloaded"
   };
@@ -245,13 +226,6 @@ const Failure = error =>
     , error: error
     }
   );
-
-const ReloadAction =
-  result =>
-  ( result.isOk
-  ? Reloaded
-  : Failure(result.error)
-  )
 
 
 // ### Mode changes
@@ -785,8 +759,6 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateSidebar(model, action.action)
   : action.type === 'Overlay'
   ? updateOverlay(model, action.action)
-  : action.type === 'Updater'
-  ? updateUpdater(model, action.source)
 
   : action.type === 'Failure'
   ? [ model
@@ -867,12 +839,6 @@ export const view/*:type.view*/ = (model, address) =>
           , Input.view
           , model.input
           , forward(address, InputAction)
-          )
-        , thunk
-          ( 'updater'
-          , Updater.view
-          , model.updater
-          , forward(address, UpdaterAction)
           )
         , thunk
           ( 'devtools'
