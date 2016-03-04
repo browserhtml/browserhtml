@@ -312,7 +312,6 @@ authors = [${manifest.contributors.map(toAuthor).join(", ")}]
 license = "${manifest.license}"
 repository = "${manifest.repository.url}"
 homepage = "${manifest.homepage}"
-exclude = [ "node_modules/*" ]
 build = "build.rs"
 `);
 
