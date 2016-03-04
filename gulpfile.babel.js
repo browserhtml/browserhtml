@@ -301,6 +301,7 @@ const toAuthor =
 gulp.task('cargo', () => {
   const lib = source('./src/lib.rs')
   const cargo = source('./Cargo.toml')
+  const build = source('./build.rs')
 
   lib.end(`/* file intentionally blank */\n`);
 
@@ -311,11 +312,31 @@ authors = [${manifest.contributors.map(toAuthor).join(", ")}]
 license = "${manifest.license}"
 repository = "${manifest.repository.url}"
 homepage = "${manifest.homepage}"
-exclude = [ "node_modules/*" ]
+build = "build.rs"
+`);
+
+build.end(`/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+use std::env;
+use std::process::Command;
+
+fn main() {
+    let out_dir = env::var("OUT_DIR").unwrap();
+
+
+    assert!(Command::new("cp")
+            .args(&["-R", "index.html", "css", "components", &out_dir])
+            .status()
+            .unwrap()
+            .success());
+}
 `);
 
   lib.pipe(gulp.dest(dist));
   cargo.pipe(gulp.dest(dist));
+  build.pipe(gulp.dest(dist));
 });
 
 gulp.task('develop', sequencial('watch', 'server', 'gecko'));
