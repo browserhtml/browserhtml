@@ -50,19 +50,20 @@ export const update = (model, action) =>
   : Unknown.update(model, action)
   );
 
+const tabHeight = '32px';
 
 const styleSheet = StyleSheet.create({
   base: {
     MozWindowDragging: 'no-drag',
     borderRadius: '5px',
-    height: '32px',
+    height: tabHeight,
     color: '#fff',
     overflow: 'hidden'
   },
 
   container: {
-    height: '32px',
-    lineHeight: '32px',
+    height: tabHeight,
+    lineHeight: tabHeight,
     width: '288px',
     color: '#fff',
     fontSize: '14px',
@@ -71,7 +72,7 @@ const styleSheet = StyleSheet.create({
   },
 
   selected: {
-    backgroundColor: '#3D91F2'
+    backgroundColor: 'rgba(255,255,255,0.12)'
   },
   unselected: {
   },
@@ -93,8 +94,8 @@ const styleSheet = StyleSheet.create({
       rgba(36,48,61,0) 0%,
       rgba(36,48,61,1) 20%,
       rgba(36,48,61,1) 100%)`,
-    width: '32px',
-    height: '32px',
+    width: tabHeight,
+    height: tabHeight,
     position: 'absolute',
     paddingLeft: '10px',
     right: 0,
@@ -128,9 +129,9 @@ const styleSheet = StyleSheet.create({
     color: '#fff',
     fontFamily: 'FontAwesome',
     fontSize: '12px',
-    width: '32px',
-    height: '32px',
-    lineHeight: '32px',
+    width: tabHeight,
+    height: tabHeight,
+    lineHeight: tabHeight,
     textAlign: 'center'
   }
 });
