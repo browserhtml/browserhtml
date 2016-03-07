@@ -39,7 +39,7 @@ Finally, run Servo with the `--browserhtml` flag.
 
 If you're working on the Browser.html front-end, you'll want to run the web app locally.
 
-**Prerequisites**: You'll need [Node](https://nodejs.org/) and NPM.
+**Prerequisites**: You'll need [Node](https://nodejs.org/) and NPM. Next, clone Browser.html and install its Node dependencies.
 
 ``` sh
 git clone https://github.com/browserhtml/browserhtml.git
