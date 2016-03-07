@@ -35,7 +35,7 @@ Finally, run Servo with the `--browserhtml` flag.
 ```
 
 
-### Developing Browser.html webapp
+### Developing the Front-end
 
 If you're working on the Browser.html front-end, you'll want to run the web app locally.
 
