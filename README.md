@@ -18,19 +18,19 @@ We welcome contributions from anyone. See [CONTRIBUTING.md](https://github.com/b
 
 ### Building and Running
 
-The Browser.html UI is bundled with the Servo web engine. To run it, you'll need to build Servo.
+The Browser.html UI is bundled with Servo. To run it, you'll need to build Servo.
 
-First, [install Servo's prerequisites](https://github.com/servo/servo#prerequisites) and clone Servo:
+First, [install Servo's prerequisites](https://github.com/servo/servo#prerequisites). Then, clone and build Servo:
 
 ``` sh
 git clone https://github.com/servo/servo
 cd servo
+./mach build -r
 ```
 
-Next, build and run Servo in Browser.html mode:
+Finally, run Servo with the `--browserhtml` flag.
 
 ``` sh
-./mach build -r
 ./mach run -r --browserhtml
 ```
 
