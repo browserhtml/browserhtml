@@ -58,7 +58,7 @@ export const update = (model, action) =>
   model;
 ```
 
-Notice that our action types do not do anything, they simply describe actions that are possible. This is important as this leaves decision on how to react to those actions up to an embedder of a counter. For example user may choose to have max `value` that counter can not exceed and there for ignore `Incerement` actions when value is at max.
+Notice that our action types do not do anything, they simply describe actions that are possible. This is important as this leaves decision on how to react to those actions up to an embedder of a counter. For example user may choose to have max `value` that counter can not exceed and there for ignore `Increment` actions when value is at max.
 
 This also allows users to add more actions, for example they may decides that counter should be doubled when a certain button is pressed, that will be a new action type. This means our code ends up being very clear about how our model can be transformed. Anyone reading this code will immediately know what is allowed and what is not. Furthermore, they will know exactly how to add new features in a consistent way.
 
