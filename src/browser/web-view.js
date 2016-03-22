@@ -755,7 +755,6 @@ const viewFrame = (model, address) =>
     onMozBrowserLoadEnd: on(address, decodeLoadEnd),
     onMozBrowserFirstPaint: on(address, decodeFirstPaint),
     onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
-    onMozBrowserLocationChange: on(address, decodeLocationChange),
     onMozBrowserMetaChange: on(address, decodeMetaChange),
     onMozBrowserIconChange: on(address, decodeIconChange),
     onMozBrowserLocationChange: on(address, decodeLocationChange),
@@ -919,8 +918,18 @@ const decodeError = compose(ReportError, decodeDetail);
 
 // Navigation
 
-const decodeLocationChange = ({detail: uri}) =>
-  LocationChanged(uri, performance.now());
+const decodeLocationChange = ({detail}) => {
+  var uri;
+  // Servo and Gecko have different implementation of detail.
+  // In Gecko, detail is a string (the uri).
+  // In Servo, detail is an object {uri,canGoBack,canGoForward}
+  if (typeof detail == 'String') {
+    uri = detail;
+  } else {
+    uri = detail.uri;
+  }
+  return LocationChanged(uri, performance.now());
+}
 
 // Progress
 
