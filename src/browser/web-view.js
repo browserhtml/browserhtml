@@ -726,7 +726,12 @@ const viewFrame = (model, address) =>
     'data-name': model.name,
     'data-features': model.features,
     element: Driver.element,
-    style: styleSheet.iframe,
+    style: Style(styleSheet.iframe
+                , ( model.page.pallet.background != null
+                  ? { backgroundColor: model.page.pallet.background }
+                  : null
+                  )
+                ),
     attributes: {
       mozbrowser: true,
       remote: true,
