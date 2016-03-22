@@ -72,7 +72,7 @@ const styleSheet = StyleSheet.create({
   },
 
   selected: {
-    backgroundColor: 'rgba(255,255,255,0.225)'
+    backgroundColor: 'rgb(86,87,81)'
   },
   unselected: {
   },
@@ -91,9 +91,9 @@ const styleSheet = StyleSheet.create({
   closeMask: {
     background: `linear-gradient(
       to right,
-      rgba(36,48,61,0) 0%,
-      rgba(36,48,61,1) 20%,
-      rgba(36,48,61,1) 100%)`,
+      rgba(39,40,34,0) 0%,
+      rgba(39,40,34,1) 20%,
+      rgba(39,40,34,1) 100%)`,
     width: tabHeight,
     height: tabHeight,
     position: 'absolute',
@@ -107,9 +107,9 @@ const styleSheet = StyleSheet.create({
   closeMaskSelected: {
     background: `linear-gradient(
       to right,
-      rgba(61,145,242,0) 0%,
-      rgba(61,145,242,1) 20%,
-      rgba(61,145,242,1) 100%)`
+      rgba(86,87,81,0) 0%,
+      rgba(86,87,81,1) 20%,
+      rgba(86,87,81,1) 100%)`,
   },
   closeMaskUnselected: {
 
