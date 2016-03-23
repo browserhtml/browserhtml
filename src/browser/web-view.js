@@ -928,7 +928,7 @@ const decodeLocationChange = ({detail}) => {
   // Servo and Gecko have different implementation of detail.
   // In Gecko, detail is a string (the uri).
   // In Servo, detail is an object {uri,canGoBack,canGoForward}
-  if (typeof detail == 'String') {
+  if (typeof detail == 'string') {
     uri = detail;
   } else {
     uri = detail.uri;
