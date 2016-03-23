@@ -12,6 +12,7 @@ import type {Never} from "reflex/type/effects"
 */
 import {always} from "../common/prelude";
 import {Task} from "reflex";
+import * as OS from '../common/os';
 import * as Result from "../common/result";
 
 // Actions
@@ -136,3 +137,8 @@ export const cleanRestart/*:type.cleanRestart*/ =
 export const cleanReload/*:type.cleanReload*/ =
   send({type: "clear-cache-and-reload"})
   .chain(always(never));
+
+// This is a temporary measure. Eventually, we want Servo to expose the
+// titlebar configuration.
+const platform = OS.platform()
+export const useNativeTitlebar = _ => platform != "darwin";
