@@ -1,0 +1,8 @@
+[package]
+name = "browserhtml"
+version = "0.1.4"
+authors = ["The Browserhtml Project Developers"]
+license = "MPL-2.0"
+repository = "https://github.com/mozilla/browser.html.git"
+homepage = "https://github.com/mozilla/browser.html"
+build = "build.rs"
