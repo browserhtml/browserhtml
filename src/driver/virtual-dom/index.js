@@ -326,14 +326,11 @@ const isSameSelection = (a, b) =>
 export const selection = metaProperty((node, next, previous) => {
   if (next != null && !isSameSelection(next, previous)) {
     const {start, end, direction} = next;
-    if (node.setSelectionRange) { // FIXME: remove once Servo supports setSelectionRange
-      const {start, end, direction} = next;
-      Promise.resolve().then(() => {
-        node.setSelectionRange(start === Infinity ? node.value.length : start,
-                               end === Infinity ? node.value.length : end,
-                               direction);
-      })
-    }
+    Promise.resolve().then(() => {
+      node.setSelectionRange(start === Infinity ? node.value.length : start,
+                             end === Infinity ? node.value.length : end,
+                             direction);
+    })
   }
 });
 
