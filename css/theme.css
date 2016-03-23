@@ -35,7 +35,17 @@ body {
   font-size: 12px;
   line-height: 1.5;
   overflow: hidden;
+}
+
+/* We want the native window to have round borders. When a
+ native titlebar is used, the round borders come from the
+ OS itself */
+body:not(.use-native-titlebar) {
   border-radius: 6px;
+}
+
+body.use-native-titlebar {
+  border-radius: 0;
 }
 
 .webview-combobox:hover {
