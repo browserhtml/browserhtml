@@ -5,8 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, forward, Effects} from 'reflex';
-import {Style, StyleSheet} from '../../common/style';
-import * as Toolbar from './toolbar';
+import * as Style from '../../common/style';
 import * as Image from '../../common/image';
 import * as Target from "../../common/target";
 import * as Unknown from "../../common/unknown";
@@ -16,7 +15,11 @@ import {readTitle, readFaviconURI} from '../web-view/util';
 import {cursor} from '../../common/cursor';
 
 
-/*:: import * as type from "../../../type/browser/sidebar/tab" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {Context, Model, Action} from "./tab"
+import * as WebView from "../web-view"
+*/
 
 export const Close = {type: "Close"};
 export const Select = {type: "Select"};
@@ -38,20 +41,22 @@ const updateTarget =
 const Out = TargetAction(Target.Out);
 const Over = TargetAction(Target.Over);
 
-export const init = () =>
+export const init =
+  ()/*:[Model, Effects<Action>]*/ =>
   [ { isPointerOver: false
     }
   , Effects.none
   ];
 
-export const update = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Target"
   ? updateTarget(model, action.source)
   : Unknown.update(model, action)
   );
 
 
-const styleSheet = StyleSheet.create({
+const styleSheet = Style.createSheet({
   base: {
     MozWindowDragging: 'no-drag',
     borderRadius: '5px',
@@ -135,7 +140,7 @@ const styleSheet = StyleSheet.create({
   }
 });
 
-const viewIcon = Image.view('favicon', StyleSheet.create({
+const viewIcon = Image.view('favicon', Style.createSheet({
   base: {
     borderRadius: '3px',
     left: '8px',
@@ -151,7 +156,7 @@ const viewClose = ({isSelected, tab}, address) =>
   html.div
   ( { className: 'tab-close-mask'
     , style:
-        Style
+        Style.mix
         ( styleSheet.closeMask
         , ( isSelected
           ? styleSheet.closeMaskSelected
@@ -176,10 +181,14 @@ const viewClose = ({isSelected, tab}, address) =>
         }, [''])
   ]);
 
-export const view/*:type.view*/ = (model, address, {tabWidth, titleOpacity}) =>
+export const view =
+  ( model/*:WebView.Model*/
+  , address/*:Address<Action>*/
+  , {tabWidth, titleOpacity}/*:Context*/
+  )/*:DOM*/ =>
   html.div
   ( { className: 'sidebar-tab'
-    , style: Style
+    , style: Style.mix
       ( styleSheet.base
       , ( model.isSelected
         ? styleSheet.selected
@@ -202,7 +211,7 @@ export const view/*:type.view*/ = (model, address, {tabWidth, titleOpacity}) =>
         , html.div
           ( { className: 'sidebar-tab-title'
             , style:
-              Style
+              Style.mix
               ( styleSheet.title
               , { opacity: titleOpacity }
               )

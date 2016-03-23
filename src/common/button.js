@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-import {merge, always, tag, tagged} from "../common/prelude"
+import {merge, always, tag} from "../common/prelude"
 import {cursor} from "../common/cursor"
 import * as Unknown from "../common/unknown"
 import * as Target from "../common/target"
@@ -14,18 +14,38 @@ import * as Control from "../common/control"
 import {Style} from "../common/style"
 import {html, Effects, forward} from "reflex"
 
-/*:: import * as type from "../../type/common/button" */
+/*::
+import type {Model, Action, StyleSheet, ContextStyle} from "./button"
+import type {Address, DOM} from "reflex"
+*/
 
-const TargetAction = tag("Target");
-const FocusableAction = tag("Focusable");
-const ControlAction = tag("Control");
+const TargetAction =
+  action =>
+  ( { type: "Target"
+    , source: action
+    }
+  );
 
-export const Down/*:type.Down*/ = tagged("Down");
-export const Press/*:type.Press*/ = tagged("Press");
-export const Up/*:type.Up*/ = tagged("Up");
+const FocusableAction =
+  action =>
+  ( { type: "Focusable"
+    , source: action
+    }
+  );
 
-export const Disable/*:type.Disable*/ = ControlAction(Control.Disable);
-export const Enable/*:type.Enable*/ = ControlAction(Control.Enable);
+const ControlAction =
+  action =>
+  ( { type: "Control"
+    , source: action
+    }
+  );
+
+export const Down = { type: "Down" };
+export const Press = { type: "Press" };
+export const Up = { type: "Up" };
+
+export const Disable = ControlAction(Control.Disable);
+export const Enable = ControlAction(Control.Enable);
 
 
 export const Focus = FocusableAction(Focusable.Focus);
@@ -52,8 +72,13 @@ const updateControl = cursor
     }
   );
 
-export const init/*:type.init*/ =
-  (isDisabled, isFocused, isActive, isPointerOver, text='') =>
+export const init =
+  ( isDisabled/*:boolean*/
+  , isFocused/*:boolean*/
+  , isActive/*:boolean*/
+  , isPointerOver/*:boolean*/
+  , text/*:string*/=''
+  )/*:[Model, Effects<Action>]*/ =>
   [ ({isDisabled: false
     , isFocused: false
     , isActive: false
@@ -63,11 +88,8 @@ export const init/*:type.init*/ =
   , Effects.none
   ]
 
-export const Model/*:type.Button*/ =
-  ({isDisabled, isActive, isPointerOver, isFocused}) =>
-  ({isDisabled, isActive, isPointerOver, isFocused});
-
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Down"
   ? [merge(model, {isActive: true}), Effects.none]
   : action.type === "Up"
@@ -84,7 +106,12 @@ export const update/*:type.update*/ = (model, action) =>
   );
 
 
-export const view/*:type.view*/ = (key, styleSheet) => (model, address, contextStyle) =>
+export const view =
+  (key/*:string*/, styleSheet/*:StyleSheet*/)/*:(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM*/ =>
+  ( model/*:Model*/
+  , address/*:Address<Action>*/
+  , contextStyle/*?:ContextStyle*/
+  )/*:DOM*/ =>
   html.button({
     key: key,
     className: key,

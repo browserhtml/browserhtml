@@ -1,4 +1,4 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,6 +13,12 @@ import * as Unknown from '../../common/unknown';
 import * as Host from './host';
 
 import {onWindow} from "driver";
+
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action} from "./repl"
+*/
+
 
 // Actions
 
@@ -39,21 +45,20 @@ const Print =
   result =>
   ( { type: "Print"
     , id
-    , source: Cell.Print
-      ( { version
-        , result
-        }
-      )
+    , source:
+      { version
+      , result
+      }
     }
   );
 
 
-const CellAction =
+const ByID =
   id =>
   action =>
-  CellActionByID(id, action);
+  CellAction(id, action);
 
-const CellActionByID =
+const CellAction =
   (id, action) =>
   ( action.type === "Submit"
   ? { type: "Evaluate"
@@ -68,7 +73,7 @@ const CellActionByID =
 
 
 export const init =
-  () =>
+  ()/*:[Model, Effects<Action>]*/ =>
   createCell
   ( { nextID: 0
     , order: []
@@ -93,14 +98,20 @@ const createCell =
         }
       );
 
-    return [state, fx.map(CellAction(id))];
+    return [state, fx.map(ByID(id))];
   }
 
 const updateCell =
-  (model, {id, source}) => {
-    const [cell, fx] =
-      Cell.update(model.cells[id], source);
+  (model, id, action) =>
+  ( model.cells[id] == null
+  ? [ model
+    , Effects.none
+    ]
+  : swapCell(model, id, Cell.update(model.cells[id], action))
+  )
 
+const swapCell =
+  (model, id, [cell, fx]) => {
     const result =
       [ merge
         ( model
@@ -111,7 +122,7 @@ const updateCell =
             )
           }
         )
-      , fx.map(CellAction(id))
+      , fx.map(ByID(id))
       ]
 
     return result
@@ -119,7 +130,11 @@ const updateCell =
 
 const focus =
   model =>
-  updateCell(model, CellActionByID(model.active, Cell.Edit));
+  updateCell
+  ( model
+  , String(model.active)
+  , Cell.Edit
+  );
 
 const evaluate =
   (model, {id, source}) =>
@@ -146,13 +161,17 @@ const print = (model, action) =>
       , action
       ]
     )
-  : updateCell(model, action)
+  : updateCell
+    ( model
+    , action.id
+    , action
+    )
   );
 
 export const update =
-  (model, action) =>
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Cell'
-  ? updateCell(model, action)
+  ? updateCell(model, action.id, action.source)
   : action.type === 'Evaluate'
   ? evaluate(model, action)
   : action.type === 'Print'
@@ -183,7 +202,7 @@ const styleSheet = StyleSheet.create
   );
 
 export const view =
-  (model, address) =>
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.div
   ( { style: styleSheet.base
     , id: 'repl'
@@ -195,7 +214,7 @@ export const view =
       ( id =>
         Cell.view
         ( model.cells[id]
-        , forward(address, CellAction(id))
+        , forward(address, ByID(id))
         )
       )
     , html.meta

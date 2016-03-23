@@ -14,31 +14,31 @@ import {Style} from "../common/style"
 import {html, Effects, forward} from "reflex"
 
 /*::
-import * as type from "../../type/common/control"
+import type {Model, Action} from "./control"
 */
 
-export const Disable/*:type.Disable*/ =
+export const Disable/*:Action*/ =
   { type: "Disable"
   };
 
-export const Enable/*:type.Enable*/ =
+export const Enable/*:Action*/ =
   { type: "Enable"
   };
 
-const enable =
-  model =>
+const enable = /*::<model:Model>*/
+  (model/*:model*/)/*:[model, Effects<Action>]*/ =>
   [ merge(model, {isDisabled: false})
   , Effects.none
   ];
 
-const disable =
-  model =>
+const disable = /*::<model:Model>*/
+  (model/*:model*/)/*:[model, Effects<Action>]*/ =>
   [ merge(model, {isDisabled: true})
   , Effects.none
   ];
 
-export const update/*:type.update*/ =
-  (model, action) =>
+export const update = /*::<model:Model>*/
+  (model/*:model*/, action/*:Action*/)/*:[model, Effects<Action>]*/ =>
   ( action.type === "Enable"
   ? enable(model)
   : action.type === "Disable"

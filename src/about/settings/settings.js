@@ -5,24 +5,63 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, forward, Effects} from 'reflex';
-import {merge, batch, tag, tagged} from "../../common/prelude";
+import {merge, batch, always, tag, tagged} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
 import * as Settings from '../../common/settings';
 import * as Unknown from '../../common/unknown';
 import * as Setting from './setting';
 
+/*::
+import type {Address, DOM} from "reflex";
+import type {Name, Value, Model, Action} from "./settings";
+*/
+
 // Actions
 
-const Save = tag("Save");
-const Saved = tag("Saved");
-const Observe = tagged("Observe");
-const Change = tag("Change");
-const Fetched = tag("Fetched");
-const Changed = tag("Changed");
+const NoOp = always({ type: "NoOp" });
+
+const Save =
+  settings =>
+  ( { type: "Save"
+    , source: settings
+    }
+  );
+
+const Saved =
+  result =>
+  ( { type: "Saved"
+    , source: result
+    }
+  );
+
+const Observe =
+  { type: "Observe"
+  };
+
+const Change =
+  result =>
+  ( { type: "Change"
+    , source: result
+    }
+  );
+
+const Fetched =
+  result =>
+  ( { type: "Fetched"
+    , source: result
+    }
+  );
+
+const Changed =
+  result =>
+  ( { type: "Changed"
+    , source: result
+    }
+  );
 
 
 const SettingAction =
-  (name, action) =>
+  (name/*:Name*/, action/*:Setting.Action*/)/*:Action*/ =>
   ( action.type === 'Save'
   ? Save
     ( { [name]: action.source
@@ -35,7 +74,7 @@ const SettingAction =
   );
 
 const SettingActionByName =
-  name =>
+  (name/*:Name*/)/*:(action:Setting.Action) => Action*/ =>
   action =>
   SettingAction(name, action);
 
@@ -43,7 +82,7 @@ const ChangeSetting =
   (name, value) =>
   SettingAction(name, Setting.Change(value));
 
-export const init = () => {
+export const init = ()/*:[Model, Effects<Action>]*/ => {
   const model =
     { settings: {}
     };
@@ -116,7 +155,14 @@ const change =
         ]
       );
     } else {
-      return [model, Effects.task(Unknown.error(result.error))];
+      const output =
+        [ model
+        , Effects.task
+          (Unknown.error(result.error))
+          .map(NoOp)
+        ];
+
+      return output
     }
   };
 
@@ -157,8 +203,8 @@ const updateSettingByName = (model, name, action) => {
   return result
 }
 
-export const update/*:type.update*/ =
-  (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Save'
   ? save(model, action.source)
 
@@ -187,6 +233,9 @@ export const update/*:type.update*/ =
 const styleSheet = StyleSheet.create
   ( { invalid:
       { textDecoration: 'underline wavy red'
+      }
+    , valid:
+      {
       }
     , base:
       { fontSize: '12px'
@@ -223,49 +272,49 @@ const styleSheet = StyleSheet.create
   );
 
 
-export const view/*:type.view*/ =
-  (model, address) =>
-    html.div
-    ( { key: 'settings'
-      , style: styleSheet.base
-      }
-    , [ ...Object.keys(model.settings)
-        .map
-        ( name =>
-          html.div
-          ( { style: Style
-              ( styleSheet.row
-              , ( model.settings[name].isValid
-                ? styleSheet.valid
-                : styleSheet.invalid
-                )
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
+  html.div
+  ( { key: 'settings'
+    , style: styleSheet.base
+    }
+  , [ ...Object.keys(model.settings)
+      .map
+      ( name =>
+        html.div
+        ( { style: Style
+            ( styleSheet.row
+            , ( model.settings[name].isValid
+              ? styleSheet.valid
+              : styleSheet.invalid
               )
-            }
-          , [ html.code
-              ( { key: 'name'
-                , style: Style(styleSheet.cell, styleSheet.name)
-                }
-              , [name]
-              )
-            , html.code
-              ( { key: 'value'
-                , style: Style(styleSheet.cell, styleSheet.value)
-                }
-              , [ thunk
-                  ( name
-                  , Setting.view
-                  , model.settings[name]
-                  , forward(address, SettingActionByName(name))
-                  )
-                ]
-              )
-            ]
-          )
-        )
-      , html.meta
-        ( { name: 'theme-color'
-          , content: `${styleSheet.base.backgroundColor}|${styleSheet.base.color}`
+            )
           }
+        , [ html.code
+            ( { key: 'name'
+              , style: Style(styleSheet.cell, styleSheet.name)
+              }
+            , [name]
+            )
+          , html.code
+            ( { key: 'value'
+              , style: Style(styleSheet.cell, styleSheet.value)
+              }
+            , [ thunk
+                ( name
+                , Setting.view
+                , model.settings[name]
+                , forward(address, SettingActionByName(name))
+                )
+              ]
+            )
+          ]
         )
-      ]
-    );
+      )
+    , html.meta
+      ( { name: 'theme-color'
+        , content: `${styleSheet.base.backgroundColor}|${styleSheet.base.color}`
+        }
+      )
+    ]
+  );

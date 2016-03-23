@@ -1,34 +1,17 @@
 [ignore]
-.*/src/test/.*
 .*/dist/.*
-.*/node_modules/reflex/examples/.*
-.*/node_modules/reflex-virtual-dom-driver/lib/.*
-.*/node_modules/reflex/lib/.*
-.*/node_modules/eased/lib/.*
-.*/node_modules/eased/dist/.*
-.*/node_modules/eased/.*/lib/.*
-.*/node_modules/eased/.*/dist/.*
-.*/browser.html/src.legacy/.*
-.*/browser.html/test/.*
-.*/browser.html/graphene/.*
-.*/browser.html/css/.*
 .*/browser.html/.profile/.*
 .*/browser.html/.bin/.*
-.*/gulpfile.*
-.*~/.*
+.*/node_modules/babel.*
+.*/node_modules/tap/.*
+.*/node_modules/reflex-virtual-dom-driver/examlpes/.*
+.*/type/.*
 
 [libs]
-./node_modules/reflex/interfaces/
-./node_modules/reflex-virtual-dom-driver/interfaces/
-./interface
 
 [include]
 
-
 [options]
-module.name_mapper='reflex-virtual-dom-driver' -> 'reflex-virtual-dom-driver/src/index'
-module.name_mapper='reflex' -> 'reflex/src/index'
-module.name_mapper='eased' -> 'eased/src/index'
-module.name_mapper='color-structure' -> 'color-structure/src/index'
-module.name_mapper='driver' -> './src/driver/virtual-dom/index.js'
 suppress_comment= \\(.\\|\n\\)*\\@FlowIssue
+suppress_comment= \\(.\\|\n\\)*\\@FlowIgnore
+module.name_mapper='driver' -> '<PROJECT_ROOT>/src/driver/virtual-dom/index.js'

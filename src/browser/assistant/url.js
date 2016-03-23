@@ -8,10 +8,11 @@
 import {Effects, html, forward, thunk} from "reflex";
 import {merge, always, batch} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
-import * as URI from '../../common/url-helper';
+import * as URL from '../../common/url-helper';
 
 /*::
-import * as URL from "../../../type/browser/assistant/url"
+import type {Address, DOM} from "reflex";
+import type {URI} from "./url";
 */
 
 
@@ -34,28 +35,29 @@ const preventDefault =
   event =>
   event.preventDefault();
 
-export const render/*:URL.view*/ =
-  model =>
+export const render =
+  (uri/*:URI*/, isSelected/*:boolean*/)/*:DOM*/ =>
   html.a
   ( { className: 'assistant url'
     , style: Style
       ( styleSheet.base
-      , ( model.isSelected
+      , ( isSelected
         ? styleSheet.selected
         : styleSheet.unselected
         )
       )
-    , href: model.uri
+    , href: uri
     , onClick: preventDefault
     }
-  , [ ` - ${URI.prettify(model.uri)}`
+  , [ ` - ${URL.prettify(uri)}`
     ]
   );
 
-export const view/*:URL.view*/ =
-  model =>
+export const view =
+  (uri/*:URI*/, isSelected/*:boolean*/)/*:DOM*/ =>
   thunk
-  ( model.id
+  ( uri
   , render
-  , model
+  , uri
+  , isSelected
   );

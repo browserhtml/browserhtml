@@ -5,14 +5,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-import * as Reflex from "reflex"
+import {Effects} from "reflex"
 
-const {Effects: FX} = Reflex;
+/*::
+import type {Tagged} from "./prelude"
+*/
 
-/*:: import * as type from "../../type/common/prelude" */
-/*:: import type {Effects} from "reflex/type/effects" */
-
-export const merge = /*::<model:{[key:string]:any}>*/(model/*:model*/, changes/*:{}*/)/*:model*/ => {
+export const merge = /*::<model:{}>*/
+  ( model/*:model*/
+  , changes/*:{[key:string]: any}*/
+  )/*:model*/ => {
   let result = model
   for (let key in changes) {
     if (changes.hasOwnProperty(key)) {
@@ -42,12 +44,18 @@ export const merge = /*::<model:{[key:string]:any}>*/(model/*:model*/, changes/*
 }
 
 
-export const take = /*::<item>*/(items/*:Array<item>*/, n/*:number*/)/*:Array<item>*/ =>
-  items.length <= n ?
-    items :
-    items.slice(0, n)
+export const take = /*::<item>*/
+  (items/*:Array<item>*/, n/*:number*/)/*:Array<item>*/ =>
+  ( items.length <= n
+  ? items
+  : items.slice(0, n)
+  )
 
-export const move = /*::<item>*/(items/*:Array<item>*/, from/*:number*/, to/*:number*/)/*:Array<item>*/ => {
+export const move = /*::<item>*/
+  ( items/*:Array<item>*/
+  , from/*:number*/
+  , to/*:number*/
+  )/*:Array<item>*/ => {
   const count = items.length
   if (from === to) {
     return items
@@ -63,7 +71,8 @@ export const move = /*::<item>*/(items/*:Array<item>*/, from/*:number*/, to/*:nu
   }
 }
 
-export const remove = /*::<item>*/(items/*:Array<item>*/, index/*:number*/)/*:Array<item>*/ =>
+export const remove = /*::<item>*/
+  (items/*:Array<item>*/, index/*:number*/)/*:Array<item>*/ =>
   ( index < 0
   ? items
   : index >= items.length
@@ -92,7 +101,11 @@ const Always = {
   }
 }
 
-const alwaysSymbol = Symbol.for('always');
+const alwaysSymbol =
+  ( typeof(Symbol.for) === "function"
+  ? Symbol.for('always')
+  : Symbol('always')
+  )
 
 // @FlowIssue: Frow is unable to infer
 const Null = () => null;
@@ -146,14 +159,14 @@ export const batch = /*:: <model, action>*/
     index = index + 1
   }
 
-  return [model, FX.batch(effects)];
+  return [model, Effects.batch(effects)];
 }
 
 export const tag = /*::<tag:string, kind>*/
-  (tag/*:tag*/)/*:(value:kind) => type.Tagged<tag, kind>*/ =>
+  (tag/*:tag*/)/*:(value:kind) => Tagged<tag, kind>*/ =>
   value =>
   ({ type: tag, source: value });
 
 export const tagged = /*::<tag:string, kind>*/
-  (tag/*:tag*/, value/*:kind*/)/*:type.Tagged<tag, kind>*/ =>
+  (tag/*:tag*/, value/*:kind*/)/*:Tagged<tag, kind>*/ =>
   ({ type: tag, source: value });

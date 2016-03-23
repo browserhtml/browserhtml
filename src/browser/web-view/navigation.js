@@ -43,53 +43,59 @@ export const WentBack/*:type.WentBack*/ = result =>
 export const WentForward/*:type.WentBack*/ = result =>
   ({type: "WentForward", result});
 
-export const canGoBack/*:type.canGoBack*/ = id => Task.io(deliver => {
+export const canGoBack/*:type.canGoBack*/ =
+  id =>
+  new Task((succeed, fail) => {
   const target = document.getElementById(`web-view-${id}`);
   if (target == null) {
-    deliver(Task.succeed(Result.error(`WebView with id web-view-${id} not found`)))
+    succeed(Result.error(`WebView with id web-view-${id} not found`));
   }
 
   else if (target.getCanGoBack == null) {
-    deliver(Task.succeed(Result.error(`.getCanGoBack is not supported by runtime`)))
+    succeed(Result.error(`.getCanGoBack is not supported by runtime`));
   }
 
   else {
     target.getCanGoBack().onsuccess = request => {
-      deliver(Task.succeed(Result.ok(request.target.result)));
+      succeed(Result.ok(request.target.result));
     };
   }
 });
 
-export const canGoForward/*:type.canGoForward*/ = id => Task.io(deliver => {
-  const target = document.getElementById(`web-view-${id}`);
-  if (target == null) {
-    deliver(Task.succeed(Result.error(`WebView with id web-view-${id} not found`)))
-  }
-
-  else if (target.getCanGoForward == null) {
-    deliver(Task.succeed(Result.error(`.getCanGoForward is not supported by runtime`)))
-  }
-
-  else {
-    target.getCanGoForward().onsuccess = request => {
-      deliver(Task.succeed(Result.ok(request.target.result)));
+export const canGoForward/*:type.canGoForward*/ =
+  id =>
+  new Task((succeed, fail) => {
+    const target = document.getElementById(`web-view-${id}`);
+    if (target == null) {
+      succeed(Result.error(`WebView with id web-view-${id} not found`))
     }
-  }
-});
+
+    else if (target.getCanGoForward == null) {
+      succeed(Result.error(`.getCanGoForward is not supported by runtime`))
+    }
+
+    else {
+      target.getCanGoForward().onsuccess = request => {
+        succeed(Result.ok(request.target.result));
+      }
+    }
+  });
 
 
-const invoke = name => id => Task.io(deliver => {
+const invoke = name =>
+  id =>
+  new Task((succeed, fail) => {
   const target = document.getElementById(`web-view-${id}`);
   if (target == null) {
-    deliver(Task.succeed(Result.error(`WebView with id web-view-${id} not found`)))
+    succeed(Result.error(`WebView with id web-view-${id} not found`))
   }
 
   else if (target[name] == null) {
-    deliver(Task.succeed(Result.error(`.${name} is not supported by runtime`)))
+    succeed(Result.error(`.${name} is not supported by runtime`))
   }
 
   else {
-    deliver(Task.succeed(Result.ok(void target[name]())));
+    succeed(Result.ok(void target[name]()));
   }
 });
 
@@ -98,9 +104,11 @@ export const reload/*:type.reload*/ = invoke('reload');
 export const goBack/*:type.goBack*/ = invoke('goBack');
 export const goForward/*:type.goForward*/ = invoke('goForward');
 
-const report = error => Task.io(deliver => {
-  console.warn(error);
-});
+const report =
+  error =>
+  new Task((succeed, fail) => {
+    console.warn(error);
+  });
 
 export const init/*:type.init*/ = (id, uri) =>
   [ { id

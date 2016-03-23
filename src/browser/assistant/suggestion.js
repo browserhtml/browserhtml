@@ -5,16 +5,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-import {Effects, html, forward, thunk} from "reflex";
-import {merge, always, batch} from "../../common/prelude";
+import {html, thunk} from "reflex";
 import {Style, StyleSheet} from '../../common/style';
 
-import * as Title from "./title";
-import * as Icon from "./icon";
-
 /*::
-import * as Suggestion from "../../../type/browser/assistant/suggestion"
-import type {Address, VirtualTree} from "reflex/type"
+import type {Address, DOM} from "reflex"
 */
 
 
@@ -45,7 +40,7 @@ const styleSheet = StyleSheet.create
   );
 
 export const render =
-  (isSelected/*:boolean*/, content/*:Array<VirtualTree>*/)/*:VirtualTree*/ =>
+  (isSelected/*:boolean*/, content/*:Array<DOM>*/)/*:DOM*/ =>
   html.li
   ( { className: 'assistant suggestion'
     , style: Style

@@ -19,9 +19,9 @@ const logger = (update) => (model, action) => {
   if (console.group != null) {
     console.group();
   }
-  
+
   const out = update(model, action);
-  
+
   if (console.groupEnd != null) {
     console.groupEnd();
   }
@@ -39,13 +39,27 @@ if (isReload) {
   window.application.address(UI.LiveReload);
 }
 
+const restore =
+  () =>
+  [ window.application.model.value
+  , Effects.none
+  ]
+
 const application = start({
-  initial: isReload ?
-            window.application.model.value :
-            UI.init(),
-  step: Config.logging ? logger(UI.update) : UI.update,
+  flags: void(0),
+  init:
+  ( isReload
+  ? restore
+  : UI.init
+  ),
+  update:
+  ( Config.logging
+  ? logger(UI.update)
+  : UI.update
+  ),
   view: UI.view
 });
+
 
 
 const renderer = new Renderer({target: document.body});
@@ -56,7 +70,7 @@ application.view.subscribe(renderer.address);
 // properly we use `Driver.force` effect that sends in special
 // `{type: "Driver.Execute"}` action on which we force a render to run in
 // the same tick.
-application.task.subscribe(Effects.service(action => {
+application.task.subscribe(Effects.driver(action => {
   if (action.type === "Driver.Execute") {
     renderer.execute();
   } else {

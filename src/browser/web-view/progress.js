@@ -4,7 +4,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from "../../../type/browser/web-view/progress" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {LoadProgress, Time, Model, Action} from "./progress"
+*/
 
 import {Effects, html} from 'reflex';
 import {ease, easeOutQuart, float} from 'eased';
@@ -14,25 +17,29 @@ import * as Unknown from '../../common/unknown';
 
 const second = 1000;
 
-export const Start/*:type.Start*/ = time =>
+export const Start =
+  (time/*:Time*/)/*:Action*/ =>
   ( { type: "Start"
     , time
     }
   );
 
-export const Connect/*:type.Connect*/ = time =>
+export const Connect =
+  (time/*:Time*/)/*:Action*/ =>
   ( { type: 'Connect'
     , time
     }
   );
 
-export const LoadEnd/*:type.LoadEnd*/ = time =>
+export const LoadEnd =
+  (time/*:Time*/)/*:Action*/ =>
   ( { type: "LoadEnd"
     , time
     }
   );
 
-export const Tick/*:type.Tick*/ = time =>
+const Tick =
+  (time/*:Time*/)/*:Action*/ =>
   ( { type: "Tick"
     , time
     }
@@ -65,9 +72,6 @@ const progressLoading = model => {
   return padding + toFill * curve(updateTime - connectTime, inflectionB);
 }
 
-const isConnected = model => model.connectTime;
-const isLoaded = model => model.loadEnd;
-
 const progressLoaded = model => {
   const {loadEnd, updateTime} = model;
   const padding = progressLoading(model);
@@ -75,21 +79,23 @@ const progressLoaded = model => {
   return padding + toFill * (updateTime - loadEnd) / durationC;
 }
 
-export const progress/*:type.progress*/ = model =>
-  ( model
-  ? ( isLoaded(model)
-    ? progressLoaded(model)
-    : isConnected(model)
-    ? progressLoading(model)
-    : progressConnecting(model)
-    )
-  : 0
+export const progress =
+  (model/*:Model*/)/*:LoadProgress*/ =>
+  ( model.status === 'Loaded'
+  ? progressLoaded(model)
+  : model.status === 'Loading'
+  ? progressLoading(model)
+  : model.status === 'Connecting'
+  ? progressConnecting(model)
+  : 0 // model.status === 'Idle'
   );
 
 // Start a new progress cycle.
-const start = time =>
+const start = (model, time) =>
   [ merge
-    ( { loadStart: time
+    ( model
+    , { status: 'Loading'
+      , loadStart: time
       , loadEnd: null
       , updateTime: time
       , connectTime: null
@@ -103,7 +109,12 @@ const start = time =>
   ];
 
 const connect = (time, model) =>
-  ( [ merge(model, {connectTime: time})
+  ( [ merge
+      ( model
+      , { status: 'Loading'
+        , connectTime: time
+        }
+      )
     , Effects.none
     ]
   );
@@ -112,7 +123,8 @@ const connect = (time, model) =>
 const loadEnd = (time, model) =>
   ( [ merge
       ( model
-      , { loadEnd: time
+      , { status: 'Loaded'
+        , loadEnd: time
         , updateTime: time
         }
       )
@@ -122,7 +134,7 @@ const loadEnd = (time, model) =>
 
 // Update the progress and request another tick.
 // Returns a new model and a tick effect.
-export const tick/*:type.tick*/ = (time, model) =>
+const tick = (time, model) =>
   ( [ merge
       ( model
       , { updateTime: time
@@ -139,7 +151,8 @@ export const tick/*:type.tick*/ = (time, model) =>
 const end = (time, model) =>
   ( [ merge
       ( model
-      , { display:
+      , { status: 'Idle'
+        , display:
           { opacity: 0
           , x: 0
           }
@@ -149,8 +162,10 @@ const end = (time, model) =>
     ]
   );
 
-export const init/*:type.init*/ = () =>
-  [ { loadStart: null
+export const init =
+  ()/*:[Model, Effects<Action>]*/ =>
+  [ { status: 'Idle'
+    , loadStart: null
     , loadEnd: null
     , updateTime: null
     , connectTime: null
@@ -162,11 +177,12 @@ export const init/*:type.init*/ = () =>
   , Effects.none
   ];
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Start'
-  ? start(action.time)
+  ? start(model, action.time)
   : model == null
-  ? start(action.time)
+  ? start(model, action.time)
   : action.type === 'LoadEnd'
   ? loadEnd(action.time, model)
   : action.type === 'Connect'
@@ -196,7 +212,8 @@ const style = StyleSheet.create({
 });
 
 // @TODO bring back color theme
-export const view/*:type.view*/ = (model) =>
+export const view =
+  (model/*:Model*/)/*:DOM*/ =>
   html.div({
     className: 'progressbar',
     style: Style(style.bar, {

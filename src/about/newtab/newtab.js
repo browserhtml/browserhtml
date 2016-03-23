@@ -11,45 +11,86 @@ import {cursor} from "../../common/cursor";
 import * as Unknown from "../../common/unknown";
 
 import * as Tiles from './newtab/tiles';
-import * as Wallpaper from './newtab/wallpaper';
+import * as Wallpapers from './newtab/wallpapers';
 import * as Help from './newtab/help';
 
-const WallpaperAction = tag('Wallpaper');
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action} from "./newtab"
+*/
 
-const TilesAction = action =>
-  ( action.type === "Open"
-  ? action
-  : tagged('Tiles', action)
+const WallpapersAction =
+  action =>
+  ( { type: 'Wallpapers'
+    , source: action
+    }
   );
 
-export const init = () =>
+const TilesAction =
+  action =>
+  ( { type: 'Tiles'
+    , source: action
+    }
+  );
+
+const HelpAction =
+  action =>
+  ( { type: 'Help'
+    , source: action
+    }
+  );
+
+export const init =
+  ()/*:[Model, Effects<Action>]*/ =>
   {
     const [tiles, tilesFx] = Tiles.init();
-    const [wallpaper, wallpaperFx] = Wallpaper.init();
+    const [wallpapers, wallpaperFx] = Wallpapers.init();
+    const [help, helpFx] = Help.init();
     return (
       [
-        { wallpaper
+        { wallpapers
         , tiles
+        , help
         }
       , Effects.batch
         ( [ tilesFx.map(TilesAction)
-          , wallpaperFx.map(WallpaperAction)
+          , wallpaperFx.map(WallpapersAction)
+          , helpFx.map(HelpAction)
           ]
         )
       ]
     );
   }
 
-const updateWallpaper = cursor({
-  get: model => model.wallpaper,
-  set: (model, wallpaper) => merge(model, {wallpaper}),
-  update: Wallpaper.update,
-  tag: WallpaperAction
+const updateWallpapers = cursor({
+  get: model => model.wallpapers,
+  set: (model, wallpapers) => merge(model, {wallpapers}),
+  update: Wallpapers.update,
+  tag: WallpapersAction
 });
 
-export const update = (model, action) =>
-  ( action.type === 'Wallpaper'
-  ? updateWallpaper(model, action.source)
+const updateTiles = cursor
+  ( { get: model => model.tiles
+    , set: (model, tiles) => merge(model, {tiles})
+    , update: Tiles.update
+    , tag: TilesAction
+    }
+  );
+
+const updateHelp = cursor
+  ( { get: model => model.help
+    , set: (model, help) => merge(model, {help})
+    , update: Help.update
+    , tag: HelpAction
+    }
+  );
+
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
+  ( action.type === 'Wallpapers'
+  ? updateWallpapers(model, action.source)
+  : action.type === 'Tiles'
+  ? updateTiles(model, action.source)
   : Unknown.update(model, action)
   );
 
@@ -83,8 +124,9 @@ const readWallpaper = ({src, color}) =>
     }
   );
 
-export const view = ({wallpaper, tiles}, address) => {
-  const activeWallpaper = Wallpaper.active(wallpaper);
+export const view =
+  ({wallpapers, tiles, help}/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ => {
+  const activeWallpaper = Wallpapers.active(wallpapers);
   return (
     html.div
     ( { className: 'newtab'
@@ -102,15 +144,15 @@ export const view = ({wallpaper, tiles}, address) => {
         )
       , thunk
         ( 'wallpaper'
-        , Wallpaper.view
-        , wallpaper
-        , forward(address, WallpaperAction)
+        , Wallpapers.view
+        , wallpapers
+        , forward(address, WallpapersAction)
         )
       , thunk
         ( 'help'
         , Help.view
-        , null
-        , forward(address, TilesAction)
+        , help
+        , forward(address, HelpAction)
         , activeWallpaper.isDark
         )
       ]

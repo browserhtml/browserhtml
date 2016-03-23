@@ -7,39 +7,45 @@
 import {html, forward, Effects} from 'reflex';
 import {on, focus, selection} from 'driver';
 import {identity} from '../lang/functional';
-import {always, merge, tagged, tag} from '../common/prelude';
+import {always, merge} from '../common/prelude';
 import {cursor} from "../common/cursor";
 import {compose, debounce} from '../lang/functional';
 import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
 import * as Keyboard from '../common/keyboard';
 import * as Unknown from '../common/unknown';
-import {Style, StyleSheet} from '../common/style';
+import * as Style from '../common/style';
 
 
-/*:: import * as type from '../../type/browser/input' */
-
-export const initial/*:type.Model*/ =
-  { value: ''
-  , isFocused: false
-  , selection: null
-  , isVisible: false
-  };
+/*::
+import type {Address, DOM} from "reflex"
+import type {Suggestion, Model, Action} from "./input"
+*/
 
 // Create a new input submit action.
-export const Query = tag('Query');
-export const Suggest = tag('Suggest');
-export const SuggestNext = tagged('SuggestNext');
-export const SuggestPrevious = tagged('SuggestPrevious');
-export const Submit/*:type.Submit*/ = {type: 'Submit'};
-export const Abort/*:type.Abort*/ = {type: 'Abort'};
-export const Enter/*:type.Enter*/ = {type: 'Enter'};
-export const Focus = {type: 'Focus', source: Focusable.Focus };
-export const Blur = {type: 'Blur', source: Focusable.Blur };
-export const Show = {type: 'Show'};
-export const Hide = {type: 'Hide'};
-export const EnterSelection/*:type.EnterSelection*/ = value =>
-  ({type: 'EnterSelection', value});
+export const Query/*:()=>Action*/ = always({ type: 'Query' });
+export const Suggest =
+  (suggestion/*:Suggestion*/)/*:Action*/ =>
+  ( { type: "Suggest"
+    , source: suggestion
+    }
+  );
+
+export const SuggestNext/*:Action*/ = { type: 'SuggestNext' };
+export const SuggestPrevious/*:Action*/ = { type: 'SuggestPrevious' };
+export const Submit/*:Action*/ = {type: 'Submit'};
+export const Abort/*:Action*/ = {type: 'Abort'};
+export const Enter/*:Action*/ = {type: 'Enter'};
+export const Focus/*:Action*/ = {type: 'Focus', source: Focusable.Focus };
+export const Blur/*:Action*/ = {type: 'Blur', source: Focusable.Blur };
+export const Show/*:Action*/ = {type: 'Show'};
+export const Hide/*:Action*/ = {type: 'Hide'};
+export const EnterSelection =
+  (value/*:string*/)/*:Action*/ =>
+  ( { type: 'EnterSelection'
+    , value
+    }
+  );
 
 const FocusableAction = action =>
   ( action.type === 'Focus'
@@ -51,13 +57,14 @@ const FocusableAction = action =>
     }
   );
 
-const EditableAction = action =>
+const EditableAction =
+  (action) =>
   ( { type: 'Editable'
     , source: action
     }
   );
 
-const Clear = EditableAction(Editable.Clear);
+const Clear/*:Action*/ = EditableAction(Editable.Clear);
 
 const updateFocusable = cursor({
   tag: FocusableAction,
@@ -88,16 +95,21 @@ const enterSelectionRange = (model, value, start, end) => {
   return [result, Effects.batch([focusFx, editFx])];
 }
 
-export const init/*:type.init*/ = (isVisible=false, isFocused=false, value='') =>
-  [ ({value
-    , isFocused
-    , isVisible
-    , selection: null
-    })
+export const init =
+  ( isVisible/*:boolean*/=false
+  , isFocused/*:boolean*/=false
+  , value/*:string*/=''
+  )/*:[Model, Effects<Action>]*/ =>
+  [ ( { value
+      , isFocused
+      , isVisible
+      , selection: null
+      }
+    )
   , Effects.none
   ];
 
-export const suggest = (model, {query, match, hint}) =>
+const suggest = (model, {query, match, hint}) =>
   enterSelectionRange
   ( model
   , match
@@ -108,7 +120,8 @@ export const suggest = (model, {query, match, hint}) =>
   , match.length
   )
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Abort'
   ? updateFocusable(model, Focusable.Blur)
   // We don't really do anything on submit action for now
@@ -187,7 +200,7 @@ const inputWidth = 480;
 const inputHeight = 40;
 const inputXPadding = 32;
 
-const style = StyleSheet.create({
+const style = Style.createSheet({
   combobox: {
     height: inputHeight,
     left: '50%',
@@ -215,6 +228,9 @@ const style = StyleSheet.create({
     backgroundColor: '#fff',
     borderColor: '#3D91F2'
   },
+  fieldBlured: {
+
+  },
   inactive: {
     opacity: 0,
     pointerEvents: 'none'
@@ -231,16 +247,23 @@ const style = StyleSheet.create({
   hidden: {
     opacity: 0,
     pointerEvents: 'none'
+  },
+  visible: {
+
   }
 });
 
 
-export const view/*:type.view*/ = (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.div({
     className: 'input-combobox',
-    style: Style
+    style: Style.mix
     ( style.combobox
-    , !model.isVisible && style.hidden
+    , ( model.isVisible
+      ? style.visible
+      : style.hidden
+      )
     ),
     // Note we submit new query only on `onInput` that's when we expect
     onInput: forward(address, Query)
@@ -252,9 +275,13 @@ export const view/*:type.view*/ = (model, address) =>
     html.input({
       className: 'input-field',
       placeholder: 'Search or enter address',
-      style: Style( style.field
-                  , model.isFocused && style.fieldFocused
-                  ),
+      style: Style.mix
+        ( style.field
+        , ( model.isFocused
+          ? style.fieldFocused
+          : style.fieldBlured
+          )
+        ),
       type: 'text',
       value: model.value,
       isFocused: focus(model.isFocused),

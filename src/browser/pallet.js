@@ -4,11 +4,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from "../../type/browser/pallet" */
+
 
 import tinycolor from 'tinycolor2';
 import {Effects, Task} from 'reflex';
-import * as URI from '../common/url-helper';
+import {getDomainName} from '../common/url-helper';
+
+/*::
+import type {Address, DOM, Never} from "reflex"
+import type {URI, HexColor, Color, Model, Theme} from "./pallet";
+*/
 
 // Hand-curated themes for popular websites.
 const curated = {
@@ -31,10 +36,11 @@ const curated = {
 
 // Calculate the distance from white, returning a boolean.
 // This is a pretty primitive check.
-const isHexBright/*:type.isHexBright*/ = hexcolor =>
+const isHexBright =
+  (hexcolor/*:HexColor*/)/*:boolean*/ =>
   parseInt(hexcolor, 16) > 0xffffff/2;
 
-export const isDark/*:type.isDark*/ = color => {
+export const isDark = (color/*:Color*/)/*:boolean*/ => {
   const tcolor = tinycolor(color);
   // tinycolor uses YIQ for brightness calculation, we also throw more
   // primitive hex based calculation and treat background as dark if any
@@ -42,22 +48,24 @@ export const isDark/*:type.isDark*/ = color => {
   return (tcolor.isDark() || !isHexBright(tcolor.toHex()));
 }
 
-export const blank/*:type.blank*/ = {
+export const blank/*:Model*/ = {
   isDark: false,
   foreground: null,
   background: null
 };
 
-export const create/*:type.create*/ = (background, foreground) =>
+export const create =
+  (background/*:Color*/, foreground/*:Color*/)/*:Model*/ =>
   ( { background
     , foreground
     , isDark: isDark(background)
     }
   );
 
-export const requestCuratedColor/*:type.requestCuratedColor*/ = uri =>
+export const requestCuratedColor =
+  (uri/*:URI*/)/*:Task<Never, ?Theme>*/ =>
   Task.future(() => {
-    const hostname = URI.getDomainName(uri);
+    const hostname = getDomainName(uri);
     return Promise.resolve
       ( hostname == null
       ? null

@@ -4,14 +4,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
-/*:: import * as type from "../../type/common/history" */
 import {Task, Effects} from "reflex"
 
-export const readTitle/*:type.readTitle*/ = (model, fallback) =>
+/*::
+import type {Integer} from "../common/prelude"
+*/
+
+export const readTitle = /*::<value, model:{title?:string}>*/
+  (model/*:model*/, fallback/*:value*/)/*: string | value*/ =>
   model.title ? model.title : fallback;
 
-export const query/*:type.query*/ = (input, limit) =>
-  Effects.task(Task.io(deliver => {
+export const query = /*::<action>*/
+  (input/*:string*/, limit/*:Integer*/)/*:Effects<action>*/ =>
+  Effects.task(new Task(deliver => {
 
   }))

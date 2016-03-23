@@ -5,7 +5,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-/*:: import * as type from '../../type/common/devtools' */
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action} from './devtools'
+import type {Result} from "./result"
+*/
 
 import * as Settings from '../common/settings';
 import * as Runtime from '../common/runtime';
@@ -48,11 +52,11 @@ const readValue = (key, value) =>
   : value
   );
 
-export const Toggle =
+export const Toggle/*:Action*/ =
   { type: "Toggle"
   };
 
-export const Restart =
+export const Restart/*:Action*/ =
   { type: "Restart"
   };
 
@@ -62,11 +66,11 @@ const Report = result =>
     }
   );
 
-export const CleanRestart =
+export const CleanRestart/*:Action*/ =
   { type: "CleanRestart"
   };
 
-export const CleanReload =
+export const CleanReload/*:Action*/ =
   { type: "CleanReload"
   };
 
@@ -77,6 +81,10 @@ const Change = (name, value) =>
     }
   );
 
+const NoOP = () =>
+  ( { type: "NoOp"
+    }
+  );
 
 const SettingsAction = action =>
   ( { type: 'Settings'
@@ -126,15 +134,19 @@ const changeSetting = (model, {name, value}) =>
     .map(SettingsAction)
   ];
 
-const report = (model, result) =>
+const report =
+  (model/*:Model*/, result/*:Result<any, any>*/)/*:[Model, Effects<Action>]*/ =>
   [ model
   , ( result.isOk
     ? Effects.none
-    : Effects.task(Unknown.error(result.error))
+    : Effects
+      .task(Unknown.error(result.error))
+      .map(NoOP)
     )
   ];
 
-export const init/*:type.init*/ = ({isActive}) => {
+export const init =
+  ({isActive}/*:{isActive:boolean}*/)/*:[Model, Effects<Action>]*/ => {
   const [settings, fx] =
     Settings.init(Object.keys(descriptions));
 
@@ -150,7 +162,8 @@ export const init/*:type.init*/ = ({isActive}) => {
 
 
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Toggle'
   ? toggle(model)
 
@@ -241,7 +254,8 @@ const viewSettings = (settings, address) =>
   }, Object.keys(settings || {})
            .map(key => thunk(key, viewSetting, key, settings[key], address)))
 
-export const view/*:type.view*/ = (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.div({
     className: 'devtools toolbox',
     key: 'devtools-toolbox',

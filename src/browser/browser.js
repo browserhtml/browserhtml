@@ -1,4 +1,4 @@
-/* @flow */
+/* @noflow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -573,7 +573,7 @@ const reloadRuntime = model =>
   [ model
   , Effects
     .task(Runtime.reload)
-    .map(Reloaded)
+    .map(always(Reloaded))
   ];
 
 
@@ -627,7 +627,7 @@ const updateResizeAnimation = (model, action) => {
     );
 
   const result =
-    ( duration > resizeAnimation.elapsed
+    ( (resizeAnimation && duration > resizeAnimation.elapsed)
     ? [ merge
         ( model
         , { resizeAnimation

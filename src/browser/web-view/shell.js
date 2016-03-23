@@ -89,9 +89,11 @@ export const setVisibility/*:type.setVisibility*/ = (id, isVisible) =>
   });
 
 // Reports error as a warning in a console.
-const report = error => Task.io(deliver => {
-  console.warn(error);
-});
+const report =
+  error =>
+  new Task((succeed, fail) => {
+    console.warn(error);
+  });
 
 
 export const init/*:type.init*/ = (id, isFocused) =>

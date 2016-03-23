@@ -1,4 +1,4 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -6,8 +6,12 @@
 
 import {html, thunk, forward, Effects, Task} from 'reflex';
 import {merge, batch, tag, tagged} from "../../../common/prelude";
-import * as Result from "../../../common/result";
-import {Style, StyleSheet} from '../../../common/style';
+import {ok, error} from "../../../common/result";
+
+/*::
+import type {ID, EvaluationResult} from "../host"
+import type {Never} from "reflex"
+*/
 
 const DELETE = new String('delete');
 const executeWith = (context, execute) => {
@@ -50,7 +54,7 @@ const executeWith = (context, execute) => {
 }
 
 const evalContext =
-  { out: []
+  { out: {}
   , html
   , thunk
   , forward
@@ -60,19 +64,20 @@ const evalContext =
   , batch
   , tag
   , tagged
-  , Result
+  , ok
+  , error
   }
 
 export const evaluate =
-  (id, code) =>
+  (id/*:ID*/, code/*:string*/)/*:Task<Never, EvaluationResult>*/ =>
   Task.future(() => new Promise(resolve => {
     try {
       const out = executeWith(evalContext, () => window.eval(code));
       evalContext.out[id] = out;
-      resolve(Result.ok(out));
+      resolve(ok(out));
     }
-    catch (error) {
-      evalContext.out[id] = error;
-      resolve(Result.error(error))
+    catch (exception) {
+      evalContext.out[id] = exception;
+      resolve(error(exception));
     }
   }))

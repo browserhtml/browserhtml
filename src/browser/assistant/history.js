@@ -6,12 +6,10 @@
 
 
 import {Effects, Task, html, forward, thunk} from "reflex";
-import {merge, always, tag, batch} from "../../common/prelude";
+import {merge, always, batch} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
-import * as Result from '../../common/result';
+import {ok, error} from '../../common/result';
 
-import * as Page from './page';
-import * as TopHit from './top-hit';
 import * as Title from "./title";
 import * as URL from "./url";
 import * as Icon from "./icon";
@@ -19,37 +17,71 @@ import * as Suggestion from "./suggestion";
 import * as Unknown from '../../common/unknown';
 
 /*::
-import * as History from "../../../type/browser/assistant/history"
+import type {Address, DOM, Never} from "reflex";
+import type {Result} from "../../common/result";
+import type {Completion, Match, Model, Action} from "./history";
 */
 
+const NoOp = always({type: "NoOp"});
 
-const Abort = tag("Abort");
-export const Query = tag("Query");
-const UpdateMatches = tag("UpdateMatches");
+const Abort =
+  queryID =>
+  ( { type: "Abort"
+    , queryID: queryID
+    }
+  );
+
+export const Query =
+  (input/*:string*/)/*:Action*/ =>
+  ( { type: "Query"
+    , source: input
+    }
+  );
+
+const UpdateMatches =
+  (result/*:Result<Error, Array<Match>>*/)/*:Action*/ =>
+  ( { type: "UpdateMatches"
+    , source: result
+    }
+  );
+
+const byURI =
+  uri =>
+  action =>
+  ( { type: "ByURI"
+    , source:
+      { uri
+      , action
+      }
+    }
+  );
 
 
 const pendingRequests = Object.create(null);
 
 const abort =
-  id =>
+  (id/*:number*/)/*:Task<Never, number>*/ =>
   Task.future(() => new Promise(resolve => {
 
   }));
 
-const search/*:History.search*/ =
-  (id, input, limit) =>
+const search =
+  ( id/*:number*/
+  , input/*:string*/
+  , limit/*:number*/
+  )/*:Task<Never, Result<Error, Array<Match>>>*/ =>
   Task.future(() => new Promise(resolve => {
 
   }));
 
 
-export const init/*:History.init*/ =
-  (query, limit) =>
+export const init =
+  (query/*:string*/, limit/*:number*/)/*:[Model, Effects<Action>]*/ =>
   [ { query
     , size: 0
     , queryID: 0
     , limit
-    , selected: null
+    , selected: -1
     , matches: {}
     , items: []
     }
@@ -100,8 +132,7 @@ const updateQuery =
   ? [ model, Effects.none ]
   : [ merge(model, {query, queryID: model.queryID + 1 })
     , Effects.batch
-      ( [ Effects.task
-          (abort(model.queryID))
+      ( [ Effects.task(abort(model.queryID))
           .map(Abort)
 
         , Effects.task
@@ -117,7 +148,9 @@ const updateMatches = (model, result) =>
   ( result.isOk
   ? replaceMatches(model, result.value)
   : [ model
-    , Effects.task(Unknown.error(result.error))
+    , Effects
+      .task(Unknown.error(result.error))
+      .map(NoOp)
     ]
   )
 
@@ -147,8 +180,8 @@ const retainSelected = (model, {matches, items}) => {
   return merge(model, {size, selected, items, matches})
 };
 
-export const update/*:History.update*/ =
-  (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Query"
   ? updateQuery(model, action.source)
   : action.type === "SelectNext"
@@ -166,12 +199,12 @@ const innerView =
   (model, address, isSelected) =>
   [ Icon.view('', isSelected)
   , Title.view(model.title, isSelected)
-  , URL.view(model)
+  , URL.view(model.uri, isSelected)
   ];
 
 
-export const render/*:History.view*/ =
-  (model, address) =>
+export const render =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.embed
   ( null
   , model.items.map
@@ -187,8 +220,8 @@ export const render/*:History.view*/ =
     )
   )
 
-export const view/*:History.view*/ =
-  (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   thunk
   ( 'history'
   , render

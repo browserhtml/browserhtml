@@ -9,19 +9,36 @@ import {merge} from "../common/prelude";
 import * as Unknown from "../common/unknown";
 import {Effects} from "reflex";
 
-/*:: import * as type from "../../type/common/focusable" */
+/*::
+import type {Model, Action} from "./focusable"
+*/
 
-export const blured/*:type.Model*/ = {isFocused: false};
-export const focused/*:type.Model*/ = {isFocused: true};
+export const Focus/*:Action*/ =
+  { type:"Focus"
+  };
 
-export const initial = blured;
+export const Blur/*:Action*/ =
+  { type: "Blur"
+  };
 
-export const Focus/*:type.Focus*/ = {type:"Focus"};
-export const Blur/*:type.Blur*/ = {type: "Blur"};
 
-export const update/*:type.update*/ = (model, action) =>
-    action.type === "Focus"
-  ? [merge(model, {isFocused: true}), Effects.none]
+export const update = /*::<model:Model>*/
+  ( model/*:model*/, action/*:Action*/)/*:[model, Effects<Action>]*/ =>
+  ( action.type === "Focus"
+  ? [ merge
+      ( model
+      , { isFocused: true
+        }
+      )
+    , Effects.none
+    ]
   : action.type === "Blur"
-  ? [merge(model, {isFocused: false}), Effects.none]
-  : Unknown.update(model, action);
+  ? [ merge
+      ( model
+      , { isFocused: false
+        }
+      )
+    , Effects.none
+    ]
+  : Unknown.update(model, action)
+  );

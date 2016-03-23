@@ -5,16 +5,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, forward, Effects} from 'reflex';
-import {Style, StyleSheet} from '../common/style';
+import * as Style from '../common/style';
 
-/*:: import * as type from "../../type/common/image" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {Action, Model, StyleSheet, ContextStyle} from "./image"
+*/
 
-export const Model/*:type.Image*/ =
-  ({uri}) =>
-  ({uri});
-
-const coreStyleSheet = StyleSheet.create
-  ( { image:
+const baseStyleSheet/*:StyleSheet*/ = Style.createSheet
+  ( { base:
       { backgroundSize: 'cover'
       , backgroundPosition: 'center center'
       , backgroundRepeat: 'no-repeat'
@@ -23,16 +22,19 @@ const coreStyleSheet = StyleSheet.create
     }
   );
 
-export const view/*:type.view*/ =
-  (key, styleSheet) =>
-  (model, address, contextStyle) =>
-    html.img
-    ( { style: Style
-          ( coreStyleSheet.image
-          , styleSheet.base
-          , { backgroundImage: `url(${model.uri})`
-            }
-          , contextStyle
-          )
-      }
-    )
+export const view =
+  (key/*:string*/, styleSheet/*:StyleSheet*/)/*:(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM*/ =>
+  ( model/*:Model*/
+  , address/*:Address<Action>*/
+  , contextStyle/*?:ContextStyle*/
+  )/*:DOM*/ =>
+  html.img
+  ( { style: Style.mix
+        ( baseStyleSheet.base
+        , styleSheet.base
+        , { backgroundImage: `url(${model.uri})`
+          }
+        , contextStyle
+        )
+    }
+  )

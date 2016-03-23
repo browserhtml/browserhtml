@@ -4,7 +4,6 @@
  * license, v. 2.0. if a copy of the mpl was not distributed with this
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
 
-/*:: import * as type from "../../type/common/os" */
 
 // Subset of `os` module from node.js and io.js:
 // https://iojs.org/api/os.html
@@ -15,4 +14,6 @@ const PLATFORM = navigator.platform.startsWith('Win') ? 'win32' :
                  navigator.platform;
 
 // https://iojs.org/api/os.html#os_os_platform
-export const platform /*:type.platform*/ = () => PLATFORM;
+export const platform =
+  ()/*:string*/ =>
+  PLATFORM;

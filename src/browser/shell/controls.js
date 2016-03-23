@@ -15,18 +15,21 @@ import {always, merge} from '../../common/prelude';
 import {cursor} from '../../common/cursor';
 
 
-/*:: import * as type from '../../../type/browser/shell/controls' */
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action} from "./controls"
+*/
 
-export const CloseWindow = {type: "CloseWindow"};
-export const MinimizeWindow = {type: "MinimizeWindow"};
-export const ToggleWindowFullscreen = {type: "ToggleWindowFullscreen"};
+export const CloseWindow/*:Action*/ = {type: "CloseWindow"};
+export const MinimizeWindow/*:Action*/ = {type: "MinimizeWindow"};
+export const ToggleWindowFullscreen/*:Action*/ = {type: "ToggleWindowFullscreen"};
 
-export const FullscreenToggled = {type: "FullscreenToggled"};
-export const Ignore = {type: "Ignore"};
-export const Over = {type: "Over"};
-export const Out = {type: "Out"};
-export const Enable = {type: "Enable"};
-export const Disable = {type: "Disable"};
+export const FullscreenToggled/*:Action*/ = {type: "FullscreenToggled"};
+export const Ignore/*:Action*/ = {type: "Ignore"};
+export const Over/*:Action*/ = {type: "Over"};
+export const Out/*:Action*/ = {type: "Out"};
+export const Enable/*:Action*/ = {type: "Enable"};
+export const Disable/*:Action*/ = {type: "Disable"};
 
 const ignore = action =>
   ( action.type === "Target"
@@ -79,9 +82,6 @@ const ToggleButtonAction = compose
   , ignore
   );
 
-export const Model/*:type.Controls*/ =
-  ({close, minimize, toggle}) =>
-  ({close, minimize, toggle})
 
 const updateClose = cursor({
   get: model => model.close,
@@ -104,43 +104,54 @@ const updateToggle = cursor({
   tag: ToggleButtonAction
 });
 
-export const init/*:type.init*/ = (isDisabled, isPointerOver, isMaximized) => {
+export const init =
+  (isDisabled/*:boolean*/, isPointerOver/*:boolean*/, isMaximized/*:boolean*/)/*:[Model, Effects<Action>]*/ => {
   const [isFocused, isActive] = [false, false];
 
-  const close = Button.Model
-    ( { isDisabled
-      , isPointerOver
-      , isFocused
-      , isActive
-      , text: ''
-      }
+  const [close, closeFX] = Button.init
+    ( isDisabled
+    , isPointerOver
+    , isFocused
+    , isActive
+    , ''
     );
 
-  const minimize = Button.Model
-    ( { isDisabled
-      , isPointerOver
-      , isFocused
-      , isActive
-      , text: ''
-      }
+  const [minimize, minimizeFX] = Button.init
+    ( isDisabled
+    , isPointerOver
+    , isFocused
+    , isActive
+    , ''
     );
 
-  const toggle = Toggle.Model
-    ( { isDisabled
-      , isFocused
-      , isActive
-      , isPointerOver
-      , isChecked: isMaximized
-      }
+  const [toggle, toggleFX] = Toggle.init
+    ( isDisabled
+    , isFocused
+    , isActive
+    , isPointerOver
+    , isMaximized
     );
 
-  return [{close, minimize, toggle}, Effects.none];
+  const model =
+    { close
+    , minimize
+    , toggle
+    };
+
+  const fx = Effects.batch
+    ( [ closeFX.map(CloseButtonAction)
+      , minimizeFX.map(MinimizeButtonAction)
+      , toggleFX.map(ToggleButtonAction)
+      ]
+    );
+
+  return [model, fx];
 }
 
 const updateButtons = (model, action) => {
   const [close, closeFx] = Button.update(model.close, action);
   const [minimize, minimizeFx] = Button.update(model.minimize, action);
-  const [toggle, toggleFx] = Toggle.update(model.toggle, Toggle.ButtonAction(action));
+  const [toggle, toggleFx] = Toggle.update(model.toggle, {type: "Button", action});
 
   return [
     merge(model, {close, minimize, toggle})
@@ -153,7 +164,8 @@ const updateButtons = (model, action) => {
   ]
 }
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Over'
   ? updateButtons(model, Button.Over)
   : action.type === 'Out'
@@ -249,7 +261,8 @@ const viewToggle = Toggle.view('window-toggle-fullscreen-button', StyleSheet.cre
 
 
 
-export const view/*:type.view*/ = (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.div({
     key: 'window-controls',
     className: 'window-controls',
