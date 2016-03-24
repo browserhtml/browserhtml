@@ -2,7 +2,7 @@
 
 import {Effects} from "reflex"
 
-export type ID = number
+export type ID = string
 export type URI = string
 export type Time = number
 export type Version = string

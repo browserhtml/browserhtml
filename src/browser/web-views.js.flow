@@ -1,201 +1,152 @@
-/* @noflow */
+/* @flow */
 
-import type {Address, VirtualTree, Effects} from "reflex/type"
-import type {ID, URI} from "../common/prelude"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+import {Effects} from "reflex"
+import type {Address, DOM} from "reflex"
+import type {URI, ID, Integer} from "../common/prelude"
 import * as WebView from "./web-view"
-import * as Selector from "./selector"
 import * as Stopwatch from "../common/stopwatch"
 
-// # Model
+export type {ID}
+
+export type Selector =
+  { active: ID
+  , selected: ID
+  }
+
+export type Display =
+  { depth: number
+  }
 
 export type Model =
-  { nextID: ID
-  , selector: ?Selector.Model<ID>
+  { nextID: number
+  , selector: ?Selector
   , order: Array<ID>
   , entries: {[key:ID]: WebView.Model}
-  , animation: Stopwatch.Model
-  , display: { rightOffset: number }
-  , isExpanded: boolean
+  , display: Display
+
+  , foldAnimation: Stopwatch.Model
   , isFolded: boolean
   }
 
-// # Actions
 
-// ### Navigate WebView
+export type Action =
+  | { type: "NoOp" }
+  | { type: "NavigateTo"
+    , uri: URI
+    }
+  | { type: "Open"
+    , options: WebView.Options
+    }
+  | { type: "Open!WithMyIFrameAndInTheCurrentTick"
+    , options: WebView.Options
+    }
+  | { type: "CloseActive" }
+  | { type: "CloseByID"
+    , id: ID
+    }
+  | { type: "Closed"
+    , id: ID
+    }
+  | { type: "ActivateSelected" }
+  | { type: "ActivateByID"
+    , id: ID
+    }
+  | { type: "Activated"
+    , id: ID
+    }
+  | { type: "SelectRelative"
+    , offset: Integer
+    }
+  | { type: "SelectByID"
+    , id: ID
+    }
+  | { type: "Selected"
+    , id: ID
+    }
+  | { type: "Fold" }
+  | { type: "Unfold" }
+  | { type: "Folded" }
+  | { type: "Unfolded" }
+  | { type: "FoldAnimation"
+    , action: Stopwatch.Action
+    }
+  | { type: "ActiveWebView"
+    , action: WebView.Action
+    }
+  | { type: "WebView"
+    , id: ID
+    , action: WebView.Action
+    }
+  | { type: "ShowTabs" }
+  | { type: "Create" }
+  | { type: "Edit" }
 
-export type NavigateToAction =
-  { type: "NavigateTo"
-  , uri: URI
-  }
+declare export function NavigateTo
+  (uri:URI):
+  Action
 
-export type NavigateTo = (uri:URI) =>
-  NavigateToAction
-
-
-// ### Open WebView
-
-export type NewWebViewOptions = WebView.NewWebViewOptions
-
-export type OpenAction =
-  { type: "Open"
-  , options: NewWebViewOptions
-  }
-export type Open = (options:NewWebViewOptions) =>
-  OpenAction
-
-// ### Close WebView
-
-export type CloseActive =
-  { type: "CloseActive"
-  }
-
-type CloseByIDAction =
-  { type: "CloseByID"
-  , id: ID
-  }
-
-export type CloseByID = (id:ID) =>
-  CloseByIDAction
-
-type ClosedAction =
-  { type: "Closed"
-  , id: ID
-  }
-
-export type Closed = (id:ID) =>
-  ClosedAction
-
-// ### Select WebView
-
-type SelectByIDAction =
-  { type: "SelectByID"
-  , id: ID
-  }
-
-export type SelectByID = (id:ID) =>
-  SelectByIDAction
-
-type SelectRelativeAction =
-  { type: "SelectRelative"
-  , offset: number
-  }
-
-export type SelectRelative = (offset:number) =>
-  SelectRelativeAction
-
-export type SelectedAction =
-  { type: "Selected"
-  , id: ID
-  }
-export type Selected = (id:ID) =>
-  SelectedAction
-
-// ### Activate WebView
-
-export type ActivateSelected =
-  { type: "ActivateSelected"
-  }
-
-type ActivateByIDAction =
-  { type: "ActivateByID"
-  , id: ID
-  }
-
-export type ActivateByID = (id:ID) =>
-  ActivateByIDAction
+declare export function Open
+  (options:WebView.Options):
+  Action
 
 
-type ActivatedAction =
-  { type: "Activated"
-  , id: ID
-  }
-export type Activated = (id:ID) =>
-  ActivatedAction
+declare export var CloseActive:Action
 
-// ### Switch mode
+declare export function CloseByID
+  (id:ID):
+  Action
 
-// ZoomOut of the active WebView.
-export type Unfold =
-  { type: "Unfold"
-  }
+declare export function SelectByID
+  (id:ID):
+  Action
 
-// ZoomIn into active WebView.
-export type Fold =
-  { type: "Fold"
-  }
+declare export var SelectNext:Action
+declare export var SelectPrevious:Action
+declare export var ActivateSelected:Action
 
-// Shrink view to accomodate sidebar on the right side.
-export type Shrink =
-  { type: "Shrink"
-  }
+declare export function ActivateByID
+  (id:ID):
+  Action
 
-// Expand view to disregard / cover sidebar on the right side.
-export type Expand =
-  { type: "Expand"
-  }
+declare export var Unfold:Action
+declare export var Fold:Action
 
-// ### Tag WebView Action
-
-export type ActiveWebViewAction =
-  { type: "ActiveWebView"
-  , action: WebView.Action
-  }
-
-export type WebViewAction =
-  { type: "WebViewAction"
-  , action: WebView.Action
-  }
+declare export function ActionByID
+  (id:ID, action:WebView.Action):
+  Action
 
 
-type ByIDAction
-  = SelectedAction
-  | ActivatedAction
-  | ClosedAction
-  | WebView.OpenSyncWithMyIFrame
-  | WebViewAction
+declare export var ZoomIn:Action
+declare export var ZoomOut:Action
+declare export var ResetZoom:Action
 
-export type ByID =
-  (id:ID) =>
-  (action:WebView.Action) =>
-  ByIDAction
+declare export var Stop:Action
+declare export var Reload:Action
+declare export var GoBack:Action
+declare export var GoForward:Action
 
+declare export var Focus:Action
 
+declare export var ShowTabs:Action
+declare export var Create:Action
+declare export var Edit:Action
 
+declare export function getActiveURI
+  (model:Model, fallback?:URI):
+  URI
 
-
-export type Action
-  = NavigateToAction
-  | OpenAction
-
-  | CloseActive
-  | CloseByID
-  | ClosedAction
-
-  | SelectByIDAction
-  | SelectRelativeAction
-  | SelectedAction
-
-  | ActivateSelected
-  | ActivateByIDAction
-  | ActivatedAction
-
-  | Shrink
-  | Expand
-
-  | Fold
-  | Unfold
-
-  | ActiveWebViewAction
-  | WebViewAction
-
-export type getActiveURI <other> = (model:Model, fallback:other) =>
-  URI | other
-
-export type init = () =>
+declare export function init
+  ():
   [Model, Effects<Action>]
 
-export type update = (model:Model, action:Action) =>
+declare export function update
+  (model:Model, action:Action):
   [Model, Effects<Action>]
 
-export type view = (model:Model, address:Address<Action>) =>
-  VirtualTree
+declare export function view
+  (model:Model, address:Address<Action>):
+  DOM

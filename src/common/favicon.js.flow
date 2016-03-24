@@ -15,8 +15,8 @@ export type Icon =
   }
 
 declare export function getFallback
-  (pageURI:?URI):
-  ?URI
+  (pageURI:URI):
+  URI
 
 declare export function getBestIcon
   (icons:Array<Icon>):

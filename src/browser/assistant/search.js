@@ -180,7 +180,7 @@ const suggest = model =>
   , Effects.receive
     ( Suggest
       ( { match: model.matches[model.items[model.selected]].title
-        , hint: null
+        , hint: ''
         }
       )
     )

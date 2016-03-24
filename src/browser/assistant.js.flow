@@ -7,7 +7,7 @@ import * as Search from "./assistant/search"
 
 export type Suggestion =
   { match: string
-  , hint: ?string
+  , hint: string
   }
 
 export type Model =
@@ -46,8 +46,8 @@ declare export var Close:Action
 declare export var Expand:Action
 declare export var Unselect:Action
 declare export var Reset:Action
-declare export var SelectNext:Action
-declare export var SelectPrevious:Action
+declare export var SuggestNext:Action
+declare export var SuggestPrevious:Action
 
 declare export function Suggest
   (suggestion:Suggestion):

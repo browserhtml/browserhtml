@@ -56,6 +56,11 @@ export type Action =
     , source: Toolbar.Action
     }
 
+declare export var Attach:Action
+declare export var Detach:Action
+declare export var Open:Action
+declare export var Close:Action
+
 declare export function init
   ():
   [Model, Effects<Action>]

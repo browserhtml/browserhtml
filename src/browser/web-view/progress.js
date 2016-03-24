@@ -94,7 +94,7 @@ export const progress =
 const start = (model, time) =>
   [ merge
     ( model
-    , { status: 'Loading'
+    , { status: 'Connecting'
       , loadStart: time
       , loadEnd: null
       , updateTime: time

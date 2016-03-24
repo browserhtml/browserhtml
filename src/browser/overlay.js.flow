@@ -35,6 +35,10 @@ export type Action =
     , action: Stopwatch.Action
     }
 
+declare export var Hide:Action
+declare export var Show:Action
+declare export var Fade:Action
+
 declare export function init
   (isVisible:boolean, isCapturing:boolean):
   [Model, Effects<Action>]

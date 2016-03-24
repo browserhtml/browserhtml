@@ -13,12 +13,8 @@ import type {Icon, URI} from "./favicon"
 const constructFaviconURI = (href, size) => `${href}#-moz-resolution=${size},${size}`;
 
 export const getFallback =
-  (pageURI/*:?URI*/)/*:?URI*/ =>
-  ( pageURI
-  // @FlowIgnore: getOrigin may rturn null and here we assume it's always a string.
-  ? constructFaviconURI(getOrigin(pageURI) + '/favicon.ico', FAVICON_SIZE)
-  : null
-  );
+  (pageURI/*:URI*/)/*:URI*/ =>
+  constructFaviconURI(getOrigin(pageURI) + '/favicon.ico', FAVICON_SIZE);
 
 // Ideal size for a favicon.
 const FAVICON_SIZE = 16 * window.devicePixelRatio;
@@ -38,9 +34,6 @@ export const getBestIcon =
   const others = new Set();   // store icons without sizes or non-shortcut icons
 
   for (var icon of icons) {
-    if (!icon) {
-      continue;
-    }
     if (icon.rel != 'shortcut icon') {
       others.add(icon);
     } else if (!icon.sizes) {

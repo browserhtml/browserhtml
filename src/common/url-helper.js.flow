@@ -7,12 +7,42 @@
 import type {URI} from "../common/prelude"
 
 export type {URI}
-export type URL =
-  { origin: ?string
-  , hostname: ?string
-  , protocol: ?string
-  , pathname: ?string
-  }
+
+type USVString = string
+
+declare export class URL {
+  static createObjectURL(blob: Blob): string;
+  static createObjectURL(mediaSource: MediaSource): string;
+  static createFor(blob: Blob): string;
+  static revokeObjectURL(url: string): void;
+
+  constructor(url:USVString, base?:USVString):void;
+
+  href: USVString;
+  origin: USVString;
+  protocol: USVString;
+  username: USVString;
+  password: USVString;
+  host: USVString;
+  hostname: USVString;
+  port: USVString;
+  pathname: USVString;
+  search: USVString;
+  // searchParams: URLSearchParams;
+  hash: USVString;
+}
+
+declare class URLSearchParams {
+  constructor(init?:USVString|URLSearchParams):void;
+  append(name:USVString, value:USVString):void;
+  delete(name:USVString):void;
+  get(name:USVString):?USVString;
+  getAll(name:USVString):Iterator<USVString>;
+  has(name:USVString):boolean;
+  set(name:USVString, value:USVString):void;
+  @@iterator(): Iterator<[USVString, USVString]>;
+};
+
 
 declare export function parse
   (input:string):
@@ -24,7 +54,7 @@ declare export function hasScheme
 
 declare export function getOrigin
   (input:URI):
-  ?string
+  string
 
 declare export function getBaseURI
   ():
@@ -32,7 +62,7 @@ declare export function getBaseURI
 
 declare export function getHostname
   (url:URI):
-  ?string
+  string
 
 declare export function getDomainName
   (uri:URI):
@@ -40,7 +70,7 @@ declare export function getDomainName
 
 declare export function getProtocol
   (uri:URI):
-  ?string
+  string
 
 declare export function getManifestURL
   ():

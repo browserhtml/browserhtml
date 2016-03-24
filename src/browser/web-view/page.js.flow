@@ -1,14 +1,15 @@
-/* @noflow */
+/* @flow */
 
-import type {URI, ID} from "../../common/prelude"
-import type {Effects} from "reflex/type"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+import {Effects} from "reflex"
+import type {URI} from "../../common/prelude"
+import type {Icon} from "../../common/favicon"
 import * as Pallet from "../pallet"
 
-export type Icon =
-  { href: URI
-  , sizes: ?string
-  , rel: ?string
-  }
+export type {URI, Icon}
 
 export type Model =
   { uri: URI
@@ -22,88 +23,80 @@ export type Model =
   , pallet: Pallet.Model
   }
 
-export type ScreenshotUpdateType =
-  { type: "ScreenshotUpdate"
-  , uri: URI
-  , image: URI
-  }
-export type ScreenshotUpdate = (uri:URI, image:URI) =>
-  ScreenshotUpdateType
+export type Action =
+  | { type: "LoadStart" }
+  | { type: "LoadEnd" }
+  | { type: "TitleChanged"
+    , title: string
+    }
+  | { type: "IconChanged"
+    , icon: Icon
+    }
+  | { type: "MetaChanged"
+    , name: string
+    , content: string
+    }
+  | { type: "CuratedColorUpdate"
+    , color: ?Pallet.Theme
+    }
+  | { type: "DocumentFirstPaint" }
+  | { type: "FirstPaint" }
+  | { type: "CreatePallet" }
+  | { type: "OverflowChanged"
+    , isOverflown: boolean
+    }
+  | { type: "Scrolled"
+    , detail: any
+    }
+  | { type: "LocationChanged"
+    , uri: URI
+    }
 
-export type CuratedColorUpdate = (color:?Pallet.Theme) =>
-    CuratedColorUpdateType
 
-export type CuratedColorUpdateType =
-  { type: "CuratedColorUpdate"
-  , color: ?Pallet.Theme
-  }
 
-export type LoadStart = { type: "LoadStart" }
-export type LoadEnd = {type: "LoadEnd"}
-export type DocumentFirstPaint = {type: "DocumentFirstPaint"}
-export type FirstPaint = {type: "FirstPaint"}
-export type CreatePallet = {type: "CreatePallet"}
+declare export var DocumentFirstPaint:Action
+declare export var FirstPaint:Action
 
-export type LocationChangedType =
-  { type: "LocationChanged"
-  , uri: URI
-  }
-export type LocationChanged = (uri:URI) =>
-  LocationChangedType
 
-export type MetaChangedType =
-  { type: "MetaChanged"
-  , name: string
-  , content: string
-  }
-export type MetaChanged = (name:string, content:string) =>
-  MetaChangedType
+declare export function MetaChanged
+  (name:string, content:string):
+  Action
 
-export type TitleChangedType =
-  { type: "TitleChanged"
-  , title: string
-  }
-export type TitleChanged = (title:string) =>
-  TitleChangedType
+declare export function TitleChanged
+  (title:string):
+  Action
 
-export type IconChangedType =
-  { type: "IconChanged"
-  , icon: Icon
-  }
-export type IconChanged = (icon:Icon) =>
-  IconChangedType
 
-export type OverflowChangedType =
-  { type: "OverflowChanged"
-  , isOverflown: boolean
-  }
-export type OverflowChanged = (isOverflown:boolean) =>
-  OverflowChangedType
+declare export function IconChanged
+  (icon:Icon):
+  Action
 
-export type ScrolledType =
-  { type: "Scrolled"
-  , detail: any
-  }
-export type Scrolled = (detail:any) =>
-  ScrolledType
+declare export function OverflowChanged
+  (isOverflown:boolean):
+  Action
 
-export type Action
-  = DocumentFirstPaint
-  | FirstPaint
-  | MetaChangedType
-  | TitleChangedType
-  | IconChangedType
-  | OverflowChangedType
-  | ScrolledType
-  | ScreenshotUpdateType
-  | CuratedColorUpdateType
-  | CreatePallet
-  | LoadStart
-  | LoadEnd
-  | LocationChanged
 
-export type init = (uri:URI) =>
+declare export function Scrolled
+  (detail:any):
+  Action
+
+declare export function CuratedColorUpdate
+  (color:?Pallet.Theme):
+  Action
+
+declare export var CreatePallet:Action
+declare export var LoadStart:Action
+declare export var LoadEnd:Action
+
+declare export function LocationChanged
+  (uri:URI):
+  Action
+
+
+declare export function init
+  (uri:URI):
   [Model, Effects<Action>]
 
-export type update = (model:Model, action:Action) =>
+declare export function update
+  (model:Model, action:Action):
   [Model, Effects<Action>]

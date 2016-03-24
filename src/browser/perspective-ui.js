@@ -1,4 +1,4 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,12 +7,20 @@
 import {Effects, Task} from 'reflex';
 import {merge, batch} from '../common/prelude';
 import * as Browser from './browser';
+import * as Unknown from "../common/unknown";
+
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action} from "./perspective-ui"
+*/
+
 
 export const LiveReload = Browser.LiveReload;
 
 export const init = Browser.init
 
-export const update = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( model.mode === 'create-web-view'
   ? ( action.type === 'ExitInput'
     ? ( model.webViews.order.length > 0

@@ -1,10 +1,9 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from "../../type/browser/web-view" */
 
 import {Effects, html, forward} from 'reflex';
 import {merge, always, batch} from '../common/prelude';
@@ -22,131 +21,146 @@ import * as Stopwatch from '../common/stopwatch';
 import {Style, StyleSheet} from '../common/style';
 import {readTitle, isDark} from './web-view/util';
 import * as Driver from 'driver';
-import * as URI from '../common/url-helper';
+import * as URL from '../common/url-helper';
 import * as Focusable from '../common/focusable';
 import * as Easing from 'eased';
 
-/* import * as type from "../../type/browser/web-view" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {ID, URI, Time, Display, Options, Model, Action} from "./web-view"
+import {performance} from "../common/performance"
+*/
 
-export const Select/*:type.Select*/ =
+export const Select/*:Action*/ =
   { type: "Select"
   };
 
-export const Unselect/*:type.Unselect*/ =
+export const Unselect/*:Action*/ =
   { type: "Unselect"
   };
 
-export const Selected/*:type.Selected*/ =
+export const Selected/*:Action*/ =
   { type: "Selected"
   };
 
-export const Unselected/*:type.Unselected*/ =
+export const Unselected/*:Action*/ =
   { type: "Unselected"
   };
 
-export const Activate/*:type.Activate*/ =
+export const Activate/*:Action*/ =
   { type: "Activate"
   };
 
-export const Activated/*:type.Activated*/ =
+export const Activated/*:Action*/ =
   { type: "Activated"
   };
 
-export const Deactivate/*:type.Deactivate*/ =
+export const Deactivate/*:Action*/ =
   { type: "Deactivate"
   };
 
-export const Deactivated/*:type.Deactivated*/ =
+export const Deactivated/*:Action*/ =
   { type: "Deactivated"
   };
 
-export const Close/*:type.Close*/ =
+export const Close/*:Action*/ =
   { type: "Close"
   };
 
-export const Closed/*:type.Closed*/ =
+export const Closed/*:Action*/ =
   { type: "Closed"
   };
 
-export const Edit/*:type.Edit*/ =
+export const Edit/*:Action*/ =
   { type: "Edit"
   };
 
-export const ShowTabs/*:type.ShowTabs*/ =
+export const ShowTabs/*:Action*/ =
   { type: 'ShowTabs'
   };
 
-export const Create/*:type.Create*/ =
+export const Create/*:Action*/ =
   { type: 'Create'
   };
 
-export const Focus/*:type.Focus*/ =
+export const Focus/*:Action*/ =
   { type: 'Focus'
   };
 
-export const Load/*:type.Load*/ = uri =>
+export const Load =
+  (uri/*:URI*/)/*:Action*/ =>
   ( { type: 'Load'
     , uri
     }
   );
 
-export const OpenSyncWithMyIFrame/*:type.OpenSyncWithMyIFrame*/ =
-  ({frameElement, uri, name, features}) => {
+export const OpenSyncWithMyIFrame =
+  ({frameElement, uri, name, features}/*:Options*/)/*:Action*/ => {
     Driver.element.use(frameElement);
     return {
       type: "Open!WithMyIFrameAndInTheCurrentTick"
     , isForced: true
-    , options: {uri, name, features, inBackground: false}
+    , options: {uri, name, features, inBackground: false, frameElement: null}
     };
   };
 
-export const ModalPrompt/*:type.ModalPrompt*/ = detail =>
+export const ModalPrompt =
+  (detail/*:any*/)/*:Action*/ =>
   ({type: "ModalPrompt", detail});
 
-export const Authentificate/*:type.Authentificate*/ = detail =>
+export const Authentificate =
+  (detail/*:any*/)/*:Action*/ =>
   ({type: "Authentificate", detail});
 
-export const ReportError/*:type.ReportError*/ = detail =>
+export const ReportError =
+  (detail/*:any*/)/*:Action*/ =>
   ({type: "Error", detail});
 
-export const LoadStart/*:type.LoadStart*/ = time =>
+export const LoadStart =
+  (time/*:Time*/)/*:Action*/ =>
   ({type: 'LoadStart', time});
 
-export const LoadEnd/*:type.LoadEnd*/ = time =>
+export const LoadEnd =
+  (time/*:Time*/)/*:Action*/ =>
   ({type: 'LoadEnd', time});
 
-export const LocationChanged/*:type.LocationChanged*/ = (uri, time) =>
+export const LocationChanged =
+  (uri/*:URI*/, time/*:Time*/)/*:Action*/ =>
   ({type: 'LocationChanged', uri, time});
 
-export const ContextMenu/*:type.ContextMenu*/ = detail =>
+export const ContextMenu =
+  (detail/*:any*/)/*:Action*/ =>
   ({type: "ContextMenu", detail});
 
 const ShellAction = action =>
-  ({type: 'Shell', action});
+  ( { type: 'Shell'
+    , shell: action
+    }
+  );
 
 const FocusShell = ShellAction(Shell.Focus);
 const BlurShell = ShellAction(Shell.Blur);
 
-export const ZoomIn/*:type.ZoomIn*/ = ShellAction(Shell.ZoomIn);
-export const ZoomOut/*:type.ZoomOut*/ = ShellAction(Shell.ZoomOut);
-export const ResetZoom/*:type.ResetZoom*/ = ShellAction(Shell.ResetZoom);
-export const MakeVisibile/*:type.MakeVisibile*/ =
-  ShellAction(Shell.MakeVisibile);
-export const MakeNotVisible/*:type.MakeNotVisible*/ =
+export const ZoomIn/*:Action*/ = ShellAction(Shell.ZoomIn);
+export const ZoomOut/*:Action*/ = ShellAction(Shell.ZoomOut);
+export const ResetZoom/*:Action*/ = ShellAction(Shell.ResetZoom);
+export const MakeVisible/*:Action*/ =
+  ShellAction(Shell.MakeVisible);
+export const MakeNotVisible/*:Action*/ =
   ShellAction(Shell.MakeNotVisible);
 
 const NavigationAction = action =>
-  ( {type: 'Navigation'
-    , action
+  ( { type: 'Navigation'
+    , navigation: action
   });
 
-export const Stop/*:type.Stop*/ =
+export const Stop/*:Action*/ =
   NavigationAction(Navigation.Stop);
-export const Reload/*:type.Reload*/ =
+export const Reload/*:Action*/ =
   NavigationAction(Navigation.Reload);
-export const GoBack/*:type.GoBack*/ =
+export const GoBack/*:Action*/ =
   NavigationAction(Navigation.GoBack);
-export const GoForward/*:type.GoForward*/ =
+export const GoForward/*:Action*/ =
   NavigationAction(Navigation.GoForward);
 
 const SecurityAction = action =>
@@ -204,14 +218,6 @@ const TabAction = action =>
 
 const ProgressAction/*type.ProgressAction*/ = action =>
   ({type: "Progress", action});
-
-const AnimationAction =
-  End =>
-  action =>
-  ( action.type === "End"
-  ? End
-  : { type: "Animation", action }
-  );
 
 const SelectAnimationAction = action =>
   ( action.type === "End"
@@ -287,46 +293,42 @@ const updateNavigation = cursor
     }
   );
 
-const updateStopwatch = cursor
-  ( { get: model => model.animation
-    , set: (model, animation) => merge(model, {animation})
-    , tag: AnimationAction
-    , update: Stopwatch.update
-    }
-  );
-
 const updateSelectAnimation = (model, action) => {
   const [animation, fx] = Stopwatch.update(model.animation, action);
   const [begin, end, duration] = [0, 1, 200];
 
-  return (duration > animation.elapsed
-  ? [ merge
-      ( model
-      , { animation
-        , display:
-          { opacity:
-            Easing.ease
-            ( Easing.easeOutCubic
-            , Easing.float
-            , begin
-            , end
-            , duration
-            , animation.elapsed
-            )
+  const output =
+    ( (animation != null && duration > animation.elapsed)
+    ? [ merge
+        ( model
+        , { animation
+          , display:
+            { opacity:
+              Easing.ease
+              ( Easing.easeOutCubic
+              , Easing.float
+              , begin
+              , end
+              , duration
+              , animation.elapsed
+              )
+            }
           }
-        }
-      )
-    , fx.map(SelectAnimationAction)
-    ]
-  : [ merge(model, {animation: null, display: {opacity: end} })
-    , Effects
-      .receive(Stopwatch.End)
-      .map(SelectAnimationAction)
-    ]
-  )
+        )
+      , fx.map(SelectAnimationAction)
+      ]
+    : [ merge(model, {animation: null, display: {opacity: end} })
+      , Effects
+        .receive(Stopwatch.End)
+        .map(SelectAnimationAction)
+      ]
+    )
+
+  return output
 };
 
-export const init/*:type.init*/ = (id, options) => {
+export const init =
+  (id/*:ID*/, options/*:Options*/)/*:[Model, Effects<Action>]*/ => {
   const [shell, shellFx] = Shell.init(id, !options.inBackground);
   const [navigation, navigationFx] = Navigation.init(id, options.uri);
   const [page, pageFx] = Page.init(options.uri);
@@ -363,7 +365,7 @@ export const init/*:type.init*/ = (id, options) => {
       , securityFx.map(SecurityAction)
       , navigationFx.map(NavigationAction)
       , progressFx.map(ProgressAction)
-      , animationFx.map(AnimationAction)
+      , animationFx.map(SelectAnimationAction)
       , ( options.inBackground
         ? Effects.none
         : Effects.receive(Activate)
@@ -482,7 +484,8 @@ const changeLocation = (model, uri) =>
 const close = model =>
   [ model, Effects.receive(Closed) ];
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Select"
   ? select(model)
   : action.type === "Selected"
@@ -524,14 +527,6 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === "Close"
   ? close(model)
 
-  // Shell Requests
-  : action.type === "ZoomIn"
-  ? updateShell(model, Shell.ZoomIn(model.id))
-  : action.type === "ZoomOut"
-  ? updateShell(model, Shell.ZoomOut(model.id))
-  : action.type === "ResetZoom"
-  ? updateShell(model, Shell.ResetZoom(model.id))
-
   // Animation
   : action.type === "SelectAnimation"
   ? updateSelectAnimation(model, action.action)
@@ -541,7 +536,7 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === "Progress"
   ? updateProgress(model, action.action)
   : action.type === "Shell"
-  ? updateShell(model, action.action)
+  ? updateShell(model, action.shell)
   : action.type === "Page"
   ? updatePage(model, action.action)
   : action.type === "Tab"
@@ -549,7 +544,7 @@ export const update/*:type.update*/ = (model, action) =>
   : action.type === "Security"
   ? updateSecurity(model, action.action)
   : action.type === "Navigation"
-  ? updateNavigation(model, action.action)
+  ? updateNavigation(model, action.navigation)
 
   : Unknown.update(model, action)
   );
@@ -709,8 +704,8 @@ const viewFrame = (model, address) =>
     attributes: {
       mozbrowser: true,
       remote: true,
-      mozapp: URI.isPrivileged(model.navigation.currentURI) ?
-                URI.getManifestURL().href :
+      mozapp: URL.isPrivileged(model.navigation.currentURI) ?
+                URL.getManifestURL().href :
                 void(0),
       mozallowfullscreen: true
     },
@@ -745,7 +740,8 @@ const viewFrame = (model, address) =>
     onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
   });
 
-export const view/*:type.view*/ = (model, address) => {
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ => {
   const isModelDark = isDark(model);
   return html.div
   ( { className:

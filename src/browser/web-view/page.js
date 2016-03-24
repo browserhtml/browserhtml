@@ -1,10 +1,8 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-/*:: import * as type from "../../../type/browser/web-view/page" */
 
 import {Effects, Task} from 'reflex';
 import {merge} from '../../common/prelude';
@@ -12,50 +10,62 @@ import * as Favicon from '../../common/favicon';
 import * as Pallet from '../../browser/pallet';
 import * as Unknown from '../../common/unknown';
 
-export const DocumentFirstPaint/*:type.DocumentFirstPaint*/ =
+/*::
+import type {URI, Icon, Model, Action} from "./page"
+*/
+
+export const DocumentFirstPaint/*:Action*/ =
   {type: "DocumentFirstPaint"};
 
-export const FirstPaint/*:type.FirstPaint*/ =
+export const FirstPaint/*:Action*/ =
   {type: "FirstPaint"};
 
-export const MetaChanged/*:type.MetaChanged*/ = (name, content) =>
+export const MetaChanged =
+  (name/*:string*/, content/*:string*/)/*:Action*/ =>
   ({type: "MetaChanged", name, content});
 
 
-export const TitleChanged/*:type.TitleChanged*/ = title =>
+export const TitleChanged =
+  (title/*:string*/)/*:Action*/ =>
  ({type: "TitleChanged", title});
 
-export const IconChanged/*:type.IconChanged*/ = icon =>
+export const IconChanged =
+  (icon/*:Icon*/)/*:Action*/ =>
   ({type: "IconChanged", icon});
 
-export const OverflowChanged/*:type.OverflowChanged*/ = isOverflown =>
+export const OverflowChanged =
+  (isOverflown/*:boolean*/)/*:Action*/ =>
   ({type: "OverflowChanged", isOverflown});
 
-export const Scrolled/*:type.Scrolled*/ = detail =>
+export const Scrolled =
+  (detail/*:any*/)/*:Action*/ =>
   ({type: "Scrolled", detail});
 
-export const CuratedColorUpdate/*:type.CuratedColorUpdate*/ = color =>
+export const CuratedColorUpdate =
+  (color/*:?Pallet.Theme*/)/*:Action*/ =>
   ({type: "CuratedColorUpdate", color});
 
-export const CreatePallet/*:type.CreatePallet*/ =
+export const CreatePallet/*:Action*/ =
   {type: "CreatePallet"};
 
-export const LoadStart/*:type.LoadStart*/ =
+export const LoadStart/*:Action*/ =
   {type: "LoadStart"};
 
-export const LoadEnd/*:type.LoadEnd*/ =
+export const LoadEnd/*:Action*/ =
   {type: "LoadEnd"};
 
-export const LocationChanged/*:type.LocationChanged*/ = uri =>
+export const LocationChanged =
+  (uri/*:URI*/)/*:Action*/ =>
   ({type: "LocationChanged", uri});
 
 
-const send = action =>
-  Task.future(() => Promise.resolve(action));
-
-
 const updateIcon = (model, {icon}) => {
-  const {bestIcon, faviconURI} = Favicon.getBestIcon([model.icon, icon]);
+  const {bestIcon, faviconURI} =
+    ( model.icon == null
+    ? Favicon.getBestIcon([icon])
+    : Favicon.getBestIcon([model.icon, icon])
+    );
+
   return [
     merge
     ( model
@@ -93,7 +103,8 @@ const updatePallet = (model, _) =>
   , Effects.none
   ];
 
-export const init/*:type.init*/ = uri =>
+export const init =
+  (uri/*:URI*/)/*:[Model, Effects<Action>]*/ =>
   [ { uri
     , title: null
     , icon: null
@@ -107,7 +118,8 @@ export const init/*:type.init*/ = uri =>
   , Effects.none
   ];
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'LoadStart'
   ? [ merge
       ( model
@@ -132,7 +144,7 @@ export const update/*:type.update*/ = (model, action) =>
   // re-generate pallet when going back / forward. Also we schedule async
   // action because colors to generate pallet from are fetched async and
   // LoadEnd seems to fire occasionaly sooner that colors are feteched.
-  ? [ model, Effects.task(send(CreatePallet)) ]
+  ? [ model, Effects.receive(CreatePallet) ]
   : action.type === 'TitleChanged'
   ? [ merge(model, {title: action.title}), Effects.none ]
   : action.type === 'IconChanged'

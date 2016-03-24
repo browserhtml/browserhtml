@@ -1,69 +1,72 @@
-/* @noflow */
+/* @flow */
 
-import * as Focusable from "../../common/focusable"
-import type {Effects, Never} from "reflex/type/effects"
-import type {Task} from "reflex/type"
-import type {ID} from "../../common/prelude"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+import {Task, Effects} from "reflex"
+import type {Never} from "reflex"
+import type {ID, Float} from "../../common/prelude"
 import type {Result} from "../../common/result"
+import * as Focusable from "../../common/focusable"
+
+export type {ID, Float}
 
 // Model extends Focusable.Model with isVisible and zoom fields
-export type Model
-  = { isVisible: boolean
-    , zoom: number
-    , isFocused: boolean
+export type Model =
+  { id: ID
+  , zoom: Float
+  , isVisible: boolean
+  , isFocused: boolean
+  }
+
+
+export type Action =
+  | { type: "NoOp" }
+  | { type: "ZoomIn" }
+  | { type: "ZoomOut" }
+  | { type: "ResetZoom" }
+  | { type: "MakeVisible" }
+  | { type: "MakeNotVisible" }
+  | { type: "ZoomChanged"
+    , zoomResult: any //Result<Error, Float>
+    }
+  | { type: "VisibilityChanged"
+    , visibilityResult: any //Result<Error, boolean>
+    }
+  | { type: "Focusable"
+    , action: Focusable.Action
     }
 
+declare export var ZoomIn:Action
+declare export var ZoomOut:Action
+declare export var ResetZoom:Action
+declare export var MakeVisible:Action
+declare export var MakeNotVisible:Action
+declare export var Focus:Action
+declare export var Blur:Action
 
-export type ZoomIn = { type: "ZoomIn" }
-export type ZoomOut = { type: "ZoomOut" }
-export type ResetZoom = { type: "ResetZoom" }
+declare export function zoomIn
+  (id:ID, zoom:number):
+  Task<Never, Result<Error, Float>>
 
-type ZoomChangeResult = Result<string, number>
-type ZoomChangedAction =
-  { type: "ZoomChanged"
-  , result: ZoomChangeResult
-  }
+declare export function zoomOut
+ (id:ID, zoom:number):
+  Task<Never, Result<Error, Float>>
 
-export type ZoomChanged = (result:ZoomChangeResult) =>
-  ZoomChangedAction
+declare export function resetZoom
+  (id:ID):
+  Task<Never, Result<Error, Float>>
 
-export type MakeVisible = { type: "MakeVisible" }
-export type MakeNotVisible = { type: "MakeNotVisible" }
-
-type VisibilityChangeResult = Result<string, boolean>
-type VisibilityChangedAction =
-  { type: "VisibilityChanged"
-  , result: VisibilityChangeResult
-  }
-
-export type VisibilityChanged = (result:VisibilityChangeResult) =>
-  VisibilityChangedAction
-
-export type FocusableAction =
-  { type: "Focusable"
-  , action: Focusable.Action
-  }
-
-export type Action
-  = FocusableAction
-  | ZoomIn | ZoomOut | ResetZoom
-  | MakeVisible | MakeNotVisible
-  | ZoomChangedAction
-  | VisibilityChangedAction
+declare export function setVisibility
+  (id:ID, isVisible:boolean):
+  Task<Never, Result<Error, boolean>>
 
 
-export type zoomIn = (id:ID, zoom:number) =>
-  Task<Never, ZoomChangeResult>
+declare export function init
+  (id:ID, isFocused:boolean):
+  [Model, Effects<Action>]
 
-export type zoomOut = (id:ID, zoom:number) =>
-  Task<Never, ZoomChangeResult>
-
-export type resetZoom = (id:ID) =>
-  Task<Never, ZoomChangeResult>
-
-export type setVisibility = (id:ID, isVisible:boolean) =>
-  Task<Never, VisibilityChangeResult>
-
-
-export type init = () => [Model, Effects<Action>]
-export type update = (model:Model, action:Action) => [Model, Effects<Action>]
+declare export function update
+  (model:Model, action:Action):
+  [Model, Effects<Action>]

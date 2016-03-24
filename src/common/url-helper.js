@@ -5,7 +5,8 @@
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
 
 /*::
-import type {URI, URL} from "./url-helper"
+import type {URI} from "./url-helper"
+import {URL} from "./url-helper"
 */
 
 // @TODO:
@@ -14,15 +15,22 @@ import type {URI, URL} from "./url-helper"
 // assume they cane be null.
 
 const nullURL =
-  { origin: null
-  , hostname: null
-  , protocol: null
-  , pathname: null
-}
+  { href: ''
+  , origin: ''
+  , protocol: ''
+  , username: ''
+  , password: ''
+  , host: ''
+  , hostname: ''
+  , port: ''
+  , pathname: ''
+  , search: ''
+  , hash: ''
+  }
 
 export const parse = (input/*:string*/)/*:URL*/ => {
   try {
-    return new window.URL(input);
+    return new URL(input);
   } catch(_) {
     return nullURL;
   }
@@ -33,31 +41,31 @@ export const hasScheme =
   !!(rscheme.exec(input) || [])[0];
 
 export const getOrigin =
-  (url/*:URI*/)/*:?string*/ =>
+  (url/*:URI*/)/*:string*/ =>
   parse(url).origin;
 
 export const getBaseURI =
   ()/*:URL*/ =>
-  new window.URL('./', location);
+  new URL('./', location.href);
 
 export const getHostname =
-  (url/*:URI*/)/*:?string*/ =>
+  (url/*:URI*/)/*:string*/ =>
   parse(url).hostname;
 
 export const getDomainName =
   (url/*:URI*/)/*:string*/ =>
-  (getHostname(url) || '').replace(/^www\./, '');
+  getHostname(url).replace(/^www\./, '');
 
 export const getProtocol =
-  (url/*:URI*/)/*:?string*/ =>
+  (url/*:URI*/)/*:string*/ =>
   parse(url).protocol;
 
 export const getManifestURL =
   ()/*:URL*/ =>
-  new window.URL('./manifest.webapp', getBaseURI());
+  new URL('./manifest.webapp', getBaseURI().href);
 
 export const getPathname =
-  (input/*:URI*/)/*:?string*/ =>
+  (input/*:URI*/)/*:string*/ =>
   parse(input).pathname;
 
 
@@ -72,7 +80,7 @@ export const isAboutURL =
 
 export const isPrivileged = (uri/*:URI*/)/*:boolean*/ => {
   // FIXME: not safe. White list?
-  return uri.startsWith(new window.URL('./components/about/', getBaseURI()));
+  return uri.startsWith(new URL('./components/about/', getBaseURI().href).href);
 };
 
 const rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
@@ -96,7 +104,7 @@ export const isNotURL = (input/*:string*/)/*:boolean*/ => {
     str = 'http://' + str;
   }
   try {
-    new window.URL(str);
+    new URL(str);
     return false;
   } catch (e) {
     return true;
@@ -121,7 +129,7 @@ export const normalize = (uri/*:URI*/)/*:URI*/ =>
   uri;
 
 export const resolve = (from/*:URI*/, to/*:URI*/)/*:URI*/ =>
-  new window.URL(to, from).href;
+  new URL(to, from).href;
 
 const aboutPattern = /\/about\/([^\/]+)\/index.html$/;
 

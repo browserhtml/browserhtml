@@ -1,106 +1,27 @@
-/* @noflow */
+/* @flow */
 
-import type {Address, VirtualTree} from "reflex/type"
-import type {Effects} from "reflex/type/effects"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+import {Effects} from "reflex"
+import type {Address, DOM} from "reflex"
 import type {URI} from "../common/prelude"
-import * as WebViewList from "./web-views"
-import * as Browser from "./browser"
-import * as Animation from "../common/animation"
-import * as Overlay from "../browser/overlay"
-import * as Sidebar from "../browser/sidebar"
+import * as Browser from './browser';
 
-// Application states (or modes rather) are expressed in terms of
-// model types (blue nodes from spec diagram)
+export type Model = Browser.Model
+export type Action = Browser.Action
 
-export type State = {
-  browser: Browser.Model,
-  overlay: Overlay.Model,
-  animation: ?Animation.Model
-}
+declare export function init
+  ():
+  [Model, Effects<Action>]
 
-export type EditWebView
-  = {mode: "edit-web-view"}
-  & State
+declare export function update
+  (model:Model, action:Action):
+  [Model, Effects<Action>]
 
+declare export function view
+  (model:Model, address:Address<Action>):
+  DOM
 
-export type ShowWebView
-  = {mode: "show-web-view"}
-  & State
-
-export type CreateWebView
-  = {mode: "create-web-view"}
-  & State
-
-export type SelectWebView
-  = {mode: "select-web-view"}
-  & State
-
-export type ShowTabs
-  = {mode: "show-tabs"}
-  & State
-
-// Application can be in any of the above state there for it's model is union
-// of every mode state.
-
-export type Model
-  = EditWebView
-  | ShowWebView
-  | CreateWebView
-  | SelectWebView
-  | ShowTabs
-
-type SidebarAction =
-  { type: "Sidebar"
-  , action: Sidebar.Action
-  }
-
-type OverlayAction =
-  { type: "Overlay"
-  , action: Overlay.Action
-  }
-
-type AnimationAction =
-  { type: "Animation"
-  , action: Animation.Action
-  }
-
-export type Action
-  = Browser.Action
-  | OverlayAction
-  | SidebarAction
-
-export type ActionPredicate = (action:Action) => boolean
-
-export type isInputAction = ActionPredicate
-export type isWebViewAction = ActionPredicate
-export type isFocusAction = ActionPredicate
-export type isAbort = ActionPredicate
-export type isSubmit = ActionPredicate
-export type isFocusInput = ActionPredicate
-export type isKeyDown = ActionPredicate
-export type isKeyUp = ActionPredicate
-export type isCreateTab = ActionPredicate
-export type isShowTabs = ActionPredicate
-export type isEscape = ActionPredicate
-export type isActivateSelected = ActionPredicate
-export type isActivateSelectedWebView = ActionPredicate
-export type isFocusWebView = ActionPredicate
-export type isActivateWebView = ActionPredicate
-export type isEditWebview = ActionPredicate
-export type isSelectRelativeWebView = ActionPredicate
-export type isSwitchSelectedWebView = ActionPredicate
-
-
-
-
-export type init = () => [Model, Effects<Action>]
-export type update = (model:Model, action:Action) => [Model, Effects<Action>]
-
-export type View <Model> = (model:Model, address:Address<Action>) => VirtualTree
-
-export type view = View<Model>
-export type viewAsEditWebView = View<EditWebView>
-export type viewAsShowWebView = View<ShowWebView>
-export type viewAsCreateWebView = View<CreateWebView>
-export type viewAsSelectWebView = View<SelectWebView>
-export type viewAsShowTabs = View<ShowTabs>
+declare export var LiveReload:Action
