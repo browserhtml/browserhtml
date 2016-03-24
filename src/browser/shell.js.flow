@@ -7,7 +7,7 @@
 import type {Address, DOM} from "reflex"
 import {Effects} from "reflex"
 import type {Result} from "../common/result"
-import * as Controls from "./shell/Controls"
+import * as Controls from "./shell/controls"
 
 export type Model =
   { isFocused: boolean
