@@ -85,8 +85,8 @@ export type Action =
   | { type: "ResizeAnimation", action: Stopwatch.Action }
   | { type: "OpenURL", uri: URI }
   | { type: "SelectTab", source: WebViews.Action }
-  | { type: "ActivateTab", source: WebViews.Action }
-  | { type: "ActivateTabByID", source: WebViews.Action }
+  | { type: "ActivateTab", activateTab: WebViews.Action }
+  | { type: "ActivateTabByID", activateTabByID: WebViews.Action }
 
 
 declare export var LiveReload:Action

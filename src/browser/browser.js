@@ -130,24 +130,28 @@ const InputAction = action =>
     }
   );
 
-const WebViewsAction = action =>
+const WebViewsAction = (action/*:WebViews.Action*/)/*:Action*/ =>
   ( action.type === "ShowTabs"
   ? ShowTabs
   : action.type === "Create"
   ? CreateWebView
   : action.type === "Edit"
   ? EditWebView
-  // : action.type === "SelectRelative"
-  // ? { type: "SelectTab"
-  //   , source: action
-  //   }
-  // : action.type === "ActivateSelected"
-  // ? { type: "ActivateTab"
-  //   , source: action
-  //   }
+  : action.type === "SelectRelative"
+  ? { type: "SelectTab"
+    , source: action
+    }
+    // Note: Flow type checker has some bug releated to union types where
+    // use of the same properties across union types seem to confuse it.
+    // avoiding same shapes (and calling source differently on each type)
+    // seems to resolve the problem.
+  : action.type === "ActivateTab"
+  ? { type: "ActivateTab"
+    , activateTab: action
+    }
   : action.type === "ActivateByID"
   ? { type: "ActivateTabByID"
-    , source: action
+    , activateTabByID: action
     }
   : { type: 'WebViews'
     , source: action
@@ -744,9 +748,9 @@ export const update =
   : action.type === 'SelectTab'
   ? updateWebViews(model, action.source)
   : action.type === 'ActivateTabByID'
-  ? updateWebViews(model, action.source)
+  ? updateWebViews(model, action.activateTabByID)
   : action.type === 'ActivateTab'
-  ? updateWebViews(model, action.source)
+  ? updateWebViews(model, action.activateTab)
 
   : action.type === 'Shell'
   ? updateShell(model, action.source)
