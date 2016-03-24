@@ -134,10 +134,8 @@ const style = Style.createSheet({
   overlay: {
     background: 'rgb(0, 0, 0)',
     position: 'absolute',
-    // @WORKAROUND use percent instead of vw/vh to work around
-    // https://github.com/servo/servo/issues/8754
-    width: '100%',
-    height: '100%'
+    width: '100vw',
+    height: '100vh'
   },
   capturing: {
     pointerEvents: 'all'

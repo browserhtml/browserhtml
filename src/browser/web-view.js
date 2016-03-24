@@ -689,7 +689,28 @@ const styleSheet = StyleSheet.create({
   iconCreateTabDark: {
     color: 'rgba(255,255,255,0.8)',
   },
-  iconCreateTabBright: null
+
+  iconCreateTabBright: null,
+
+  iconBack: {
+    MozWindowDragging: 'no-drag',
+    color: 'rgba(0,0,0,0.8)',
+    fontFamily: 'FontAwesome',
+    fontSize: '18px',
+    lineHeight: '32px',
+    position: 'absolute',
+    textAlign: 'center',
+    bottom: 0,
+    left: 0,
+    width: '30px',
+    height: '32px',
+  },
+
+  iconBackDark: {
+    color: 'rgba(255,255,255,0.8)',
+  },
+
+  iconBackBright: null
 });
 
 const viewFrame = (model, address) =>
@@ -700,7 +721,12 @@ const viewFrame = (model, address) =>
     'data-name': model.name,
     'data-features': model.features,
     element: Driver.element,
-    style: styleSheet.iframe,
+    style: Style(styleSheet.iframe
+                , ( model.page.pallet.background != null
+                  ? { backgroundColor: model.page.pallet.background }
+                  : null
+                  )
+                ),
     attributes: {
       mozbrowser: true,
       remote: true,
@@ -729,7 +755,6 @@ const viewFrame = (model, address) =>
     onMozBrowserLoadEnd: on(address, decodeLoadEnd),
     onMozBrowserFirstPaint: on(address, decodeFirstPaint),
     onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
-    onMozBrowserLocationChange: on(address, decodeLocationChange),
     onMozBrowserMetaChange: on(address, decodeMetaChange),
     onMozBrowserIconChange: on(address, decodeIconChange),
     onMozBrowserLocationChange: on(address, decodeLocationChange),
@@ -841,6 +866,20 @@ export const view =
         }
       , ['']
       )
+    , html.div
+      ( { className: 'global-create-tab-icon'
+        , style:
+            Style
+            ( styleSheet.iconBack
+            , ( isModelDark
+              ? styleSheet.iconBackDark
+              : styleSheet.iconBackBright
+              )
+            )
+        , onClick: forward(address, always(GoBack))
+        }
+      , ['']
+      )
     ]
   );
 };
@@ -880,8 +919,18 @@ const decodeError = compose(ReportError, decodeDetail);
 
 // Navigation
 
-const decodeLocationChange = ({detail: uri}) =>
-  LocationChanged(uri, performance.now());
+const decodeLocationChange = ({detail}) => {
+  var uri;
+  // Servo and Gecko have different implementation of detail.
+  // In Gecko, detail is a string (the uri).
+  // In Servo, detail is an object {uri,canGoBack,canGoForward}
+  if (typeof detail == 'string') {
+    uri = detail;
+  } else {
+    uri = detail.uri;
+  }
+  return LocationChanged(uri, performance.now());
+}
 
 // Progress
 

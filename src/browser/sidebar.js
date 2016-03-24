@@ -23,7 +23,7 @@ import * as WebViews from "./web-views"
 
 const styleSheet = Style.createSheet({
   base:
-  { backgroundColor: '#24303D'
+  { backgroundColor: '#272822'
   , height: '100%'
   , position: 'absolute'
   , right: 0

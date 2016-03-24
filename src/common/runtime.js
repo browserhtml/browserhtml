@@ -14,6 +14,7 @@ import type {RemoteDebugResponseType, DownloadUpdateType} from "./runtime"
 import {always} from "../common/prelude";
 import {Task} from "reflex";
 import {ok, error} from "../common/result";
+import * as OS from '../common/os';
 
 // Actions
 export const RemoteDebugRequest
@@ -141,3 +142,8 @@ export const cleanRestart/*:Task<Never, Result<Error, void>>*/ =
 export const cleanReload/*:Task<Never, Result<Error, void>>*/ =
   send({type: "clear-cache-and-reload"})
   .chain(always(never));
+
+// This is a temporary measure. Eventually, we want Servo to expose the
+// titlebar configuration.
+const platform = OS.platform()
+export const useNativeTitlebar = _ => platform != "darwin";

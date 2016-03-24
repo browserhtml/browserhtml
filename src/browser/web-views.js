@@ -666,10 +666,8 @@ const styleSheet = StyleSheet.create({
   base: {
     // @TODO box shadow slows down animations significantly (Gecko)
     // boxShadow: '0 50px 80px rgba(0,0,0,0.25)',
-    // @WORKAROUND use percent instead of vw/vh to work around
-    // https://github.com/servo/servo/issues/8754
-    height: '100%',
-    width: '100%',
+    height: '100vh',
+    width: '100vw',
     left: 0,
     overflow: 'hidden', // necessary to clip the radius
     position: 'absolute', // to position webviews relatively to stack

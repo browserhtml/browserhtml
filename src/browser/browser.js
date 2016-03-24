@@ -789,14 +789,12 @@ export const update =
 
 const styleSheet = StyleSheet.create({
   root: {
-    background: '#24303D',
+    background: '#171814',
     perspective: '1000px',
     // These styles prevent scrolling with the arrow keys in the root window
     // when elements move outside of viewport.
-    // @WORKAROUND Use percent, not vw and vh to work around
-    // https://github.com/servo/servo/issues/8754
-    width: '100%',
-    height: '100%',
+    width: '100vw',
+    height: '100vh',
     overflow: 'hidden',
     position: 'absolute',
     MozWindowDragging: 'drag',

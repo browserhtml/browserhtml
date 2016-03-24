@@ -19,19 +19,15 @@
   outline: 0;
 }
 
-/* @WORKAROUND: can't combine with above rule because of
-  https://github.com/servo/servo/issues/9476 */
 *::-moz-focus-inner {
   border: 0;
   outline: 0;
 }
 
-/* @WORKAROUND using percentage instead of vh/vw to work around
-https://github.com/servo/servo/issues/8754 */
 html,
 body {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
 }
 
 /* Prevents scrollbars to show up with out-of-window elements */
@@ -39,7 +35,17 @@ body {
   font-size: 12px;
   line-height: 1.5;
   overflow: hidden;
+}
+
+/* We want the native window to have round borders. When a
+ native titlebar is used, the round borders come from the
+ OS itself */
+body:not(.use-native-titlebar) {
   border-radius: 6px;
+}
+
+body.use-native-titlebar {
+  border-radius: 0;
 }
 
 .webview-combobox:hover {

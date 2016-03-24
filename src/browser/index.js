@@ -8,6 +8,7 @@ import {start, Effects} from "reflex";
 import * as UI from "./perspective-ui";
 import {version} from "../../package.json";
 import * as Config from "../../browserhtml.json";
+import * as Runtime from "../common/runtime";
 import {Renderer} from "driver";
 
 
@@ -36,6 +37,9 @@ const isReload = window.application != null;
 if (isReload) {
   window.application.address(UI.LiveReload);
 }
+
+document.body.classList.toggle('use-native-titlebar',
+                               Runtime.useNativeTitlebar());
 
 const restore =
   () =>
