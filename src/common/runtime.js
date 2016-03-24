@@ -146,4 +146,6 @@ export const cleanReload/*:Task<Never, Result<Error, void>>*/ =
 // This is a temporary measure. Eventually, we want Servo to expose the
 // titlebar configuration.
 const platform = OS.platform()
-export const useNativeTitlebar = _ => platform != "darwin";
+export const useNativeTitlebar =
+  ()/*:boolean*/ =>
+  platform != "darwin";

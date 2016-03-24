@@ -100,3 +100,7 @@ declare export var restart:Task<Never, Result<Error, void>>;
 
 declare export var cleanReload:Task<Never, Result<Error, void>>;
 declare export var cleanRestart:Task<Never, Result<Error, void>>;
+
+declare export function useNativeTitlebar
+  ():
+  boolean
