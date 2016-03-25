@@ -18,9 +18,9 @@ import type {ID, Model, Action} from "./cell"
 */
 
 export const Print =
-  (result/*:Output.Model*/)/*:Action*/ =>
+  (output/*:Output.Model*/)/*:Action*/ =>
   ( { type: "Print"
-    , result: result
+    , print: output
     }
   )
 
@@ -112,7 +112,7 @@ export const update =
   : action.type === 'Output'
   ? updateOutput(model, action.output)
   : action.type === 'Print'
-  ? print(model, action.result)
+  ? print(model, action.print)
   : Unknown.update(model, action)
   );
 

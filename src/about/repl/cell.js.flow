@@ -26,7 +26,7 @@ export type Action =
   | { type: "Remove"
     }
   | { type: "Print"
-    , result: Output.Model
+    , print: Output.Model
     }
   | { type: "Submit"
     , source: Input.Model
@@ -39,6 +39,10 @@ export type Action =
     }
 
 declare export var Edit:Action
+
+declare export function Print
+  (output:Output.Model):
+  Action
 
 declare export function init
   (id:ID):

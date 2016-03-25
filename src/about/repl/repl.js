@@ -164,7 +164,7 @@ const print = (model, action) =>
   : updateCell
     ( model
     , action.id
-    , action
+    , Cell.Print(action.source)
     )
   );
 
