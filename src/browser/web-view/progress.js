@@ -140,7 +140,7 @@ const tick = (time, model) =>
       , { updateTime: time
         , display:
           { opacity: 1
-          , x: (-100 + (100 * progress(model)))
+          , x: progress(model) * 100
           }
         }
       )
@@ -218,7 +218,7 @@ export const view =
     className: 'progressbar',
     style: Style(style.bar, {
       backgroundColor: '#4A90E2',
-      transform: `translateX(${model.display.x}%)`,
+      transform: `translateX(${(model.display.x) - 100}%)`,
       opacity: model.display.opacity
     }),
   }, [html.div({
