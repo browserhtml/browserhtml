@@ -9,29 +9,27 @@ import * as UI from "./repl";
 import {Renderer} from "driver";
 
 const isReload = window.application != null;
-// If hotswap change address so it points to a new mailbox &r
-// re-render.
-if (isReload) {
-  window.application.address(UI.LiveReload);
-}
+
+const restore =
+  () =>
+  [ window.application.model.value
+  , Effects.none
+  ]
 
 
 const application = start({
-  initial: isReload ?
-            window.application.model.value :
-            UI.init(),
-  step: (model, action) => {
-    console.log(">>> Action:", action);
-    const [state, fx] = UI.update(model, action);
-    console.log('<<< Model:', state);
-    console.log('<<< FX:', fx);
-    return [state, fx];
-  },
+  flags: void(0),
+  init:
+  ( isReload
+  ? restore
+  : UI.init
+  ),
+  update: UI.update,
   view: UI.view
 });
 
 const renderer = new Renderer({target: document.body});
 application.view.subscribe(renderer.address);
-application.task.subscribe(Effects.service(application.address));
+application.task.subscribe(Effects.driver(application.address));
 
 window.application = application;

@@ -6,10 +6,10 @@
 
 
 import {Effects, Task, html, forward, thunk} from "reflex";
-import {merge, always, tag, tagged, batch} from "../../common/prelude";
+import {merge, always, batch} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
 import {indexOfOffset} from "../../common/selector";
-import * as Result from '../../common/result';
+import {ok, error} from '../../common/result';
 
 import * as Title from "./title";
 import * as Icon from "./icon";
@@ -17,38 +17,82 @@ import * as Suggestion from "./suggestion";
 import * as Unknown from '../../common/unknown';
 
 /*::
-import * as Search from "../../../type/browser/assistant/search"
+import type {Address, DOM, Never} from "reflex";
+import type {Result} from "../../common/result";
+import type {Completion, Match, Model, Action} from "./search";
 */
 
+const NoOp = always({type: "NoOp"});
 
-const Abort = tag("Abort");
-export const SelectNext = tagged("SelectNext");
-export const SelectPrevious = tagged("SelectPrevious");
-export const Suggest = tag("Suggest");
-export const Query = tag("Query");
-export const Execute = tag("Execute");
-export const Activate = tag("Activate");
-const UpdateMatches = tag("UpdateMatches");
+const Abort =
+  queryID =>
+  ( { type: "Abort"
+    , source: queryID
+    }
+  );
+
+export const SelectNext = { type: "SelectNext" };
+export const SelectPrevious = { type: "SelectPrevious" };
+export const Suggest =
+  (suggestion/*:Completion*/)/*:Action*/ =>
+  ( { type: "Suggest"
+    , source: suggestion
+    }
+  );
+
+export const Query =
+  (input/*:string*/)/*:Action*/ =>
+  ( { type: "Query"
+    , source: input
+    }
+  );
+
+export const Activate =
+  ()/*:Action*/ =>
+  ( { type: "Activate"
+    }
+  );
+
+const Load =
+  (uri) =>
+  ( { type: "Load"
+    , uri
+    }
+  );
+
+const UpdateMatches =
+  (result/*:Result<Error, Array<Match>>*/)/*:Action*/ =>
+  ( { type: "UpdateMatches"
+    , source: result
+    }
+  );
+
 const byURI =
   uri =>
   action =>
-  tagged("ByURI", {uri, action});
+  ( { type: "ByURI"
+    , source:
+      { uri
+      , action
+      }
+    }
+  );
 
 const decodeFailure = ({target: request}) =>
-  Result.error
+  error
   // @FlowIssue: Flow does not know about `request.url`
   (Error(`Network request to ${request.url} has failed: ${request.statusText}`));
 
 const decodeResponseFailure =
   request =>
   // @FlowIssue: Flow does not know about `request.response`
-  Result.error(Error(`Can not decode ${request.respose} received from ${request.url}`))
+  error(Error(`Can not decode ${request.respose} received from ${request.url}`))
 
 const decodeMatches =
   matches =>
   ( Array.isArray(matches)
-  ? Result.ok(matches.map(decodeMatch))
-  : Result.error(Error(`Can not decode non array matches ${matches}`))
+  ? ok(matches.map(decodeMatch))
+  : error(Error(`Can not decode non array matches ${matches}`))
   );
 
 const decodeMatch =
@@ -62,7 +106,7 @@ const decodeResponse = ({target: request}) =>
   // @FlowIssue: Flow does not know about `request.responseType`
   ( request.responseType !== 'json'
   // @FlowIssue: Flow does not know about `request.url`
-  ? Result.error(Error(`Can not decode ${request.responseType} type response from ${request.url}`))
+  ? error(Error(`Can not decode ${request.responseType} type response from ${request.url}`))
   : request.response == null
   ? decodeResponseFailure(request)
   : request.response[1] == null
@@ -74,15 +118,18 @@ const pendingRequests = Object.create(null);
 
 const abort =
   id =>
-  Task.io(deliver => {
+  new Task((succeed, fail) => {
     if (pendingRequests[id] != null) {
       pendingRequests[id].abort();
       delete pendingRequests[id];
     }
   })
 
-const search/*:Search.search*/ =
-  (id, input, limit) =>
+const search =
+  ( id/*:number*/
+  , input/*:string*/
+  , limit/*:number*/
+  )/*:Task<Never, Result<Error, Array<Match>>>*/ =>
   Task.future(() => new Promise(resolve => {
     const request = new XMLHttpRequest({ mozSystem: true });
     pendingRequests[id] = request;
@@ -93,6 +140,7 @@ const search/*:Search.search*/ =
     , true
     );
     request.responseType = 'json';
+    // @FlowIgnore: We need this property
     request.url = uri;
 
     request.onerror = event => {
@@ -108,8 +156,8 @@ const search/*:Search.search*/ =
   }));
 
 
-export const init/*:Search.init*/ =
-  (query, limit) =>
+export const init =
+  (query/*:string*/, limit/*:number*/)/*:[Model, Effects<Action>]*/ =>
   [ { query
     , size: 0
     , queryID: 0
@@ -132,7 +180,7 @@ const suggest = model =>
   , Effects.receive
     ( Suggest
       ( { match: model.matches[model.items[model.selected]].title
-        , hint: null
+        , hint: ''
         }
       )
     )
@@ -207,6 +255,7 @@ const updateMatches = (model, result) =>
   ? replaceMatches(model, result.value)
   : [ model
     , Effects.task(Unknown.error(result.error))
+      .map(NoOp)
     ]
   );
 
@@ -264,8 +313,8 @@ const activate =
     )
   ]
 
-export const update/*:Search.update*/ =
-  (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Query"
   ? updateQuery(model, action.source)
   : action.type === "SelectNext"
@@ -289,8 +338,8 @@ const innerView =
   , Title.view(model.title, isSelected)
   ];
 
-export const render/*:Search.view*/ =
-  (model, address) =>
+export const render =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.embed
   ( null
   , model
@@ -309,8 +358,8 @@ export const render/*:Search.view*/ =
     )
   )
 
-export const view/*:Search.view*/ =
-  (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   thunk
   ( 'search'
   , render

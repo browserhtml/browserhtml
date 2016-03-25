@@ -4,22 +4,37 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from '../../../type/browser/web-view/security' */
+/*::
+import type {Model, Action} from './security'
+*/
 
 import {Effects} from 'reflex';
 import * as Unknown from '../../common/unknown';
 import {merge} from '../../common/prelude';
 
-export const LoadStart/*:type.LoadStart*/ = {type: "LoadStart"};
-export const Changed/*:type.Changed*/ = (state, extendedValidation) =>
-  ({type: "Changed", state, extendedValidation});
+export const LoadStart/*:Action*/ =
+  { type: "LoadStart"
+  };
 
-export const init/*:type.init*/ = () =>
-  [ {state: 'insecure', secure: false, extendedValidation: false}
+export const Changed =
+  (state/*:string*/, extendedValidation/*:boolean*/)/*:Action*/ =>
+  ( { type: "Changed"
+    , state
+    , extendedValidation
+    }
+  );
+
+export const init =
+  ()/*:[Model, Effects<Action>]*/ =>
+  [ { state: 'insecure'
+    , secure: false
+    , extendedValidation: false
+    }
   , Effects.none
   ]
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "LoadStart"
   ? [ merge
       ( model

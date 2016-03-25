@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, forward, Effects} from 'reflex';
-import {Style, StyleSheet} from '../common/style';
+import {Style} from '../common/style';
 import {compose} from '../lang/functional';
 import {tag, tagged, merge, always} from '../common/prelude';
 import {cursor} from "../common/cursor"
@@ -14,17 +14,18 @@ import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
 import * as Control from '../common/control';
 
-// @FlowIssue: Ignore for now.
 import {on, focus, selection} from 'driver';
 
 /*::
-import * as type from '../../type/common/text-input'
+import type {Address, DOM} from "reflex"
+import type {Action, Model, StyleSheet, ContextStyle} from './text-input'
 */
 
 
 
 const EditableAction = tag("Editable");
-const FocusableAction = action =>
+const FocusableAction =
+  (action/*:Focusable.Action*/)/*:Action*/ =>
   ( action.type === "Focus"
   ? Focus
   : action.type === "Blur"
@@ -34,14 +35,18 @@ const FocusableAction = action =>
 const ControlAction = tag("Control");
 
 export const Change = Editable.Change;
-export const Focus = tagged("Focus", Focusable.Focus);
-export const Blur = tagged("Blur", Focusable.Blur);
-export const Enable = ControlAction(Control.Enable);
-export const Disable = ControlAction(Control.Disable);
+export const Focus/*:Action*/ = { type: "Focus" };
+export const Blur/*:Action*/ = { type: "Blur" };
+export const Enable/*:Action*/ = ControlAction(Control.Enable);
+export const Disable/*:Action*/ = ControlAction(Control.Disable);
 
 
-export const init/*:type.init*/ =
-  (value='', selection=null, placeholder='', isDisabled=false) =>
+export const init =
+  ( value/*:string*/=''
+  , selection/*:?Editable.Selection*/=null
+  , placeholder/*:string*/=''
+  , isDisabled/*:boolean*/=false
+  )/*:[Model, Effects<Action>]*/ =>
   [ { value
     , placeholder
     , selection
@@ -81,8 +86,8 @@ const updateControl = cursor
     }
   );
 
-export const update/*:type.update*/ =
-  (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Change'
   ? updateEditable(model, action)
   : action.type === 'Editable'
@@ -90,9 +95,9 @@ export const update/*:type.update*/ =
   : action.type === 'Focusable'
   ? updateFocusable(model, action.source)
   : action.type === 'Focus'
-  ? updateFocusable(model, action.source)
+  ? updateFocusable(model, action)
   : action.type === 'Blur'
-  ? updateFocusable(model, action.source)
+  ? updateFocusable(model, action)
   : action.type === 'Control'
   ? updateControl(model, action.source)
   : Unknown.update(model, action)
@@ -116,9 +121,12 @@ const decodeChange = compose
   );
 
 
-export const view/*:type.view*/ =
-  (key, styleSheet) =>
-  (model, address, contextStyle) =>
+export const view =
+  (key/*:string*/, styleSheet/*:StyleSheet*/)/*:(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM*/ =>
+  ( model/*:Model*/
+  , address/*:Address<Action>*/
+  , contextStyle/*?:ContextStyle*/
+  )/*:DOM*/ =>
   html.input
   ( { key
     , type: 'input'

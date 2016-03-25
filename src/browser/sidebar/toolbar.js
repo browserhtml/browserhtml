@@ -5,24 +5,27 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, forward, Effects} from 'reflex';
-import {Style, StyleSheet} from '../../common/style';
+import * as Style from '../../common/style';
 import * as Toggle from "../../common/toggle";
 import * as Button from "../../common/button";
 import {merge} from "../../common/prelude";
 import {cursor} from "../../common/cursor";
 import * as Unknown from "../../common/unknown";
 
-/*:: import * as type from "../../../type/browser/sidebar/toolbar" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {Context, Model, Action} from "./toolbar"
+*/
 
-export const Attach/*:type.Attach*/ =
+export const Attach/*:Action*/ =
   { type: "Attach"
   };
 
-export const Detach/*:type.Detach*/ =
+export const Detach/*:Action*/ =
   { type: "Detach"
   };
 
-export const CreateWebView =
+export const CreateWebView/*:Action*/ =
   { type: "CreateWebView"
   };
 
@@ -56,7 +59,7 @@ const updateCloseButton = cursor({
   update: Button.update
 })
 
-export const init/*:type.init*/ = () => {
+export const init = ()/*:[Model, Effects<Action>]*/ => {
   const [pin, pinFX] = Toggle.init();
   const [close, closeFX] = Button.init(false, false, false, false, '');
   return [
@@ -70,11 +73,8 @@ export const init/*:type.init*/ = () => {
   ]
 }
 
-export const Model/*:type.Toolbar*/ =
-  ({pin, close}) =>
-  ({pin, close});
-
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Attach"
   ? updateToggle(model, Toggle.Check)
   : action.type === "Detach"
@@ -88,10 +88,12 @@ export const update/*:type.update*/ = (model, action) =>
   : Unknown.update(model, action)
   );
 
-export const styleSheet = StyleSheet.create({
+export const height = '48px';
+
+export const styleSheet = Style.createSheet({
   base: {
     left: '0',
-    height: '48px',
+    height,
     position: 'absolute',
     bottom: '0',
     width: '100%'
@@ -102,7 +104,7 @@ export const styleSheet = StyleSheet.create({
   }
 });
 
-const viewPin = Toggle.view('pin-button', StyleSheet.create({
+const viewPin = Toggle.view('pin-button', Style.createSheet({
   base: {
     cursor: 'pointer',
     height: '32px',
@@ -123,7 +125,7 @@ const viewPin = Toggle.view('pin-button', StyleSheet.create({
   }
 }));
 
-const viewClose = Button.view('create-tab-button', StyleSheet.create({
+const viewClose = Button.view('create-tab-button', Style.createSheet({
   base:
   { MozWindowDragging: 'no-drag'
   , color: 'rgb(255,255,255)'
@@ -140,12 +142,13 @@ const viewClose = Button.view('create-tab-button', StyleSheet.create({
   }
 }));
 
-export const view/*:type.view*/ = (model, address, display) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/, display/*:Context*/)/*:DOM*/ =>
   html.div({
     key: 'sidebar-toolbar',
     className: 'sidebar-toolbar',
     style:
-    Style
+    Style.mix
     ( styleSheet.base
     , ( display.toolbarOpacity === 0
       ? styleSheet.invisible

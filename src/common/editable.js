@@ -9,41 +9,52 @@ import {merge} from "../common/prelude";
 import * as Unknown from "../common/unknown";
 import {Effects} from "reflex";
 
-/*:: import * as type from "../../type/common/editable" */
+/*::
+import type {Address, DOM} from "reflex";
+import type {Model, Action, Selection} from "./editable"
+*/
 
 // Actions
 
-export const Clear/*:type.Clear*/ = {type: "Clear"};
+export const Clear/*:Action*/ = {type: "Clear"};
 
-export const Select/*:type.Select*/ = range =>
+export const Select =
+  (range/*:Selection*/)/*:Action*/ =>
   ({type: "Select", range});
 
-export const Change/*:type.Change*/ = (value, selection) =>
+export const Change =
+  (value/*:string*/, selection/*:Selection*/)/*:Action*/ =>
   ({type: "Change", value, selection});
 
 
 
-const select = (model, action) =>
-  merge(model, {selection: action.range});
+const select = /*::<model:Model>*/
+  (model/*:model*/, selection/*:Selection*/)/*:model*/ =>
+  merge(model, {selection});
 
-const change = (model, action) =>
-  merge(model, {selection: action.selection, value: action.value});
+const change = /*::<model:Model>*/
+  (model/*:model*/, value/*:string*/, selection/*:Selection*/)/*:model*/ =>
+  merge(model, {selection, value});
 
-const clear = model =>
+const clear = /*::<model:Model>*/
+  (model/*:model*/)/*:model*/ =>
   merge(model, {value: "", selection: null});
 
-export const init/*:type.init*/ = (value, selection=null) =>
+export const init =
+  (value/*:string*/, selection/*:?Selection*/=null)/*:[Model, Effects<Action>]*/ =>
   [ { value
     , selection
     }
   , Effects.none
   ]
 
-export const update/*:type.update*/ = (model, action) =>
-    action.type === "Clear"
+export const update = /*::<model:Model>*/
+  (model/*:model*/, action/*:Action*/)/*:[model, Effects<Action>]*/ =>
+  ( action.type === "Clear"
   ? [clear(model), Effects.none]
   : action.type === "Select"
-  ? [select(model, action), Effects.none]
+  ? [select(model, action.range), Effects.none]
   : action.type === "Change"
-  ? [change(model, action), Effects.none]
-  : Unknown.update(model, action);
+  ? [change(model, action.value, action.selection), Effects.none]
+  : Unknown.update(model, action)
+  );

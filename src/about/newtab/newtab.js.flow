@@ -1,0 +1,39 @@
+/* @flow */
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+import {Effects} from "reflex"
+import type {Address, DOM} from "reflex"
+import type {Tagged} from "../../common/prelude"
+import * as Wallpapers from "./newtab/wallpapers"
+import * as Tiles from "./newtab/tiles"
+import * as Help from "./newtab/help"
+
+
+export type Model =
+  { wallpapers: Wallpapers.Model
+  , tiles: Tiles.Model
+  , help: Help.Model
+  }
+
+
+export type Action =
+  | Tagged<"Tiles", Tiles.Action>
+  | Tagged<"Wallpapers", Wallpapers.Action>
+  | Tagged<"Help", Help.Action>
+
+
+declare export function init
+  ():
+  [Model, Effects<Action>]
+
+declare export function update
+  (model:Model, action:Action):
+  [Model, Effects<Action>]
+
+declare export function view
+  (model:Model, address:Address<Action>):
+  DOM

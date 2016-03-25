@@ -5,14 +5,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-import * as Reflex from "reflex";
+import {Effects} from "reflex";
 
 /*::
-import type {Cursor} from "../../type/common/cursor"
-import type {Effects} from "reflex/type/effects"
+import type {Cursor} from "./cursor"
+export type {Cursor}
 */
 
-export const cursor = /*::<from, to, in, out>*/ (config/*:Cursor*/)/*:(model:from, action:in) => [from, Effects<out>]*/ => {
+export const cursor = /*::<from, to, in, out>*/
+  (config/*:Cursor*/)/*:(model:from, action:in) => [from, Effects<out>]*/ => {
   const get = config.get;
   const set = config.set;
   const update = config.update;
@@ -32,12 +33,4 @@ export const cursor = /*::<from, to, in, out>*/ (config/*:Cursor*/)/*:(model:fro
 
     return [state, tag == null ? fx : fx.map(tag)]
   }
-}
-
-
-// @FlowIssue: Ignore for now
-export const join = (cursorA, cursorB) => (model, action) => {
-  const [stepA, fxA] = cursorA(model, action)
-  const [stepB, fxB] = cursorB(model, action)
-  return [stepB, Reflex.Effects.batch([fxA, fxB])];
 }

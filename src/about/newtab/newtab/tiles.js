@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {tagged} from "../../../common/prelude"
+import {tag} from "../../../common/prelude"
 import {Effects, html, thunk, forward} from "reflex"
 import {Style, StyleSheet} from "../../../common/style";
 import * as Tile from './tile';
@@ -13,16 +13,25 @@ import hardcodedTiles from '../tiles.json';
 import * as Unknown from "../../../common/unknown";
 import {cursor} from "../../../common/cursor";
 
-export const init = () =>
+/*::
+import type {Address, DOM} from "reflex"
+import type {Tagged} from "../../../common/prelude"
+import type {Action, Model} from "./tiles"
+*/
+
+
+
+export const init =
+  ()/*:[Model, Effects<Action>]*/ =>
   [ hardcodedTiles
   , Effects.none
   ];
 
-const TileAction = action =>
-  ( action.type === "Open"
-  ? action
-  : tagged('Tile', action)
-  );
+const TileAction = tag('Tile')
+
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
+  Unknown.update(model, action)
 
 const styleSheet = StyleSheet.create
   ( { tiles:
@@ -39,7 +48,8 @@ const styleSheet = StyleSheet.create
     }
   );
 
-export const view = (model, address, isDark) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/, isDark/*:boolean*/)/*:DOM*/ =>
   html.div
   ( { className: 'tiles'
     , style: styleSheet.tiles

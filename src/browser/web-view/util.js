@@ -8,26 +8,31 @@ import * as URI from '../../common/url-helper';
 import * as Favicon from '../../common/favicon';
 
 /*::
-import * as Util from "./util"
+import * as WebView from "../web-view"
 */
 
-export const readTitle/*:Util.readTitle*/ = (model, fallback) =>
- ( (model.page && model.page.title && model.page.title !== '')
- ? model.page.title
- : model.navigation.currentURI.search(/^\s*$/)
- ? URI.prettify(model.navigation.currentURI)
- : fallback
- );
+export const readTitle =
+  (model/*:WebView.Model*/, fallback/*:string*/)/*:string*/ =>
+  ( ( model.page != null &&
+      model.page.title != null &&
+      model.page.title !== ''
+    )
+  ? model.page.title
+  : model.navigation.currentURI.search(/^\s*$/)
+  ? URI.prettify(model.navigation.currentURI)
+  : fallback
+  );
 
-export const readFaviconURI/*:Util.readFaviconURI*/ =
-  (model) =>
+export const readFaviconURI =
+  (model/*:WebView.Model*/)/*:string*/ =>
   ( (model.page && model.page.faviconURI)
   ? model.page.faviconURI
   : Favicon.getFallback(model.navigation.currentURI)
   );
 
-export const isDark/*:Util.isDark*/ = (model) =>
- ( model.page
- ? model.page.pallet.isDark
- : false
- );
+export const isDark =
+  (model/*:WebView.Model*/)/*:boolean*/ =>
+  ( model.page != null
+  ? model.page.pallet.isDark
+  : false
+  );

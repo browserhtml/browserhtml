@@ -9,19 +9,14 @@ import * as NewTab from "./newtab";
 import {Renderer} from "driver";
 
 const application = start({
-  initial: NewTab.init(),
-  step: (model, action) => {
-    console.log(">>> Action:", action);
-    const [state, fx] = NewTab.update(model, action);
-    console.log('<<< Model:', state);
-    console.log('<<< FX:', fx);
-    return [state, fx];
-  },
+  flags: void(0),
+  init: NewTab.init,
+  update: NewTab.update,
   view: NewTab.view
 });
 
 const renderer = new Renderer({target: document.body});
 application.view.subscribe(renderer.address);
-application.task.subscribe(Effects.service(application.address));
+application.task.subscribe(Effects.driver(application.address));
 
 window.application = application;

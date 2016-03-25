@@ -6,18 +6,21 @@
 
 import {html, thunk, forward, Effects} from 'reflex';
 import {merge, setIn} from '../../common/prelude';
-import {Style, StyleSheet} from '../../common/style';
-import {cursor, join} from '../../common/cursor';
+import {cursor} from '../../common/cursor';
+import * as Style from '../../common/style';
 import * as Toolbar from './toolbar';
 import * as Tab from './tab';
 import * as Unknown from '../../common/unknown';
 
-/*:: import * as type from "../../../type/browser/sidebar/tabs" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {ID, Context, Model, Action} from "./tabs"
+*/
 
-const styleSheet = StyleSheet.create({
+const styleSheet = Style.createSheet({
   base: {
     width: '100%',
-    height: `calc(100% - ${Toolbar.styleSheet.base.height})`,
+    height: `calc(100% - ${Toolbar.height})`,
     // This padding matches title bar height.
     paddingTop: '32px',
     overflowY: 'scroll',
@@ -25,20 +28,23 @@ const styleSheet = StyleSheet.create({
   }
 });
 
-export const Close/*:type.Close*/ = id =>
+export const Close =
+  (id/*:ID*/)/*:Action*/ =>
   ( { type: "Close"
     , id
     }
   );
 
 
-export const Activate/*:type.Activate*/ = id =>
+export const Activate =
+  (id/*:ID*/)/*:Action*/ =>
   ( { type: "Activate"
     , id
     }
   );
 
-export const ByID/*:type.ByID*/ =
+
+const ByID =
   id =>
   action =>
   ( action.type === "Close"
@@ -52,7 +58,8 @@ export const ByID/*:type.ByID*/ =
   );
 
 
-export const view/*:type.view*/ = (model, address, display) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/, context/*:Context*/)/*:DOM*/ =>
   html.div
   ( { className: 'sidebar-tabs-scrollbox'
     , style: styleSheet.base
@@ -66,7 +73,7 @@ export const view/*:type.view*/ = (model, address, display) =>
           , Tab.view
           , model.entries[id]
           , forward(address, ByID(id))
-          , display
+          , context
           )
       )
   );

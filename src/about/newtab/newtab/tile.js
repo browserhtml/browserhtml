@@ -4,18 +4,30 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {html} from "reflex"
-import {Style, StyleSheet} from "../../../common/style";
+import {html, Effects} from "reflex";
+import * as Style from "../../../common/style";
+import * as Unknown from "../../../common/unknown";
+
+/*::
+import type {Address, DOM} from "reflex";
+import type {URI, Action, Model} from "./tile";
+*/
+
 
 export const init =
-  ({uri, src, title}) =>
-  ( { uri,
-      src,
-      title
+  (title/*:string*/, uri/*:URI*/, src/*:URI*/)/*:[Model, Effects<Action>]*/ =>
+  [ { title
+    , uri
+    , src
     }
-  );
+  , Effects.none
+  ]
 
-const styleSheet = StyleSheet.create
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
+  Unknown.update(model, action)
+
+const styleSheet = Style.createSheet
   ( { tile:
       { cursor: 'pointer'
       , float: 'left'
@@ -53,7 +65,8 @@ const styleSheet = StyleSheet.create
     }
   );
 
-export const view = (model, address, isDark) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/, isDark/*:boolean*/)/*:DOM*/ =>
   html.a
   ( { className: 'tile'
     , style: styleSheet.tile
@@ -61,7 +74,7 @@ export const view = (model, address, isDark) =>
     }
   , [ html.div
       ( { className: 'tile-image'
-        , style: Style
+        , style: Style.mix
             ( styleSheet.image,
               { backgroundImage: `url(${model.src})`
               }
@@ -70,7 +83,7 @@ export const view = (model, address, isDark) =>
       )
     , html.div
       ( { className: 'tile-title'
-        , style: Style
+        , style: Style.mix
           ( styleSheet.title
           , ( isDark
             ? styleSheet.titleDark

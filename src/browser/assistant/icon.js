@@ -10,7 +10,7 @@ import {merge, always, batch} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
 
 /*::
-import * as Icon from "../../../type/browser/assistant/icon";
+import type {Address, DOM} from "reflex"
 */
 
 
@@ -35,8 +35,8 @@ const styleSheet = StyleSheet.create
     }
   );
 
-export const render/*:Icon.view*/ =
-  (content, isSelected) =>
+export const render =
+  (content/*:string*/, isSelected/*:boolean*/)/*:DOM*/ =>
   html.span
   ( { className: 'assistant icon'
     , style: Style
@@ -51,8 +51,8 @@ export const render/*:Icon.view*/ =
     ]
   );
 
-export const view/*:Icon.view*/ =
-  (content, isSelected) =>
+export const view =
+  (content/*:string*/, isSelected/*:boolean*/)/*:DOM*/ =>
   thunk
   ( `${content}`
   , render

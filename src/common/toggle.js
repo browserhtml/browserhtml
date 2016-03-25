@@ -14,43 +14,47 @@ import * as Button from "../common/button"
 import {Style} from "../common/style"
 import {html, Effects, forward, Task} from "reflex"
 
-/*:: import * as type from "../../type/common/toggle" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {Action, Model, StyleSheet, ContextStyle} from "./toggle"
+*/
 
 
-export const init/*:type.init*/ = () =>
+export const init =
+  ( isDisabled/*:boolean*/=false
+  , isFocused/*:boolean*/=false
+  , isActive/*:boolean*/=false
+  , isPointerOver/*:boolean*/=false
+  , isChecked/*:boolean*/=false
+  , text/*:string*/=""
+  )/*:[Model, Effects<Action>]*/ =>
   [
-    {
-      isDisabled: false,
-      isFocused: false,
-      isActive: false,
-      isPointerOver: false,
-      isChecked: false
-    },
-    Effects.none
+    { isDisabled,
+      isFocused,
+      isActive,
+      isPointerOver,
+      isChecked,
+      text
+    }
+  , Effects.none
   ];
 
+export const Press/*:Action*/ = {type: "Press"};
+export const Check/*:Action*/ = {type: "Check"};
+export const Uncheck/*:Action*/ = {type: "Uncheck"};
 
-export const Model/*:type.Toggle*/ =
-  ({isDisabled, isFocused, isActive, isPointerOver, isChecked}) =>
-  ({isDisabled, isFocused, isActive, isPointerOver, isChecked});
-
-export const Press = {type: "Press"};
-export const Check = {type: "Check"};
-export const Uncheck = {type: "Uncheck"};
-
-const TargetAction = action => ({type: "Target", action});
+const TargetAction =action => ({type: "Target", action});
 const FocusableAction = action => ({type: "Focusable", action});
-export const ButtonAction/*:type.ButtonAction*/ = action =>
-  ({type: "Button", action});
+const ButtonAction = action => ({type: "Button", action});
 
-export const Focus = FocusableAction(Focusable.Focus);
-export const Blur = FocusableAction(Focusable.Blur);
+export const Focus/*:Action*/ = FocusableAction(Focusable.Focus);
+export const Blur/*:Action*/ = FocusableAction(Focusable.Blur);
 
-export const Over = TargetAction(Target.Over);
-export const Out = TargetAction(Target.Out);
+export const Over/*:Action*/ = TargetAction(Target.Over);
+export const Out/*:Action*/ = TargetAction(Target.Out);
 
-export const Down = ButtonAction(Button.Down);
-export const Up = ButtonAction(Button.Up);
+export const Down/*:Action*/ = ButtonAction(Button.Down);
+export const Up/*:Action*/ = ButtonAction(Button.Up);
 
 
 const updateTarget = cursor({
@@ -69,7 +73,8 @@ const updateButton = cursor({
 });
 
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Press"
   ? [ merge(model, {isChecked: !model.isChecked})
     , ( model.isChecked
@@ -93,7 +98,12 @@ export const update/*:type.update*/ = (model, action) =>
   );
 
 
-export const view/*:type.view*/ = (key, styleSheet) => (model, address, contextStyle) =>
+export const view =
+  (key/*:string*/, styleSheet/*:StyleSheet*/)/*:(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM*/ =>
+  ( model/*:Model*/
+  , address/*:Address<Action>*/
+  , contextStyle/*?:ContextStyle*/
+  )/*:DOM*/ =>
   html.button({
     key: key,
     className: key,

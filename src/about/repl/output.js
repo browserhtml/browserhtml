@@ -1,4 +1,4 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,10 +11,18 @@ import * as Settings from '../../common/settings';
 import * as Unknown from '../../common/unknown';
 import {focus} from "driver";
 
+/*::
+import type {Address, DOM} from "reflex"
+import type {EvaluationResult} from "./host"
+import type {Model, Action} from "./output"
+*/
+
 export const Print = tag("Print");
 
 export const init =
-  (version, result) =>
+  ( version/*:number*/
+  , result/*:?EvaluationResult*/=null
+  )/*:[Model, Effects<Action>]*/ =>
   [ { version
     , result
     }
@@ -32,7 +40,7 @@ const print = (model, output) =>
   ];
 
 export const update =
-  (model, action) =>
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Print'
   ? print(model, action.source)
   : Unknown.update(model, action)
@@ -66,14 +74,17 @@ const display =
   value =>
   ( value == null
   ? String(value)
-  : value.$type === "VirtualText"
-  ? value
-  : value.$type === "VirtualNode"
-  ? value
-  : value.$type === "Thunk"
-  ? value
-  : value.$type === "LazyTree"
-  ? value
+  : typeof(value) === "object"
+  ? ( value.$type === "VirtualText"
+    ? value
+    : value.$type === "VirtualNode"
+    ? value
+    : value.$type === "Thunk"
+    ? value
+    : value.$type === "LazyTree"
+    ? value
+    : value.toString()
+    )
   : value.toString()
   );
 
@@ -85,7 +96,7 @@ const render =
     , style: Style
       ( styleSheet.base
       , ( model.result == null
-        ? model.empty
+        ? styleSheet.empty
         : model.result.isOk
         ? styleSheet.ok
         : styleSheet.error
@@ -102,5 +113,5 @@ const render =
   );
 
 export const view =
-  (model, address) =>
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   thunk('output', render, model, address);

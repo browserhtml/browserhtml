@@ -18,7 +18,7 @@ import * as Overlay from './overlay';
 
 import * as Devtools from "../common/devtools";
 import * as Runtime from "../common/runtime";
-import * as URI from '../common/url-helper';
+import * as URL from '../common/url-helper';
 import * as Unknown from "../common/unknown";
 import * as Focusable from "../common/focusable";
 import * as OS from '../common/os';
@@ -33,9 +33,13 @@ import {identity, compose} from "../lang/functional";
 
 import {onWindow} from "driver";
 
-/*:: import * as type from "../../type/browser/browser" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {URI} from "../common/prelude"
+import type {Model, Action} from "./browser"
+*/
 
-export const init/*:type.init*/ = () => {
+export const init = ()/*:[Model, Effects<Action>]*/ => {
   const [devtools, devtoolsFx] = Devtools.init({isActive: Config.devtools});
   const [input, inputFx] = Input.init(false, false, "");
   const [shell, shellFx] = Shell.init();
@@ -54,6 +58,7 @@ export const init/*:type.init*/ = () => {
     , sidebar
     , overlay
     , devtools
+    , resizeAnimation: null
 
     , display: { rightOffset: 0 }
     , isExpanded: true
@@ -77,6 +82,8 @@ export const init/*:type.init*/ = () => {
 
   return [model, fx];
 }
+
+const NoOp = always({ type: "NoOp" });
 
 const SidebarAction = action =>
   ( action.type === "CreateWebView"
@@ -113,15 +120,17 @@ const InputAction = action =>
   : action.type === 'Blur'
   ? BlurInput
   : action.type === 'Query'
-  ? Query(action.source)
+  ? Query
   : action.type === 'SuggestNext'
   ? SuggestNext
   : action.type === 'SuggestPrevious'
   ? SuggestPrevious
-  : tagged('Input', action)
+  : { type: 'Input'
+    , source: action
+    }
   );
 
-const WebViewsAction = action =>
+const WebViewsAction = (action/*:WebViews.Action*/)/*:Action*/ =>
   ( action.type === "ShowTabs"
   ? ShowTabs
   : action.type === "Create"
@@ -132,13 +141,17 @@ const WebViewsAction = action =>
   ? { type: "SelectTab"
     , source: action
     }
+    // Note: Flow type checker has some bug releated to union types where
+    // use of the same properties across union types seem to confuse it.
+    // avoiding same shapes (and calling source differently on each type)
+    // seems to resolve the problem.
   : action.type === "ActivateSelected"
   ? { type: "ActivateTab"
-    , source: action
+    , activateTab: action
     }
   : action.type === "ActivateByID"
   ? { type: "ActivateTabByID"
-    , source: action
+    , activateTabByID: action
     }
   : { type: 'WebViews'
     , source: action
@@ -165,7 +178,9 @@ const AssistantAction =
   action =>
   ( action.type === 'Suggest'
   ? Suggest(action.source)
-  : tagged('Assistant', action)
+  : { type: 'Assistant'
+    , source: action
+    }
   );
 
 const updateInput = cursor({
@@ -217,7 +232,7 @@ const updateOverlay = cursor({
   update: Overlay.update
 });
 
-const Reloaded =
+const Reloaded/*:Action*/ =
   { type: "Reloaded"
   };
 
@@ -231,82 +246,81 @@ const Failure = error =>
 // ### Mode changes
 
 
-export const CreateWebView/*:type.CreateWebView*/ =
+export const CreateWebView/*:Action*/ =
   { type: 'CreateWebView'
   };
 
-export const EditWebView/*:type.EditWebView*/ =
+export const EditWebView/*:Action*/ =
   { type: 'EditWebView'
   };
 
-export const ShowWebView/*:type.ShowWebView*/ =
+export const ShowWebView/*:Action*/ =
   { type: 'ShowWebView'
   };
 
-export const ShowTabs/*:type.ShowTabs*/ =
+export const ShowTabs/*:Action*/ =
   { type: 'ShowTabs'
   };
 
-export const SelectWebView/*:type.SelectWebView*/ =
+export const SelectWebView/*:Action*/ =
   { type: 'SelectWebView'
   };
 
 // ### Actions that affect multilpe sub-components
 
-export const OpenWebView/*:type.OpenWebView*/ =
+export const OpenWebView/*:Action*/ =
   { type: 'OpenWebView'
   };
 
-export const AttachSidebar/*:type.AttachSidebar*/ =
+export const AttachSidebar/*:Action*/ =
   { type: "AttachSidebar"
   , source: Sidebar.Attach
   };
 
-export const DetachSidebar/*:type.DetachSidebar*/ =
+export const DetachSidebar/*:Action*/ =
   { type: "DetachSidebar"
   , source: Sidebar.Detach
   };
 
-export const OverlayClicked/*:type.OverlayClicked*/ =
+export const OverlayClicked/*:Action*/ =
   { type: "OverlayClicked"
   };
 
-export const SubmitInput/*:type.SubmitInput*/ =
+export const SubmitInput/*:Action*/ =
   { type: 'SubmitInput'
   };
 
-export const ExitInput/*:type.ExitInput*/ =
+export const ExitInput/*:Action*/ =
   { type: 'ExitInput'
   , source: Input.Abort
   };
 
-export const Escape/*:type.Escape*/ =
+export const Escape/*:Action*/ =
   { type: 'Escape'
   };
 
 
-export const Unload/*:type.Unload*/ =
+export const Unload/*:Action*/ =
   { type: 'Unload'
   };
 
-export const ReloadRuntime/*:type.ReloadRuntime*/ =
+export const ReloadRuntime/*:Action*/ =
   { type: 'ReloadRuntime'
   };
 
-export const BlurInput =
+export const BlurInput/*:Action*/ =
   { type: 'BlurInput'
-  , source: Input.Blur
   };
 
 // ## Resize actions
 
-export const SuggestNext = tagged('SuggestNext');
-export const SuggestPrevious = tagged('SuggestPrevious');
+export const SuggestNext/*:Action*/ = { type: "SuggestNext" };
+export const SuggestPrevious/*:Action*/ = { type: "SuggestPrevious" };
 export const Suggest = tag('Suggest');
-export const Expand/*:type.Expand*/ = {type: "Expand"};
-export const Expanded/*:type.Expanded*/ = {type: "Expanded"};
-export const Shrink/*:type.Shrink*/ = {type: "Shrink"};
-export const Shrinked/*:type.Shrinked*/ = {type: "Shrinked"};
+export const Expand/*:Action*/ = {type: "Expand"};
+export const Expanded/*:Action*/ = {type: "Expanded"};
+export const Shrink/*:Action*/ = {type: "Shrink"};
+export const Shrinked/*:Action*/ = {type: "Shrinked"};
 
 
 // Following Browser actions directly delegate to a `WebViews` module, there for
@@ -336,7 +350,7 @@ const OpenURL = ({url}) =>
     , uri: url
     }
   );
-const Query = tag('Query');
+const Query/*:Action*/ = { type: 'Query' };
 
 export const ActivateWebViewByID =
   compose(WebViewsAction, WebViews.ActivateByID);
@@ -496,13 +510,13 @@ const selectWebView = (model, action) =>
 
 
 const submitInput = model =>
-  update(model, NavigateTo(URI.read(model.input.value)));
+  update(model, NavigateTo(URL.read(model.input.value)));
 
 const openWebView = model =>
   update
   ( model
   , Open
-    ( { uri: URI.read(model.input.value)
+    ( { uri: URL.read(model.input.value)
       , inBackground: false
       , name: ''
       , features: ''
@@ -573,7 +587,7 @@ const reloadRuntime = model =>
   [ model
   , Effects
     .task(Runtime.reload)
-    .map(Reloaded)
+    .map(always(Reloaded))
   ];
 
 
@@ -627,7 +641,7 @@ const updateResizeAnimation = (model, action) => {
     );
 
   const result =
-    ( duration > resizeAnimation.elapsed
+    ( (resizeAnimation && duration > resizeAnimation.elapsed)
     ? [ merge
         ( model
         , { resizeAnimation
@@ -668,8 +682,8 @@ const updateResizeAnimation = (model, action) => {
 
 
 
-// Unbox For actions and route them to their location.
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'SubmitInput'
   ? submitInput(model)
   : action.type === 'OpenWebView'
@@ -727,21 +741,21 @@ export const update/*:type.update*/ = (model, action) =>
     )
 
   : action.type === 'BlurInput'
-  ? updateInput(model, action.source)
+  ? updateInput(model, Input.Blur)
 
   : action.type === 'WebViews'
   ? updateWebViews(model, action.source)
   : action.type === 'SelectTab'
   ? updateWebViews(model, action.source)
   : action.type === 'ActivateTabByID'
-  ? updateWebViews(model, action.source)
+  ? updateWebViews(model, action.activateTabByID)
   : action.type === 'ActivateTab'
-  ? updateWebViews(model, action.source)
+  ? updateWebViews(model, action.activateTab)
 
   : action.type === 'Shell'
   ? updateShell(model, action.source)
   : action.type === 'Focus'
-  ? updateShell(model, action.source)
+  ? updateShell(model, Shell.Focus)
 
   // Assistant
   : action.type === 'Assistant'
@@ -762,7 +776,9 @@ export const update/*:type.update*/ = (model, action) =>
 
   : action.type === 'Failure'
   ? [ model
-    , Effects.task(Unknown.error(action.error))
+    , Effects
+      .task(Unknown.error(action.error))
+      .map(NoOp)
     ]
 
   // Ignore some actions.
@@ -795,8 +811,9 @@ const styleSheet = StyleSheet.create({
   }
 });
 
-export const view/*:type.view*/ = (model, address) =>
-  html.div
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
+  html.main
   ( { className: 'root'
     , style: styleSheet.root
     , tabIndex: 1

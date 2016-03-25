@@ -7,32 +7,24 @@
 import {Effects, html, forward} from "reflex";
 import {merge, always} from "../common/prelude";
 import {cursor} from "../common/cursor";
-import {Style, StyleSheet} from "../common/style";
+import * as Style from "../common/style";
 import * as Easing from "eased";
 import * as Stopwatch from "../common/stopwatch";
 import * as Unknown from "../common/unknown";
 
-/*:: import * as type from "../../type/browser/overlay" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action} from "./overlay"
+*/
 
-const visible/*:type.Visible*/ = 0.1;
-const invisible/*:type.Invisible*/ = 0;
+const visible = 0.1;
+const invisible = 0;
 const duration = 300;
 
-export const Model/*:type.Overlay*/ =
-  ({isCapturing, isVisible}) =>
-  ({isCapturing
-  , isVisible
-  , animation: null
-  , display
-      : isVisible
-      ? {opacity: visible}
-      : {opacity: invisible}
-  });
-
-export const Click = always({type: "Click"});
-export const Show = {type: "Show"};
-export const Hide = {type: "Hide"};
-export const Fade = {type: "Fade"};
+export const Click/*:() => Action*/ = always({type: "Click"});
+export const Show/*:Action*/ = {type: "Show"};
+export const Hide/*:Action*/ = {type: "Hide"};
+export const Fade/*:Action*/ = {type: "Fade"};
 
 const AnimationAction = action => ({type: "Animation", action});
 const Shown = always({type: "Shown"});
@@ -40,8 +32,18 @@ const Hidden = always({type: "Hidden"});
 const Faded = always({type: "Faded"});
 
 
-export const init/*:type.init*/ = (isVisible, isCapturing) =>
-  [ Model({isVisible, isCapturing})
+export const init =
+  ( isVisible/*:boolean*/
+  , isCapturing/*:boolean*/
+  )/*:[Model, Effects<Action>]*/ =>
+  [ { isCapturing
+    , isVisible
+    , animation: null
+    , display
+        : isVisible
+        ? {opacity: visible}
+        : {opacity: invisible}
+    }
   , Effects.none
   ];
 
@@ -66,7 +68,7 @@ const animationUpdate = (model, action) => {
     ? [invisible, visible]
     : [visible, invisible];
 
-  return duration > animation.elapsed
+  return (animation && duration > animation.elapsed)
     ? [ merge(model, {
           animation,
           display: {
@@ -95,8 +97,9 @@ const animationUpdate = (model, action) => {
 }
 
 
-export const update/*:type.update*/ = (model, action) =>
-    action.type === "Animation"
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
+  ( action.type === "Animation"
   ? animationUpdate(model, action)
   : action.type === "Shown"
   ? updateStopwatch(model, Stopwatch.End)
@@ -124,24 +127,35 @@ export const update/*:type.update*/ = (model, action) =>
     )
   : action.type === "Click"
   ? [model, Effects.none]
-  : Unknown.update(model, action);
+  : Unknown.update(model, action)
+  );
 
-const style = StyleSheet.create({
+const style = Style.createSheet({
   overlay: {
     background: 'rgb(0, 0, 0)',
     position: 'absolute',
     width: '100vw',
     height: '100vh'
+  },
+  capturing: {
+    pointerEvents: 'all'
+  },
+  passing: {
+    pointerEvents: 'none'
   }
 });
 
-export const view/*:type.view*/ = (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.div({
     className: 'overlay',
-    style: Style
+    style: Style.mix
       ( style.overlay
+      , ( model.isCapturing
+        ? style.capturing
+        : style.passing
+        )
       , { opacity: model.display.opacity
-        , pointerEvents: model.isCapturing ? 'all' : 'none'
         }
       ),
     onClick: forward(address, Click)

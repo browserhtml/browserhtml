@@ -13,14 +13,17 @@ import * as Runtime from "../common/runtime";
 import * as Controls from "./shell/controls";
 import * as Unknown from "../common/unknown";
 
-/*:: import * as type from "../../type/browser/shell" */
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action} from "./shell"
+*/
 
 // @TODO: IO stuff should probably live elsewhere.
 const fetchFocus =
-  // @FlowIssue: Flow does not know about `document.hasFocus()`
-  Task.io(deliver => Task.succeed(document.hasFocus()));
+  new Task((succeed, fail) => succeed(document.hasFocus()));
 
-export const init/*:type.init*/ = () => {
+export const init =
+  ()/*:[Model, Effects<Action>]*/ => {
   const [controls, fx] = Controls.init(false, false, false);
   return [
     ( { isFocused: false
@@ -29,33 +32,34 @@ export const init/*:type.init*/ = () => {
       , controls: controls
       }
     )
-  , Effects.batch(
-    [ fx,
-      // Check if window is actually focused
-      Effects
-      .task(fetchFocus)
-      .map(isFocused => isFocused ? Focus : Blur)
-    ])
+  , Effects.batch
+    ( [ fx.map(ControlsAction)
+      , // Check if window is actually focused
+        Effects
+        .task(fetchFocus)
+        .map(isFocused => isFocused ? Focus : Blur)
+      ]
+    )
   ]
 }
 
-export const Focus/*:type.Focus*/ =
+export const Focus/*:Action*/ =
   { type: "Focus"
   };
 
-export const Blur/*:type.Blur*/ =
+export const Blur/*:Action*/ =
   { type: "Blur"
   };
 
-export const Close/*:type.Close*/ =
+export const Close/*:Action*/ =
   { type: "Close"
   };
 
-export const Minimize/*:type.Minimize*/ =
+export const Minimize/*:Action*/ =
   { type: "Minimize"
   };
 
-export const ToggleFullscreen/*:type.ToggleFullscreen*/ =
+export const ToggleFullscreen/*:Action*/ =
   { type: "ToggleFullscreen"
   };
 
@@ -154,7 +158,8 @@ const toggleFullscreen = model =>
   ];
 
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/) =>
   ( action.type === "Focus"
   ? focus(model)
   : action.type === "Blur"
@@ -182,10 +187,11 @@ export const update/*:type.update*/ = (model, action) =>
   : Unknown.update(model, action)
   );
 
-export const view/*:type.view*/ = (model, address) => {
-  if (!Runtime.useNativeTitlebar()) {
-    return Controls.view(model.controls, forward(address, ControlsAction));
-  } else {
-    return html.div();
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ => {
+    if (!Runtime.useNativeTitlebar()) {
+      return Controls.view(model.controls, forward(address, ControlsAction));
+    } else {
+      return html.div();
+    }
   }
-}

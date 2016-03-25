@@ -4,18 +4,27 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {html} from "reflex"
-import {Style, StyleSheet} from "../../../common/style";
+import {html, Effects} from 'reflex';
+import * as Style from '../../../common/style';
 import * as Config from '../../../../browserhtml.json';
+import * as Unknown from '../../../common/unknown';
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action} from "./help"
+*/
 
-// Open a tile as webview
-const Open = uri =>
-  ( { type: 'Open',
-      uri
+export const init =
+  ()/*:[Model, Effects<Action>]*/ =>
+  [ { issuesURI: Config.issues_url
     }
-  );
+  , Effects.none
+  ]
 
-const styleSheet = StyleSheet.create
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
+  Unknown.update(model, action)
+
+const styleSheet = Style.createSheet
   ( { base:
       { cursor: 'pointer'
       , display: 'block'
@@ -36,17 +45,18 @@ const styleSheet = StyleSheet.create
     }
   );
 
-export const view = (model, address, isDark) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/, isDark/*:boolean*/)/*:DOM*/ =>
   html.a
   ( { className: 'help'
-    , style: Style
+    , style: Style.mix
       ( styleSheet.base
       , ( isDark
         ? styleSheet.textDark
         : styleSheet.textLight
         )
       )
-    , href: Config.issues_url
+    , href: model.issuesURI
     }
     // @TODO localize this string
   , [ 'File a Bug'

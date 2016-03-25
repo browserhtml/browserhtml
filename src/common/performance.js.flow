@@ -1,0 +1,3 @@
+declare export class performance {
+  static now(): number;
+}

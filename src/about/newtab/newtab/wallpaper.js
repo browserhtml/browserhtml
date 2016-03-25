@@ -5,70 +5,23 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {Effects, html, thunk, forward} from "reflex"
-import {merge, tagged} from "../../../common/prelude"
-import {Style, StyleSheet} from "../../../common/style";
+import {merge, always, tagged} from "../../../common/prelude"
+import * as Style from "../../../common/style";
 import * as Unknown from "../../../common/unknown";
 
 import hardcodedWallpaper from "../wallpaper.json";
 
-export const init = () =>
-  [ hardcodedWallpaper
-  , Effects.none
-  ];
+/*::
+import type {Address, DOM} from "reflex"
+import type {Model, Action, URI, Color} from "./wallpaper"
+*/
 
-const Choose = {type: 'Choose'};
+const Choose/*:Action*/ =
+  { type: 'Choose'
+  };
 
-// Open a tile as webview
-const ChooseWallpaper = (id) =>
-  ( { type: 'ChooseWallpaper'
-    , id
-    }
-  );
-
-const ChoiceAction = (id, action) =>
-  ( action.type === 'Choose'
-  ? ChooseWallpaper(id)
-  : { type: "Wallpaper"
-    , id
-    , action
-    }
-  );
-
-const ByID =
-  id =>
-  action =>
-  ChoiceAction(id, action);
-
-const WallpaperAction = action =>
-  ( action.type === "Choose"
-  ? action
-  : tagged('Wallpaper', action)
-  );
-
-export const active = ({entries, active}) =>
-  ( entries[active] );
-
-export const update = (model, action) =>
-  ( action.type === 'ChooseWallpaper'
-  ? [ merge(model, {active: action.id})
-    , Effects.none
-    ]
-  : Unknown.update(model, action)
-  );
-
-const styleSheet = StyleSheet.create
-  ( { container:
-      { display: 'block'
-      , color: '#999'
-      , fontSize: '12px'
-      , lineHeight: '20px'
-      , position: 'absolute'
-      , bottom: '10px'
-      , left: 0
-      , textAlign: 'center'
-      , width: '100%'
-      }
-    , choice:
+const styleSheet = Style.createSheet
+  ( { base:
       { border: '1px solid rgba(0,0,0,0.15)'
       , cursor: 'pointer'
       , borderRadius: '50%'
@@ -80,33 +33,16 @@ const styleSheet = StyleSheet.create
     }
   );
 
-const viewChoice = (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   ( html.div
     ( { className: 'wallpaper-choice'
-      , onClick: () => address(Choose)
-      , style: Style(styleSheet.choice, {backgroundColor: model.color})
+      , onClick: forward(address, always(Choose))
+      , style: Style.mix
+        ( styleSheet.base
+        , { backgroundColor: model.color
+          }
+        )
       }
     )
-  );
-
-export const view = (model, address) =>
-  html.div
-  ( { className: 'wallpaper'
-    , style: styleSheet.container
-    }
-  , [ html.div
-      ( { className: 'wallpaper-inner'
-        , style: styleSheet.inner
-        }
-      , model.order.map
-        ( id =>
-          thunk
-          ( String(id)
-          , viewChoice
-          , model.entries[String(id)]
-          , forward(address, ByID(String(id)))
-          )
-        )
-      )
-    ]
   );

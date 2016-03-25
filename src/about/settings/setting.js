@@ -9,39 +9,43 @@ import {html, thunk, forward, Effects} from 'reflex';
 import {compose} from '../../lang/functional';
 import {merge, always, tag, tagged, batch} from "../../common/prelude"
 import {cursor} from "../../common/cursor"
-import * as Result from "../../common/result";
+import {ok, error} from "../../common/result";
 import * as Unknown from '../../common/unknown';
 import * as Focusable from '../../common/focusable';
 import * as Editable from '../../common/editable';
 import * as TextInput from '../../common/text-input';
 
 /*::
-import * as type from "../../../type/about/settings/setting";
+import type {Address, DOM} from "reflex";
+import type {Value, Model, Action} from "./setting"
 */
 
 const TextInputAction =
-  action =>
+  (action/*:TextInput.Action*/)/*:Action*/ =>
   ( action.type === "Blur"
   ? Abort
-  : tagged("TextInput", action)
+  : { type: "TextInput"
+    , source: action
+    }
   );
 
 
-export const Edit = tagged("Edit");
-export const Abort = tagged("Abort");
-export const Submit = tagged("Submit");
-export const Save = tag("Save");
+export const Edit/*:Action*/ = { type: "Edit" };
+export const Abort/*:Action*/ = { type: "Abort" };
+export const Submit/*:Action*/ = { type: "Submit" };
+
+const Save = tag("Save");
 export const Change = tag("Change");
 
-const FocusInput = TextInputAction(TextInput.Focus);
-const DisableInput = TextInputAction(TextInput.Disable);
-const EnableInput = TextInputAction(TextInput.Enable);
+const FocusInput/*:Action*/ = TextInputAction(TextInput.Focus);
+const DisableInput/*:Action*/ = TextInputAction(TextInput.Disable);
+const EnableInput/*:Action*/ = TextInputAction(TextInput.Enable);
 const ChangeInput = compose(TextInputAction, TextInput.Change);
 
 
 
-export const init/*:type.init*/ =
-  value => {
+export const init =
+  (value/*:Value*/)/*:[Model, Effects<Action>]*/ => {
     const [input, fx] = TextInput.init
       ( ( value == null
         ? ''
@@ -131,14 +135,14 @@ const updateTextInput = cursor
 const parseInput =
   input => {
     try {
-      return Result.ok(JSON.parse(input));
-    } catch (error) {
-      return Result.error(a);
+      return ok(JSON.parse(input));
+    } catch (reason) {
+      return error(reason);
     }
   };
 
-export const update/*:type.update*/ =
-  (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Edit'
   ? edit(model)
   : action.type === 'Abort'
@@ -170,6 +174,8 @@ const styleSheet = StyleSheet.create
     , hidden:
       { display: "none"
       }
+    , visible:
+      {}
     }
   );
 
@@ -265,8 +271,8 @@ const viewInput = TextInput.view
   );
 
 
-export const view/*:type.view*/ =
-  (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.form
   ( { onKeyDown:
       event => {

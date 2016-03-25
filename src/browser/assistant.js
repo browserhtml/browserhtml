@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {always, batch, merge, take, tag, tagged, move} from "../common/prelude"
+import {always, batch, merge, take, move} from "../common/prelude"
 import {Effects, html, thunk, forward} from "reflex"
 import * as History from "./assistant/history"
 import * as Search from "./assistant/search"
@@ -13,68 +13,82 @@ import {cursor} from '../common/cursor';
 import {prettify} from '../common/url-helper';
 import * as Unknown from '../common/unknown';
 
-/*:: import * as type from "../../type/browser/assistant" */
+/*::
+import type {Address, DOM} from "reflex";
+import type {Suggestion, Model, Action} from "./assistant";
+*/
 
 
-export const Open = tagged("Open");
-export const Close = tagged("Close");
-export const Expand = tagged("Expand");
-export const Unselect = tagged("Unselect");
-export const Reset = tagged("Reset");
-export const SuggestNext = tagged("SuggestNext");
-export const SuggestPrevious = tagged("SuggestPrevious");
-export const Suggest = tag("Suggest");
-export const Query = tag("Query");
-export const Execute = tag("Execute");
-export const Activate = tag("Activate");
+export const Open/*:Action*/ = { type: "Open" };
+export const Close/*:Action*/ = { type: "Close" };
+export const Expand/*:Action*/ = { type: "Expand" };
+export const Unselect/*:Action*/ = { type: "Unselect" };
+export const Reset/*:Action*/ = { type: "Reset" };
+export const SuggestNext/*:Action*/ = { type: "SuggestNext" };
+export const SuggestPrevious/*:Action*/ = { type: "SuggestPrevious" };
+export const Suggest =
+  (suggestion/*:Suggestion*/)/*:Action*/ =>
+  ( { type: "Suggest"
+    , source: suggestion
+    }
+  )
+
+export const Query =
+  (input/*:string*/)/*:Action*/ =>
+  ( { type: "Query"
+    , source: input
+    }
+  );
 
 
 const SearchAction =
   action =>
   ( action.type === "Suggest"
   ? Suggest(action.source)
-  : tagged("Search", action)
+  : { type: "Search"
+    , source: action
+    }
   );
 
-const HistoryAction = tag("History");
+const HistoryAction =
+  action =>
+  ( { type: "History"
+    , source: action
+    }
+  );
 
 export const init =
-  () =>
-  clear
-  ( { isOpen: false
-    , isExpanded: false
-    }
-  )
+  ( isOpen/*:boolean*/=false
+  , isExpanded/*:boolean*/=false
+  )/*:[Model, Effects<Action>]*/ => {
+    const query = ''
+    const [search, fx1] = Search.init(query, 5);
+    const [history, fx2] = History.init(query, 5);
+    const fx = Effects.batch
+      ( [ fx1.map(SearchAction)
+        , fx2.map(HistoryAction)
+        ]
+      );
+
+    const model =
+      { isOpen
+      , isExpanded
+      , query
+      , search
+      , history
+      , selected: -1
+    };
+
+    return [model, fx]
+  };
 
 const reset =
   model =>
   init();
 
 const clear =
-  model => {
-    const query = null
-    const [search, fx1] = Search.init(query, 5);
-    const [history, fx2] = History.init(query, 5);
-    const fx = Effects.batch
-    ( [ fx1.map(SearchAction)
-      , fx2.map(HistoryAction)
-      ]
-    )
-
-    const result =
-      [ merge
-        ( model
-        , { query
-          , search
-          , history
-          , selected: -1
-          }
-        )
-      , fx
-      ]
-
-    return result
-  }
+  model =>
+  init(model.isOpen, model.isExpanded);
 
 const expand =
   model =>
@@ -161,8 +175,8 @@ const suggestPrevious =
   model =>
   updateSearch(model, Search.SelectPrevious);
 
-export const update/*:type.update*/ =
-  (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Open"
   ? open(model)
   : action.type === "Close"
@@ -220,7 +234,8 @@ const styleSheet = StyleSheet.create
     }
   );
 
-export const view/*:type.view*/ = (model, address) =>
+export const view =
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.div
   ( { className: 'assistant'
     , style: Style

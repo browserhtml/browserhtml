@@ -1,53 +1,64 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from "../../../type/browser/web-view/shell" */
-
 import {Effects, Task} from "reflex";
-import {merge} from "../../common/prelude";
+import {merge, always} from "../../common/prelude";
+import {cursor} from "../../common/cursor";
+import {ok, error} from "../../common/result";
 import * as Focusable from "../../common/focusable";
-import * as Result from "../../common/result";
 
-export const MakeVisibile =
-  ({type: "MakeVisibile"});
 
-export const MakeNotVisible =
+/*::
+import type {Result} from "../../common/result"
+import type {Never} from "reflex"
+import type {ID, Float, Model, Action} from "./shell"
+*/
+
+
+export const MakeVisible/*:Action*/ =
+  ({type: "MakeVisible"});
+
+export const MakeNotVisible/*:Action*/ =
   ({type: "MakeNotVisible"});
 
-export const ZoomIn/*:type.ZoomIn*/ =
+export const ZoomIn/*:Action*/ =
   ({type: "ZoomIn"});
 
-export const ZoomOut/*:type.ZoomOut*/ =
+export const ZoomOut/*:Action*/ =
   ({type: "ZoomOut"});
 
-export const ResetZoom/*:type.ResetZoom*/ =
+export const ResetZoom/*:Action*/ =
   ({type: "ResetZoom"});
 
-const FocusableAction = action =>
+const FocusableAction =
+  action =>
   ({type: "Focusable", action});
 
-export const Focus = FocusableAction(Focusable.Focus);
-export const Blur = FocusableAction(Focusable.Blur);
+export const Focus/*:Action*/ = FocusableAction(Focusable.Focus);
+export const Blur/*:Action*/ = FocusableAction(Focusable.Blur);
 
+const NoOp = always({type: "NoOp"});
 
-export const VisibilityChanged/*:type.VisibilityChanged*/ = result =>
-  ({type: "VisibilityChanged", result});
+const VisibilityChanged =
+  result =>
+  ({type: "VisibilityChanged", visibilityResult: result});
 
-export const ZoomChanged/*:type.ZoomChanged*/ = result =>
-  ({type: "ZoomChanged", result});
+const ZoomChanged =
+  result =>
+  ({type: "ZoomChanged", zoomResult: result});
 
 const setZoom = (id, level) =>
   Task.future(() => {
     const target = document.getElementById(`web-view-${id}`);
     const result
       = target == null
-      ? Result.error(`WebView with id web-view-${id} not found`)
+      ? error(Error(`WebView with id web-view-${id} not found`))
       : typeof(target.zoom) !== 'function'
-      ? Result.error(`.zoom is not supported by runtime`)
-      : Result.ok(level);
+      ? error(Error(`.zoom is not supported by runtime`))
+      : ok(level);
 
     if (result.isOk) {
       // @FlowIssue: Flow can't infer enough to tell it's function here.
@@ -61,24 +72,28 @@ const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 2;
 const ZOOM_STEP = 0.1;
 
-export const zoomIn/*:type.zoomIn*/ = (id, zoom) =>
+export const zoomIn =
+  (id/*:ID*/, zoom/*:number*/)/*:Task<Never, Result<Error, Float>>*/ =>
   setZoom(id, Math.min(ZOOM_MAX, zoom + ZOOM_STEP));
 
-export const zoomOut/*:type.zoomOut*/ = (id, zoom) =>
+export const zoomOut =
+  (id/*:ID*/, zoom/*:number*/)/*:Task<Never, Result<Error, Float>>*/ =>
   setZoom(id, Math.max(ZOOM_MIN, zoom - ZOOM_STEP));
 
-export const resetZoom/*:type.resetZoom*/ = id =>
+export const resetZoom =
+  (id/*:ID*/)/*:Task<Never, Result<Error, Float>>*/ =>
   setZoom(id, 1);
 
-export const setVisibility/*:type.setVisibility*/ = (id, isVisible) =>
+export const setVisibility =
+  (id/*:ID*/, isVisible/*:boolean*/)/*:Task<Never, Result<Error, boolean>>*/ =>
   Task.future(() => {
     const target = document.getElementById(`web-view-${id}`);
     const result
       = target == null
-      ? Result.error(`WebView with id web-view-${id} not found`)
+      ? error(Error(`WebView with id web-view-${id} not found`))
       : typeof(target.setVisible) !== 'function'
-      ? Result.error(`.setVisible is not supported by runtime`)
-      : Result.ok(isVisible);
+      ? error(Error(`.setVisible is not supported by runtime`))
+      : ok(isVisible);
 
     if (result.isOk) {
       // @FlowIssue: Flow can't infer enough to tell it's function here.
@@ -89,12 +104,21 @@ export const setVisibility/*:type.setVisibility*/ = (id, isVisible) =>
   });
 
 // Reports error as a warning in a console.
-const report = error => Task.io(deliver => {
-  console.warn(error);
-});
+const report =
+  error =>
+  new Task((succeed, fail) => {
+    console.warn(error);
+  });
 
 
-export const init/*:type.init*/ = (id, isFocused) =>
+const updateFocus = cursor
+  ( { update: Focusable.update
+    , tag: FocusableAction
+    }
+  );
+
+export const init =
+  (id/*:ID*/, isFocused/*:boolean*/)/*:[Model, Effects<Action>]*/ =>
   [ {id, isFocused: isFocused, isVisible: false, zoom: 1}
   , ( isFocused
     ? Effects.receive(Focus)
@@ -102,7 +126,8 @@ export const init/*:type.init*/ = (id, isFocused) =>
     )
   ];
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'ZoomIn'
   ? [ model
     , Effects
@@ -121,7 +146,7 @@ export const update/*:type.update*/ = (model, action) =>
         .task(resetZoom(model.id))
         .map(ZoomChanged)
     ]
-  : action.type === 'MakeVisibile'
+  : action.type === 'MakeVisible'
   ? [ model
     , Effects
         .task(setVisibility(model.id, true))
@@ -134,19 +159,29 @@ export const update/*:type.update*/ = (model, action) =>
         .map(VisibilityChanged)
     ]
   : action.type === 'VisibilityChanged'
-  ? ( action.result.isOk
-    ? [ merge(model, {isVisible: action.result.value}), Effects.none ]
-    : [ model, Effects.task(report(action.result.error)) ]
+  ? ( action.visibilityResult.isOk
+    ? [ merge(model, {isVisible: action.visibilityResult.value})
+      , Effects.none
+      ]
+    : [ model
+      , Effects
+        .task(report(action.visibilityResult.error))
+        .map(NoOp)
+      ]
     )
   : action.type === 'ZoomChanged'
-  ?  ( action.result.isOk
-    ? [ merge(model, {zoom: action.result.value}), Effects.none ]
-    : [ model, Effects.task(report(action.result.error)) ]
+  ?  ( action.zoomResult.isOk
+    ? [ merge(model, {zoom: action.zoomResult.value}), Effects.none ]
+    : [ model
+      , Effects
+        .task(report(action.zoomResult.error))
+        .map(NoOp)
+      ]
     )
 
   // Delegate
   : action.type === 'Focusable'
-  ? Focusable.update(model, action.action)
+  ? updateFocus(model, action.action)
 
   : [model, Effects.none]
   );

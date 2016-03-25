@@ -37,13 +37,7 @@ var settings = {
   plugins: {},
   plugin: [],
   transform: [
-    babelify.configure({
-      "optional": [
-        "spec.protoToAssign",
-        "runtime"
-      ],
-      "blacklist": []
-    })
+    babelify
   ],
   debug: true,
   watch: false,

@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, forward, Effects} from 'reflex';
-import {Style, StyleSheet} from '../common/style';
+import * as Style from '../common/style';
 import * as Toolbar from "./sidebar/toolbar";
 import * as Tabs from "./sidebar/tabs";
 import {merge, always} from "../common/prelude";
@@ -14,9 +14,14 @@ import * as Unknown from "../common/unknown";
 import * as Stopwatch from "../common/stopwatch";
 import * as Easing from "eased";
 
-/*:: import * as type from "../../type/browser/sidebar" */
 
-const styleSheet = StyleSheet.create({
+/*::
+import type {Address, DOM} from "reflex"
+import type {ID, Display, Model, Action} from "./sidebar"
+import * as WebViews from "./web-views"
+*/
+
+const styleSheet = Style.createSheet({
   base:
   { backgroundColor: '#272822'
   , height: '100%'
@@ -30,7 +35,7 @@ const styleSheet = StyleSheet.create({
 });
 
 
-export const init/*:type.init*/ = () => {
+export const init = ()/*:[Model, Effects<Action>]*/ => {
   const [toolbar, fx] = Toolbar.init()
   return [
     { isAttached: false
@@ -50,25 +55,27 @@ export const init/*:type.init*/ = () => {
   ]
 }
 
-export const CreateWebView =
+export const CreateWebView/*:Action*/ =
   { type: 'CreateWebView'
   };
 
-export const Attach =
+export const Attach/*:Action*/ =
   {
     type: "Attach"
   };
 
-export const Detach =
+export const Detach/*:Action*/ =
   { type: "Detach"
   };
 
-export const Open = {type: "Open"};
-export const Close = {type: "Close"};
-export const Activate = {type: "Activate"};
-export const CloseTab/*:type.CloseTab*/ = id =>
+export const Open/*:Action*/ = {type: "Open"};
+export const Close/*:Action*/ = {type: "Close"};
+export const Activate/*:Action*/ = {type: "Activate"};
+export const CloseTab/*:(id:ID) => Action*/ =
+  id =>
   ({type: "CloseTab", id});
-export const ActivateTab/*:type.ActivateTab*/ = id =>
+export const ActivateTab/*:(id:ID) => Action*/ =
+  id =>
   ({type: "ActivateTab", id});
 
 const TabsAction = action =>
@@ -187,7 +194,7 @@ const updateAnimation = (model, action) => {
   const projection = animationProjection(model)
 
 
-  return duration > animation.elapsed
+  return (animation && duration > animation.elapsed)
     ? [ merge(model, {
           animation,
           display: Easing.ease
@@ -230,7 +237,8 @@ const detach = model =>
   : [ model, Effects.none ]
   );
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "Open"
   ? open(model)
   : action.type === "Close"
@@ -246,17 +254,21 @@ export const update/*:type.update*/ = (model, action) =>
   ? updateStopwatch(model, Stopwatch.End)
 
   : action.type === "Toolbar"
-  ? updateToolbar(model, action.action)
+  ? updateToolbar(model, action.source)
 
   : Unknown.update(model, action)
   );
 
 
-export const view/*:type.view*/ = (model, webViews, address) =>
+export const view =
+  ( model/*:Model*/
+  , webViews/*:WebViews.Model*/
+  , address/*:Address<Action>*/
+  )/*:DOM*/ =>
   html.div
   ( { key: 'sidebar'
     , className: 'sidebar'
-    , style: Style
+    , style: Style.mix
       ( styleSheet.base
       , { transform: `translateX(${model.display.x}px)`
         , boxShadow: `rgba(0, 0, 0, ${model.display.shadow}) -50px 0 80px`

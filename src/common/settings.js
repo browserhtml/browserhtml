@@ -4,30 +4,37 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from "../../type/common/settings" */
-
-import * as Settings from '../common/settings';
-import * as Result from '../common/result';
+import {error, ok} from '../common/result';
 import * as Unknown from '../common/unknown';
 import {merge, always} from '../common/prelude';
 import {Effects, Task} from 'reflex';
 
-export const NotSupported =
+/*::
+import type {Model, Action, Name, Value, Settings} from "./settings"
+import type {Address, Never} from "reflex"
+import type {Result} from "./result"
+*/
+
+
+const NotSupported =
   ReferenceError('navigator.mozSettings API is not available');
 
-export const Fetched/*:type.Fetched*/ = result =>
+export const Fetched =
+  (result/*:Result<Error, Settings>*/)/*:Action*/ =>
   ( { type: "Fetched"
     , result
     }
   );
 
-export const Updated/*:type.Updated*/ = result =>
+export const Updated =
+  (result/*:Result<Error, Settings>*/)/*:Action*/ =>
   ( { type: "Updated"
     , result
     }
   );
 
-export const Changed/*:type.Changed*/ = result =>
+export const Changed =
+  (result/*:Result<Error, Settings>*/)/*:Action*/ =>
   ( { type: "Changed"
     , result
     }
@@ -49,66 +56,68 @@ const merges =
     )
   );
 
-export const fetch/*:type.fetch*/ =
-  names =>
+export const fetch =
+  (names/*:Array<Name>*/)/*:Task<Never, Result<Error, Settings>>*/ =>
   Task.future(() => {
-    if (navigator.mozSettings) {
+    if (navigator.mozSettings != null) {
       const lock = navigator.mozSettings.createLock();
       const settings = names.map(name => lock.get(name));
 
       return Promise.all(settings)
                     .then(merges)
-                    .then(Result.ok, Result.error);
+                    .then(ok, error);
     } else {
-      return Promise.resolve(Result.error(NotSupported));
+      return Promise.resolve(error(NotSupported));
     }
   });
 
 
-export const change/*:type.change*/ =
-  settings =>
+export const change =
+  (settings/*:Settings*/)/*:Task<Never, Result<Error, Settings>>*/ =>
   Task.future(() => {
-    if (navigator.mozSettings) {
-      return navigator
-        .mozSettings
-        .createLock()
+    if (navigator.mozSettings != null) {
+      const lock = navigator.mozSettings.createLock();
+      const result =
+        lock
         .set(settings)
-        .then(always(Result.ok(settings)), Result.error);
+        .then(always(ok(settings)), error);
+      return result
     } else {
-      return Promise.resolve(Result.error(NotSupported));
+      return Promise.resolve(error(NotSupported));
     }
   });
 
-export const observe/*:type.observe*/ =
-  name =>
-  Task.io(deliver => {
+export const observe =
+  (namePattern/*:string*/)/*:Task<Never, Result<Error, Settings>>*/=>
+  new Task((succeed, fail) => {
     const onChange = change => {
       if (navigator.mozSettings) {
-        if (name === "*") {
+        if (namePattern === "*") {
           navigator.mozSettings.removeEventListener("settingchange", onChange);
         }
         else {
-          navigator.mozSettings.removeObserver(name, onChange);
+          navigator.mozSettings.removeObserver(namePattern, onChange);
         }
       }
 
-      deliver(Task.succeed(Result.ok({[change.settingName]: change.settingValue})));
+      succeed(ok({[change.settingName]: change.settingValue}));
     }
 
     if (navigator.mozSettings) {
-      if (name === "*") {
+      if (namePattern === "*") {
         navigator.mozSettings.addEventListener("settingchange", onChange);
       }
       else {
-        navigator.mozSettings.addObserver(name, onChange);
+        navigator.mozSettings.addObserver(namePattern, onChange);
       }
     } else {
-      deliver(Task.fail(Result.error(NotSupported)));
+      fail(error(NotSupported));
     }
   });
 
 
-export const init/*:type.init*/ = names =>
+export const init =
+  (names/*:Array<Name>*/)/*:[Model, Effects<Action>]*/ =>
   [ null
   , Effects
     .task(fetch(names))
@@ -134,7 +143,8 @@ const report = (model, error) => {
 }
 
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Fetched'
   ? ( action.result.isOk
     ? updateSettings(model, action.result.value)

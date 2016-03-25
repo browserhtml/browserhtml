@@ -4,7 +4,9 @@
  * license, v. 2.0. if a copy of the mpl was not distributed with this
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
 
-/*:: import * as type from "../../type/common/keyboard" */
+/*::
+import type {BindingTable, Abort, kind} from "./keyboard"
+*/
 
 import {Effects} from "reflex";
 import * as OS from './os';
@@ -72,13 +74,14 @@ const writeChord = event => {
 };
 
 
-export const bindings/*:type.bindings*/ = (bindingTable) => {
+export const bindings = /*::<Action>*/
+  (bindingTable/*:BindingTable<Action>*/)/*:(event:KeyboardEvent) => Action | Abort*/ => {
   const bindings = Object.create(null);
   Object.keys(bindingTable).forEach(key => {
     bindings[readChord(key)] = bindingTable[key];
   });
 
-  return event => {
+  return (event) => {
     const combination = writeChord(event);
     const binding = bindings[combination]
 

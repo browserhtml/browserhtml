@@ -8,18 +8,27 @@ import {Effects} from 'reflex';
 import {merge, always} from "../common/prelude";
 import * as Unknown from "../common/unknown";
 
-/*:: import * as type from "../../type/common/stopwatch" */
+/*::
+import type {Action, Model, Time} from "./stopwatch"
+*/
 
-export const Start/*:type.Start*/ = {type: "Start"};
-export const End/*:type.End*/ = {type: "End"};
-export const Tick/*:type.Tick*/ = time => ({type: "Tick", time});
+export const Start/*:Action*/ = {type: "Start"};
+export const End/*:Action*/ = {type: "End"};
+export const Tick =
+  (time/*:Time*/)/*:Action*/ =>
+  ( { type: "Tick"
+    , time
+    }
+  );
 
 
-export const init/*:type.init*/ = () =>
+export const init =
+  ()/*:[Model, Effects<Action>]*/ =>
   [null, Effects.none];
 
-export const update/*:type.update*/ = (model, action) =>
-    action.type === "End"
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
+  ( action.type === "End"
   ? [ null, Effects.none ]
   : action.type === "Start"
   ? [ null, Effects.tick(Tick) ]
@@ -38,4 +47,5 @@ export const update/*:type.update*/ = (model, action) =>
       , Effects.tick(Tick)
       ]
     )
-  : Unknown.update(model, action);
+  : Unknown.update(model, action)
+  );

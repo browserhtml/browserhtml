@@ -1,0 +1,30 @@
+/* @flow */
+
+import {Effects} from "reflex"
+
+
+export type Model =
+  { state: string
+  , secure: boolean
+  , extendedValidation: boolean
+  }
+
+export type Action =
+  | { type: "LoadStart" }
+  | { type: "Changed"
+    , state: string
+    , extendedValidation: boolean
+    }
+
+declare export var LoadStart:Action
+
+declare export function Changed
+  (state: string, extendedValidation: boolean):
+  Action
+
+declare export function init ():
+  [Model, Effects<Action>]
+
+declare export function update
+  (model:Model, action:Action):
+  [Model, Effects<Action>]

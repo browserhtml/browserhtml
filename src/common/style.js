@@ -4,15 +4,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*:: import * as type from "../../type/common/style" */
+/*::
+import type {Rules, Sheet} from "./style"
+*/
 
 const composedStyles = Object.create(null);
 
 const ID = Symbol('style-sheet/id');
 var id = 0;
 
-export const StyleSheet/*:type.StyleSheet*/ = {
-  create: (sheet) => {
+export const StyleSheet = {
+  create: /*::<sheet:Sheet>*/(sheet/*:sheet*/)/*:sheet*/ => {
     const result = {}
     for (var name in sheet) {
       if (sheet.hasOwnProperty(name)) {
@@ -36,7 +38,7 @@ export const StyleSheet/*:type.StyleSheet*/ = {
 // Mix multiple style objects together. Will memoize the combination of styles
 // to minimize object creation. Returns style object that is the result of
 // mixing styles together.
-export const Style/*:type.mix*/ = (...styles) => {
+export const mix = (...styles/*:Array<?Rules>*/)/*:Rules*/ => {
   var length = styles.length;
   var index = 0;
   var id = null;
@@ -66,16 +68,20 @@ export const Style/*:type.mix*/ = (...styles) => {
     return composedStyle
   }
   else if (id != null) {
-    // @FlowIssue: Flow does not get spread here.
     const composedStyle = Object.assign({}, ...styles);
+    // @FlowIssue: Flow does not get spread here.
     composedStyle[ID] = id;
     composedStyles[id] = composedStyle;
     return composedStyle;
   }
   else {
-    // @FlowIssue: Flow does not get spread here.
     const composedStyle = Object.assign({}, ...styles);
+    // @FlowIssue: Flow does not get spread here.
     composedStyle[ID] = null;
     return composedStyle;
   }
 }
+
+export const Style = mix
+
+export const createSheet = StyleSheet.create

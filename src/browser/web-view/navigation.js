@@ -1,108 +1,128 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {merge} from '../../common/prelude';
-import * as Result from '../../common/result';
+import {merge, always} from '../../common/prelude';
+import {ok, error} from '../../common/result';
 import {Effects, Task} from 'reflex';
 import * as Unknown from '../../common/unknown'
 
-/*:: import * as type from "../../../type/browser/web-view/navigation" */
-
+/*::
+import type {Never} from "reflex";
+import type {Result} from '../../common/result';
+import type {ID, URI, Time, Model, Action} from "./navigation";
+*/
 
 
 // User interaction interaction may also triggered following actions:
-export const Stop/*:type.Stop*/ = {type: "Stop"};
-export const Reload/*:type.Reload*/ = {type: "Reload"};
-export const GoBack/*:type.GoBack*/ = {type: "GoBack"};
-export const GoForward/*:type.GoForward*/ = {type: "GoForward"};
+export const Stop/*:Action*/ = {type: "Stop"};
+export const Reload/*:Action*/ = {type: "Reload"};
+export const GoBack/*:Action*/ = {type: "GoBack"};
+export const GoForward/*:Action*/ = {type: "GoForward"};
 
-export const Load/*:type.Load*/ = uri =>
+const NoOp = always({type: "NoOp"});
+export const Load =
+  (uri/*:URI*/)/*:Action*/ =>
   ({type: "Load", uri});
 
-export const LocationChanged/*:type.LocationChanged*/ = uri =>
+export const LocationChanged =
+  (uri/*:URI*/)/*:Action*/ =>
   ({type: "LocationChanged", uri});
 
-export const CanGoBackChanged/*:type.CanGoBackChanged*/ = result =>
+const CanGoBackChanged =
+  result =>
   ({type: "CanGoBackChanged", result});
 
-export const CanGoForwardChanged/*:type.CanGoForwardChanged*/ = result =>
+const CanGoForwardChanged =
+  result =>
   ({type: "CanGoForwardChanged", result});
 
-export const Stopped/*:type.Stopped*/ = result =>
-  ({type: "Stopped", result});
+const Stopped =
+  result =>
+  ({type: "Stopped", stopResult: result});
 
-export const Reloaded/*:type.Stopped*/ = result =>
-  ({type: "Reloaded", result});
+const Reloaded =
+  result =>
+  ({type: "Reloaded", reloadResult: result});
 
-export const WentBack/*:type.WentBack*/ = result =>
-  ({type: "WentBack", result});
+const WentBack = result =>
+  ({type: "WentBack", goBackResult: result});
 
-export const WentForward/*:type.WentBack*/ = result =>
-  ({type: "WentForward", result});
+const WentForward = result =>
+  ({type: "WentForward", goForwardResult: result});
 
-export const canGoBack/*:type.canGoBack*/ = id => Task.io(deliver => {
-  const target = document.getElementById(`web-view-${id}`);
-  if (target == null) {
-    deliver(Task.succeed(Result.error(`WebView with id web-view-${id} not found`)))
-  }
-
-  else if (target.getCanGoBack == null) {
-    deliver(Task.succeed(Result.error(`.getCanGoBack is not supported by runtime`)))
-  }
-
-  else {
-    target.getCanGoBack().onsuccess = request => {
-      deliver(Task.succeed(Result.ok(request.target.result)));
-    };
-  }
-});
-
-export const canGoForward/*:type.canGoForward*/ = id => Task.io(deliver => {
-  const target = document.getElementById(`web-view-${id}`);
-  if (target == null) {
-    deliver(Task.succeed(Result.error(`WebView with id web-view-${id} not found`)))
-  }
-
-  else if (target.getCanGoForward == null) {
-    deliver(Task.succeed(Result.error(`.getCanGoForward is not supported by runtime`)))
-  }
-
-  else {
-    target.getCanGoForward().onsuccess = request => {
-      deliver(Task.succeed(Result.ok(request.target.result)));
+export const canGoBack =
+  (id/*:ID*/)/*:Task<Never, Result<Error, boolean>>*/ =>
+  new Task((succeed, fail) => {
+    const target = document.getElementById(`web-view-${id}`);
+    if (target == null) {
+      succeed(error(Error(`WebView with id web-view-${id} not found`)));
     }
-  }
-});
+
+    else if (target.getCanGoBack == null) {
+      succeed(error(Error(`.getCanGoBack is not supported by runtime`)));
+    }
+
+    else {
+      target.getCanGoBack().onsuccess = request => {
+        succeed(ok(request.target.result));
+      };
+    }
+  });
+
+export const canGoForward =
+  (id/*:ID*/)/*:Task<Never, Result<Error, boolean>>*/ =>
+  new Task((succeed, fail) => {
+    const target = document.getElementById(`web-view-${id}`);
+    if (target == null) {
+      succeed(error(Error(`WebView with id web-view-${id} not found`)));
+    }
+
+    else if (target.getCanGoForward == null) {
+      succeed(error(Error(`.getCanGoForward is not supported by runtime`)))
+    }
+
+    else {
+      target.getCanGoForward().onsuccess = request => {
+        succeed(ok(request.target.result));
+      }
+    }
+  });
 
 
-const invoke = name => id => Task.io(deliver => {
-  const target = document.getElementById(`web-view-${id}`);
-  if (target == null) {
-    deliver(Task.succeed(Result.error(`WebView with id web-view-${id} not found`)))
-  }
+const invoke = name =>
+  (id/*:ID*/)/*:Task<Never, Result<Error, void>>*/ =>
+  new Task((succeed, fail) => {
+    const target = document.getElementById(`web-view-${id}`);
+    if (target == null) {
+      succeed(error(Error(`WebView with id web-view-${id} not found`)))
+    }
+    else {
+      try {
+        // @FlowIgnore: We know that method may not exist.
+        target[name]();
+        succeed(ok());
+      } catch (exception) {
+        succeed(error(exception))
+      }
+    }
+  })
 
-  else if (target[name] == null) {
-    deliver(Task.succeed(Result.error(`.${name} is not supported by runtime`)))
-  }
+export const stop = invoke('stop');
+export const reload = invoke('reload');
+export const goBack = invoke('goBack');
+export const goForward = invoke('goForward');
 
-  else {
-    deliver(Task.succeed(Result.ok(void target[name]())));
-  }
-});
+const report =
+  error =>
+  new Task((succeed, fail) => {
+    console.warn(error);
+  });
 
-export const stop/*:type.stop*/ = invoke('stop');
-export const reload/*:type.reload*/ = invoke('reload');
-export const goBack/*:type.goBack*/ = invoke('goBack');
-export const goForward/*:type.goForward*/ = invoke('goForward');
-
-const report = error => Task.io(deliver => {
-  console.warn(error);
-});
-
-export const init/*:type.init*/ = (id, uri) =>
+export const init =
+  (id/*:ID*/, uri/*:URI*/)/*:[Model, Effects<Action>]*/ =>
   [ { id
     , canGoBack: false
     , canGoForward: false
@@ -112,13 +132,14 @@ export const init/*:type.init*/ = (id, uri) =>
   , Effects.none
   ]
 
-const updateResponse = (model, action) =>
-  ( action.result.isOk
+const updateResponse = (model, result) =>
+  ( result.isOk
   ? [model, Effects.none]
-  : [model, Effects.task(report(action.result.error))]
+  : [model, Effects.task(report(result.error)).map(NoOp)]
   );
 
-export const update/*:type.update*/ = (model, action) =>
+export const update =
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === "CanGoForwardChanged"
   ? ( action.result.isOk
     ? [ merge(model, {canGoForward: action.result.value})
@@ -179,12 +200,12 @@ export const update/*:type.update*/ = (model, action) =>
         .map(WentForward)
     ]
   : action.type === "Stopped"
-  ? updateResponse(model, action)
+  ? updateResponse(model, action.stopResult)
   : action.type === "Reloaded"
-  ? updateResponse(model, action)
+  ? updateResponse(model, action.reloadResult)
   : action.type === "WentBack"
-  ? updateResponse(model, action)
+  ? updateResponse(model, action.goBackResult)
   : action.type === "WentForward"
-  ? updateResponse(model, action)
+  ? updateResponse(model, action.goForwardResult)
   : Unknown.update(model, action)
   );

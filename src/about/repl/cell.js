@@ -1,4 +1,4 @@
-/* @noflow */
+/* @flow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,32 +12,59 @@ import {cursor} from '../../common/cursor';
 import * as Input from './input';
 import * as Output from './output';
 
-export const Submit = Input.Submit;
-export const Remove = tagged("Remove");
-export const Print = Output.Print;
+/*::
+import type {Address, DOM} from "reflex"
+import type {ID, Model, Action} from "./cell"
+*/
 
-export const InputAction =
-  action =>
-  ( action.type === 'Submit'
-  ? action
-  : tagged("Input", action)
+export const Print =
+  (result/*:Output.Model*/)/*:Action*/ =>
+  ( { type: "Print"
+    , result: result
+    }
+  )
+
+export const Remove/*:Action*/ =
+  { type: "Remove"
+  }
+
+const InputAction =
+  (action/*:Input.Action*/)/*:Action*/ =>
+  ( action.type === "Submit"
+  ? { type: "Submit"
+    , source: action.source
+    }
+  : { type: "Input"
+    , input: action
+    }
   );
 
-export const OutputAction = tag("Output");
-export const Edit = InputAction(Input.Edit);
+const OutputAction =
+  (action/*:Output.Action*/)/*:Action*/ =>
+  ( { type: "Output"
+    , output: action
+    }
+  );
+
+export const Edit/*:Action*/ =
+  InputAction(Input.Edit);
 
 
 export const init =
-  id => {
-    const [input] = Input.init(0, '', true);
-    const [output] = Output.init(0, null);
+  (id/*:ID*/)/*:[Model, Effects<Action>]*/ => {
+    const [input, inputFX] = Input.init(0, '', true);
+    const [output, outputFX] = Output.init(0);
     const model =
       { id
       , input
       , output
       };
 
-    const fx = Effects.none;
+    const fx = Effects.batch
+      ( [ inputFX.map(InputAction)
+        , outputFX.map(OutputAction)
+        ]
+      );
 
     return [model, fx];
   };
@@ -60,18 +87,33 @@ const updateOutput = cursor
 
 const print =
   (model, output) =>
-  updateOutput(model, output);
+  updateOutput
+  ( model
+  , { type: "Print"
+    , source: output
+    }
+  );
 
+const submit =
+  (model, input) =>
+  updateInput
+  ( model
+  , { type: "Submit"
+    , source: input
+    }
+  );
 
 export const update =
-  (model, action) =>
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Input'
-  ? updateInput(model, action.source)
+  ? updateInput(model, action.input)
+  : action.type === 'Submit'
+  ? submit(model, action.source)
   : action.type === 'Output'
-  ? upadateOutput(model, action.source)
+  ? updateOutput(model, action.output)
   : action.type === 'Print'
-  ? print(model, action)
-  : Unknown.update(model, aciton)
+  ? print(model, action.result)
+  : Unknown.update(model, action)
   );
 
 const styleSheet = StyleSheet.create
@@ -87,23 +129,28 @@ const styleSheet = StyleSheet.create
     , editing:
       { borderLeftColor: '#586e75'
       }
-    , modified:
+    , displaying:
       {
-        borderLeftColor: '#b58900'
+      }
+    , modified:
+      { borderLeftColor: '#b58900'
+      }
+    , saved:
+      {
       }
     }
   );
 
 
 export const render =
-  (model, address) =>
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   html.form
   ( { id: `cell-${model.id}`
     , style: Style
       ( styleSheet.base
       , ( model.input.isEditing
         ? styleSheet.editing
-        : styleSheet.static
+        : styleSheet.displaying
         )
       , ( model.input.version !== model.output.version
         ? styleSheet.modified
@@ -120,5 +167,5 @@ export const render =
   );
 
 export const view =
-  (model, address) =>
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
   thunk(model.id, render, model, address);

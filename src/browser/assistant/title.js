@@ -10,7 +10,7 @@ import {merge, always, batch} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
 
 /*::
-import * as Title from "../../../type/browser/assistant/title"
+import type {Address, DOM} from "reflex"
 */
 
 
@@ -29,8 +29,8 @@ const styleSheet = StyleSheet.create
     }
   );
 
-export const render/*:Title.view*/ =
-  (title, isSelected) =>
+export const render =
+  (title/*:?string*/, isSelected/*:boolean*/)/*:DOM*/ =>
   html.span
   ( { className: 'assistant title'
     , style: Style
@@ -48,8 +48,8 @@ export const render/*:Title.view*/ =
     ]
   );
 
-export const view/*:Title.view*/ =
-  (title, isSelected) =>
+export const view =
+  (title/*:?string*/, isSelected/*:boolean*/)/*:DOM*/ =>
   thunk
   ( `${title}`
   , render
