@@ -145,7 +145,7 @@ const WebViewsAction = (action/*:WebViews.Action*/)/*:Action*/ =>
     // use of the same properties across union types seem to confuse it.
     // avoiding same shapes (and calling source differently on each type)
     // seems to resolve the problem.
-  : action.type === "ActivateTab"
+  : action.type === "ActivateSelected"
   ? { type: "ActivateTab"
     , activateTab: action
     }
