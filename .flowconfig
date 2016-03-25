@@ -2,7 +2,8 @@
 .*/dist/.*
 .*/browser.html/.profile/.*
 .*/browser.html/.bin/.*
-.*/node_modules/babel.*
+.*/node_modules/babel-core/.*
+.*/node_modules/babel-plugin.*
 .*/node_modules/tap/.*
 .*/node_modules/reflex-virtual-dom-driver/examlpes/.*
 .*/type/.*
