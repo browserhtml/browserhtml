@@ -63,6 +63,12 @@ export const DownloadUpdate =
     }
   );
 
+export const isServo/*:boolean*/ =
+  window
+  .navigator
+  .userAgent
+  .toLowerCase()
+  .indexOf(' servo') != -1
 
 export const never/*:Task<Never, any>*/ =
   new Task(succeed => void(0));
@@ -103,16 +109,26 @@ export const request = /*::<request, response>*/
 
 
 export const quit/*:Task<Never, Result<Error, void>>*/ =
-  send({type: "shutdown-application"})
-  // We do not actually close a window but rather we shut down an app, there
-  // will be nothing handling a response so we don"t even bother with it.
-  .chain(always(never));
+  ( isServo
+  ? new Task((succeed, fail) => {
+      try {
+        window.close();
+        succeed(ok(void(0)));
+      } catch (reason) {
+        succeed(error(reason));
+      }
+    })
+  : send({type: "shutdown-application"})
+    // We do not actually close a window but rather we shut down an app, there
+    // will be nothing handling a response so we don"t even bother with it.
+    .chain(always(never))
+  );
 
 export const minimize/*:Task<Never, Result<Error, void>>*/ =
   send({type: "minimize-native-window"})
   // We do not get event back when window is minimized so we just pretend
   // that we got it after a tick.
-  .chain(always(respond(ok())));
+  .chain(always(respond(ok())))
 
 export const toggleFullscreen/*:Task<Never, Result<Error, void>>*/ =
   send({type: "toggle-fullscreen-native-window"})
@@ -140,8 +156,18 @@ export const cleanRestart/*:Task<Never, Result<Error, void>>*/ =
   .chain(always(never));
 
 export const cleanReload/*:Task<Never, Result<Error, void>>*/ =
-  send({type: "clear-cache-and-reload"})
-  .chain(always(never));
+  ( isServo
+  ? new Task(succeed => {
+      try {
+        window.location.reload(true);
+        succeed(ok(void(0)));
+      } catch (reason) {
+        succeed(error(reason));
+      }
+    })
+  : send({type: "clear-cache-and-reload"})
+    .chain(always(never))
+  );
 
 // This is a temporary measure. Eventually, we want Servo to expose the
 // titlebar configuration.
