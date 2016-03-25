@@ -10,11 +10,11 @@ import {Style, StyleSheet} from "../../../common/style";
 import * as Unknown from "../../../common/unknown";
 
 import hardcodedWallpaper from "../wallpaper.json";
+import * as Wallpaper from "./wallpaper";
 
 /*::
 import type {Address, DOM} from "reflex"
 import type {Model, Action, ID} from "./wallpapers"
-import * as Wallpaper from "./wallpaper";
 */
 
 export const init =
