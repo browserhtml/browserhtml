@@ -92,6 +92,8 @@ declare export function request <request, response>
   (type:string, message:request):
   Task<Never, response>
 
+declare export var isServo:boolean;
+
 declare export var quit:Task<Never, Result<Error, void>>;
 declare export var minimize:Task<Never, Result<Error, void>>;
 declare export var toggleFullscreen:Task<Never, Result<Error, void>>;
