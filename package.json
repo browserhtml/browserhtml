@@ -1,7 +1,7 @@
 {
   "name": "browser.html",
   "description": "Experimental Servo browser built in HTML",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "homepage": "https://github.com/mozilla/browser.html",
   "repository": {
     "type": "git",
