@@ -26,7 +26,8 @@
     "build-server": "gulp build-server",
     "live-server": "gulp live-server",
     "flow": "flow check",
-    "test": "flow check"
+    "test": "flow check",
+    "status": "flow status"
   },
   "dependencies": {
     "eased": "0.1.0",
