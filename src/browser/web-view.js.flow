@@ -71,6 +71,8 @@ export type Action =
     }
   | { type: "LocationChanged"
     , uri: URI
+    , canGoBack: boolean
+    , canGoForward: boolean
     , time: Time
     }
   | { type: "Close" }

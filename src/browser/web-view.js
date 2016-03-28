@@ -125,7 +125,7 @@ export const LoadEnd =
   ({type: 'LoadEnd', time});
 
 export const LocationChanged =
-  (uri/*:URI*/, canGoBack/*:bool*/, canGoForward/*:bool*/, time/*:Time*/)/*:Action*/ =>
+  (uri/*:URI*/, canGoBack/*:boolean*/, canGoForward/*:boolean*/, time/*:Time*/)/*:Action*/ =>
   ({type: 'LocationChanged', uri, canGoBack, canGoForward, time});
 
 export const ContextMenu =

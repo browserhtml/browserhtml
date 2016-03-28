@@ -28,7 +28,7 @@ export const Load =
   ({type: "Load", uri});
 
 export const LocationChanged =
-  (uri/*:URI*/, canGoBack/*:bool*/, canGoForward/*:bool*/)/*:Action*/ =>
+  (uri/*:URI*/, canGoBack/*:boolean*/, canGoForward/*:boolean*/)/*:Action*/ =>
   ({type: "LocationChanged", uri, canGoBack, canGoForward});
 
 const CanGoBackChanged =
