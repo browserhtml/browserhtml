@@ -28,8 +28,8 @@ export const Load =
   ({type: "Load", uri});
 
 export const LocationChanged =
-  (uri/*:URI*/)/*:Action*/ =>
-  ({type: "LocationChanged", uri});
+  (uri/*:URI*/, canGoBack/*:bool*/, canGoForward/*:bool*/)/*:Action*/ =>
+  ({type: "LocationChanged", uri, canGoBack, canGoForward});
 
 const CanGoBackChanged =
   result =>
@@ -155,7 +155,13 @@ export const update =
     : [ model, Effects.task(report(action.result.error)) ]
     )
   : action.type === "LocationChanged"
-  ? [ merge(model, {currentURI: action.uri})
+  ? [ merge
+      ( model
+      , { currentURI: action.uri
+        , canGoBack: action.canGoBack
+        , canGoForward: action.canGoForward
+        }
+      )
     , Effects.batch
       ( [ Effects
             .task(canGoBack(model.id))

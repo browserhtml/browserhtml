@@ -36,3 +36,7 @@ export const isDark =
   ? model.page.pallet.isDark
   : false
   );
+
+export const canGoBack =
+  (model/*:WebView.Model*/)/*:boolean*/ =>
+  model.navigation.canGoBack;

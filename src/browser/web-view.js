@@ -19,7 +19,7 @@ import * as Tab from './sidebar/tab';
 import * as Unknown from '../common/unknown';
 import * as Stopwatch from '../common/stopwatch';
 import {Style, StyleSheet} from '../common/style';
-import {readTitle, isDark} from './web-view/util';
+import {readTitle, isDark, canGoBack} from './web-view/util';
 import * as Driver from 'driver';
 import * as URL from '../common/url-helper';
 import * as Focusable from '../common/focusable';
@@ -125,8 +125,8 @@ export const LoadEnd =
   ({type: 'LoadEnd', time});
 
 export const LocationChanged =
-  (uri/*:URI*/, time/*:Time*/)/*:Action*/ =>
-  ({type: 'LocationChanged', uri, time});
+  (uri/*:URI*/, canGoBack/*:bool*/, canGoForward/*:bool*/, time/*:Time*/)/*:Action*/ =>
+  ({type: 'LocationChanged', uri, canGoBack, canGoForward, time});
 
 export const ContextMenu =
   (detail/*:any*/)/*:Action*/ =>
@@ -472,11 +472,11 @@ const connect = (model, time) =>
     ]
   );
 
-const changeLocation = (model, uri) =>
+const changeLocation = (model, uri, canGoBack, canGoForward) =>
   batch
   ( update
   , model
-  , [ NavigationAction(Navigation.LocationChanged(uri))
+  , [ NavigationAction(Navigation.LocationChanged(uri, canGoBack, canGoForward))
     , PageAction(Page.LocationChanged(uri))
     ]
   );
@@ -522,7 +522,7 @@ export const update =
   ? connect(model, action.time)
 
   : action.type === "LocationChanged"
-  ? changeLocation(model, action.uri)
+  ? changeLocation(model, action.uri, action.canGoBack, action.canGoForward)
 
   : action.type === "Close"
   ? close(model)
@@ -710,7 +710,13 @@ const styleSheet = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
   },
 
-  iconBackBright: null
+  iconBackBright: null,
+
+  iconBackShow: null,
+
+  iconBackHide: {
+    display: 'none'
+  }
 });
 
 const viewFrame = (model, address) =>
@@ -853,7 +859,7 @@ export const view =
       )
     , Progress.view(model.progress, address)
     , html.div
-      ( { className: 'global-create-tab-icon'
+      ( { className: 'webview-tab-icon'
         , style:
             Style
             ( styleSheet.iconCreateTab
@@ -867,13 +873,17 @@ export const view =
       , ['']
       )
     , html.div
-      ( { className: 'global-create-tab-icon'
+      ( { className: 'webview-back-icon'
         , style:
             Style
             ( styleSheet.iconBack
             , ( isModelDark
               ? styleSheet.iconBackDark
               : styleSheet.iconBackBright
+              )
+            , ( canGoBack(model)
+              ? styleSheet.iconBackShow
+              : styleSheet.iconBackHide
               )
             )
         , onClick: forward(address, always(GoBack))
@@ -919,18 +929,19 @@ const decodeError = compose(ReportError, decodeDetail);
 
 // Navigation
 
-const decodeLocationChange = ({detail}) => {
-  var uri;
+const decodeLocationChange = ({detail}) =>
   // Servo and Gecko have different implementation of detail.
   // In Gecko, detail is a string (the uri).
   // In Servo, detail is an object {uri,canGoBack,canGoForward}
-  if (typeof detail == 'string') {
-    uri = detail;
-  } else {
-    uri = detail.uri;
-  }
-  return LocationChanged(uri, performance.now());
-}
+  ( typeof detail === 'string'
+  ? LocationChanged(detail, false, false, performance.now())
+  : LocationChanged
+    ( detail.uri
+    , detail.canGoBack
+    , detail.canGoForward
+    , performance.now()
+    )
+  );
 
 // Progress
 
