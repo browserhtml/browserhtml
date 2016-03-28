@@ -806,8 +806,8 @@ const styleSheet = StyleSheet.create({
   content: {
     position: 'absolute',
     perspective: '1000px',
-    height: '100%',
-    width: '100%'
+    height: '100vh',
+    width: '100vw'
   }
 });
 
@@ -828,7 +828,7 @@ export const view =
         , style:
           Style
           ( styleSheet.content
-          , { width: `calc(100% - ${model.display.rightOffset}px)`
+          , { width: `calc(100vw - ${model.display.rightOffset}px)`
             }
           )
         }
