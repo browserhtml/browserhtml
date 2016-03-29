@@ -32,6 +32,8 @@ export type Action =
   // directly corresponds `currentURI` in the model.
   | { type: "LocationChanged"
     , uri: URI
+    , canGoBack: ?boolean
+    , canGoForward: ?boolean
     }
   // Editing uri in the location bar causes `ChangeLocation` action. It's
   // `uri` field directly corresponds to `initiatedURI` field on the model,

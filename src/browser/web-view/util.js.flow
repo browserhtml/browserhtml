@@ -19,3 +19,7 @@ declare export function readFaviconURI
 declare export function isDark
   (model:WebView.Model):
   boolean
+
+declare export function canGoBack
+  (model:WebView.Model):
+  boolean
