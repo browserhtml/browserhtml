@@ -155,20 +155,27 @@ export const update =
     : [ model, Effects.task(report(action.result.error)) ]
     )
   : action.type === "LocationChanged"
-  ? [ ( canGoBack != null && canGoForward != null
-      ? merge
+  // In the case where LocationChanged carries information about
+  // canGoBack and canGoForward, we update the model with the new info.
+  // This scenario will be hit in Servo.
+  ? ( action.canGoBack != null && action.canGoForward != null
+    ? [ merge
         ( model
         , { currentURI: action.uri
           , canGoBack: action.canGoBack
           , canGoForward: action.canGoForward
           }
         )
-      : merge
+      , Effects.none
+      ]
+    // Otherwise, update the currentURI and create a task to read
+    // canGoBack, canGoForward from the iframe.
+    // This scenario will be hit in Gecko.
+    : [ merge
         ( model
         , { currentURI: action.uri
           }
         )
-      )
       , Effects.batch
         ( [ Effects
               .task(canGoBack(model.id))
@@ -178,7 +185,8 @@ export const update =
               .map(CanGoForwardChanged)
           ]
         )
-    ]
+      ]
+    )
   : action.type === "Load"
   ? [ merge
       ( model
