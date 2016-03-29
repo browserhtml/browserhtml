@@ -87,11 +87,11 @@ export const Focus/*:Action*/ =
   { type: 'Focus'
   };
 
-export const PushDown =
+export const PushDown/*:Action*/ =
   { type: 'PushDown'
   };
 
-export const PushedDown =
+export const PushedDown/*:Action*/ =
   { type: 'PushedDown'
   };
 

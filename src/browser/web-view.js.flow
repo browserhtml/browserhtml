@@ -80,6 +80,8 @@ export type Action =
   | { type: "Edit" }
   | { type: "ShowTabs" }
   | { type: "Create" }
+  | { type: "PushDown" }
+  | { type: "PushedDown" }
   | { type: "SelectAnimation"
     , action: Stopwatch.Action
     }

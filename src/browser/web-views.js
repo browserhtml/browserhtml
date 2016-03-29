@@ -37,7 +37,7 @@ const NoOp =
     }
   );
 
-const PushedDown =
+const PushedDown/*:Action*/ =
   ( { type: 'PushedDown'
     }
   );
