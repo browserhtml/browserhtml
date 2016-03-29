@@ -125,7 +125,7 @@ export const LoadEnd =
   ({type: 'LoadEnd', time});
 
 export const LocationChanged =
-  (uri/*:URI*/, canGoBack/*:boolean*/, canGoForward/*:boolean*/, time/*:Time*/)/*:Action*/ =>
+  (uri/*:URI*/, canGoBack/*:?boolean*/, canGoForward/*:?boolean*/, time/*:Time*/)/*:Action*/ =>
   ({type: 'LocationChanged', uri, canGoBack, canGoForward, time});
 
 export const ContextMenu =
@@ -934,7 +934,7 @@ const decodeLocationChange = ({detail}) =>
   // In Gecko, detail is a string (the uri).
   // In Servo, detail is an object {uri,canGoBack,canGoForward}
   ( typeof detail === 'string'
-  ? LocationChanged(detail, false, false, performance.now())
+  ? LocationChanged(detail, null, null, performance.now())
   : LocationChanged
     ( detail.uri
     , detail.canGoBack

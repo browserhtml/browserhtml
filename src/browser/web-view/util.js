@@ -39,4 +39,4 @@ export const isDark =
 
 export const canGoBack =
   (model/*:WebView.Model*/)/*:boolean*/ =>
-  model.navigation.canGoBack;
+  model.navigation.canGoBack === true;
