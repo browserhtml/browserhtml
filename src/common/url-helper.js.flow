@@ -28,8 +28,9 @@ declare export class URL {
   port: USVString;
   pathname: USVString;
   search: USVString;
-  // searchParams: URLSearchParams;
+  searchParams: URLSearchParams;
   hash: USVString;
+
 }
 
 declare class URLSearchParams {

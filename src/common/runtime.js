@@ -15,6 +15,8 @@ import {always} from "../common/prelude";
 import {Task} from "reflex";
 import {ok, error} from "../common/result";
 import * as OS from '../common/os';
+import * as URL from '../common/url-helper';
+import * as QueryString from 'querystring';
 
 // Actions
 export const RemoteDebugRequest
@@ -175,3 +177,30 @@ const platform = OS.platform()
 export const useNativeTitlebar =
   ()/*:boolean*/ =>
   platform != "darwin";
+
+const Env =
+  () => {
+    const env = Object.create(null);
+    const url = URL.parse(window.location.href);
+    const params = url.searchParams;
+    // @Hack: On servo searchParams don't show up.
+    if (params == null) {
+      return QueryString.parse(url.search.substr(1));
+    }
+    else {
+      for (let [key, value] of params) {
+        if (env[key] == null) {
+          env[key] = value;
+        }
+        else if (Array.isArray(env[key])) {
+          env[key].push(value)
+        }
+        else {
+          env[key] = [env[key], value]
+        }
+      }
+    }
+    return env
+  }
+
+export const env/*:{[key:string]: ?string|?Array<?string>}*/ = Env();

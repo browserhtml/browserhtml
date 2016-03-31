@@ -26,6 +26,7 @@ const nullURL =
   , pathname: ''
   , search: ''
   , hash: ''
+  , searchParams: new window.URLSearchParams()
   }
 
 export const parse = (input/*:string*/)/*:URL*/ => {

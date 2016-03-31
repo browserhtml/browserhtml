@@ -364,8 +364,10 @@ const CloseWebViewByID =
 // there for we define them by just wrapping actions from that module to avoid
 // additional wiring (which is implementation detail that may change).
 export const ToggleDevtools = DevtoolsAction(Devtools.Toggle);
+const Snapshot = DevtoolsAction(Devtools.Snapshot);
 export const Blur = ShellAction(Shell.Blur);
 export const Focus = ShellAction(Shell.Focus);
+
 
 const ShowInput = InputAction(Input.Show);
 const HideInput = InputAction(Input.Hide);
@@ -436,7 +438,8 @@ const decodeKeyDown = Keyboard.bindings({
   'accel alt ˆ': always(ToggleDevtools),
   'F12': always(ToggleDevtools),
   'F5': always(ReloadRuntime),
-  'meta control r': always(ReloadRuntime)
+  'meta control r': always(ReloadRuntime),
+  'meta alt 3': always(Snapshot)
 });
 
 const decodeKeyUp = Keyboard.bindings({

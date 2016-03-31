@@ -32,6 +32,7 @@ const logger = (update) => (model, action) => {
 }
 
 const isReload = window.application != null;
+const isReplay = Runtime.env.replay != null;
 
 // If hotswap change address so it points to a new mailbox &r
 // re-render.
@@ -42,17 +43,40 @@ if (isReload) {
 document.body.classList.toggle('use-native-titlebar',
                                Runtime.useNativeTitlebar());
 
+const replay =
+  () => {
+    const request = new XMLHttpRequest();
+    // We use sync XHR as we have nothing else to render otherwise.
+    request.open
+    ( 'GET'
+    , String(Runtime.env.replay)
+    , false
+    );
+    request.overrideMimeType('text/plain');
+    request.send();
+
+    if (request.status === 200 || request.status === 0) {
+      return [JSON.parse(request.responseText), Effects.none]
+    }
+    else {
+      return UI.init()
+    }
+  }
+
 const restore =
   () =>
   [ window.application.model.value
   , Effects.none
   ]
 
+
 const application = start({
   flags: void(0),
   init:
   ( isReload
   ? restore
+  : isReplay
+  ? replay
   : UI.init
   ),
   update:
