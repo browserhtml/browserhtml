@@ -108,7 +108,7 @@ const start = (model, time) =>
   , Effects.tick(Tick)
   ];
 
-const connect = (time, model) =>
+const connect = (model, time) =>
   ( [ merge
       ( model
       , { status: 'Loading'
@@ -120,7 +120,7 @@ const connect = (time, model) =>
   );
 
 // Invoked on End action and returns model with updated `timeStamp`:
-const loadEnd = (time, model) =>
+const loadEnd = (model, time) =>
   ( [ merge
       ( model
       , { status: 'Loaded'
@@ -134,7 +134,7 @@ const loadEnd = (time, model) =>
 
 // Update the progress and request another tick.
 // Returns a new model and a tick effect.
-const tick = (time, model) =>
+const animate = (model, time) =>
   ( [ merge
       ( model
       , { updateTime: time
@@ -148,7 +148,7 @@ const tick = (time, model) =>
     ]
   );
 
-const end = (time, model) =>
+const end = (model, time) =>
   ( [ merge
       ( model
       , { status: 'Idle'
@@ -161,6 +161,14 @@ const end = (time, model) =>
     , Effects.none
     ]
   );
+
+const tick = (model, time) =>
+  ( model.status === 'Idle'
+  ? [model, Effects.none]
+  : progress(model) < 1
+  ? animate(model, time)
+  : end(model, time)
+  )
 
 export const init =
   ()/*:[Model, Effects<Action>]*/ =>
@@ -184,13 +192,11 @@ export const update =
   : model == null
   ? start(model, action.time)
   : action.type === 'LoadEnd'
-  ? loadEnd(action.time, model)
+  ? loadEnd(model, action.time)
   : action.type === 'Connect'
-  ? connect(action.time, model)
-  : action.type === 'Tick' && progress(model) < 1
-  ? tick(action.time, model)
+  ? connect(model, action.time)
   : action.type === 'Tick'
-  ? end(action.time, model)
+  ? tick(model, action.time)
   : Unknown.update(model, action)
   );
 
