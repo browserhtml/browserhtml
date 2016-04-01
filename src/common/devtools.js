@@ -60,6 +60,10 @@ export const Restart/*:Action*/ =
   { type: "Restart"
   };
 
+export const Snapshot/*:Action*/ =
+  { type: "Snapshot"
+  };
+
 const Report = result =>
   ( { type: "Report"
     , result: result
@@ -134,6 +138,7 @@ const changeSetting = (model, {name, value}) =>
     .map(SettingsAction)
   ];
 
+
 const report =
   (model/*:Model*/, result/*:Result<any, any>*/)/*:[Model, Effects<Action>]*/ =>
   [ model
@@ -144,6 +149,16 @@ const report =
       .map(NoOP)
     )
   ];
+
+const snapshot =
+  (model) => {
+    const message = `\n\n${JSON.stringify(window.application.model.value)}\n\n`
+    const fx = Effects.task
+      (Unknown.log(message))
+      .map(NoOP);
+
+    return [model, fx];
+  }
 
 export const init =
   ({isActive}/*:{isActive:boolean}*/)/*:[Model, Effects<Action>]*/ => {
@@ -182,6 +197,9 @@ export const update =
 
   : action.type === 'Settings'
   ? updateSettings(model, action.action)
+
+  : action.type === 'Snapshot'
+  ? snapshot(model)
 
   : Unknown.update(model, action)
   );
