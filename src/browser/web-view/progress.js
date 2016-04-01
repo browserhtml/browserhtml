@@ -12,10 +12,12 @@ import type {LoadProgress, Time, Model, Action} from "./progress"
 import {Effects, html} from 'reflex';
 import {ease, easeOutQuart, float} from 'eased';
 import {StyleSheet, Style} from '../../common/style';
-import {merge} from '../../common/prelude';
+import {merge, always} from '../../common/prelude';
 import * as Unknown from '../../common/unknown';
 
 const second = 1000;
+
+const NoOp = always({ type: "NoOp" })
 
 export const Start =
   (time/*:Time*/)/*:Action*/ =>
@@ -164,7 +166,11 @@ const end = (model, time) =>
 
 const tick = (model, time) =>
   ( model.status === 'Idle'
-  ? [model, Effects.none]
+  ? [ model
+    , Effects.task
+      ( Unknown.warn(`Received Tick when progress was Idle`)
+      ).map(NoOp)
+    ]
   : progress(model) < 1
   ? animate(model, time)
   : end(model, time)
@@ -189,16 +195,22 @@ export const update =
   (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Start'
   ? start(model, action.time)
-  : model == null
-  ? start(model, action.time)
   : action.type === 'LoadEnd'
   ? loadEnd(model, action.time)
   : action.type === 'Connect'
   ? connect(model, action.time)
   : action.type === 'Tick'
   ? tick(model, action.time)
+  : action.type === 'NoOp'
+  ? nofx(model)
   : Unknown.update(model, action)
   );
+
+const nofx =
+  model =>
+  [ model
+  , Effects.none
+  ]
 
 const style = StyleSheet.create({
   bar: {
