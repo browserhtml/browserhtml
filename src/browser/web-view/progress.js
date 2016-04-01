@@ -168,7 +168,7 @@ const tick = (model, time) =>
   ( model.status === 'Idle'
   ? [ model
     , Effects.task
-      ( Unknown.warn(`Received Tick when progress was Idle`)
+      ( Unknown.warn(`Received Tick when progress was Idle: https://github.com/servo/servo/issues/10322`)
       ).map(NoOp)
     ]
   : progress(model) < 1
