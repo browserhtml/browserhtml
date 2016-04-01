@@ -12,10 +12,12 @@ import type {LoadProgress, Time, Model, Action} from "./progress"
 import {Effects, html} from 'reflex';
 import {ease, easeOutQuart, float} from 'eased';
 import {StyleSheet, Style} from '../../common/style';
-import {merge} from '../../common/prelude';
+import {merge, always} from '../../common/prelude';
 import * as Unknown from '../../common/unknown';
 
 const second = 1000;
+
+const NoOp = always({ type: "NoOp" })
 
 export const Start =
   (time/*:Time*/)/*:Action*/ =>
@@ -108,7 +110,7 @@ const start = (model, time) =>
   , Effects.tick(Tick)
   ];
 
-const connect = (time, model) =>
+const connect = (model, time) =>
   ( [ merge
       ( model
       , { status: 'Loading'
@@ -120,7 +122,7 @@ const connect = (time, model) =>
   );
 
 // Invoked on End action and returns model with updated `timeStamp`:
-const loadEnd = (time, model) =>
+const loadEnd = (model, time) =>
   ( [ merge
       ( model
       , { status: 'Loaded'
@@ -134,7 +136,7 @@ const loadEnd = (time, model) =>
 
 // Update the progress and request another tick.
 // Returns a new model and a tick effect.
-const tick = (time, model) =>
+const animate = (model, time) =>
   ( [ merge
       ( model
       , { updateTime: time
@@ -148,7 +150,7 @@ const tick = (time, model) =>
     ]
   );
 
-const end = (time, model) =>
+const end = (model, time) =>
   ( [ merge
       ( model
       , { status: 'Idle'
@@ -161,6 +163,18 @@ const end = (time, model) =>
     , Effects.none
     ]
   );
+
+const tick = (model, time) =>
+  ( model.status === 'Idle'
+  ? [ model
+    , Effects.task
+      ( Unknown.warn(`Received Tick when progress was Idle: https://github.com/servo/servo/issues/10322`)
+      ).map(NoOp)
+    ]
+  : progress(model) < 1
+  ? animate(model, time)
+  : end(model, time)
+  )
 
 export const init =
   ()/*:[Model, Effects<Action>]*/ =>
@@ -181,18 +195,22 @@ export const update =
   (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Start'
   ? start(model, action.time)
-  : model == null
-  ? start(model, action.time)
   : action.type === 'LoadEnd'
-  ? loadEnd(action.time, model)
+  ? loadEnd(model, action.time)
   : action.type === 'Connect'
-  ? connect(action.time, model)
-  : action.type === 'Tick' && progress(model) < 1
-  ? tick(action.time, model)
+  ? connect(model, action.time)
   : action.type === 'Tick'
-  ? end(action.time, model)
+  ? tick(model, action.time)
+  : action.type === 'NoOp'
+  ? nofx(model)
   : Unknown.update(model, action)
   );
+
+const nofx =
+  model =>
+  [ model
+  , Effects.none
+  ]
 
 const style = StyleSheet.create({
   bar: {
