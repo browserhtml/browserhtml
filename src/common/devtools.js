@@ -152,16 +152,7 @@ const report =
 
 const snapshot =
   (model) => {
-    const id = Date.now().toString(32)
-    const message =
-      [ `\n\n`
-        , `echo '${JSON.stringify(window.application.model.value)}' > `
-        , `./dist/snapshot-${id}.json`
-        , ` && `
-        , `servo -w -b --pref dom.mozbrowser.enabled http://localhost:6060\?replay\=snapshot-${id}.json`
-        , `\n\n`
-      ].join('')
-
+    const message = `\n\n${JSON.stringify(window.application.model.value)}\n\n`
     const fx = Effects.task
       (Unknown.log(message))
       .map(NoOP);

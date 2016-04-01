@@ -7,6 +7,7 @@
 import "babel-polyfill";
 import {start, Effects} from "reflex";
 import * as UI from "./perspective-ui";
+import {playback} from '../devtools/playback';
 import {version} from "../../package.json";
 import * as Config from "../../browserhtml.json";
 import * as Runtime from "../common/runtime";
@@ -43,49 +44,36 @@ if (isReload) {
 document.body.classList.toggle('use-native-titlebar',
                                Runtime.useNativeTitlebar());
 
-const replay =
-  () => {
-    const request = new XMLHttpRequest();
-    // We use sync XHR as we have nothing else to render otherwise.
-    request.open
-    ( 'GET'
-    , String(Runtime.env.replay)
-    , false
-    );
-    request.overrideMimeType('text/plain');
-    request.send();
-
-    if (request.status === 200 || request.status === 0) {
-      return [JSON.parse(request.responseText), Effects.none]
-    }
-    else {
-      return UI.init()
-    }
-  }
-
 const restore =
   () =>
   [ window.application.model.value
   , Effects.none
   ]
 
+const middleware =
+  ( isReplay
+  ? playback
+  : x => x
+  )
 
-const application = start({
-  flags: void(0),
-  init:
-  ( isReload
-  ? restore
-  : isReplay
-  ? replay
-  : UI.init
-  ),
-  update:
-  ( Config.logging
-  ? logger(UI.update)
-  : UI.update
-  ),
-  view: UI.view
-});
+
+const application = start
+  ( middleware
+    ( { flags: void(0)
+      , init:
+        ( isReload
+        ? restore
+        : UI.init
+        )
+      , update:
+        ( Config.logging
+        ? logger(UI.update)
+        : UI.update
+        )
+      , view: UI.view
+      }
+    )
+  );
 
 
 
