@@ -87,6 +87,14 @@ export const Focus/*:Action*/ =
   { type: 'Focus'
   };
 
+export const PushDown/*:Action*/ =
+  { type: 'PushDown'
+  };
+
+export const PushedDown/*:Action*/ =
+  { type: 'PushedDown'
+  };
+
 export const Load =
   (uri/*:URI*/)/*:Action*/ =>
   ( { type: 'Load'
@@ -527,6 +535,11 @@ export const update =
   : action.type === "Close"
   ? close(model)
 
+  // Force push actions.
+  // We forward these up to WebViews.
+  : action.type === "PushDown"
+  ? [ model, Effects.receive(PushedDown) ]
+
   // Animation
   : action.type === "SelectAnimation"
   ? updateSelectAnimation(model, action.action)
@@ -751,6 +764,10 @@ const viewFrame = (model, address) =>
     onBlur: on(address, always(BlurShell)),
     onFocus: on(address, always(FocusShell)),
     // onMozbrowserAsyncScroll: on(address, decodeAsyncScroll),
+    // @TODO send force changed actions and update webviews animation code
+    // to respond live 1:1 with push.
+    // onServoMouseForceChanged: on(address, decodeForceChanged),
+    onServoMouseForceDown: on(address, decodeForceDown),
     onMozBrowserClose: on(address, always(Close)),
     onMozBrowserOpenWindow: on(address, decodeOpenWindow),
     onMozBrowserOpenTab: on(address, decodeOpenTab),
@@ -975,3 +992,5 @@ const decodeScrollAreaChange = ({detail, target}) =>
 const decodeSecurityChange =
   ({detail: {state, extendedValidation}}) =>
   SecurityChanged(state, extendedValidation);
+
+const decodeForceDown = always(PushDown);
