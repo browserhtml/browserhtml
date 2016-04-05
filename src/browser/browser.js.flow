@@ -64,6 +64,8 @@ export type Action =
   | { type: "Escape" }
   | { type: "Unload" }
   | { type: "ReloadRuntime" }
+  | { type: "PrintSnapshot" }
+  | { type: "PublishSnapshot" }
   | { type: "WebViews", source: WebViews.Action }
   | { type: "Input", source: Input.Action }
   | { type: "Sidebar", action: Sidebar.Action }

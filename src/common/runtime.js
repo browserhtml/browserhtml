@@ -183,7 +183,7 @@ const Env =
     const env = Object.create(null);
     const url = URL.parse(window.location.href);
     const params = url.searchParams;
-    // @Hack: On servo searchParams don't show up.
+    // @Hack: On servo searchParams don't show up (See  servo/servo#10335)
     if (params == null) {
       return QueryString.parse(url.search.substr(1));
     }

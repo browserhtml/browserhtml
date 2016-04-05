@@ -364,7 +364,8 @@ const CloseWebViewByID =
 // there for we define them by just wrapping actions from that module to avoid
 // additional wiring (which is implementation detail that may change).
 export const ToggleDevtools = DevtoolsAction(Devtools.Toggle);
-const Snapshot = DevtoolsAction(Devtools.Snapshot);
+const PrintSnapshot = { type: "PrintSnapshot" };
+const PublishSnapshot = { type: "PublishSnapshot" };
 export const Blur = ShellAction(Shell.Blur);
 export const Focus = ShellAction(Shell.Focus);
 
@@ -439,7 +440,8 @@ const decodeKeyDown = Keyboard.bindings({
   'F12': always(ToggleDevtools),
   'F5': always(ReloadRuntime),
   'meta control r': always(ReloadRuntime),
-  'meta alt 3': always(Snapshot)
+  'meta alt 3': always(PrintSnapshot),
+  'meta alt 4': always(PublishSnapshot)
 });
 
 const decodeKeyUp = Keyboard.bindings({
@@ -786,6 +788,10 @@ export const update =
 
   // Ignore some actions.
   : action.type === 'Reloaded'
+  ? [model, Effects.none]
+  : action.type === 'PrintSnapshot'
+  ? [model, Effects.none]
+  : action.type === 'UploadSnapshot'
   ? [model, Effects.none]
   // TODO: Delegate to modules that need to do cleanup.
   : action.type === 'LiveReload'

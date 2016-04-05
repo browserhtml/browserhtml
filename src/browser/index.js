@@ -7,33 +7,13 @@
 import "babel-polyfill";
 import {start, Effects} from "reflex";
 import * as UI from "./perspective-ui";
-import {playback} from '../devtools/playback';
 import {version} from "../../package.json";
 import * as Config from "../../browserhtml.json";
 import * as Runtime from "../common/runtime";
 import {Renderer} from "driver";
-
-
-const logger = (update) => (model, action) => {
-  console.log('>>> Action:', action);
-
-  if (console.group != null) {
-    console.group();
-  }
-
-  const out = update(model, action);
-
-  if (console.groupEnd != null) {
-    console.groupEnd();
-  }
-
-  console.log('<<< Model:', out[0])
-  console.log('<<< Effects:', out[1]);
-  return out;
-}
+import * as Devtools from "../devtools"
 
 const isReload = window.application != null;
-const isReplay = Runtime.env.replay != null;
 
 // If hotswap change address so it points to a new mailbox &r
 // re-render.
@@ -50,29 +30,16 @@ const restore =
   , Effects.none
   ]
 
-const middleware =
-  ( isReplay
-  ? playback
-  : x => x
-  )
-
 
 const application = start
-  ( middleware
-    ( { flags: void(0)
-      , init:
-        ( isReload
-        ? restore
-        : UI.init
-        )
-      , update:
-        ( Config.logging
-        ? logger(UI.update)
-        : UI.update
-        )
-      , view: UI.view
+  ( { flags:
+      { Debuggee: UI
+      , flags: void(0)
       }
-    )
+    , init: Devtools.init
+    , update: Devtools.update
+    , view: Devtools.view
+    }
   );
 
 
