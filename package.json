@@ -14,6 +14,7 @@
   "browser": {
     "driver": "./src/driver/virtual-dom/index.js"
   },
+  "main": "./main.js",
   "scripts": {
     "develop": "gulp develop",
     "start": "gulp live",
