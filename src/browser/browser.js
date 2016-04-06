@@ -811,6 +811,7 @@ const styleSheet = StyleSheet.create({
     overflow: 'hidden',
     position: 'absolute',
     MozWindowDragging: 'drag',
+    WebkitAppRegion: 'drag'
   },
   content: {
     position: 'absolute',

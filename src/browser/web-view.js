@@ -588,7 +588,8 @@ const styleSheet = StyleSheet.create({
     mozUserSelect: 'none', // necessary to pass text drag to iframe's content
     borderWidth: 0,
     backgroundColor: 'white',
-    MozWindowDragging: 'no-drag'
+    MozWindowDragging: 'no-drag',
+    WebkitAppRegion: 'no-drag'
   },
 
   topbar: {
@@ -602,6 +603,7 @@ const styleSheet = StyleSheet.create({
 
   combobox: {
     MozWindowDragging: 'no-drag',
+    WebkitAppRegion: 'no-drag',
     position: 'absolute',
     left: '50%',
     top: 0,
@@ -655,6 +657,7 @@ const styleSheet = StyleSheet.create({
 
   iconShowTabs: {
     MozWindowDragging: 'no-drag',
+    WebkitAppRegion: 'no-drag',
     backgroundImage: 'url(css/hamburger.sprite.png)',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: '0 0',
@@ -674,6 +677,7 @@ const styleSheet = StyleSheet.create({
 
   iconCreateTab: {
     MozWindowDragging: 'no-drag',
+    WebkitAppRegion: 'no-drag',
     color: 'rgba(0,0,0,0.8)',
     fontFamily: 'FontAwesome',
     fontSize: '18px',

@@ -60,6 +60,7 @@ const tabHeight = '32px';
 const styleSheet = Style.createSheet({
   base: {
     MozWindowDragging: 'no-drag',
+    WebkitAppRegion: 'no-drag',
     borderRadius: '5px',
     height: tabHeight,
     color: '#fff',
