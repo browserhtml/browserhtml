@@ -45,13 +45,14 @@ export const NavigateTo =
 // ### Open WebView
 
 export const Open =
-  ({uri, inBackground, name, features}/*:WebView.Options*/)/*:Action*/ =>
+  ({uri, disposition, name, features, ref}/*:WebView.Options*/)/*:Action*/ =>
   ( { type: "Open"
     , options:
       { uri
-      , inBackground: Boolean(inBackground)
-      , name: name == null ? '' : name
-      , features: features == null ? '' : features
+      , disposition
+      , name
+      , features
+      , ref
       }
     }
   );
@@ -145,7 +146,7 @@ const ActiveWebViewAction = action =>
 // not anotated instead they produce special actions recognized by this module.
 const WebViewAction =
   (id, action) =>
-  ( action.type === "Open!WithMyIFrameAndInTheCurrentTick"
+  ( action.type === "Open"
   ? action
   : action.type === "Selected"
   ? Selected(id)
@@ -267,8 +268,12 @@ const navigateTo = (model, uri) =>
   // If there are 0 web-views open we open a first one.
   ? open
     ( model
-    , {uri, inBackground: false, name: '', features: '' }
-    , false
+    , { uri
+      , disposition: 'default'
+      , name: ''
+      , features: ''
+      , ref: null
+      }
     )
   // Otherwise we load given `uri` into active one.
   : load(model, uri)
@@ -281,7 +286,7 @@ const load = (model, uri) =>
 
 // ### Open WebView
 
-const open = (model, options, isForced=false) => {
+const open = (model, options) => {
   const id = String(model.nextID);
   const [ entry, initFX ] = WebView.init(id, options);
 
@@ -298,7 +303,7 @@ const open = (model, options, isForced=false) => {
   // Next state is a resulting state which matches intermidate state
   // cumputed earlier or it's a version with selection changes.
   const [ next, activateFX ] =
-    ( options.inBackground
+    ( options.disposition === 'background-tab'
     ? [ intermidate, Effects.none ]
     : activateByID(intermidate, id)
     );
@@ -308,7 +313,7 @@ const open = (model, options, isForced=false) => {
     , Effects.batch
       ( [ initFX.map(ByID(id))
         , activateFX
-        , ( isForced
+        , ( options.ref != null
           ? Driver.force
           : Effects.none
           )
@@ -593,9 +598,7 @@ export const update =
   // Open web-view
 
   : action.type === "Open"
-  ? open(model, action.options, false)
-  : action.type === "Open!WithMyIFrameAndInTheCurrentTick"
-  ? open(model, action.options, true)
+  ? open(model, action.options)
 
   // Close web-view
   : action.type === "CloseActive"

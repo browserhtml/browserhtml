@@ -61,7 +61,7 @@ export const mix = (...styles/*:Array<?Rules>*/)/*:Rules*/ => {
   }
 
   const composedStyle = id !== null ?
-    composedStyles[id] :
+    composedStyles[id/*::.toString()*/] :
     null;
 
   if (composedStyle != null) {
@@ -71,7 +71,7 @@ export const mix = (...styles/*:Array<?Rules>*/)/*:Rules*/ => {
     const composedStyle = Object.assign({}, ...styles);
     // @FlowIssue: Flow does not get spread here.
     composedStyle[ID] = id;
-    composedStyles[id] = composedStyle;
+    composedStyles[id/*::.toString()*/] = composedStyle;
     return composedStyle;
   }
   else {

@@ -2,17 +2,22 @@
 
 import {Effects} from "reflex"
 
+export type State =
+  | "broken"
+  | "secure"
+  | "insecure"
 
 export type Model =
-  { state: string
+  { state: State
   , secure: boolean
   , extendedValidation: boolean
   }
 
+
 export type Action =
   | { type: "LoadStart" }
-  | { type: "Changed"
-    , state: string
+  | { type: "SecurityChanged"
+    , state: State
     , extendedValidation: boolean
     }
 

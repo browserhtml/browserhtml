@@ -72,12 +72,12 @@ export const isServo/*:boolean*/ =
   .toLowerCase()
   .indexOf(' servo') != -1
 
-export const isElector/*:boolean*/ =
+export const isElectron/*:boolean*/ =
   window
   .navigator
   .userAgent
   .toLowerCase()
-  .indexOf(' Electron') != -1
+  .indexOf(' electron') != -1
 
 export const never/*:Task<Never, any>*/ =
   new Task(succeed => void(0));

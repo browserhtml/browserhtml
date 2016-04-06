@@ -10,6 +10,7 @@ import {merge, always, batch} from '../common/prelude';
 import {cursor} from '../common/cursor';
 import {compose} from '../lang/functional';
 import {on} from 'driver';
+import {isElectron} from "../common/runtime";
 import * as Shell from './web-view/shell';
 import * as Progress from './web-view/progress';
 import * as Navigation from './web-view/navigation';
@@ -24,6 +25,9 @@ import * as Driver from 'driver';
 import * as URL from '../common/url-helper';
 import * as Focusable from '../common/focusable';
 import * as Easing from 'eased';
+import * as MozBrowserFrame from './web-view/moz-browser-frame';
+import * as ElectronFrame from './web-view/electron-frame';
+
 
 /*::
 import type {Address, DOM} from "reflex"
@@ -31,6 +35,7 @@ import type {ID, URI, Time, Display, Options, Model, Action} from "./web-view"
 import {performance} from "../common/performance"
 */
 
+const NoOp = always({ type: "NoOp" });
 export const Select/*:Action*/ =
   { type: "Select"
   };
@@ -94,52 +99,12 @@ export const Load =
     }
   );
 
-export const OpenSyncWithMyIFrame =
-  ({frameElement, uri, name, features}/*:Options*/)/*:Action*/ => {
-    Driver.element.use(frameElement);
-    return {
-      type: "Open!WithMyIFrameAndInTheCurrentTick"
-    , isForced: true
-    , options: {uri, name, features, inBackground: false, frameElement: null}
-    };
-  };
-
-export const ModalPrompt =
-  (detail/*:any*/)/*:Action*/ =>
-  ({type: "ModalPrompt", detail});
-
-export const Authentificate =
-  (detail/*:any*/)/*:Action*/ =>
-  ({type: "Authentificate", detail});
-
-export const ReportError =
-  (detail/*:any*/)/*:Action*/ =>
-  ({type: "Error", detail});
-
-export const LoadStart =
-  (time/*:Time*/)/*:Action*/ =>
-  ({type: 'LoadStart', time});
-
-export const LoadEnd =
-  (time/*:Time*/)/*:Action*/ =>
-  ({type: 'LoadEnd', time});
-
-export const LocationChanged =
-  (uri/*:URI*/, canGoBack/*:?boolean*/, canGoForward/*:?boolean*/, time/*:Time*/)/*:Action*/ =>
-  ({type: 'LocationChanged', uri, canGoBack, canGoForward, time});
-
-export const ContextMenu =
-  (detail/*:any*/)/*:Action*/ =>
-  ({type: "ContextMenu", detail});
 
 const ShellAction = action =>
   ( { type: 'Shell'
     , shell: action
     }
   );
-
-const FocusShell = ShellAction(Shell.Focus);
-const BlurShell = ShellAction(Shell.Blur);
 
 export const ZoomIn/*:Action*/ = ShellAction(Shell.ZoomIn);
 export const ZoomOut/*:Action*/ = ShellAction(Shell.ZoomOut);
@@ -164,7 +129,10 @@ export const GoForward/*:Action*/ =
   NavigationAction(Navigation.GoForward);
 
 const SecurityAction = action =>
-  ({type: 'Security', action});
+  ( { type: 'Security'
+    , security: action
+    }
+  );
 
 const SecurityChanged =
   compose
@@ -174,7 +142,7 @@ const SecurityChanged =
 
 
 const PageAction = action =>
-  ({type: "Page", action});
+  ({type: "Page", page: action});
 
 const FirstPaint = PageAction(Page.FirstPaint);
 const DocumentFirstPaint = PageAction(Page.DocumentFirstPaint);
@@ -216,8 +184,12 @@ const TabAction = action =>
     }
   );
 
-const ProgressAction/*type.ProgressAction*/ = action =>
-  ({type: "Progress", action});
+const ProgressAction =
+  action =>
+  ( { type: "Progress"
+    , progress: action
+    }
+  );
 
 const SelectAnimationAction = action =>
   ( action.type === "End"
@@ -231,16 +203,7 @@ const updateProgress = cursor
   ( { get: model => model.progress
     , set: (model, progress) => merge(model, {progress})
     , tag: ProgressAction
-    , update: (model, action) =>
-        Progress.update
-        ( model
-        , ( action.type === "LoadStart"
-          ? Progress.Start(action.time)
-          : action.type === "LoadEnd"
-          ? Progress.LoadEnd(action.time)
-          : action
-          )
-        )
+    , update: Progress.update
     }
   );
 
@@ -249,16 +212,7 @@ const updatePage = cursor
   ( { get: model => model.page
     , set: (model, page) => merge(model, {page})
     , tag: PageAction
-    , update: (model, action) =>
-        Page.update
-        ( model
-        , ( action.type === "LoadStart"
-          ? Page.LoadStart
-          : action.type === "LoadEnd"
-          ? Page.LoadEnd
-          : action
-          )
-        )
+    , update: Page.update
     }
   );
 
@@ -329,7 +283,7 @@ const updateSelectAnimation = (model, action) => {
 
 export const init =
   (id/*:ID*/, options/*:Options*/)/*:[Model, Effects<Action>]*/ => {
-  const [shell, shellFx] = Shell.init(id, !options.inBackground);
+  const [shell, shellFx] = Shell.init(id, options.disposition !== 'background-tab');
   const [navigation, navigationFx] = Navigation.init(id, options.uri);
   const [page, pageFx] = Page.init(options.uri);
   const [security, securityFx] = Security.init();
@@ -506,6 +460,8 @@ export const update =
   ? deactivated(model)
   : action.type === "Focus"
   ? focus(model)
+  : action.type === "Blur"
+  ? updateShell(model, action)
 
   : action.type === 'Load'
   ? load(model, action.uri)
@@ -524,6 +480,20 @@ export const update =
   : action.type === "LocationChanged"
   ? changeLocation(model, action.uri, action.canGoBack, action.canGoForward)
 
+  : action.type === "SecurityChanged"
+  ? updateSecurity(model, action)
+  : action.type === "TitleChanged"
+  ? updatePage(model, action)
+  : action.type === "IconChanged"
+  ? updatePage(model, action)
+  : action.type === "MetaChanged"
+  ? updatePage(model, action)
+  : action.type === "LoadFail"
+  ? [ model
+    , Effects.task(Unknown.warn(action))
+      .map(NoOp)
+    ]
+
   : action.type === "Close"
   ? close(model)
 
@@ -534,15 +504,15 @@ export const update =
   // Delegate
 
   : action.type === "Progress"
-  ? updateProgress(model, action.action)
+  ? updateProgress(model, action.progress)
   : action.type === "Shell"
   ? updateShell(model, action.shell)
   : action.type === "Page"
-  ? updatePage(model, action.action)
+  ? updatePage(model, action.page)
   : action.type === "Tab"
   ? updateTab(model, action.source)
   : action.type === "Security"
-  ? updateSecurity(model, action.action)
+  ? updateSecurity(model, action.security)
   : action.type === "Navigation"
   ? updateNavigation(model, action.navigation)
 
@@ -578,8 +548,7 @@ const styleSheet = StyleSheet.create({
     zIndex: 1
   },
 
-  iframe: {
-    display: 'block', // iframe are inline by default
+  base: {
     position: 'absolute',
     top: topBarHeight,
     left: 0,
@@ -589,7 +558,7 @@ const styleSheet = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: 'white',
     MozWindowDragging: 'no-drag',
-    WebkitAppRegion: 'no-drag'
+    WebkitAppRegion: 'no-drag',
   },
 
   topbar: {
@@ -723,57 +692,11 @@ const styleSheet = StyleSheet.create({
   }
 });
 
-const viewFrame = (model, address) =>
-  html.iframe({
-    id: `web-view-${model.id}`,
-    src: model.navigation.initiatedURI,
-    'data-current-uri': model.navigation.currentURI,
-    'data-name': model.name,
-    'data-features': model.features,
-    element: Driver.element,
-    style: Style(styleSheet.iframe
-                , ( model.page.pallet.background != null
-                  ? { backgroundColor: model.page.pallet.background }
-                  : null
-                  )
-                ),
-    attributes: {
-      mozbrowser: true,
-      remote: true,
-      mozapp: URL.isPrivileged(model.navigation.currentURI) ?
-                URL.getManifestURL().href :
-                void(0),
-      mozallowfullscreen: true
-    },
-    // isVisible: visiblity(model.isActive),
-    // zoom: zoom(model.shell.zoom),
-
-    isFocused: Driver.focus(model.shell.isFocused),
-
-    // Events
-
-    onBlur: on(address, always(BlurShell)),
-    onFocus: on(address, always(FocusShell)),
-    // onMozbrowserAsyncScroll: on(address, decodeAsyncScroll),
-    onMozBrowserClose: on(address, always(Close)),
-    onMozBrowserOpenWindow: on(address, decodeOpenWindow),
-    onMozBrowserOpenTab: on(address, decodeOpenTab),
-    onMozBrowserContextMenu: on(address, decodeContexMenu),
-    onMozBrowserError: on(address, decodeError),
-    onMozBrowserLoadStart: on(address, decodeLoadStart),
-    onMozBrowserConnected: on(address, decodeConnected),
-    onMozBrowserLoadEnd: on(address, decodeLoadEnd),
-    onMozBrowserFirstPaint: on(address, decodeFirstPaint),
-    onMozBrowserDocumentFirstPaint: on(address, decodeDocumentFirstPaint),
-    onMozBrowserMetaChange: on(address, decodeMetaChange),
-    onMozBrowserIconChange: on(address, decodeIconChange),
-    onMozBrowserLocationChange: on(address, decodeLocationChange),
-    onMozBrowserSecurityChange: on(address, decodeSecurityChange),
-    onMozBrowserTitleChange: on(address, decodeTitleChange),
-    onMozBrowserShowModalPrompt: on(address, decodeModalPrompt),
-    onMozBrowserUserNameAndPasswordRequired: on(address, decodeAuthenticate),
-    onMozBrowserScrollAreaChanged: on(address, decodeScrollAreaChange),
-  });
+const Frame =
+  ( isElectron
+  ? ElectronFrame
+  : MozBrowserFrame
+  );
 
 export const view =
   (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ => {
@@ -795,7 +718,7 @@ export const view =
       , model.display
       )
     }
-  , [ viewFrame(model, address)
+  , [ Frame.view(styleSheet, model, address)
     , html.div
       ( { className: 'webview-topbar'
         , style: Style
@@ -897,85 +820,3 @@ export const view =
     ]
   );
 };
-
-
-const decodeClose = always(Close);
-
-// TODO: Figure out what's in detail
-const decodeDetail = ({detail}) => detail;
-const decodeTime = ({detail}) => performance.now();
-
-// Detail is different in each case, so we define a special reader function
-// for this particular case.
-const decodeOpenDetail = ({detail}) =>
-  ( { frameElement: detail.frameElement
-    // Change url to uri for naming consistency.
-    , uri: detail.url
-    , name: detail.name
-    , features: detail.features
-    }
-  );
-
-const decodeOpenWindow = compose(OpenSyncWithMyIFrame, decodeOpenDetail);
-const decodeOpenTab = compose(OpenSyncWithMyIFrame, decodeOpenDetail);
-
-
-const decodeContexMenu = compose(ContextMenu, decodeDetail);
-
-// TODO: Figure out what's in detail
-const decodeModalPrompt = compose(ModalPrompt, decodeDetail);
-
-// TODO: Figure out what's in detail
-const decodeAuthenticate = compose(Authentificate, decodeDetail);
-
-// TODO: Figure out what's in detail
-const decodeError = compose(ReportError, decodeDetail);
-
-// Navigation
-
-const decodeLocationChange = ({detail}) =>
-  // Servo and Gecko have different implementation of detail.
-  // In Gecko, detail is a string (the uri).
-  // In Servo, detail is an object {uri,canGoBack,canGoForward}
-  ( typeof detail === 'string'
-  ? LocationChanged(detail, null, null, performance.now())
-  : LocationChanged
-    ( detail.uri
-    , detail.canGoBack
-    , detail.canGoForward
-    , performance.now()
-    )
-  );
-
-// Progress
-
-// @TODO This is not ideal & we should probably convert passed `timeStamp` to
-// the same format as `performance.now()` so that time passed through animation
-// frames is in the same format, but for now we just call `performance.now()`.
-
-const decodeLoadStart = compose(LoadStart, decodeTime);
-
-const decodeConnected = compose(Progress.Connect, decodeTime);
-
-const decodeLoadEnd = compose(LoadEnd, decodeTime);
-
-// Page
-
-const decodeFirstPaint = always(FirstPaint);
-const decodeDocumentFirstPaint = always(DocumentFirstPaint);
-const decodeTitleChange = compose(TitleChanged, decodeDetail);
-const decodeIconChange = compose(IconChanged, decodeDetail);
-
-const decodeMetaChange = ({detail: {name, content}}) =>
-  MetaChanged(name, content);
-
-// TODO: Figure out what's in detail
-const decodeAsyncScroll = ({detail}) =>
-  Scrolled(detail);
-
-const decodeScrollAreaChange = ({detail, target}) =>
-  OverflowChanged(detail.height > target.parentNode.clientHeight);
-
-const decodeSecurityChange =
-  ({detail: {state, extendedValidation}}) =>
-  SecurityChanged(state, extendedValidation);

@@ -34,9 +34,8 @@ export type Action =
   | { type: "VisibilityChanged"
     , visibilityResult: any //Result<Error, boolean>
     }
-  | { type: "Focusable"
-    , action: Focusable.Action
-    }
+  | { type: "Focus" }
+  | { type: "Blur" }
 
 declare export var ZoomIn:Action
 declare export var ZoomOut:Action

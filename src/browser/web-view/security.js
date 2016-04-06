@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /*::
-import type {Model, Action} from './security'
+import type {Model, Action, State} from './security'
 */
 
 import {Effects} from 'reflex';
@@ -17,8 +17,8 @@ export const LoadStart/*:Action*/ =
   };
 
 export const Changed =
-  (state/*:string*/, extendedValidation/*:boolean*/)/*:Action*/ =>
-  ( { type: "Changed"
+  (state/*:State*/, extendedValidation/*:boolean*/)/*:Action*/ =>
+  ( { type: "SecurityChanged"
     , state
     , extendedValidation
     }
@@ -45,7 +45,7 @@ export const update =
       )
     , Effects.none
     ]
-  : action.type === 'Changed'
+  : action.type === 'SecurityChanged'
   ? [ merge
       ( model
       , { state: action.state

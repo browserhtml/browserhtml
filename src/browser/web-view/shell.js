@@ -37,8 +37,8 @@ const FocusableAction =
   action =>
   ({type: "Focusable", action});
 
-export const Focus/*:Action*/ = FocusableAction(Focusable.Focus);
-export const Blur/*:Action*/ = FocusableAction(Focusable.Blur);
+export const Focus/*:Action*/ = Focusable.Focus;
+export const Blur/*:Action*/ = Focusable.Blur;
 
 const NoOp = always({type: "NoOp"});
 
@@ -111,11 +111,7 @@ const report =
   });
 
 
-const updateFocus = cursor
-  ( { update: Focusable.update
-    , tag: FocusableAction
-    }
-  );
+const updateFocus = Focusable.update;
 
 export const init =
   (id/*:ID*/, isFocused/*:boolean*/)/*:[Model, Effects<Action>]*/ =>
@@ -180,8 +176,10 @@ export const update =
     )
 
   // Delegate
-  : action.type === 'Focusable'
-  ? updateFocus(model, action.action)
+  : action.type === 'Focus'
+  ? updateFocus(model, action)
+  : action.type === 'Blur'
+  ? updateFocus(model, action)
 
   : [model, Effects.none]
   );
