@@ -5,37 +5,37 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-import {version} from "../../package.json";
-import * as Config from "../../browserhtml.json";
+import {version} from "../package.json";
+import * as Config from "../browserhtml.json";
 import {Effects, html, forward, thunk} from "reflex";
 
-import * as Shell from "./shell";
-import * as Input from "./input";
-import * as Assistant from "./assistant";
-import * as Sidebar from './sidebar';
-import * as WebViews from "./web-views";
-import * as Overlay from './overlay';
+import * as Shell from "./browser/shell";
+import * as Input from "./browser/input";
+import * as Assistant from "./browser/assistant";
+import * as Sidebar from './browser/sidebar';
+import * as WebViews from "./browser/web-views";
+import * as Overlay from './browser/overlay';
 
-import * as Devtools from "../common/devtools";
-import * as Runtime from "../common/runtime";
-import * as URL from '../common/url-helper';
-import * as Unknown from "../common/unknown";
-import * as Focusable from "../common/focusable";
-import * as OS from '../common/os';
-import * as Keyboard from '../common/keyboard';
-import * as Stopwatch from "../common/stopwatch";
+import * as Devtools from "./common/devtools";
+import * as Runtime from "./common/runtime";
+import * as URL from './common/url-helper';
+import * as Unknown from "./common/unknown";
+import * as Focusable from "./common/focusable";
+import * as OS from './common/os';
+import * as Keyboard from './common/keyboard';
+import * as Stopwatch from "./common/stopwatch";
 import * as Easing from "eased";
-import {merge, always, batch, tag, tagged} from "../common/prelude";
-import {cursor} from "../common/cursor";
-import {Style, StyleSheet} from '../common/style';
+import {merge, always, batch, tag, tagged} from "./common/prelude";
+import {cursor} from "./common/cursor";
+import {Style, StyleSheet} from './common/style';
 
-import {identity, compose} from "../lang/functional";
+import {identity, compose} from "./lang/functional";
 
 import {onWindow} from "driver";
 
 /*::
 import type {Address, DOM} from "reflex"
-import type {URI} from "../common/prelude"
+import type {URI} from "./common/prelude"
 import type {Model, Action} from "./browser"
 */
 

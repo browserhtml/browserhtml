@@ -6,15 +6,15 @@
 
 import {Effects} from "reflex"
 import type {Address, DOM} from "reflex"
-import type {URI, ID, Version} from "../common/prelude"
-import * as Shell from "./shell";
-import * as Input from "./input";
-import * as Assistant from "./assistant";
-import * as Sidebar from './sidebar';
-import * as WebViews from "./web-views";
-import * as Overlay from './overlay';
-import * as Devtools from "../common/devtools";
-import * as Stopwatch from "../common/stopwatch"
+import type {URI, ID, Version} from "./common/prelude"
+import * as Shell from "./browser/shell";
+import * as Input from "./browser/input";
+import * as Assistant from "./browser/assistant";
+import * as Sidebar from './browser/sidebar';
+import * as WebViews from "./browser/web-views";
+import * as Overlay from './browser/overlay';
+import * as Devtools from "./common/devtools";
+import * as Stopwatch from "./common/stopwatch"
 
 export type Mode =
   | 'create-web-view'

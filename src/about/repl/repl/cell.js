@@ -5,10 +5,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, forward, Effects} from 'reflex';
-import {merge, batch, tag, tagged} from "../../common/prelude";
-import {Style, StyleSheet} from '../../common/style';
-import * as Unknown from '../../common/unknown';
-import {cursor} from '../../common/cursor';
+import {merge, batch, tag, tagged} from "../../../common/prelude";
+import {Style, StyleSheet} from '../../../common/style';
+import * as Unknown from '../../../common/unknown';
+import {cursor} from '../../../common/cursor';
 import * as Input from './input';
 import * as Output from './output';
 

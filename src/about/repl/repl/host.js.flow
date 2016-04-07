@@ -6,7 +6,7 @@
 
 import {Effects, Task} from "reflex"
 import type {Never, Address, DOM} from "reflex"
-import type {Result} from "../../common/result"
+import type {Result} from "../../../common/result"
 
 export type ID = string
 

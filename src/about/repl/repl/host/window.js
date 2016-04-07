@@ -5,8 +5,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, forward, Effects, Task} from 'reflex';
-import {merge, batch, tag, tagged} from "../../../common/prelude";
-import {ok, error} from "../../../common/result";
+import {merge, batch, tag, tagged} from "../../../../common/prelude";
+import {ok, error} from "../../../../common/result";
 
 /*::
 import type {ID, EvaluationResult} from "../host"

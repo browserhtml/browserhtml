@@ -6,7 +6,7 @@
 
 import {Effects} from "reflex"
 import type {Address, DOM} from "reflex"
-import type {URI} from "../common/prelude"
+import type {URI} from "./common/prelude"
 import * as Browser from './browser';
 
 export type Model = Browser.Model

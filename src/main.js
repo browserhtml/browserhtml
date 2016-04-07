@@ -7,11 +7,11 @@
 import "babel-polyfill";
 import {start, Effects} from "reflex";
 import * as UI from "./perspective-ui";
-import {version} from "../../package.json";
-import * as Config from "../../browserhtml.json";
-import * as Runtime from "../common/runtime";
+import {version} from "../package.json";
+import * as Config from "../browserhtml.json";
+import * as Runtime from "./common/runtime";
 import {Renderer} from "driver";
-import * as Devtools from "../devtools"
+import * as Devtools from "./devtools"
 
 const isReload = window.application != null;
 

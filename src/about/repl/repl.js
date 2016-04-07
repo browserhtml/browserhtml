@@ -7,10 +7,10 @@
 import {html, thunk, forward, Effects} from 'reflex';
 import {merge, always, batch, tag, tagged} from "../../common/prelude";
 import {Style, StyleSheet} from '../../common/style';
-import * as Cell from './cell';
+import * as Cell from './repl/cell';
 import * as Settings from '../../common/settings';
 import * as Unknown from '../../common/unknown';
-import * as Host from './host';
+import * as Host from './repl/host';
 
 import {onWindow} from "driver";
 

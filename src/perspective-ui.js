@@ -5,9 +5,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {Effects, Task} from 'reflex';
-import {merge, batch} from '../common/prelude';
+import {merge, batch} from './common/prelude';
 import * as Browser from './browser';
-import * as Unknown from "../common/unknown";
+import * as Unknown from "./common/unknown";
 
 /*::
 import type {Address, DOM} from "reflex"
