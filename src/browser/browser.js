@@ -522,9 +522,10 @@ const openWebView = model =>
   ( model
   , Open
     ( { uri: URL.read(model.input.value)
-      , inBackground: false
+      , disposition: 'default'
       , name: ''
       , features: ''
+      , ref: null
       }
     )
   );
@@ -535,9 +536,10 @@ const openURL = (model, uri) =>
   , model
   , [ Open
       ( { uri
-        , inBackground: false
+        , disposition: 'default'
         , name: ''
         , features: ''
+        , ref: null
         }
       )
     , ShowWebView
@@ -811,6 +813,7 @@ const styleSheet = StyleSheet.create({
     overflow: 'hidden',
     position: 'absolute',
     MozWindowDragging: 'drag',
+    WebkitAppRegion: 'drag'
   },
   content: {
     position: 'absolute',

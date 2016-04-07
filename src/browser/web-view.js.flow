@@ -6,7 +6,9 @@
 
 import {Effects} from "reflex"
 import type {Address, DOM} from "reflex"
-import type {ID, URI, Time, Float} from "../common/prelude"
+import type {ID, URI, Time, Integer, Float} from "../common/prelude"
+import type {Icon} from "../common/favicon"
+
 import * as Shell from "./web-view/shell"
 import * as Progress from "./web-view/progress"
 import * as Navigation from "./web-view/navigation"
@@ -16,18 +18,27 @@ import * as Stopwatch from "../common/stopwatch"
 import * as Sidebar from "./sidebar/tab"
 import * as Tab from './sidebar/tab';
 
+
 export type {ID, URI, Time}
 
 export type Display =
   { opacity: Float
   }
 
+export type Disposition =
+  | 'default'
+  | 'foreground-tab'
+  | 'background-tab'
+  | 'new-window'
+  | 'new-popup'
+
 export type Options =
   { uri: URI
-  , inBackground: boolean
+  , disposition: Disposition
   , name: string
   , features: string
-  , frameElement?: any
+  , options?: {}
+  , ref: any
   }
 
 export type Model =
@@ -48,6 +59,7 @@ export type Model =
   }
 
 export type Action =
+  | { type: "NoOp" }
   | { type: "Select" }
   | { type: "Selected" }
   | { type: "Unselect" }
@@ -57,6 +69,7 @@ export type Action =
   | { type: "Deactivate" }
   | { type: "Deactivated" }
   | { type: "Focus" }
+  | { type: "Blur" }
   | { type: "Load"
     , uri: URI
     }
@@ -75,6 +88,17 @@ export type Action =
     , canGoForward: ?boolean
     , time: Time
     }
+  | { type: "FirstPaint" }
+  | { type: "DocumentFirstPaint" }
+  | { type: "MetaChanged", name: string, content: string }
+  | { type: "IconChanged", icon: Icon }
+  | { type: "TitleChanged", title: string }
+  | { type: "SecurityChanged"
+    , state: "broken" | "secure" | "insecure"
+    , extendedValidation: boolean
+    , trackingContent: boolean
+    , mixedContent: boolean
+    }
   | { type: "Close" }
   | { type: "Closed" }
   | { type: "Edit" }
@@ -86,38 +110,46 @@ export type Action =
     , action: Stopwatch.Action
     }
   | { type: "Progress"
-    , action: Progress.Action
+    , progress: Progress.Action
     }
   | { type: "Shell"
     , shell: Shell.Action
     }
   | { type: "Page"
-    , action: Page.Action
+    , page: Page.Action
     }
   | { type: "Tab"
     , source: Tab.Action
     }
   | { type: "Security"
-    , action: Security.Action
+    , security: Security.Action
     }
   | { type: "Navigation"
     , navigation: Navigation.Action
     }
-  | { type: "Open!WithMyIFrameAndInTheCurrentTick"
+  | { type: "Open"
     , options: Options
-    , isForced: true
     }
   | { type: "ContextMenu"
-    , detail: any
+    , clientX: Float
+    , clientY: Float
+    , systemTargets: any
+    , contextMenu: any
     }
   | { type: "Authentificate"
-    , detail: any
+    , host: string
+    , realm: string
+    , isProxy: boolean
     }
-  | { type: "Error"
-    , detail: any
+  | { type: "LoadFail"
+    , time: Time
+    , reason: string
+    , code: Integer
     }
   | { type: "ModalPrompt"
-    , detail: any
+    , kind: "alert" | "confirm" | "prompt"
+    , title: string
+    , message: string
     }
 
 
@@ -161,10 +193,6 @@ declare export function LocationChanged
  (uri:URI, time:Time):
   Action
 
-
-declare export function OpenSyncWithMyIFrame
-  (options:Options):
-  Action
 
 declare export function ModalPrompt
   (detail:any):

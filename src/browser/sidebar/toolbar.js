@@ -128,6 +128,7 @@ const viewPin = Toggle.view('pin-button', Style.createSheet({
 const viewClose = Button.view('create-tab-button', Style.createSheet({
   base:
   { MozWindowDragging: 'no-drag'
+  , WebkitAppRegion: 'no-drag'
   , color: 'rgb(255,255,255)'
   , fontFamily: 'FontAwesome'
   , fontSize: '18px'

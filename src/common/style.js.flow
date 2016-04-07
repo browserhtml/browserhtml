@@ -5,6 +5,7 @@ export type Name = string
 export type Value
   = string
   | number
+  | boolean
 
 export type Selector = string
 
