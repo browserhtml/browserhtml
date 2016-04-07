@@ -187,14 +187,10 @@ export const useNativeTitlebar =
 
 const Env =
   () => {
-    const env = Object.create(null);
     const url = URL.parse(window.location.href);
     const params = url.searchParams;
-    // @Hack: On servo searchParams don't show up (See  servo/servo#10335)
-    if (params == null) {
-      return QueryString.parse(url.search.substr(1));
-    }
-    else {
+    if (params != null && Symbol.iterator in params) {
+      const env = Object.create(null);
       for (let [key, value] of params) {
         if (env[key] == null) {
           env[key] = value;
@@ -206,8 +202,11 @@ const Env =
           env[key] = [env[key], value]
         }
       }
+      return env
     }
-    return env
+    else {
+      return QueryString.parse(url.search.substr(1));
+    }
   }
 
 export const env/*:{[key:string]: ?string|?Array<?string>}*/ = Env();

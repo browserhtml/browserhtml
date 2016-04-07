@@ -26,7 +26,19 @@ const nullURL =
   , pathname: ''
   , search: ''
   , hash: ''
-  , searchParams: new window.URLSearchParams()
+  , searchParams:
+    ( window.URLSearchParams != null
+    ? new window.URLSearchParams()
+    : { append() { throw Error('Not Implemented') }
+      , delete() { throw Error('Not Implemented') }
+      , get() { return void(0) }
+      , getAll() { return [] }
+      , has() { return false }
+      , set() { throw Error('Not Implemented') }
+      , ['@@iterator']() { return [].values() }
+      , [Symbol.iterator]() { return [].values() }
+      }
+    )
   }
 
 export const parse = (input/*:string*/)/*:URL*/ => {
