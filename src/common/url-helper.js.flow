@@ -38,7 +38,7 @@ declare class URLSearchParams {
   append(name:USVString, value:USVString):void;
   delete(name:USVString):void;
   get(name:USVString):?USVString;
-  getAll(name:USVString):Iterator<USVString>;
+  getAll(name:USVString):Array<USVString>;
   has(name:USVString):boolean;
   set(name:USVString, value:USVString):void;
   @@iterator(): Iterator<[USVString, USVString]>;

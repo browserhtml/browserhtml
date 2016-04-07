@@ -187,14 +187,10 @@ export const useNativeTitlebar =
 
 const Env =
   () => {
-    const env = Object.create(null);
     const url = URL.parse(window.location.href);
     const params = url.searchParams;
-    // @Hack: On servo searchParams don't show up (See  servo/servo#10335)
-    if (params == null) {
-      return QueryString.parse(url.search.substr(1));
-    }
-    else {
+    try {
+      const env = Object.create(null);
       for (let [key, value] of params) {
         if (env[key] == null) {
           env[key] = value;
@@ -206,6 +202,12 @@ const Env =
           env[key] = [env[key], value]
         }
       }
+    }
+    // URL.prototype.searchParams is not fully functional everywhere
+    // yet there for we fallback to manual query parsing if we hit some
+    // of the implementation gaps.
+    catch (_) {
+      return QueryString.parse(url.search.substr(1));
     }
     return env
   }
