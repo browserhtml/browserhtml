@@ -189,7 +189,7 @@ const Env =
   () => {
     const url = URL.parse(window.location.href);
     const params = url.searchParams;
-    try {
+    if (params != null && Symbol.iterator in params) {
       const env = Object.create(null);
       for (let [key, value] of params) {
         if (env[key] == null) {
@@ -202,14 +202,11 @@ const Env =
           env[key] = [env[key], value]
         }
       }
+      return env
     }
-    // URL.prototype.searchParams is not fully functional everywhere
-    // yet there for we fallback to manual query parsing if we hit some
-    // of the implementation gaps.
-    catch (_) {
+    else {
       return QueryString.parse(url.search.substr(1));
     }
-    return env
   }
 
 export const env/*:{[key:string]: ?string|?Array<?string>}*/ = Env();
