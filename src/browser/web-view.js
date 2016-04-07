@@ -92,6 +92,14 @@ export const Focus/*:Action*/ =
   { type: 'Focus'
   };
 
+export const PushDown/*:Action*/ =
+  { type: 'PushDown'
+  };
+
+export const PushedDown/*:Action*/ =
+  { type: 'PushedDown'
+  };
+
 export const Load =
   (uri/*:URI*/)/*:Action*/ =>
   ( { type: 'Load'
@@ -497,6 +505,11 @@ export const update =
   : action.type === "Close"
   ? close(model)
 
+  // Force push actions.
+  // We forward these up to WebViews.
+  : action.type === "PushDown"
+  ? [ model, Effects.receive(PushedDown) ]
+
   // Animation
   : action.type === "SelectAnimation"
   ? updateSelectAnimation(model, action.action)
@@ -717,6 +730,7 @@ export const view =
         )
       , model.display
       )
+    , onServoMouseForceDown: forward(address, always(PushDown))
     }
   , [ Frame.view(styleSheet, model, address)
     , html.div

@@ -35,6 +35,7 @@ export type Model =
 
 export type Action =
   | { type: "NoOp" }
+  | { type: "PushedDown" }
   | { type: "NavigateTo"
     , uri: URI
     }

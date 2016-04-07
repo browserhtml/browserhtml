@@ -36,6 +36,12 @@ const NoOp =
   ( { type: "NoOp"
     }
   );
+
+const PushedDown/*:Action*/ =
+  ( { type: 'PushedDown'
+    }
+  );
+
 // ### Navigate WebView
 
 export const NavigateTo =
@@ -154,6 +160,8 @@ const WebViewAction =
   ? Activated(id)
   : action.type === "Closed"
   ? Closed(id)
+  : action.type === "PushedDown"
+  ? PushedDown
   : action.type === "ShowTabs"
   ? ShowTabs
   : action.type === "Create"
@@ -498,6 +506,13 @@ const selectByID = (model, id) =>
 
 // Animations
 
+const pushedDown = (model) =>
+  ( model.isFolded
+  // If model is folded, we should forward this action up a level.
+  ? [ model, Effects.receive(ShowTabs) ]
+  : [ model, Effects.none ]
+  );
+
 const fold = model =>
   ( model.isFolded
   ? [ model, Effects.none ]
@@ -609,6 +624,9 @@ export const update =
 
   : action.type === "Closed"
   ? removeByID(model, action.id)
+
+  : action.type === "PushedDown"
+  ? pushedDown(model)
 
   // Change activate web-view
   : action.type === "ActivateSelected"
