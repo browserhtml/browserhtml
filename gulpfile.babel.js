@@ -180,7 +180,7 @@ gulp.task('watcher', function() {
 
 gulp.task('hotreload', function() {
 
-  settings.plugins['browser/index'] = [[hmr, {
+  settings.plugins['main'] = [[hmr, {
     port: 3124,
     url: "http://localhost:3124"
   }]]
@@ -238,7 +238,7 @@ gulp.task('copydist', function() {
   copy_files('./*.json', path.join(dist, "components"));
 });
 
-bundler('browser/index');
+bundler('main');
 bundler('service/history-worker');
 bundler('about/settings/main');
 bundler('about/repl/main');
@@ -246,7 +246,7 @@ bundler('about/newtab/main');
 
 gulp.task('build', [
   'compressor',
-  'browser/index',
+  'main',
   // 'service/history-worker',
   'about/settings/main',
   'about/repl/main',
@@ -256,7 +256,7 @@ gulp.task('build', [
 
 gulp.task('watch', [
   'watcher',
-  'browser/index',
+  'main',
   // 'service/history-worker',
   'about/settings/main',
   'about/newtab/main',
