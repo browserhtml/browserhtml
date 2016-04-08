@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, forward, Effects} from 'reflex';
-import {on, focus, selection} from 'driver';
+import {on, focus, selection} from '@driver';
 import {identity} from '../lang/functional';
 import {always, merge} from '../common/prelude';
 import {cursor} from "../common/cursor";

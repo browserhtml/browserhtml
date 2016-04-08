@@ -7,7 +7,7 @@
 import "babel-polyfill";
 import {start, Effects} from "reflex";
 import * as UI from "./settings";
-import {Renderer} from "driver";
+import {Renderer} from "@driver";
 
 const isReload = window.application != null;
 

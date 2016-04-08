@@ -14,7 +14,7 @@ import * as Focusable from '../common/focusable';
 import * as Editable from '../common/editable';
 import * as Control from '../common/control';
 
-import {on, focus, selection} from 'driver';
+import {on, focus, selection} from '@driver';
 
 /*::
 import type {Address, DOM} from "reflex"

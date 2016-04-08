@@ -9,7 +9,7 @@ import {merge, always} from "../../../common/prelude";
 import {Style, StyleSheet} from '../../../common/style';
 import * as Settings from '../../../common/settings';
 import * as Unknown from '../../../common/unknown';
-import {focus} from "driver";
+import {focus} from "@driver";
 
 /*::
 import type {Address, DOM} from "reflex"

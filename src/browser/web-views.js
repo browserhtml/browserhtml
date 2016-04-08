@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {html, thunk, Effects, forward} from "reflex";
-import * as Driver from "driver";
+import * as Driver from "@driver";
 import {merge, setIn, remove, always, batch} from "../common/prelude";
 import {cursor} from "../common/cursor";
 import {indexOfOffset} from "../common/selector";

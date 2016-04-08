@@ -1,4 +1,4 @@
-/* @noflow*/
+/* @noflow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -103,7 +103,7 @@ const hash = v => {
     }
 
     if (v[$hash] == null) {
-      throw TypeError(`Invalid value of type ${typeof(value)} passed to a hashing function`)
+      throw TypeError(`Invalid value of type ${typeof(v)} passed to a hashing function`)
     }
 
     return v[$hash]

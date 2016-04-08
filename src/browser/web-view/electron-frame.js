@@ -2,9 +2,9 @@
 
 import {Effects, node, html, forward} from 'reflex';
 import * as URL from '../../common/url-helper';
-import * as Driver from 'driver';
+import * as Driver from '@driver';
 import * as Style from '../../common/style';
-import {on} from 'driver';
+import {on} from '@driver';
 import {always} from '../../common/prelude';
 
 
@@ -96,7 +96,6 @@ const decodeIconChange =
         ? event.favicons[0]
         : ''
         )
-      , sizes: null
       , rel: null
       }
     }
