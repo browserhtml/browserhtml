@@ -301,13 +301,14 @@ export const init =
 
   return [
     { id
+    , guestInstanceId: options.guestInstanceId
     , name: options.name
     , features: options.name
     , isSelected: false
     , isActive: false
     , display:
       { opacity:
-          ( options.inBackground
+          ( options.disposition === "background-tab"
           ? 0
           : 1
           )
@@ -328,9 +329,19 @@ export const init =
       , navigationFx.map(NavigationAction)
       , progressFx.map(ProgressAction)
       , animationFx.map(SelectAnimationAction)
-      , ( options.inBackground
+      , ( options.disposition === "background-tab"
         ? Effects.none
         : Effects.receive(Activate)
+        )
+      , ( options.ref != null
+        ? Effects.task
+          ( Driver.forceReplace
+            ( `#web-view-${id}`
+            , options.ref
+            )
+          )
+          .map(NoOp)
+        : Effects.none
         )
       ]
     )
@@ -448,7 +459,9 @@ const close = model =>
 
 export const update =
   (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
-  ( action.type === "Select"
+  ( action.type === "NoOp"
+  ? [ model, Effects.none ]
+  : action.type === "Select"
   ? select(model)
   : action.type === "Selected"
   ? [ model, Effects.none ]

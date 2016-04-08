@@ -34,6 +34,16 @@ export const view =
     , 'data-current-uri': model.navigation.currentURI
     , 'data-name': model.name
     , 'data-features': model.features
+    // Stock electron does not actually connect window with it's opener in any
+    // way. Brave desktop browser has patched Electron to add support for it
+    // via `data-guest-instance-id` attribute. Once that patch is uplifted
+    // this will take take care of connecting window and it's opener. For more
+    // details see: https://github.com/browserhtml/browserhtml/issues/566
+    , 'data-guest-instance-id':
+      ( model.guestInstanceId == null
+      ? void(0)
+      : model.guestInstanceId
+      )
     , style: Style.mix
       ( styleSheet.base
       , ( model.page.pallet.background != null
@@ -64,11 +74,15 @@ export const view =
 const decodeOpenWindow =
   ( event ) =>
   ( { type: "Open"
-    , uri: event.url
-    , name: event.frameName
-    , disposition: event.disposition
-    , features: ''
-    , options: event.options
+    , options:
+      { uri: event.url
+      , name: event.frameName
+      , disposition: event.disposition
+      , features: ''
+      , guestInstanceId: event.options.webPreferences.guestInstanceId
+      , ref: null
+      , options: event.options
+      }
     }
   );
 

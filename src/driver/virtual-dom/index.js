@@ -149,22 +149,6 @@ export const metaProperty = update => value =>
   new MetaProperty(value, update)
 
 
-export const zoom = metaProperty((node, next, previous) => {
-  if (previous != next) {
-    if (node.zoom) {
-      Promise.resolve().then(() => {
-        try {
-          node.zoom(next);
-        } catch (error) {
-          if (!node.isZoomBroken) {
-            console.error(error);
-          }
-        }
-      })
-    }
-  }
-})
-
 // Bunch of meta properties are booleans, meaning they can be toggled on
 // or off. This function is an optimized version of metaProperty for such
 // cases, it lazily caches both on and off instances and reuses them in
@@ -189,21 +173,6 @@ const metaBooleanProperty = update => {
   }
 }
 
-export const visiblity = metaBooleanProperty((node, next, previous) => {
-  if (next != previous) {
-    if (node.setVisible) {
-      Promise.resolve().then(() => {
-        try {
-          node.setVisible(next);
-        } catch (error) {
-          if (!node.isSetVisibleBroken) {
-            console.error(error);
-          }
-        }
-      })
-    }
-  }
-});
 
 export const focus = metaBooleanProperty((node, next, previous) => {
   if (next != previous) {
@@ -217,107 +186,6 @@ export const focus = metaBooleanProperty((node, next, previous) => {
   }
 });
 
-export const navigate = metaProperty((node, next, previous) => {
-  if (next != previous) {
-    if (next) {
-      if (next.isStop) {
-        node.stop()
-      }
-      if (next.isReload) {
-        node.reload()
-      }
-      if (next.isGoBack) {
-        node.goBack()
-      }
-      if (next.isGoForward) {
-        node.goForward()
-      }
-    }
-  }
-});
-
-class UseElement {
-  constructor() {
-  }
-  use(element) {
-    this.element = element
-  }
-  hook(target, name, previous) {
-    const {element} = this;
-    if (element != null) {
-      this.element = null;
-      if (target != element) {
-        for (let {name, value} of target) {
-          element.setAttribute(name, value);
-        }
-
-        for (let name of target.properties.names) {
-          element[name] = target[name]
-        }
-      }
-      return element;
-    }
-  }
-}
-
-export const element = new UseElement()
-
-const $onAnimationFrame = Symbol.for('onAnimationFrame')
-class OnAnimationFrame {
-  static request(target) {
-    const targets
-      = this.targets
-      || (this.targets = []);
-
-    if (targets.indexOf(target) < 0) {
-      targets.push(target);
-    }
-
-    if (!OnAnimationFrame.id) {
-      const window = target.ownerDocument.defaultView;
-      OnAnimationFrame.id = window.requestAnimationFrame(this.run);
-    }
-  }
-  static run(timeStamp) {
-    OnAnimationFrame.id = null
-    const targets = OnAnimationFrame.targets.splice(0)
-    const count = targets.length
-    let index = 0
-
-    while (index < count) {
-      const handler = targets[index][$onAnimationFrame]
-      if (handler != null) {
-        handler(timeStamp)
-      }
-      index = index + 1
-    }
-  }
-  constructor(address) {
-    this.address = address
-    this.field = Symbol.for('onAnimationFrame')
-    this.type = 'OnAnimationFrame'
-  }
-  hook(target, name, previous) {
-    this.constructor.request(target)
-
-    target[$onAnimationFrame] = this.address
-  }
-  onhook(target, name, next) {
-    if (previous == null || previous.type !== this.type) {
-      delete target[$onAnimationFrame]
-    }
-  }
-}
-
-
-export const onAnimationFrame = (address, decode) => {
-  address = decode != null ? forward(address, decode) : address
-  if (address[$onAnimationFrame] == null) {
-    address[$onAnimationFrame] = new OnAnimationFrame(address)
-  }
-
-  return address[$onAnimationFrame]
-}
 
 // Equality checking for selections.
 const isSameSelection = (a, b) =>
@@ -334,81 +202,96 @@ export const selection = metaProperty((node, next, previous) => {
   }
 });
 
-export const title = metaProperty((node, next, previous) => {
-  if (next != previous) {
-    node.ownerDocument.title = next
-  }
-});
 
-
-// In fact virtual-dom driver does not have a white list of properties
-// it sets so there is no need for a metaProperty, but react driver does
-// not so we use this identity function to use a same API in the application.
-export const scrollGrab = identity
-
-const GO_FORWARD_CHANGE = 'mozbrowsercangoforwardchange'
-const GO_BACK_CHANGE = 'mozbrowsercangobackchange'
-const LOCATION_CHANGE = 'mozbrowserlocationchange'
-
-class OnNavigationStateChange extends On {
-  static handleEvent({target, currentTarget}) {
-    target.getCanGoForward().onsuccess = request => {
-      On.handleEvent({type: GO_FORWARD_CHANGE,
-                      target,
-                      currentTarget,
-                      detail: request.target.result})
-    };
-
-    target.getCanGoBack().onsuccess = request => {
-      On.handleEvent({type: GO_BACK_CHANGE,
-                      target,
-                      currentTarget,
-                      detail: request.target.result})
-    };
-  }
-  constructor(eventType, address, decode) {
-    super(address, decode, null, null)
-    this.eventType = eventType
-    this.type = 'OnNavigationStateChange'
-  }
-  hook(node, name, previous) {
-    super.hook(node, this.eventType, previous)
-
-    if (previous == null || previous.type !== this.type) {
-      node.addEventListener(LOCATION_CHANGE,
-                            this.constructor.handleEvent)
+export const forceRender/*:Task<Error, void>*/ =
+  new Task
+  ( (succeed, fail) => {
+      if (window.renderer) {
+        window.renderer.execute();
+        console.log('Rendered in the same tick');
+        succeed(void(0));
+      }
+      else {
+        fail(Error('window.renderer must be set to enable force rendering'))
+      }
     }
-  }
-  unhook(node, name, next) {
-    super.unhook(node, this.eventType, next)
+  )
 
-    if (next == null || next.type !== this.type) {
-      node.removeEventListener(LOCATION_CHANGE,
-                               this.constructor.handleEvent)
+
+// @Hack: Below three functions have being copied from:
+// https://github.com/Gozala/reflex-virtual-dom-driver/blob/c0248855bcf76123e50ff55a4b41bf19a53ab793/src/hooks/event-handler.js#L103-L119
+// As it was impossible to import them.
+// This hack can go away once https://github.com/Gozala/reflex-virtual-dom-driver/issues/4 is fixed.
+const handleEvent = phase => event => {
+  const {currentTarget, type} = event
+  const handler = currentTarget[`on${type}${phase}`]
+
+  if (typeof(handler) === 'function') {
+    handler(event)
+  }
+
+  if (handler != null && typeof(handler.handleEvent) === 'function') {
+    handler.handleEvent(event)
+  }
+}
+const handleCapturing/*:EventListener*/ = handleEvent('capture')
+const handleBubbling/*:EventListener*/ = handleEvent('bubble')
+
+
+export const replaceElement =
+  (query/*:string*/, element/*:HTMLElement*/)/*:Task<Error, void>*/ =>
+  new Task
+  ( ( succeed, fail ) => {
+      const target = document.querySelector(query)
+      if (target == null) {
+        fail(Error('could not find node ${query}'))
+      }
+      else {
+        if (target != element) {
+          const {attributes} = target
+          const count = attributes.length
+          let index = 0
+          while (index < count) {
+            const {name, value} = attributes[index]
+            index = index + 1
+            element.setAttribute(name, value)
+          }
+
+          for (let name in target) {
+            if (target.hasOwnProperty(name)) {
+              if (name.indexOf('on:') === 0) {
+                const type = name.substr(3);
+                const handler = target[name];
+                element.addEventListener(type, handler.constructor.handleEvent);
+              }
+              else if (name.indexOf('on') === 0) {
+                ( name.endsWith('capture')
+                ? element.addEventListener
+                  ( name.substring(2, name.length - 'capture'.length)
+                  , handleCapturing
+                  , true
+                  )
+                : name.endsWith('bubble')
+                ? element.addEventListener
+                  ( name.substring(2, name.length - 'bubble'.length)
+                  , handleBubbling
+                  , false
+                  )
+                : void(0)
+                );
+              }
+
+              element[name] = target[name]
+            }
+          }
+        }
+        target.parentNode.replaceChild(element, target);
+      }
+      succeed(void(0));
     }
-  }
-}
+  );
 
-export const onCanGoBackChange = (address, decode) => {
-  const id = `onCanGoBackChange:${hash(decode)}`
-
-  if (!address[id]) {
-    address[id] = new OnNavigationStateChange(GO_BACK_CHANGE, address, decode)
-  }
-
-  return address[id]
-}
-
-export const onCanGoForwardChange = (address, decode) => {
-  const id = `onCanGoForwardChange:${hash(decode)}`
-
-  if (!address[id]) {
-    address[id] = new OnNavigationStateChange(GO_FORWARD_CHANGE, address, decode)
-  }
-
-  return address[id]
-}
-
-
-
-export const force = Effects.task(Task.succeed({type: "Driver.Execute"}));
+export const forceReplace =
+  (query/*:string*/, element/*:HTMLElement*/)/*:Task<Error, void>*/ =>
+  forceRender
+  .chain(_ => replaceElement(query, element));

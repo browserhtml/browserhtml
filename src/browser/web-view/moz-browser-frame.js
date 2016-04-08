@@ -31,7 +31,6 @@ export const view =
     , 'data-current-uri': model.navigation.currentURI
     , 'data-name': model.name
     , 'data-features': model.features
-    , element: Driver.element
     , style: Style.mix
       ( styleSheet.base
       , ( model.page.pallet.background != null
@@ -83,7 +82,8 @@ const decodeOpenWindow =
       , disposition: 'default'
       , name: detail.name
       , features: detail.features
-      , ref: Driver.element.use(detail.frameElement)
+      , ref: detail.frameElement
+      , guestInstanceId: null
       }
     }
   );
@@ -98,6 +98,7 @@ const decodeOpenTab =
       , name: ''
       , features: ''
       , ref: null
+      , guestInstanceId: null
       }
     }
   );

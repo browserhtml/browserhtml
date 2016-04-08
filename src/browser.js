@@ -526,6 +526,7 @@ const openWebView = model =>
       , name: ''
       , features: ''
       , ref: null
+      , guestInstanceId: null
       }
     )
   );
@@ -540,6 +541,7 @@ const openURL = (model, uri) =>
         , name: ''
         , features: ''
         , ref: null
+        , guestInstanceId: null
         }
       )
     , ShowWebView
