@@ -46,7 +46,7 @@ export const view =
 
     , onBlur: forward(address, Blur)
     , onFocus: forward(address, Focus)
-    , onClose: forward(address, Close)
+    , onClose: on(address, Close)
     , "onNew-Window": on(address, decodeOpenWindow)
     , "onPage-Favicon-Updated": on(address, decodeIconChange)
     , "onPage-Title-Updated": on(address, decodeTitleChange)

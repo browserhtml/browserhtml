@@ -496,6 +496,10 @@ export const update =
   ? updatePage(model, action)
   : action.type === "MetaChanged"
   ? updatePage(model, action)
+  : action.type === "FirstPaint"
+  ? updatePage(model, action)
+  : action.type === "DocumentFirstPaint"
+  ? updatePage(model, action)
   : action.type === "LoadFail"
   ? [ model
     , Effects.task(Unknown.warn(action))
@@ -730,7 +734,7 @@ export const view =
         )
       , model.display
       )
-    , onServoMouseForceDown: forward(address, always(PushDown))
+    , onServoMouseForceDown: on(address, always(PushDown))
     }
   , [ Frame.view(styleSheet, model, address)
     , html.div
