@@ -44,6 +44,11 @@ export type Action =
   | { type: 'Blur'
     , source: Focusable.Action
     }
+
+  | { type: "Change"
+    , value: string
+    , selection: Editable.Selection
+    }
   | { type: 'Editable'
     , source: Editable.Action
     }

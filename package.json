@@ -12,7 +12,7 @@
     "url": "http://github.com/mozilla/browser.html/issues/"
   },
   "browser": {
-    "driver": "./src/driver/virtual-dom/index.js"
+    "@driver": "./src/driver/virtual-dom/index.js"
   },
   "main": "./main.js",
   "scripts": {

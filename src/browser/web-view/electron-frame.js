@@ -2,9 +2,9 @@
 
 import {Effects, node, html, forward} from 'reflex';
 import * as URL from '../../common/url-helper';
-import * as Driver from 'driver';
+import * as Driver from '@driver';
 import * as Style from '../../common/style';
-import {on} from 'driver';
+import {on} from '@driver';
 import {always} from '../../common/prelude';
 
 
@@ -34,10 +34,10 @@ export const view =
     , 'data-current-uri': model.navigation.currentURI
     , 'data-name': model.name
     , 'data-features': model.features
-    // Stock electron does not actually connect window with it's opener in any
+    // Stock electron does not actually connect a window with it's opener in any
     // way. Brave desktop browser has patched Electron to add support for it
     // via `data-guest-instance-id` attribute. Once that patch is uplifted
-    // this will take take care of connecting window and it's opener. For more
+    // this will take take care of connecting a window and it's opener. For more
     // details see: https://github.com/browserhtml/browserhtml/issues/566
     , 'data-guest-instance-id':
       ( model.guestInstanceId == null
@@ -96,7 +96,6 @@ const decodeIconChange =
         ? event.favicons[0]
         : ''
         )
-      , sizes: null
       , rel: null
       }
     }

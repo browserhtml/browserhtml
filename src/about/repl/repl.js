@@ -12,7 +12,7 @@ import * as Settings from '../../common/settings';
 import * as Unknown from '../../common/unknown';
 import * as Host from './repl/host';
 
-import {onWindow} from "driver";
+import {onWindow} from "@driver";
 
 /*::
 import type {Address, DOM} from "reflex"

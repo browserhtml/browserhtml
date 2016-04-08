@@ -1,4 +1,4 @@
-/* @noflow*/
+/* @noflow */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -103,7 +103,7 @@ const hash = v => {
     }
 
     if (v[$hash] == null) {
-      throw TypeError(`Invalid value of type ${typeof(value)} passed to a hashing function`)
+      throw TypeError(`Invalid value of type ${typeof(v)} passed to a hashing function`)
     }
 
     return v[$hash]
@@ -218,7 +218,7 @@ export const forceRender/*:Task<Error, void>*/ =
   )
 
 
-// @Hack: Below three functions have being copied from:
+// @Hack: The following three functions have being copied from:
 // https://github.com/Gozala/reflex-virtual-dom-driver/blob/c0248855bcf76123e50ff55a4b41bf19a53ab793/src/hooks/event-handler.js#L103-L119
 // As it was impossible to import them.
 // This hack can go away once https://github.com/Gozala/reflex-virtual-dom-driver/issues/4 is fixed.

@@ -10,7 +10,7 @@ import * as UI from "./perspective-ui";
 import {version} from "../package.json";
 import * as Config from "../browserhtml.json";
 import * as Runtime from "./common/runtime";
-import {Renderer} from "driver";
+import {Renderer} from "@driver";
 import * as Devtools from "./devtools"
 
 const isReload = window.application != null;
@@ -30,13 +30,19 @@ const restore =
   , Effects.none
   ]
 
-
 const application = start
   ( { flags:
       { Debuggee: UI
       , flags: void(0)
       }
-    , init: Devtools.init
+    , init:
+      ( isReload
+      ? restore
+      : Devtools.init
+      )
+
+
+
     , update: Devtools.update
     , view: Devtools.view
     }

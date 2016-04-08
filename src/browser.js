@@ -31,7 +31,7 @@ import {Style, StyleSheet} from './common/style';
 
 import {identity, compose} from "./lang/functional";
 
-import {onWindow} from "driver";
+import {onWindow} from "@driver";
 
 /*::
 import type {Address, DOM} from "reflex"

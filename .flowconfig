@@ -15,4 +15,4 @@
 [options]
 suppress_comment= \\(.\\|\n\\)*\\@FlowIssue
 suppress_comment= \\(.\\|\n\\)*\\@FlowIgnore
-module.name_mapper='driver' -> '<PROJECT_ROOT>/src/driver/virtual-dom/index.js'
+module.name_mapper='@driver' -> '<PROJECT_ROOT>/src/driver/virtual-dom/index.js'

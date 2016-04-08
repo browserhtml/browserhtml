@@ -7,7 +7,7 @@
 import "babel-polyfill";
 import {start, Effects} from "reflex";
 import * as NewTab from "./newtab";
-import {Renderer} from "driver";
+import {Renderer} from "@driver";
 
 const application = start({
   flags: void(0),
