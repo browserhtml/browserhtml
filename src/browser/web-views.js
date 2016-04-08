@@ -51,15 +51,9 @@ export const NavigateTo =
 // ### Open WebView
 
 export const Open =
-  ({uri, disposition, name, features, ref}/*:WebView.Options*/)/*:Action*/ =>
+  (options/*:WebView.Options*/)/*:Action*/ =>
   ( { type: "Open"
-    , options:
-      { uri
-      , disposition
-      , name
-      , features
-      , ref
-      }
+    , options
     }
   );
 
@@ -281,6 +275,7 @@ const navigateTo = (model, uri) =>
       , name: ''
       , features: ''
       , ref: null
+      , guestInstanceId: null
       }
     )
   // Otherwise we load given `uri` into active one.
@@ -321,10 +316,6 @@ const open = (model, options) => {
     , Effects.batch
       ( [ initFX.map(ByID(id))
         , activateFX
-        , ( options.ref != null
-          ? Driver.force
-          : Effects.none
-          )
         ]
       )
     ]

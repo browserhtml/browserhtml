@@ -39,10 +39,12 @@ export type Options =
   , features: string
   , options?: {}
   , ref: any
+  , guestInstanceId: ?string
   }
 
 export type Model =
   { id: ID
+  , guestInstanceId: ?string
   , name: string
   , features: string
   , isSelected: boolean
