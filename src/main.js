@@ -5,6 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import "babel-polyfill";
+import "./common/request-animation-frame";
 import {start, Effects} from "reflex";
 import * as UI from "./perspective-ui";
 import {version} from "../package.json";
