@@ -51,7 +51,7 @@ const ZoomChanged =
   ({type: "ZoomChanged", zoomResult: result});
 
 const setZoom = (id, level) =>
-  Task.future(() => {
+  Task.create(() => {
     const target = document.getElementById(`web-view-${id}`);
     const result
       = target == null
@@ -86,7 +86,7 @@ export const resetZoom =
 
 export const setVisibility =
   (id/*:ID*/, isVisible/*:boolean*/)/*:Task<Never, Result<Error, boolean>>*/ =>
-  Task.future(() => {
+  Task.create(() => {
     const target = document.getElementById(`web-view-${id}`);
     const result
       = target == null

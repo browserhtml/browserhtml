@@ -58,7 +58,7 @@ const merges =
 
 export const fetch =
   (names/*:Array<Name>*/)/*:Task<Never, Result<Error, Settings>>*/ =>
-  Task.future(() => {
+  Task.create(() => {
     if (navigator.mozSettings != null) {
       const lock = navigator.mozSettings.createLock();
       const settings = names.map(name => lock.get(name));
@@ -74,7 +74,7 @@ export const fetch =
 
 export const change =
   (settings/*:Settings*/)/*:Task<Never, Result<Error, Settings>>*/ =>
-  Task.future(() => {
+  Task.create(() => {
     if (navigator.mozSettings != null) {
       const lock = navigator.mozSettings.createLock();
       const result =

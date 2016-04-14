@@ -61,7 +61,7 @@ const pendingRequests = Object.create(null);
 
 const abort =
   (id/*:number*/)/*:Task<Never, number>*/ =>
-  Task.future(() => new Promise(resolve => {
+  Task.create(() => new Promise(resolve => {
 
   }));
 
@@ -70,7 +70,7 @@ const search =
   , input/*:string*/
   , limit/*:number*/
   )/*:Task<Never, Result<Error, Array<Match>>>*/ =>
-  Task.future(() => new Promise(resolve => {
+  Task.create(() => new Promise(resolve => {
 
   }));
 
