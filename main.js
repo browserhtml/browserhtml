@@ -21,6 +21,9 @@ var onReady = function() {
   ( { width: 800
     , height: 600
     , frame: false
+    , webPreferences:
+      { nodeIntegration: false
+      }
     }
   );
 
