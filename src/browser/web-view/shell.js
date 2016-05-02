@@ -123,63 +123,70 @@ export const init =
   ];
 
 export const update =
-  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
-  ( action.type === 'ZoomIn'
-  ? [ model
-    , Effects
-        .task(zoomIn(model.id, model.zoom))
-        .map(ZoomChanged)
-    ]
-  : action.type === 'ZoomOut'
-  ? [ model
-    , Effects
-        .task(zoomOut(model.id, model.zoom))
-        .map(ZoomChanged)
-    ]
-  : action.type === 'ResetZoom'
-  ? [ model
-    , Effects
-        .task(resetZoom(model.id))
-        .map(ZoomChanged)
-    ]
-  : action.type === 'MakeVisible'
-  ? [ model
-    , Effects
-        .task(setVisibility(model.id, true))
-        .map(VisibilityChanged)
-    ]
-  : action.type === 'MakeNotVisible'
-  ? [ model
-    , Effects
-        .task(setVisibility(model.id, false))
-        .map(VisibilityChanged)
-    ]
-  : action.type === 'VisibilityChanged'
-  ? ( action.visibilityResult.isOk
-    ? [ merge(model, {isVisible: action.visibilityResult.value})
-      , Effects.none
-      ]
-    : [ model
-      , Effects
-        .task(report(action.visibilityResult.error))
-        .map(NoOp)
-      ]
-    )
-  : action.type === 'ZoomChanged'
-  ?  ( action.zoomResult.isOk
-    ? [ merge(model, {zoom: action.zoomResult.value}), Effects.none ]
-    : [ model
-      , Effects
-        .task(report(action.zoomResult.error))
-        .map(NoOp)
-      ]
-    )
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ => {
+    switch (action.type) {
+      case "ZoomIn":
+        return [
+          model
+          , Effects
+              .task(zoomIn(model.id, model.zoom))
+              .map(ZoomChanged)
+          ];
+      case "ZoomOut":
+        return [
+          model
+          , Effects
+              .task(zoomOut(model.id, model.zoom))
+              .map(ZoomChanged)
+          ];
+      case "ResetZoom":
+        return [
+          model
+          , Effects
+              .task(resetZoom(model.id))
+              .map(ZoomChanged)
+          ];
+      case "MakeVisible":
+        return [
+          model
+          , Effects
+              .task(setVisibility(model.id, true))
+              .map(VisibilityChanged)
+          ];
+      case "MakeNotVisible":
+        return [
+          model
+          , Effects
+              .task(setVisibility(model.id, false))
+              .map(VisibilityChanged)
+          ];
+      case "VisibilityChanged":
+        return ( action.visibilityResult.isOk
+                ? [ merge(model, {isVisible: action.visibilityResult.value})
+                  , Effects.none
+                  ]
+                : [ model
+                  , Effects
+                    .task(report(action.visibilityResult.error))
+                    .map(NoOp)
+                  ]
+                );
+      case "ZoomChanged":
+        return ( action.zoomResult.isOk
+                ? [ merge(model, {zoom: action.zoomResult.value}), Effects.none ]
+                : [ model
+                  , Effects
+                    .task(report(action.zoomResult.error))
+                    .map(NoOp)
+                  ]
+                );
 
   // Delegate
-  : action.type === 'Focus'
-  ? updateFocus(model, action)
-  : action.type === 'Blur'
-  ? updateFocus(model, action)
-
-  : [model, Effects.none]
-  );
+      case "Focus":
+        return updateFocus(model, action);
+      case "Blur":
+        return updateFocus(model, action);
+      default:
+        return [model, Effects.none];
+    }
+  };
