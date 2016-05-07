@@ -64,9 +64,11 @@ export const create =
 
 export const requestCuratedColor =
   (uri/*:URI*/)/*:Task<Never, ?Theme>*/ =>
-  Task.create(() => {
+  new Task((succeed, fail) => {
     const hostname = getDomainName(uri);
-    return hostname == null
-      ? undefined
-      : curated[hostname];
+    Promise.resolve
+    ( hostname == null
+    ? undefined
+    : curated[hostname]
+    ).then(succeed, fail)
   });

@@ -61,18 +61,14 @@ const pendingRequests = Object.create(null);
 
 const abort =
   (id/*:number*/)/*:Task<Never, number>*/ =>
-  Task.create(resolve => {
-
-  });
+  new Task(succeed => void(0))
 
 const search =
   ( id/*:number*/
   , input/*:string*/
   , limit/*:number*/
   )/*:Task<Never, Result<Error, Array<Match>>>*/ =>
-  Task.create(resolve => {
-
-  });
+  new Task(succeed => void(0))
 
 
 export const init =
