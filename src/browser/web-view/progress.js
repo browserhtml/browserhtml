@@ -134,7 +134,7 @@ const start = (model, time) =>
       }
     )
   , ( Runtime.env.progressbar !== 'standalone'
-    ? Effects.tick(Tick)
+    ? Effects.perform(Task.requestAnimationFrame().map(Tick))
     : Effects.perform(standalone.loadStart(model.ref, time))
       .map(NoOp)
     )
@@ -184,7 +184,7 @@ const animate = (model, time) =>
           }
         }
       )
-    , Effects.tick(Tick)
+    , Effects.perform(Task.requestAnimationFrame().map(Tick))
     ]
   );
 
