@@ -68,7 +68,7 @@ export const requestCuratedColor =
     const hostname = getDomainName(uri);
     Promise.resolve
     ( hostname == null
-    ? undefined
+    ? null
     : curated[hostname]
     ).then(succeed, fail)
   });
