@@ -585,7 +585,6 @@ const styleSheet = StyleSheet.create({
     backgroundColor: 'white',
     MozWindowDragging: 'no-drag',
     WebkitAppRegion: 'no-drag',
-    display: 'block',
   },
 
   topbar: {
