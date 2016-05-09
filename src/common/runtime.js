@@ -86,7 +86,7 @@ export const respond = /*::<message>*/
   (message/*:message*/)/*:Task<Never, message>*/ =>
   new Task
   ( (succeed, fail) =>
-    ( Promise
+    void ( Promise
       .resolve(message)
       .then(succeed, fail)
     )
