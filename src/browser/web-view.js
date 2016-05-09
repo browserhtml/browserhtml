@@ -22,7 +22,6 @@ import * as Stopwatch from '../common/stopwatch';
 import {Style, StyleSheet} from '../common/style';
 import {readTitle, isDark, canGoBack} from './web-view/util';
 import * as Driver from '@driver';
-import * as URL from '../common/url-helper';
 import * as Focusable from '../common/focusable';
 import * as Easing from 'eased';
 import * as MozBrowserFrame from './web-view/moz-browser-frame';
