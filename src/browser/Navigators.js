@@ -1,712 +1,475 @@
 /* @flow */
 
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-import {html, thunk, Effects, forward} from "reflex";
-import * as Driver from "@driver";
-import {merge, setIn, remove, always, batch} from "../common/prelude";
-import {cursor} from "../common/cursor";
-import {indexOfOffset} from "../common/selector";
-import * as WebView from "../browser/web-view";
-import * as Unknown from "../common/unknown";
-import * as Stopwatch from "../common/stopwatch";
-import * as Easing from "eased";
-import {Style, StyleSheet} from "../common/style";
+import * as Deck from "../common/Deck"
+import * as Animation from "../common/Animation"
+import * as Unknown from "../common/unknown"
+import * as Display from "./Navigators/Display"
+import {Effects, html, forward, thunk} from "reflex"
+import {cursor} from "../common/cursor"
+import {always} from "../common/prelude"
+import * as Style from "../common/style"
+import * as Easing from "eased"
+import * as Overlay from "./Navigators/Overlay"
+import * as Navigator from "./Navigators/Navigator"
+import * as URI from "../common/url-helper";
+import * as Tabs from "./Sidebar/Tabs";
 
 /*::
 import type {Address, DOM} from "reflex"
-import type {URI, Integer} from "../common/prelude"
-import type {ID, Display, Selector, Model, Action} from "./web-views"
+
+export type Action =
+  | { type: "Expose" }
+  | { type: "Focus" }
+  | { type: "Shrink" }
+  | { type: "Expand" }
+  | { type: "ShowTabs" }
+  | { type: "ShowWebView" }
+  | { type: "GoBack" }
+  | { type: "GoForward" }
+  | { type: "Reload" }
+  | { type: "ZoomIn" }
+  | { type: "ZoomOut" }
+  | { type: "ResetZoom" }
+  | { type: "Close" }
+  | { type: "EditInput" }
+  | { type: "OpenNewTab" }
+  | { type: "SelectNext" }
+  | { type: "SelectPrevious" }
+  | { type: "Animation", animation: Animation.Action }
+  | { type: "Tabs", tabs: Tabs.Action }
+  | { type: "Deck", deck: Deck.Action<Navigator.Action, Navigator.Flags> }
 */
 
+export const Expose = { type: "Expose" }
+export const Focus = { type: "Focus" }
+export const Expand = { type: "Expand" }
+export const Shrink = { type: "Shrink" }
+export const ShowTabs = { type: "ShowTabs" }
+export const ShowWebView = { type: "ShowWebView" }
+export const OpenNewTab = { type: "OpenNewTab" };
+export const GoBack = { type: "GoBack" }
+export const GoForward = { type: "GoForward" }
+export const Reload = { type: "Reload" }
+export const ZoomOut = { type: "ZoomOut" }
+export const ZoomIn = { type: "ZoomIn" }
+export const ResetZoom = { type: "ResetZoom" }
+export const EditInput = { type: "EditInput" }
+export const SelectNewTab = { type: "Select", id: "0" };
+export const SelectNext = { type: "SelectNext" }
+export const SelectPrevious = { type: "SelectPrevious" }
+export const Close = { type: "Close" }
 
-// Model
+export class Model {
+  /*::
+  zoom: boolean;
+  shrink: boolean;
+  deck: Deck.Model;
+  animation: Animation.Model<Display.Model>;
+  */
+  constructor(
+    zoom/*:boolean*/
+  , shrink/*:boolean*/
+  , deck/*:Deck.Model*/
+  , animation/*:Animation.Model<Display.Model>*/
+  ) {
+    this.zoom = zoom;
+    this.shrink = shrink;
+    this.deck = deck;
+    this.animation = animation;
+  }
+}
 
-// Returns true if model currently has no open web-views.
-const isEmpty = model =>
-  model.order.length === 0;
+const nofx =
+  model =>
+  [ model
+  , Effects.none
+  ]
+
+const Card =
+  { init: Navigator.init
+  , update: Navigator.update
+  , close: Navigator.close
+  , select: Navigator.select
+  , deselect: Navigator.deselect
+  }
 
 
-// # Actions
+const tagDeck =
+  (action/*:Deck.Action<Navigator.Action, Navigator.Flags>*/)/*:Action*/ => {
+    switch (action.type) {
+      case "Modify":
+        switch (action.modify.type) {
+          case "ShowTabs":
+            return ShowTabs;
+          case "OpenNewTab":
+            return OpenNewTab;
+          case "Open":
+            return {
+              type: "Deck"
+            , deck: action.modify
+            }
+          case "Closed":
+            return {
+              type: "Deck"
+            , deck:
+              { type: "Remove"
+              , id: action.id
+              }
+            }
+        }
+      default:
+        return {
+          type: "Deck"
+        , deck: action
+        };
+    }
+  }
 
-const NoOp =
-  ()/*:Action*/ =>
-  ( { type: "NoOp"
+const tagAnimation =
+  action =>
+  ( { type: "Animation"
+    , animation: action
     }
   );
 
-const PushedDown/*:Action*/ =
-  ( { type: 'PushedDown'
-    }
-  );
-
-// ### Navigate WebView
-
-export const NavigateTo =
-  (uri/*:URI*/)/*:Action*/ =>
-  ({type: "NavigateTo", uri});
-
-// ### Open WebView
-
-export const Open =
-  (options/*:WebView.Options*/)/*:Action*/ =>
-  ( { type: "Open"
-    , options
-    }
-  );
-
-
-// ### Close WebView
-
-export const CloseActive/*:Action*/ =
-  { type: "CloseActive"
-  };
-
-export const CloseByID =
-  (id/*:ID*/)/*:Action*/ =>
-  ( { type: "CloseByID"
-    , id
-    }
-  );
-
-const Closed =
-  id =>
-  ( { type: "Closed"
-    , id
-    }
-  );
-
-// ### Select WebView
-
-export const SelectByID =
-  (id/*:ID*/)/*:Action*/ =>
-  ( { type: "SelectByID"
-    , id
-    }
-  );
-
-const SelectRelative =
-  (offset/*:Integer*/)/*:Action*/ =>
-  ( { type: "SelectRelative"
-    , offset
-    }
-  );
-
-export const SelectNext/*:Action*/ = SelectRelative(1);
-export const SelectPrevious/*:Action*/ = SelectRelative(-1);
-
-
-const Selected =
-  id =>
-  ( { type: "Selected"
-    , id
-    }
-  );
-
-// ### Activate WebView
-
-export const ActivateSelected/*:Action*/ =
-  { type: "ActivateSelected"
-  };
-
-export const ActivateByID =
-  (id/*:ID*/)/*:Action*/ =>
-  ( { type: "ActivateByID"
-    , id
-    }
-  );
-
-const Activated =
-  (id/*:ID*/)/*:Action*/ =>
-  ( { type: "Activated"
-    , id
-    }
-  );
-
-
-// ### Switch mode
-
-export const Fold/*:Action*/ = {type: "Fold"};
-const Folded/*:Action*/ = {type: "Folded"};
-export const Unfold/*:Action*/ = {type: "Unfold"};
-const Unfolded/*:Action*/ = {type: "Unfolded"};
-
-// ### Tag WebView Action
-
-// Anotates `action` to target Active WebView
-const ActiveWebViewAction = action =>
-  ( { type: "ActiveWebView"
-    , action
-    }
-  );
-
-// Anotates `action` to target WebView with a given `id`. Some actions are
-// not anotated instead they produce special actions recognized by this module.
-const WebViewAction =
-  (id, action) =>
-  ( action.type === "Open"
-  ? action
-  : action.type === "Selected"
-  ? Selected(id)
-  : action.type === "Activated"
-  ? Activated(id)
-  : action.type === "Closed"
-  ? Closed(id)
-  : action.type === "PushedDown"
-  ? PushedDown
-  : action.type === "ShowTabs"
-  ? ShowTabs
-  : action.type === "Create"
-  ? Create
-  : action.type === "Edit"
-  ? Edit
-  :{ type: "WebView"
-    , id
-    , action
-    }
-  );
-
-export const ActionByID =
-  (id/*:ID*/, action/*:WebView.Action*/)/*:Action*/ =>
-  WebViewAction(id, action);
-
-
-// Utility function for anotating specific actions to target a WebView with a
-// give `id`.
-const ByID =
-  id =>
-  (action) =>
-  WebViewAction(id, action);
-
-
-// Animation
-
-const FoldAnimationAction = action =>
-  ( { type: "FoldAnimation"
-    , action
-    }
-  );
-
-
-// Set of exposed actions that embedders can use to trigger certain actions.
-// Note: Instead of defining action specifically for them we just anotate
-// WebView actions to tagret active WebView to reduce a boilerplate.
-
-export const ZoomIn/*:Action*/ = ActiveWebViewAction(WebView.ZoomIn);
-export const ZoomOut/*:Action*/ = ActiveWebViewAction(WebView.ZoomOut);
-export const ResetZoom/*:Action*/ = ActiveWebViewAction(WebView.ResetZoom);
-
-export const Stop/*:Action*/ = ActiveWebViewAction(WebView.Stop);
-export const Reload/*:Action*/ = ActiveWebViewAction(WebView.Reload);
-export const GoBack/*:Action*/ = ActiveWebViewAction(WebView.GoBack);
-export const GoForward/*:Action*/ = ActiveWebViewAction(WebView.GoForward);
-
-export const Focus/*:Action*/ = ActiveWebViewAction(WebView.Focus);
-
-export const ShowTabs/*:Action*/ = { type: "ShowTabs" };
-export const Create/*:Action*/ = { type: "Create" };
-export const Edit/*:Action*/ = { type: "Edit" };
-
-
-// # Update
+const tagOverlay = always(ShowWebView);
 
 
 export const init =
-  ()/*:[Model, Effects<Action>]*/ =>
-  [ { nextID: 0
-    , selector: null
-    , order: []
-    , entries: {}
-    , display: { depth: 0 }
+  ( zoom/*:boolean*/=true
+  , shrink/*:boolean*/=false
+  )/*:[Model, Effects<Action>]*/ => {
+    const flags =
+      { input:
+        { value: ''
+        , isVisible: true
+        , isFocused: true
+        }
 
-    , foldAnimation: null
-    , isFolded: true
-    }
-  , Effects.none
-  ];
-
-
-const updateByID = (model, id, action) => {
-  if ( model.order.indexOf(id) < 0) {
-    return (
-      [ model
-      , Effects
-        .perform(Unknown.error(`WebView with id: ${id} is not found`))
-        .map(NoOp)
-      ]
-    );
-  }
-  else {
-    const [entry, fx] = WebView.update(model.entries[id], action);
-    return (
-      [ merge(model, {entries: merge(model.entries, {[id]: entry})})
-      , fx.map(ByID(id))
-      ]
-    );
-  }
-}
-
-const updateActive = (model, action) =>
-  ( isEmpty(model)
-  ? [ model, Effects.none ]
-  // Note: This case should never happen as there should be no active only
-  // if there are no open WebViews. But we still handle and log error if
-  // end up in such a broken state.
-  : model.selector == null
-  ? [ model
-    , Effects
-      .perform(Unknown.error(`Can not update non-existing active WebView`))
-      .map(NoOp)
-    ]
-  : updateByID(model, model.selector.active, action)
-  );
-
-// ### Navigate
-
-const navigateTo = (model, uri) =>
-  ( isEmpty(model)
-  // If there are 0 web-views open we open a first one.
-  ? open
-    ( model
-    , { uri
-      , disposition: 'default'
-      , name: ''
-      , features: ''
-      , ref: null
-      , guestInstanceId: null
+        , output:
+        { uri: URI.read('about:newtab')
+        , disposition: 'default'
+        , name: 'about:newtab'
+        , features: ''
+        , ref: null
+        , guestInstanceId: null
+        }
+      , assistant: true
+      , overlay: true
       }
-    )
-  // Otherwise we load given `uri` into active one.
-  : load(model, uri)
-  );
 
-// ### Load
+    const [deck, $deck] = Deck.init();
+    const [deck2, $deck2] = Deck.open
+      ( Card
+      , deck
+      , flags
+      )
 
-const load = (model, uri) =>
-  updateActive(model, WebView.Load(uri));
+    const display =
+      ( shrink
+      ? Display.shrinked
+      : zoom
+      ? Display.normal
+      : Display.expose
+      )
 
-// ### Open WebView
-
-const open = (model, options) => {
-  const id = String(model.nextID);
-  const [ entry, initFX ] = WebView.init(id, options);
-
-  // Create a intermidate state where new WebView entry is opened,
-  // but selector has not being updated yet.
-  const intermidate = merge
-    ( model
-    , { nextID: model.nextID + 1
-      , order: [id, ...model.order]
-      , entries: merge(model.entries, {[id]: entry})
-      }
-    );
-
-  // Next state is a resulting state which matches intermidate state
-  // cumputed earlier or it's a version with selection changes.
-  const [ next, activateFX ] =
-    ( options.disposition === 'background-tab'
-    ? [ intermidate, Effects.none ]
-    : activateByID(intermidate, id)
-    );
-
-  return (
-    [ next
-    , Effects.batch
-      ( [ initFX.map(ByID(id))
-        , activateFX
+    const [animation, $animation] = Animation.init(display);
+    const model = new Model(zoom, shrink, deck2, animation);
+    const fx = Effects.batch
+      ( [ $deck.map(tagDeck)
+        , $deck2.map(tagDeck)
+        , $animation.map(tagAnimation)
         ]
       )
-    ]
-  )
-};
-
-// ### Close WebView
-
-const closeActive = model =>
-  ( isEmpty(model)
-  ? [ model, Effects.none ]
-  : model.selector == null
-  ? [ model
-    , Effects
-      .perform(Unknown.error(`Unable to close active WebView if none is Active`))
-      .map(NoOp)
-    ]
-  : closeByID(model, model.selector.active)
-  );
-
-const closeByID = (model, id) =>
-  ( isEmpty(model)
-  ? [ model
-    , Effects
-      .perform(Unknown.error(`Can not close by id: ${id} since there are 0 WebViews open`))
-      .map(NoOp)
-    ]
-  : model.selector == null
-  ? updateByID(model, id, WebView.Close)
-
-  // If web-view being closed is currently active then we perform batch of
-  // updates:
-  // - Activate previous / next entry (next if it's first entry otheriwise
-  //   previous).
-  // - Delegate `WebView.Close` action to entry with a given `id`.
-  // Note entry is not removed yet as we allow `WebView` module to perform
-  // some tasks (like close animation) after which we expect `WebView.Closed`
-  // action which is when we actually remove the entry.
-  : model.selector.active === id
-  ? batch
-    ( update
-    , model
-    , [ ActivateByID
-        ( model.order[0] === id
-        ? model.order[1]
-        : model.order[model.order.indexOf(id) - 1]
-        )
-      , WebViewAction(id, WebView.Close)
-      ]
-    )
-  // If different WebView is being closed just delegate to it.
-  : updateByID(model, id, WebView.Close)
-  );
-
-// @TODO: Properly handle edge case that may occur if close was requested but
-// while closed action is received given web-view is activated back.
-const removeByID = (model, id) =>
-  [ merge
-    ( model
-    , { entries: merge(model.entries, {[id]: void(0)})
-      , order: remove(model.order, model.order.indexOf(id))
-      }
-    )
-  , ( model.order.length === 1
-    ? Effects.receive(Create)
-    : Effects.none
-    )
-  ];
-
-
-// ### Activate WebView
-
-
-const activateSelected = model =>
-  ( isEmpty(model)
-  ? [ model, Effects.none ]
-  : model.selector == null
-  ? [ model
-    , Effects
-      .perform(Unknown.error(`Unable to activate selected WebView if no WebView is selected`))
-      .map(NoOp)
-    ]
-  : activateByID(model, model.selector.selected)
-  );
-
-const activateByID = (model, id) =>
-  ( isEmpty(model)
-  ? [ model
-    , Effects
-      .perform(Unknown.warn(`Can not activate web-view by id: ${id} since there are 0 web-views`))
-      .map(NoOp)
-    ]
-  // If there was no selection we create new one and just delegate to an
-  // appropriate web-view `WebView.Activate` action. Please not that in this
-  // case there is no `WebView.Select`, `WebView.Unselect` or
-  // `WebView.Deactivate` actions handled as selection did not existed before.
-  // This is a case for the very first WebView that is opened, so for WebView
-  // also is not going to get `WebView.Select` action.
-  : model.selector == null
-  ? updateByID
-    ( merge(model, {selector: {selected: id, active: id}})
-    , id
-    , WebView.Activate
-    )
-  // If WebView being activated is already active still attempt to select
-  // it in case seleciton was in the intermidate state.
-  : model.selector.active === id
-  ? selectByID(model, id)
-  // If different WebView was active then we do batch of updates:
-  // - Update selected WebView to match the WebView being activated (note that
-  //   may do nothing if selected WebView already matches it or will cause
-  //   update previously selected WebView with `WebView.Unselect` and will
-  //   update WebView with given `id` with `WebView.Select`.
-  // - Update active WebView with `WebView.Deactivate`.
-  // - Update WebView with given `id` with `WebView.Activate`.
-  : batch
-    ( update
-    , merge(model, {selector: merge(model.selector, {active: id})})
-    , [ SelectByID(id)
-      , WebViewAction(id, WebView.Activate)
-      // We check for `model.selector == null` here againg, because type checker
-      // has no guarantee that calls that happen above (merge, SelectByID,
-      // WebViewAction) do not cause `model.selector` to go back to `null`.
-      , ( model.selector == null
-        ? NoOp()
-        : WebViewAction(model.selector.active, WebView.Deactivate)
-        )
-      ]
-    )
-  );
-
-
-// ### Select WebView
-
-const selectByOffset = (model, offset) =>
-  ( isEmpty(model)
-  ? [ model, Effects.none ]
-  : model.selector == null
-  ? [ model
-    , Effects
-      .perform(Unknown.error(`Unable to change selected WebView if no WebView is seleted`))
-      .map(NoOp)
-    ]
-  : selectByID
-    ( model
-    , model.order
-      [ indexOfOffset
-        ( model.order.indexOf(model.selector.selected)
-        , offset
-        , model.order.length
-        , true
-        )
-      ]
-    )
-  );
-
-const selectByID = (model, id) =>
-  ( model.selector == null
-  ? update
-    ( merge(model, {selector: { selected: id, active: id } })
-    , WebViewAction(id, WebView.Select)
-    )
-  : model.selector.selected !== id
-  ? batch
-    ( update
-    , merge(model, { selector: merge(model.selector, { selected: id }) })
-    , [ WebViewAction(id, WebView.Select)
-        // We check for `model.selector == null` here againg, because type checker
-        // has no guarantee that calls that happen above (merge, WebViewAction)
-        // do not cause `model.selector` to go back to `null`.
-      , ( model.selector == null
-        ? NoOp()
-        : WebViewAction(model.selector.selected, WebView.Unselect)
-        )
-      ]
-    )
-  : [ model, Effects.none ]
-  );
-
-// Animations
-
-const pushedDown = (model) =>
-  ( model.isFolded
-  // If model is folded, we should forward this action up a level.
-  ? [ model, Effects.receive(ShowTabs) ]
-  : [ model, Effects.none ]
-  );
-
-const fold = model =>
-  ( model.isFolded
-  ? [ model, Effects.none ]
-  : startFoldAnimation(merge(model, {isFolded: true}))
-  );
-
-const unfold = model =>
-  ( model.isFolded
-  ? startFoldAnimation(merge(model, {isFolded: false}))
-  : [ model, Effects.none ]
-  );
-
-const startFoldAnimation = model => {
-  if (model.foldAnimation != null) {
-    return (
-      [ merge
-        ( model
-        , { foldAnimation: merge(model.foldAnimation, {elapsed: 0}) }
-        )
-      , Effects.none
-      ]
-    );
+    return [model, fx]
   }
-  const [foldAnimation, fx] =
-    Stopwatch.update(model.foldAnimation, Stopwatch.Start);
-  return [merge(model, {foldAnimation}), fx.map(FoldAnimationAction)];
-};
-
-const endFoldAnimation = model => {
-  const [foldAnimation, fx] =
-    Stopwatch.update(model.foldAnimation, Stopwatch.End);
-
-  return [ merge(model, {foldAnimation}), Effects.none ];
-}
-
-const folded = endFoldAnimation;
-const unfolded = endFoldAnimation;
-
-const updateFoldAnimation = (model, action) => {
-  const [foldAnimation, fx] =
-    Stopwatch.update(model.foldAnimation, action);
-
-  const [begin, end, duration] =
-    ( model.isFolded
-    ? [ -200, 0, 200 ]
-    : [ 0, -200, 500 ]
-    );
-
-  const result =
-    ( (foldAnimation && duration > foldAnimation.elapsed)
-    ? [ merge
-        ( model
-        , { foldAnimation
-          , display:
-              merge
-              ( model.display
-              , { depth:
-                  Easing.ease
-                  ( Easing.easeOutCubic
-                  , Easing.float
-                  , begin
-                  , end
-                  , duration
-                  , foldAnimation.elapsed
-                  )
-                }
-              )
-          }
-        )
-      , fx.map(FoldAnimationAction)
-      ]
-    : [ merge
-        ( model
-        , { foldAnimation
-          , display: merge(model.display, {depth: end})
-          }
-        )
-      , Effects.receive
-        ( model.isFolded
-        ? Folded
-        : Unfolded
-        )
-      ]
-    );
-
-  return result;
-}
-
 
 export const update =
-  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
-  ( action.type === "NoOp"
-  ? [model, Effects.none]
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ => {
+    switch (action.type) {
+      case "Animation":
+        return updateAnimation(model, action.animation);
+      case "Deck":
+        return updateDeck(model, action.deck);
+      case "SelectNext":
+        return selectNext(model);
+      case "SelectPrevious":
+        return selectPrevious(model);
+      case "Close":
+        return close(model);
+      case "ShowTabs":
+        return nofx(model);
+      case "OpenNewTab":
+        return openNewTab(model);
+      case "GoBack":
+        return updateSelected(model, Navigator.GoBack);
+      case "GoForward":
+        return updateSelected(model, Navigator.GoForward);
+      case "Reload":
+        return updateSelected(model, Navigator.Reload);
+      case "ZoomIn":
+        return updateSelected(model, Navigator.ZoomIn);
+      case "ZoomOut":
+        return updateSelected(model, Navigator.ZoomOut);
+      case "ResetZoom":
+        return updateSelected(model, Navigator.ResetZoom);
+      case "EditInput":
+        return updateSelected(model, Navigator.EditInput);
+      case "Focus":
+        return focus(model);
+      case "Expose":
+        return expose(model);
+      case "Shrink":
+        return shrink(model);
+      case "Expand":
+        return expand(model);
+      case "Tabs":
+        return updateTabs(model, action.tabs);
+      default:
+        return Unknown.update(model, action);
+    }
+  }
 
-  : action.type === "NavigateTo"
-  ? navigateTo(model, action.uri)
-
-  // Open web-view
-
-  : action.type === "Open"
-  ? open(model, action.options)
-
-  // Close web-view
-  : action.type === "CloseActive"
-  ? closeActive(model)
-
-  : action.type === "CloseByID"
-  ? closeByID(model, action.id)
-
-  : action.type === "Closed"
-  ? removeByID(model, action.id)
-
-  : action.type === "PushedDown"
-  ? pushedDown(model)
-
-  // Change activate web-view
-  : action.type === "ActivateSelected"
-  ? activateSelected(model)
-
-  : action.type === "ActivateByID"
-  ? activateByID(model, action.id)
-
-  : action.type === "Activated"
-  ? [ model, Effects.none ]
-
-  // Change selected web-view
-  : action.type === "SelectRelative"
-  ? selectByOffset(model, action.offset)
-
-  : action.type === "SelectByID"
-  ? selectByID(model, action.id)
-
-  // Currently we do nothing when selection has finished.
-  : action.type === "Selected"
-  ? [ model, Effects.none ]
-
-  // Fold / Unfold animations
-  : action.type === "Fold"
-  ? fold(model)
-  : action.type === "Unfold"
-  ? unfold(model)
-  : action.type === "FoldAnimation"
-  ? updateFoldAnimation(model, action.action)
-  : action.type === "Folded"
-  ? folded(model)
-  : action.type === "Unfolded"
-  ? unfolded(model)
-
-  // Delegate tagged action to one of the update functions.
-  : action.type === "ActiveWebView"
-  ? updateActive(model, action.action)
-
-  : action.type === "WebView"
-  ? updateByID(model, action.id, action.action)
-
-  : Unknown.update(model, action)
-  );
-
-
-
-export const getActiveURI =
-  (model/*:Model*/, fallback/*:URI*/='')/*:URI*/ =>
-  ( model.selector == null
-  ? fallback
-  : model.entries[model.selector.active] == null
-  ? fallback
-  : model.entries[model.selector.active].navigation.currentURI
+const animate =
+  (animation, action) =>
+  Animation.updateWith
+  ( Easing.easeOutCubic
+  , Display.interpolate
+  , animation
+  , action
   )
 
+const updateAnimation = cursor
+  ( { get: model => model.animation
+    , set:
+      (model, animation) =>
+      new Model
+      ( model.zoom
+      , model.shrink
+      , model.deck
+      , animation
+      )
+    , tag: tagAnimation
+    , update: animate
+    }
+  )
 
-const styleSheet = StyleSheet.create({
-  base: {
-    // @TODO box shadow slows down animations significantly (Gecko)
-    // boxShadow: '0 50px 80px rgba(0,0,0,0.25)',
-    height: '100%',
-    width: '100%',
-    left: 0,
-    overflow: 'hidden', // necessary to clip the radius
-    position: 'absolute', // to position webviews relatively to stack
-    top: 0,
-    willChange: 'transform',
-    transformOrigin: 'left center'
-    // WARNING: will slow down animations! (Gecko)
-    // xBorderRadius: '4px',
-  }
-});
+const openNewTab =
+  model =>
+  updateDeck
+  ( model
+  , SelectNewTab
+  )
 
-export const view =
-  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
+const updateDeck = cursor
+  ( { get: model => model.deck
+    , set:
+      (model, deck) =>
+      new Model
+      ( model.zoom
+      , model.shrink
+      , deck
+      , model.animation
+      )
+    , tag: tagDeck
+    , update:
+        (model, action) =>
+        Deck.update(Card, model, action)
+    }
+  )
+
+const updateTabs =
+  (model, action) =>
+  // Flow inference seems to fail here, so we just make it believe
+  // that we restructured action so it will suceed inferring.
+  (/*::
+    action.type === "Modify"
+  ? updateDeck
+    ( model
+    , { type: "Modify"
+      , id: action.id
+      , modify:
+        { type: "Tab"
+        , tab: action.modify.tab
+        }
+      }
+    )
+  :*/updateDeck(model, action)
+  )
+
+const selectNext =
+  model =>
+  updateDeck(model, SelectNext)
+
+const selectPrevious =
+  model =>
+  updateDeck(model, SelectPrevious)
+
+const updateSelected =
+  (model, action) =>
+  ( model.deck.selected == null
+  ? nofx(model)
+  : updateDeck
+    ( model
+    , { type: "Modify"
+      , id: model.deck.selected
+      , modify: action
+      }
+    )
+  )
+
+const close =
+  (model, action) =>
+  ( model.deck.selected == null
+  ? nofx(model)
+  : updateDeck
+    ( model
+    , { type: "Close"
+      , id: model.deck.selected
+      }
+    )
+  )
+
+const focus =
+  ( model ) =>
+  ( model.zoom
+  ? nofx(model)
+  : startAnimation
+    ( true
+    , model.shrink
+    , model.deck
+    , Animation.transition
+      ( model.animation
+      , ( model.shrink
+        ? Display.shrinked
+        : Display.normal
+        )
+      , 200
+      )
+    )
+  )
+
+const expose =
+  ( model ) =>
+  ( model.zoom
+  ? startAnimation
+    ( false
+    , model.shrink
+    , model.deck
+    , Animation.transition
+      ( model.animation
+      , ( model.shrink
+        ? Display.exposeShrinked
+        : Display.expose
+        )
+      , 500
+      )
+    )
+  : nofx(model)
+  )
+
+const shrink =
+  ( model ) =>
+  ( model.shrink
+  ? nofx(model)
+  : startAnimation
+    ( true
+    , true
+    , model.deck
+    , Animation.transition
+      ( model.animation
+      , Display.shrinked
+      , 200
+      )
+    )
+  )
+
+const expand =
+  ( model ) =>
+  ( !model.shrink
+  ? nofx(model)
+  : model.zoom
+  ? startAnimation
+    ( model.zoom
+    , false
+    , model.deck
+    , Animation.transition
+      ( model.animation
+      , Display.normal
+      , 200
+      )
+    )
+  : nofx
+    ( new Model
+      ( model.zoom
+      , false
+      , model.deck
+      , model.animation
+      )
+    )
+  )
+
+const startAnimation =
+  (zoom, shrink, deck, [animation, fx]) =>
+  [ new Model
+    ( zoom
+    , shrink
+    , deck
+    , animation
+    )
+  , fx.map(tagAnimation)
+  ]
+
+
+export const render =
+  ( model/*:Model*/
+  , address/*:Address<Action>*/
+  )/*:DOM*/ =>
   html.div
-  ( { className: 'webviews-stack'
+  ( { className: 'navigator-deck'
     , style:
-        Style
+        Style.mix
         ( styleSheet.base
-        , { transform: `translate3d(0, 0, ${model.display.depth}px)`
+        , { borderRight: `solid transparent ${model.animation.state.rightOffset}px`
+          , transform: `translate3d(0, 0, ${model.animation.state.depth}px)`
           }
         )
     }
+  , [ Overlay.view
+      ( model.zoom === false
+      , forward(address, tagOverlay)
+      )
+    ].concat
+    ( Deck.renderCards
+      ( Navigator.render
+      , model.deck
+      , forward(address, tagDeck)
+      )
+    )
+  )
+
+export const view =
+  ( model/*:Model*/
+  , address/*:Address<Action>*/
+  )/*:DOM*/ =>
+  thunk
+  ( 'Browser/NavigatorDeck'
+  , render
   , model
-      .order
-      .map(id =>
-        thunk
-        ( String(id)
-        , WebView.view
-        , model.entries[id]
-        , forward(address, ByID(id)))));
+  , address
+  )
+
+const styleSheet = Style.createSheet
+  ( { base:
+      { position: 'absolute'
+      , height: '100%'
+      , width: '100%'
+      , willChange: 'transform, border-right'
+      , top: 0
+      , left: 0
+      , overflow: 'hidden'
+      , transformOrigin: 'left center'
+      , boxSizing: 'border-box'
+      }
+    }
+  )
