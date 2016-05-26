@@ -6,8 +6,8 @@
 
 
 import {Effects, html, forward, thunk} from "reflex";
-import {merge, always, batch} from "../../common/prelude";
-import {Style, StyleSheet} from '../../common/style';
+import {merge, always, batch} from "../../../../common/prelude";
+import {Style, StyleSheet} from '../../../../common/style';
 
 /*::
 import type {Address, DOM} from "reflex"
@@ -16,8 +16,7 @@ import type {Address, DOM} from "reflex"
 
 const styleSheet = StyleSheet.create
   ( { base:
-      { color: 'rgba(0,0,0,0.7)'
-      , fontFamily: 'FontAwesome'
+      { fontFamily: 'FontAwesome'
       , fontSize: '17px'
       , left: '13px'
       , position: 'absolute'

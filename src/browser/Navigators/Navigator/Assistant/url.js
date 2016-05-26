@@ -6,9 +6,9 @@
 
 
 import {Effects, html, forward, thunk} from "reflex";
-import {merge, always, batch} from "../../common/prelude";
-import {Style, StyleSheet} from '../../common/style';
-import * as URL from '../../common/url-helper';
+import {merge, always, batch} from "../../../../common/prelude";
+import {Style, StyleSheet} from '../../../../common/style';
+import * as URL from '../../../../common/url-helper';
 
 /*::
 import type {Address, DOM} from "reflex";
@@ -18,8 +18,7 @@ import type {URI} from "./url";
 
 const styleSheet = StyleSheet.create
   ( { base:
-      { color: '#4A90E2'
-      , fontSize: '14px'
+      { fontSize: '14px'
       }
     , selected:
       { color: 'rgba(255,255,255,0.7)'

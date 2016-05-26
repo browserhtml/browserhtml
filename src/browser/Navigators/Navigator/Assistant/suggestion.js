@@ -6,7 +6,7 @@
 
 
 import {html, thunk} from "reflex";
-import {Style, StyleSheet} from '../../common/style';
+import {Style, StyleSheet} from '../../../../common/style';
 
 /*::
 import type {Address, DOM} from "reflex"
@@ -23,17 +23,19 @@ const styleSheet = StyleSheet.create
       , position: 'relative'
       , whiteSpace: 'nowrap'
       , textOverflow: 'ellipsis'
+      , borderLeft: 'none'
+      , borderRight: 'none'
+      , borderTop: 'none'
       , borderBottom: '1px solid'
-      , borderTop: '1px solid'
+      , color: 'inherit'
+      , borderColor: 'inherit'
+      , marginTop: '1px'
       }
     , unselected:
-      { borderBottomColor: 'rgba(0,0,0,0.08)'
-      , borderTopColor: 'transparent'
+      { opacity: 0.7
       }
     , selected:
       { background: '#4A90E2'
-      , borderBottomColor: 'transparent'
-      , borderTopColor: 'transparent'
       , borderRadius: '3px'
       }
     }

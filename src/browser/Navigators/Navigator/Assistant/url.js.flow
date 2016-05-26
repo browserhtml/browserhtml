@@ -6,7 +6,7 @@
 
 import type {Address, DOM} from "reflex"
 import {Effects} from "reflex"
-import type {URI} from "../../common/prelude"
+import type {URI} from "../../../../common/prelude"
 
 export type {URI}
 

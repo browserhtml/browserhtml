@@ -4,17 +4,46 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import {always, batch, merge, take, move} from "../common/prelude"
+import {always, batch, merge, take, move} from "../../../common/prelude"
 import {Effects, html, thunk, forward} from "reflex"
-import * as History from "./assistant/history"
-import * as Search from "./assistant/search"
-import {StyleSheet, Style} from '../common/style';
-import {cursor} from '../common/cursor';
-import * as Unknown from '../common/unknown';
+import * as History from "./Assistant/history"
+import * as Search from "./Assistant/search"
+import {StyleSheet, Style} from '../../../common/style';
+import {cursor} from '../../../common/cursor';
+import * as Unknown from '../../../common/unknown';
+import * as Layer from './Layer';
 
 /*::
 import type {Address, DOM} from "reflex";
-import type {Suggestion, Model, Action} from "./assistant";
+
+export type Flags = boolean
+
+export type Suggestion =
+  { match: string
+  , hint: string
+  }
+
+export type Model =
+  { isOpen: boolean
+  , isExpanded: boolean
+  , query: string
+  , selected: number
+  , search: Search.Model
+  , history: History.Model
+  }
+
+export type Action =
+  | { type: "Open" }
+  | { type: "Close" }
+  | { type: "Expand" }
+  | { type: "Reset" }
+  | { type: "Unselect" }
+  | { type: "SuggestNext" }
+  | { type: "SuggestPrevious" }
+  | { type: "Query", query: string }
+  | { type: "Suggest", suggest: Suggestion }
+  | { type: "Search", search: Search.Action }
+  | { type: "History", history: History.Action }
 */
 
 
@@ -28,14 +57,14 @@ export const SuggestPrevious/*:Action*/ = { type: "SuggestPrevious" };
 export const Suggest =
   (suggestion/*:Suggestion*/)/*:Action*/ =>
   ( { type: "Suggest"
-    , source: suggestion
+    , suggest: suggestion
     }
   )
 
 export const Query =
   (input/*:string*/)/*:Action*/ =>
   ( { type: "Query"
-    , source: input
+    , query: input
     }
   );
 
@@ -45,14 +74,14 @@ const SearchAction =
   ( action.type === "Suggest"
   ? Suggest(action.source)
   : { type: "Search"
-    , source: action
+    , search: action
     }
   );
 
 const HistoryAction =
   action =>
   ( { type: "History"
-    , source: action
+    , history: action
     }
   );
 
@@ -175,45 +204,52 @@ const suggestPrevious =
   updateSearch(model, Search.SelectPrevious);
 
 export const update =
-  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
-  ( action.type === "Open"
-  ? open(model)
-  : action.type === "Close"
-  ? close(model)
-  : action.type === "Expand"
-  ? expand(model)
-  : action.type === "Reset"
-  ? reset(model)
-  : action.type === "Unselect"
-  ? unselect(model)
-  : action.type === "SuggestNext"
-  ? suggestNext(model)
-  : action.type === "SuggestPrevious"
-  ? suggestPrevious(model)
-  : action.type === "Query"
-  ? query(model, action.source)
-  : action.type === "History"
-  ? updateHistory(model, action.source)
-  : action.type === "Search"
-  ? updateSearch(model, action.source)
-  : action.type === "Suggest"
-  ? [model, Effects.none]
-  : Unknown.update(model, action)
-  );
+  ( model/*:Model*/
+  , action/*:Action*/
+  )/*:[Model, Effects<Action>]*/ => {
+    switch (action.type) {
+      case "Open":
+        return open(model)
+      case "Close":
+        return close(model)
+      case "Expand":
+        return expand(model)
+      case "Reset":
+        return reset(model)
+      case "Unselect":
+        return unselect(model)
+      case "SuggestNext":
+        return suggestNext(model)
+      case "SuggestPrevious":
+        return suggestPrevious(model)
+      case "Query":
+        return query(model, action.query)
+      case "History":
+        return updateHistory(model, action.history)
+      case "Search":
+        return updateSearch(model, action.search)
+      case "Suggest":
+        return [model, Effects.none]
+      default:
+        return Unknown.update(model, action)
+    }
+  };
 
 const styleSheet = StyleSheet.create
   ( { base:
-      { background: '#fff'
+      { background: 'inherit'
+      , borderColor: 'inherit'
       , left: '0px'
       , position: 'absolute'
       , top: '0px'
       , width: '100%'
+      , zIndex: Layer.assistant
       }
     , expanded:
       { height: '100%'
       }
     , shrinked:
-      { minHeight: '120px'
+      { minHeight: '110px'
       }
 
     , open:
@@ -226,6 +262,7 @@ const styleSheet = StyleSheet.create
 
     , results:
       { listStyle: 'none'
+      , borderColor: 'inherit'
       , margin: '90px auto 40px'
       , padding: '0px'
       , width: '480px'

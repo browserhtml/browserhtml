@@ -6,7 +6,7 @@
 
 import {Effects, Task} from "reflex"
 import type {Address, DOM, Never} from "reflex"
-import type {Result} from "../../common/result"
+import type {Result} from "../../../../common/result"
 import * as Title from "./title";
 
 type URI = string
