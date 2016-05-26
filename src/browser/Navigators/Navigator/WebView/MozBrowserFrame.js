@@ -1,17 +1,17 @@
 /* @flow */
 
 import {Effects, node, html, forward} from 'reflex';
-import * as URL from '../../common/url-helper';
+import * as URL from '../../../../common/url-helper';
 import * as Driver from '@driver';
-import * as Style from '../../common/style';
+import * as Style from '../../../../common/style';
 import {on} from '@driver';
-import {always} from '../../common/prelude';
+import {always} from '../../../../common/prelude';
 
 
 /*::
 import type {Address, DOM} from "reflex"
-import type {ID, URI, Time, Display, Options, Model, Action} from "../web-view"
-import {performance} from "../../common/performance"
+import type {Model, Action} from "../WebView"
+import {performance} from "../../../../common/performance"
 */
 
 const Blur = always({ type: "Blur" });
@@ -26,7 +26,7 @@ export const view =
   , address/*:Address<Action>*/
   )/*:DOM*/ =>
   html.iframe
-  ( { id: `web-view-${model.id}`
+  ( { [model.ref.name]: model.ref.value
     , src: model.navigation.initiatedURI
     , 'data-current-uri': model.navigation.currentURI
     , 'data-name': model.name

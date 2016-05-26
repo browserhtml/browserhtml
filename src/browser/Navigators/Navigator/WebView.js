@@ -6,69 +6,161 @@
 
 
 import {Effects, html, forward} from 'reflex';
-import {merge, always, batch} from '../common/prelude';
-import {cursor} from '../common/cursor';
-import {compose} from '../lang/functional';
+import {merge, always, batch} from '../../../common/prelude';
+import {cursor} from '../../../common/cursor';
+import {compose} from '../../../lang/functional';
 import {on} from '@driver';
-import {isElectron} from "../common/runtime";
-import * as Shell from './web-view/shell';
-import * as Progress from './web-view/progress';
-import * as Navigation from './web-view/navigation';
-import * as Security from './web-view/security';
-import * as Page from './web-view/page';
-import * as Tab from './sidebar/tab';
-import * as Unknown from '../common/unknown';
-import * as Stopwatch from '../common/stopwatch';
-import {Style, StyleSheet} from '../common/style';
-import {readTitle, isDark, canGoBack} from './web-view/util';
+import {isElectron} from "../../../common/runtime";
+import * as Shell from './WebView/Shell';
+import * as Navigation from './WebView/Navigation';
+import * as Security from './WebView/Security';
+import * as Page from './WebView/Page';
+import * as Unknown from '../../../common/unknown';
+import {Style, StyleSheet} from '../../../common/style';
+import {readTitle, isDark, canGoBack} from './WebView/Util';
 import * as Driver from '@driver';
-import * as Focusable from '../common/focusable';
+import * as Focusable from '../../../common/focusable';
 import * as Easing from 'eased';
-import * as MozBrowserFrame from './web-view/moz-browser-frame';
-import * as ElectronFrame from './web-view/electron-frame';
-
+import * as MozBrowserFrame from './WebView/MozBrowserFrame';
+import * as ElectronFrame from './WebView/ElectronFrame';
+import * as Layer from './Layer';
+import * as Ref from '../../../common/ref';
+import * as Tab from '../../Sidebar/Tab';
 
 /*::
 import type {Address, DOM} from "reflex"
-import type {ID, URI, Time, Display, Options, Model, Action} from "./web-view"
-import {performance} from "../common/performance"
+import type {URI, Time, Integer, Float} from "../../../common/prelude"
+import type {Icon} from "../../../common/favicon"
+import {performance} from "../../../common/performance"
+
+export type {URI, Time}
+
+export type Display =
+  { opacity: Float
+  }
+
+export type Disposition =
+  | 'default'
+  | 'foreground-tab'
+  | 'background-tab'
+  | 'new-window'
+  | 'new-popup'
+
+export type Flags =
+  { uri: URI
+  , disposition: Disposition
+  , name: string
+  , features: string
+  , options?: {}
+  , ref: any
+  , guestInstanceId: ?string
+  }
+
+export type Action =
+  | { type: "NoOp" }
+  | { type: "Focus" }
+  | { type: "Blur" }
+  | { type: "Load", uri: URI }
+  | { type: "LoadStart", time: Time }
+  | { type: "LoadEnd", time: Time }
+  | { type: "Connect", time: Time }
+  | { type: "LocationChanged"
+    , uri: URI
+    , canGoBack: ?boolean
+    , canGoForward: ?boolean
+    , time: Time
+    }
+  | { type: "FirstPaint" }
+  | { type: "DocumentFirstPaint" }
+  | { type: "MetaChanged", name: string, content: string }
+  | { type: "IconChanged", icon: Icon }
+  | { type: "TitleChanged", title: string }
+  | { type: "SecurityChanged"
+    , state: "broken" | "secure" | "insecure"
+    , extendedValidation: boolean
+    , trackingContent: boolean
+    , mixedContent: boolean
+    }
+  | { type: "Select" }
+  | { type: "Close" }
+  | { type: "Closed" }
+  | { type: "Edit" }
+  | { type: "ShowTabs" }
+  | { type: "Create" }
+  | { type: "PushDown" }
+  | { type: "PushedDown" }
+  | { type: "Shell", shell: Shell.Action }
+  | { type: "Page", page: Page.Action }
+  | { type: "Tab", tab: Tab.Action }
+  | { type: "Security", security: Security.Action }
+  | { type: "Navigation", navigation: Navigation.Action }
+  | { type: "Open", options: Flags }
+  | { type: "ContextMenu"
+    , clientX: Float
+    , clientY: Float
+    , systemTargets: any
+    , contextMenu: any
+    }
+  | { type: "Authentificate"
+    , host: string
+    , realm: string
+    , isProxy: boolean
+    }
+  | { type: "LoadFail"
+    , time: Time
+    , reason: string
+    , code: Integer
+    }
+  | { type: "ModalPrompt"
+    , kind: "alert" | "confirm" | "prompt"
+    , title: string
+    , message: string
+    }
 */
 
+export class Model {
+  /*::
+  ref: Ref.Model;
+  guestInstanceId: ?string;
+  name: string;
+  features: string;
+  tab: Tab.Model;
+  shell: Shell.Model;
+  navigation: Navigation.Model;
+  security: Security.Model;
+  page: Page.Model;
+  */
+  constructor(
+    ref/*: Ref.Model*/
+  , guestInstanceId/*: ?string*/
+  , name/*: string*/
+  , features/*: string*/
+  , tab/*: Tab.Model*/
+  , shell/*: Shell.Model*/
+  , navigation/*: Navigation.Model*/
+  , security/*: Security.Model*/
+  , page/*: Page.Model*/
+  ) {
+    this.ref = ref
+    this.guestInstanceId = guestInstanceId
+    this.name = name
+    this.features = features
+    this.tab = tab
+    this.shell = shell
+    this.navigation = navigation
+    this.security = security
+    this.page = page
+  }
+}
+
 const NoOp = always({ type: "NoOp" });
-export const Select/*:Action*/ =
-  { type: "Select"
-  };
-
-export const Unselect/*:Action*/ =
-  { type: "Unselect"
-  };
-
-export const Selected/*:Action*/ =
-  { type: "Selected"
-  };
-
-export const Unselected/*:Action*/ =
-  { type: "Unselected"
-  };
-
-export const Activate/*:Action*/ =
-  { type: "Activate"
-  };
-
-export const Activated/*:Action*/ =
-  { type: "Activated"
-  };
-
-export const Deactivate/*:Action*/ =
-  { type: "Deactivate"
-  };
-
-export const Deactivated/*:Action*/ =
-  { type: "Deactivated"
-  };
 
 export const Close/*:Action*/ =
   { type: "Close"
+  };
+
+export const Select/*:Action*/ =
+  { type: "Select"
   };
 
 export const Closed/*:Action*/ =
@@ -194,30 +286,6 @@ const TabAction = action => {
         };
     }
   };
-
-const ProgressAction =
-  action =>
-  ( { type: "Progress"
-    , progress: action
-    }
-  );
-
-const SelectAnimationAction = action =>
-  ( action.type === "End"
-  ? Selected
-  : { type: "SelectAnimation"
-    , action
-    }
-  );
-
-const updateProgress = cursor
-  ( { get: model => model.progress
-    , set: (model, progress) => merge(model, {progress})
-    , tag: ProgressAction
-    , update: Progress.update
-    }
-  );
-
 
 const updatePage = cursor
   ( { get: model => model.page
@@ -545,37 +613,12 @@ export const update =
   };
 
 const topBarHeight = '27px';
-const comboboxHeight = '21px';
-const comboboxWidth = '250px';
 
 const styleSheet = StyleSheet.create({
-  webview: {
-    position: 'absolute', // to stack webview on top of each other
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    mozUserSelect: 'none',
-    cursor: 'default',
-    zIndex: 2
-  },
-
-  webviewActive: {
-
-  },
-
-  webviewSelected: {
-    zIndex: 3
-  },
-
-  webviewInactive: {
-    pointerEvents: 'none',
-    zIndex: 1
-  },
-
   base: {
     position: 'absolute',
     top: topBarHeight,
+    zIndex: Layer.output,
     left: 0,
     width: '100%',
     height: `calc(100% - ${topBarHeight})`,
@@ -584,136 +627,6 @@ const styleSheet = StyleSheet.create({
     backgroundColor: 'white',
     MozWindowDragging: 'no-drag',
     WebkitAppRegion: 'no-drag',
-  },
-
-  topbar: {
-    backgroundColor: 'white', // dynamic
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: topBarHeight,
-  },
-
-  combobox: {
-    MozWindowDragging: 'no-drag',
-    WebkitAppRegion: 'no-drag',
-    position: 'absolute',
-    left: '50%',
-    top: 0,
-    height: comboboxHeight,
-    lineHeight: comboboxHeight,
-    width: comboboxWidth,
-    marginTop: `calc(${topBarHeight} / 2 - ${comboboxHeight} / 2)`,
-    marginLeft: `calc(${comboboxWidth} / -2)`,
-    borderRadius: '5px',
-    cursor: 'text',
-  },
-
-  lightText: {
-    color: 'rgba(0, 0, 0, 0.8)',
-  },
-
-  darkText: {
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-
-  titleContainer: {
-    fontSize: '13px',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    paddingLeft: '30px',
-    paddingRight: '30px',
-    width: 'calc(100% - 60px)',
-    textAlign: 'center',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis'
-  },
-
-  // Also has some hover styles defined in theme.css
-  iconSearch: {
-    fontFamily: 'FontAwesome',
-    fontSize: '14px',
-    left: '5px',
-    position: 'absolute',
-  },
-
-  iconSecure: {
-    fontFamily: 'FontAwesome',
-    marginRight: '6px'
-  },
-
-  iconInsecure: {
-    display: 'none'
-  },
-
-  iconShowTabs: {
-    MozWindowDragging: 'no-drag',
-    WebkitAppRegion: 'no-drag',
-    backgroundImage: 'url(css/hamburger.sprite.png)',
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: '0 0',
-    backgroundSize: '50px auto',
-    position: 'absolute',
-    height: '13px',
-    right: '8px',
-    top: '7px',
-    width: '14px'
-  },
-
-  iconShowTabsDark: {
-    backgroundPosition: '0 -50px'
-  },
-
-  iconShowTabsBright: null,
-
-  iconCreateTab: {
-    MozWindowDragging: 'no-drag',
-    WebkitAppRegion: 'no-drag',
-    color: 'rgba(0,0,0,0.8)',
-    fontFamily: 'FontAwesome',
-    fontSize: '18px',
-    lineHeight: '32px',
-    position: 'absolute',
-    textAlign: 'center',
-    bottom: 0,
-    right: 0,
-    width: '30px',
-    height: '32px',
-  },
-
-  iconCreateTabDark: {
-    color: 'rgba(255,255,255,0.8)',
-  },
-
-  iconCreateTabBright: null,
-
-  iconBack: {
-    MozWindowDragging: 'no-drag',
-    color: 'rgba(0,0,0,0.8)',
-    fontFamily: 'FontAwesome',
-    fontSize: '18px',
-    lineHeight: '32px',
-    position: 'absolute',
-    textAlign: 'center',
-    bottom: 0,
-    left: 0,
-    width: '30px',
-    height: '32px',
-  },
-
-  iconBackDark: {
-    color: 'rgba(255,255,255,0.8)',
-  },
-
-  iconBackBright: null,
-
-  iconBackShow: null,
-
-  iconBackHide: {
-    display: 'none'
   }
 });
 
@@ -723,126 +636,7 @@ const Frame =
   : MozBrowserFrame
   );
 
+
 export const view =
-  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ => {
-  const isModelDark = isDark(model);
-  return html.div
-  ( { className:
-      ( isModelDark
-      ? `webview webview-is-dark web-view-${model.id}`
-      : `webview web-view-${model.id}`
-      )
-    , style: Style
-      ( styleSheet.webview
-      , ( model.isActive
-        ? styleSheet.webviewActive
-        : model.isSelected
-        ? styleSheet.webviewSelected
-        : styleSheet.webviewInactive
-        )
-      , model.display
-      )
-    , onServoMouseForceDown: on(address, always(PushDown))
-    }
-  , [ Frame.view(styleSheet, model, address)
-    , html.div
-      ( { className: 'webview-topbar'
-        , style: Style
-          ( styleSheet.topbar
-          , ( model.page.pallet.background != null
-            ? { backgroundColor: model.page.pallet.background }
-            : null
-            )
-          )
-        }
-      , [ html.div
-          ( { className: 'webview-combobox'
-            , style: Style
-              ( styleSheet.combobox
-              , ( isModelDark
-                ? styleSheet.darkText
-                : styleSheet.lightText
-                )
-              )
-            , onClick: forward(address, always(Edit))
-            }
-          , [ html.span
-              ( { className: 'webview-search-icon'
-                , style: styleSheet.iconSearch
-                }
-              , ['']
-              )
-            , html.div
-              ( { className: 'webview-title-container'
-                , style: styleSheet.titleContainer
-                }
-              , [ html.span
-                  ( { className: 'webview-security-icon'
-                    , style:
-                      ( model.security.secure
-                      ? styleSheet.iconSecure
-                      : styleSheet.iconInsecure
-                      )
-                    }
-                  , ['']
-                  )
-                , html.span
-                  ( { className: 'webview-title' }
-                  // @TODO localize this string
-                  , [ readTitle(model, 'Untitled') ]
-                  )
-                ]
-              )
-            ]
-          )
-        , html.div
-          ( { className: 'webview-show-tabs-icon'
-            , style:
-                Style
-                ( styleSheet.iconShowTabs
-                , ( isModelDark
-                  ? styleSheet.iconShowTabsDark
-                  : styleSheet.iconShowTabsBright
-                  )
-                )
-            , onClick: forward(address, always(ShowTabs))
-            }
-          )
-        ]
-      )
-    , Progress.view(model.progress, address)
-    , html.div
-      ( { className: 'webview-tab-icon'
-        , style:
-            Style
-            ( styleSheet.iconCreateTab
-            , ( isModelDark
-              ? styleSheet.iconCreateTabDark
-              : styleSheet.iconCreateTabBright
-              )
-            )
-        , onClick: forward(address, always(Create))
-        }
-      , ['']
-      )
-    , html.div
-      ( { className: 'webview-back-icon'
-        , style:
-            Style
-            ( styleSheet.iconBack
-            , ( isModelDark
-              ? styleSheet.iconBackDark
-              : styleSheet.iconBackBright
-              )
-            , ( canGoBack(model)
-              ? styleSheet.iconBackShow
-              : styleSheet.iconBackHide
-              )
-            )
-        , onClick: forward(address, always(GoBack))
-        }
-      , ['']
-      )
-    ]
-  );
-};
+  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
+  Frame.view(styleSheet, model, address);

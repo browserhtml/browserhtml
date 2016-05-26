@@ -4,11 +4,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import * as URI from '../../common/url-helper';
-import * as Favicon from '../../common/favicon';
+import * as URI from '../../../../common/url-helper';
+import * as Favicon from '../../../../common/favicon';
 
 /*::
-import * as WebView from "../web-view"
+import * as WebView from "../WebView"
 */
 
 export const readTitle =
@@ -40,3 +40,7 @@ export const isDark =
 export const canGoBack =
   (model/*:WebView.Model*/)/*:boolean*/ =>
   model.navigation.canGoBack === true;
+
+export const isSecure =
+  (model/*:WebView.Model*/)/*:boolean*/ =>
+  model.security.secure;
