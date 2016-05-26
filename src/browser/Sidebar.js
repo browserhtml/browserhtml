@@ -6,20 +6,59 @@
 
 import {html, thunk, forward, Effects} from 'reflex';
 import * as Style from '../common/style';
-import * as Toolbar from "./sidebar/toolbar";
-import * as Tabs from "./sidebar/tabs";
+import * as Toolbar from "./Sidebar/Toolbar";
+import * as Tabs from "./Sidebar/Tabs";
 import {merge, always} from "../common/prelude";
 import {cursor} from "../common/cursor";
 import * as Unknown from "../common/unknown";
-import * as Stopwatch from "../common/stopwatch";
 import * as Easing from "eased";
+import * as Display from "./Sidebar/Display";
+import * as Animation from "../common/Animation";
 
 
 /*::
+import type {Integer, Float} from "../common/prelude"
 import type {Address, DOM} from "reflex"
-import type {ID, Display, Model, Action} from "./sidebar"
-import * as WebViews from "./web-views"
+import type {ID} from "./Sidebar/Tabs"
+import * as Navigator from "./Navigators/Navigator"
+import * as Deck from "../common/Deck"
+
+export type Action =
+  | { type: "CreateWebView" }
+  | { type: "Attach" }
+  | { type: "Detach" }
+  | { type: "Expand" }
+  | { type: "Collapse" }
+  | { type: "Activate" }
+  | { type: "Animation", animation: Animation.Action }
+  | { type: "Tabs", tabs: Tabs.Action }
+  | { type: "Toolbar", toolbar: Toolbar.Action }
 */
+
+
+
+
+
+export class Model {
+  /*::
+  isAttached: boolean;
+  isExpanded: boolean;
+  animation: Animation.Model<Display.Model>;
+  toolbar: Toolbar.Model;
+  */
+  constructor(
+    isAttached/*: boolean*/
+  , isExpanded/*: boolean*/
+  , toolbar/*: Toolbar.Model*/
+  , animation/*: Animation.Model<Display.Model>*/
+  ) {
+    this.isAttached = isAttached
+    this.isExpanded = isExpanded
+    this.animation = animation
+    this.toolbar = toolbar
+  }
+}
+
 
 const styleSheet = Style.createSheet({
   base:
@@ -31,29 +70,41 @@ const styleSheet = Style.createSheet({
   , width: '320px'
   , boxSizing: 'border-box'
   , zIndex: 2 // @TODO This is a hack to avoid resizing new tab / edit tab views.
+  , overflow: 'hidden'
   }
 });
 
 
-export const init = ()/*:[Model, Effects<Action>]*/ => {
-  const [toolbar, fx] = Toolbar.init()
-  return [
-    { isAttached: false
-    , isOpen: false
-    , animation: null
-    , display:
-      { x: 550
-      , shadow: 0.5
-      , spacing: 16
-      , toolbarOpacity: 1
-      , titleOpacity: 1
-      , tabWidth: 288
-      }
+export const init =
+  ( isAttached/*:boolean*/ = false
+  , isExpanded/*:boolean*/ = false
+  )/*:[Model, Effects<Action>]*/ => {
+    const display =
+      ( isExpanded
+      ? Display.expanded
+      : isAttached
+      ? Display.attached
+      : Display.collapsed
+      );
+
+    const [toolbar, $toolbar] = Toolbar.init();
+    const [animation, $animation] = Animation.init(display, null);
+
+    const model = new Model
+    ( isAttached
+    , isExpanded
     , toolbar
-    },
-    fx.map(ToolbarAction)
-  ]
-}
+    , animation
+    );
+
+    const fx = Effects.batch
+    ( [ $toolbar.map(tagToolbar)
+      , $animation.map(tagAnimation)
+      ]
+    )
+
+    return [model, fx]
+  }
 
 export const CreateWebView/*:Action*/ =
   { type: 'CreateWebView'
@@ -68,227 +119,262 @@ export const Detach/*:Action*/ =
   { type: "Detach"
   };
 
-export const Open/*:Action*/ = {type: "Open"};
-export const Close/*:Action*/ = {type: "Close"};
-export const Activate/*:Action*/ = {type: "Activate"};
-export const CloseTab/*:(id:ID) => Action*/ =
-  id =>
-  ({type: "CloseTab", id});
-export const ActivateTab/*:(id:ID) => Action*/ =
-  id =>
-  ({type: "ActivateTab", id});
+export const Expand/*:Action*/ = {type: "Expand"};
+export const Collapse/*:Action*/ = {type: "Collapse"};
 
-const TabsAction = action =>
-  (  action.type === "Close"
-  ? CloseTab(action.id)
-  : action.type === "Activate"
-  ? ActivateTab(action.id)
-  : { type: "Tabs"
-    , source: action
-    }
-  );
-
-
-const AnimationAction = action => ({type: "Animation", action});
-const AnimationEnd = always({type: "AnimationEnd"});
-
-const ToolbarAction = action =>
-  ( action.type === "Attach"
-  ? Attach
-  : action.type === "Detach"
-  ? Detach
-  : action.type === "CreateWebView"
-  ? CreateWebView
-  : { type: "Toolbar"
-    , source: action
-    , action
-    }
-  );
-
-
-
-const updateToolbar = cursor({
-  get: model => model.toolbar,
-  set: (model, toolbar) => merge(model, {toolbar}),
-  tag: ToolbarAction,
-  update: Toolbar.update
-});
-
-const updateStopwatch = cursor({
-  tag: AnimationAction,
-  get: model => model.animation,
-  set: (model, animation) => merge(model, {animation}),
-  update: Stopwatch.update
-});
-
-const interpolate = (from, to, progress) =>
-  merge
-  ( from
-  , { x: Easing.float(from.x, to.x, progress)
-    , shadow: Easing.float(from.shadow, to.shadow, progress)
-    , spacing: Easing.float(from.spacing, to.spacing, progress)
-    , toolbarOpacity: Easing.float(from.toolbarOpacity, to.toolbarOpacity, progress)
-    , titleOpacity: Easing.float(from.titleOpacity, to.titleOpacity, progress)
-    , tabWidth: Easing.float(from.tabWidth, to.tabWidth, progress)
-    }
-  );
-
-const display =
-  { open:
-    { x: 0
-    , shadow: 0.5
-    , spacing: 16
-    , toolbarOpacity: 1
-    , titleOpacity: 1
-    , tabWidth: 288
-    }
-  , attached:
-    { x: 270
-    , shadow: 0
-    , spacing: 9
-    , toolbarOpacity: 0
-    , titleOpacity: 0
-    , tabWidth: 32
-    }
-  , closed:
-    { x: 550
-    , shadow: 0.5
-    , spacing: 16
-    , toolbarOpacity: 1
-    , titleOpacity: 1
-    , tabWidth: 288
+const tagTabs =
+  action => {
+    switch (action.type) {
+      default:
+        return {
+          type: "Tabs"
+        , tabs: action
+        }
     }
   };
 
 
-const animationProjection = model =>
-  ( model.isOpen
-  ? display.open
-  : model.isAttached
-  ? display.attached
-  : display.closed
+const tagToolbar =
+  action => {
+    switch (action.type) {
+      case "Attach":
+        return Attach;
+      case "Detach":
+        return Detach;
+      case "CreateWebView":
+        return CreateWebView;
+      default:
+        return {
+          type: "Toolbar"
+        , toolbar: action
+        , action
+        }
+    }
+  };
+
+const tagAnimation =
+  action =>
+  ( { type: "Animation"
+    , animation: action
+    }
   );
 
-const animationDuration = model =>
-  ( model.isOpen
-  ? 550
-  : 200
+const animate =
+  (animation, action) =>
+  Animation.updateWith
+  ( Easing.easeOutCubic
+  , Display.interpolate
+  , animation
+  , action
+  )
+
+
+const updateToolbar = cursor
+  ( { get: model => model.toolbar
+    , set:
+      (model, toolbar) => new Model
+      ( model.isAttached
+      , model.isExpanded
+      , toolbar
+      , model.animation
+      )
+    , tag: tagToolbar
+    , update: Toolbar.update
+    }
   );
 
+const updateAnimation = cursor
+  ( { get: model => model.animation
+    , set:
+      (model, animation) =>
+      new Model
+      ( model.isAttached
+      , model.isExpanded
+      , model.toolbar
+      , animation
+      )
+    , tag: tagAnimation
+    , update: animate
+    }
+  )
 
-const updateAnimation = (model, action) => {
-  const [{animation}, fx] = updateStopwatch(model, action.action)
-  const duration = animationDuration(model)
+const nofx = /*::<model, action>*/
+  (model/*:model*/)/*:[model, Effects<action>]*/ =>
+  [ model
+  , Effects.none
+  ]
 
-  // @TODO: We should not be guessing what is the starnig point
-  // that makes no sense & is likely to be incorrect at a times.
-  // To fix it we need to ditch this easing library in favor of
-  // something that will give us more like spring physics.
-  const begin
-    = !model.isOpen
-    ? display.open
-    : model.isAttached
-    ? display.attached
-    : display.closed;
-
-  const projection = animationProjection(model)
+const startAnimation =
+  (isAttached, isExpanded, toolbar, [animation, fx]) =>
+  [ new Model
+    ( isAttached
+    , isExpanded
+    , toolbar
+    , animation
+    )
+  , fx.map(tagAnimation)
+  ]
 
 
-  return (animation && duration > animation.elapsed)
-    ? [ merge(model, {
-          animation,
-          display: Easing.ease
-            ( Easing.easeOutCubic
-            , interpolate
-            , begin
-            , projection
-            , duration
-            , animation.elapsed
-            )
-        })
-      , fx
-      ]
-    : [ merge(model, {animation, display: projection})
-      , fx.map(AnimationEnd)
-      ]
-}
-
-const open = model =>
-  ( model.isOpen
-  ? [ model, Effects.none ]
-  : updateStopwatch(merge(model, {isOpen: true}), Stopwatch.Start)
+const expand =
+  ( model ) =>
+  ( model.isExpanded
+  ? nofx(model)
+  : startAnimation
+    ( model.isAttached
+    , true
+    , model.toolbar
+    , Animation.transition
+      ( model.animation
+      , Display.expanded
+      , 550
+      )
+    )
   );
 
-const close = model =>
-  ( model.isOpen
-  ? updateStopwatch(merge(model, {isOpen: false}), Stopwatch.Start)
-  : [ model, Effects.none ]
+const collapse =
+  (model/*:Model*/) =>
+  ( !model.isExpanded
+  ? nofx(model)
+  : startAnimation
+    ( model.isAttached
+    , false
+    , model.toolbar
+    , Animation.transition
+      ( model.animation
+      , ( model.isAttached
+        ? Display.attached
+        : Display.collapsed
+        )
+      , 200
+      )
+    )
   );
 
-const attach = model =>
+const attach =
+  ( model ) =>
   ( model.isAttached
-  ? [ model, Effects.none ]
-  : updateToolbar(merge(model, {isAttached: true}), Toolbar.Attach)
+  ? nofx(model)
+  : assemble
+    ( true
+    , false
+    , Toolbar.update(model.toolbar, Toolbar.Attach)
+    , Animation.transition
+      ( model.animation
+      , Display.attached
+      , ( model.isExpanded
+        ? 200
+        : 100
+        )
+      )
+    )
+  )
+
+const detach =
+  ( model ) =>
+  ( !model.isAttached
+  ? nofx(model)
+  : assemble
+    ( false
+    , model.isExpanded
+    , Toolbar.update(model.toolbar, Toolbar.Detach)
+    , ( model.isExpanded
+      ? nofx(model.animation)
+      : Animation.transition
+        ( model.animation
+        , Display.collapsed
+        , ( model.isExpanded
+          ? 200
+          : 100
+          )
+        )
+      )
+    )
   );
 
-const detach = model =>
-  ( model.isAttached
-  ? updateToolbar(merge(model, {isAttached: false}), Toolbar.Detach)
-  : [ model, Effects.none ]
-  );
+const assemble =
+  ( isAttached
+  , isExpanded
+  , [toolbar, $toolbar]
+  , [animation, $animation]
+  ) =>
+  [ new Model
+    ( isAttached
+    , isExpanded
+    , toolbar
+    , animation
+    )
+  , Effects.batch
+    ( [ $toolbar.map(tagToolbar)
+      , $animation.map(tagAnimation)
+      ]
+    )
+  ]
 
 export const update =
-  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
-  ( action.type === "Open"
-  ? open(model)
-  : action.type === "Close"
-  ? close(model)
-  : action.type === "Attach"
-  ? attach(model)
-  : action.type === "Detach"
-  ? detach(model)
+  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ => {
+    switch (action.type) {
+      case "Expand":
+        return expand(model);
+      case "Collapse":
+        return collapse(model);
+      case "Attach":
+        return attach(model);
+      case "Detach":
+        return detach(model);
 
-  : action.type === "Animation"
-  ? updateAnimation(model, action)
-  : action.type === "AnimationEnd"
-  ? updateStopwatch(model, Stopwatch.End)
+      case "Animation":
+        return updateAnimation(model, action.animation);
+      case "Toolbar":
+        return updateToolbar(model, action.toolbar);
 
-  : action.type === "Toolbar"
-  ? updateToolbar(model, action.source)
+      default:
+        return Unknown.update(model, action);
+    }
+  };
 
-  : Unknown.update(model, action)
-  );
 
-
-export const view =
+export const render =
   ( model/*:Model*/
-  , webViews/*:WebViews.Model*/
+  , navigators/*:Deck.Model<Navigator.Model>*/
   , address/*:Address<Action>*/
   )/*:DOM*/ =>
-  html.div
+  html.menu
   ( { key: 'sidebar'
     , className: 'sidebar'
     , style: Style.mix
       ( styleSheet.base
-      , { transform: `translateX(${model.display.x}px)`
-        , boxShadow: `rgba(0, 0, 0, ${model.display.shadow}) -50px 0 80px`
-        , paddingLeft: `${model.display.spacing}px`
-        , paddingRight: `${model.display.spacing}px`
+      , { transform: `translateX(${model.animation.state.x}px)`
+        , boxShadow: `rgba(0, 0, 0, ${model.animation.state.shadow}) -50px 0 80px`
+        , paddingLeft: `${model.animation.state.spacing}px`
+        , paddingRight: `${model.animation.state.spacing}px`
         }
       )
-  }, [
-    thunk
-    ( 'tabs'
-    , Tabs.view
-    , webViews
-    , forward(address, TabsAction, model.display)
-    , model.display
-    )
-  , thunk
-    ( 'sidebar-toolbar'
-    , Toolbar.view
-    , model.toolbar
-    , forward(address, ToolbarAction)
-    , model.display
-    )
-  ]);
+    }
+  , [ Tabs.view
+      ( navigators
+      , forward(address, tagTabs)
+      , model.animation.state
+      )
+    , thunk
+      ( 'sidebar-toolbar'
+      , Toolbar.view
+      , model.toolbar
+      , forward(address, tagToolbar)
+      , model.animation.state
+      )
+    ]
+  );
+
+export const view =
+  ( model/*:Model*/
+  , navigators/*:Deck.Model<Navigator.Model>*/
+  , address/*:Address<Action>*/
+  )/*:DOM*/ =>
+  thunk
+  ( 'Browser/Sidebar'
+  , render
+  , model
+  , navigators
+  , address
+  );

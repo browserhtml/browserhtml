@@ -14,8 +14,32 @@ import * as Unknown from "../../common/unknown";
 
 /*::
 import type {Address, DOM} from "reflex"
-import type {Context, Model, Action} from "./toolbar"
+
+export type Context =
+  { toolbarOpacity: number
+  }
+
+export type Action =
+  | { type: "Attach" }
+  | { type: "Detach" }
+  | { type: "CreateWebView" }
+  | { type: "Toggle", toggle: Toggle.Action }
+  | { type: "CloseButton", closeButton: Button.Action }
 */
+
+export class Model {
+  /*::
+  pin: Toggle.Model;
+  close: Button.Model;
+  */
+  constructor(
+    pin/*:Toggle.Model*/
+  , close/*:Button.Model*/
+  ) {
+    this.pin = pin
+    this.close = close
+  }
+}
 
 export const Attach/*:Action*/ =
   { type: "Attach"
@@ -29,32 +53,38 @@ export const CreateWebView/*:Action*/ =
   { type: "CreateWebView"
   };
 
-const ToggleAction = action =>
-  ( action.type === "Check"
-  ? Attach
-  : action.type === "Uncheck"
-  ? Detach
-  : {type: "Toggle", action}
-  );
-
-const CloseButtonAction = action =>
-  ( action.type === "Press"
-  ? CreateWebView
-  : { type: "CloseButton"
-    , source: action
+const ToggleAction =
+  action => {
+    switch (action.type) {
+      case "Check":
+        return Attach
+      case "Uncheck":
+        return Detach
+      default:
+        return { type: "Toggle", toggle: action }
     }
-  );
+  };
+
+const CloseButtonAction =
+  action => {
+    switch (action.type) {
+      case "Press":
+        return CreateWebView;
+      default:
+        return { type: "CloseButton", closeButton: action }
+    }
+  };
 
 const updateToggle = cursor({
   get: model => model.pin,
-  set: (model, pin) => merge(model, {pin}),
+  set: (model, pin) => new Model(pin, model.close),
   tag: ToggleAction,
   update: Toggle.update
 });
 
 const updateCloseButton = cursor({
   get: model => model.close,
-  set: (model, close) => merge(model, {close}),
+  set: (model, close) => new Model(model.pin, close),
   tag: CloseButtonAction,
   update: Button.update
 })
@@ -63,7 +93,7 @@ export const init = ()/*:[Model, Effects<Action>]*/ => {
   const [pin, pinFX] = Toggle.init();
   const [close, closeFX] = Button.init(false, false, false, false, '');
   return [
-    {pin, close},
+    new Model(pin, close),
     Effects.batch
     ( [ pinFX.map(ToggleAction)
       , closeFX.map(CloseButtonAction)
@@ -81,9 +111,9 @@ export const update =
   ? updateToggle(model, Toggle.Uncheck)
 
   : action.type === "Toggle"
-  ? updateToggle(model, action.action)
+  ? updateToggle(model, action.toggle)
   : action.type === "CloseButton"
-  ? updateCloseButton(model, action.source)
+  ? updateCloseButton(model, action.closeButton)
 
   : Unknown.update(model, action)
   );
