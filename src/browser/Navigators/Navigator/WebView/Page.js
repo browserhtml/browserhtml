@@ -249,6 +249,7 @@ const updateURI =
   // Sometimes location change is triggered even though actual location
   // remains same. In such case we want to keep extracted colors as we
   // may not get those this time around.
+  // See: https://github.com/browserhtml/browserhtml/issues/458
   ( model.uri === uri
   ? [ model, Effects.none ]
   : [ new Model
@@ -270,7 +271,7 @@ export const update =
   (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ => {
     switch (action.type) {
       case "LoadStart":
-        return  loadStart(model);
+        return loadStart(model);
       case "LoadEnd":
         // If you go back / forward `DocumentFirstPaint` is not fired there for
         // we schedule a `WebView.Page.DocumentFakePaint` action to be send back
@@ -293,7 +294,7 @@ export const update =
         return  updatePallet(model);
       case "LocationChanged":
         return updateURI(model, action.uri);
-  // Ignore
+      // Ignore
       case "FirstPaint":
         return  [ model, Effects.none ];
       case "OverflowChanged":

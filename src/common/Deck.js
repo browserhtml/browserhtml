@@ -1,5 +1,9 @@
 /* @flow */
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 import {Effects, Task, html, forward, thunk} from "reflex"
 import {merge} from "../common/prelude"
 import * as Unknown from "../common/unknown"
@@ -69,7 +73,6 @@ export class Model /*::<model>*/ {
     this.selected = selected
   }
 }
-
 
 
 export const init = /*::<action, model, flags>*/
@@ -385,28 +388,38 @@ const relativeOf =
     )
   ]
 
-// Takes element and an array thas supposed to contain it and returns
-// neigboring element which:
-// - Is `void` if array is empty or contains only given element.
-// - Is first element, if given element is not in the array.
-// - Is following element, if given element is a first in the array.
-// - Is preceeding elemnet, otherwise.
+// Function is used to decide which tab should get a selection if currently
+// selected tab is to be closed. Given `id` represents currently selected tab
+// `id` in the given array of the tab ids ordered as they appear to the user.
+// Rules are chosen to follow specific UX: If you close first first tab we
+// select next tab, otherwise we select previous tab.
+// Function presumes that the given `id` is contained by the given `array`
+// & returns `id` that supposed to get selected once tab with the given `id` is
+// closed. Function returns:
+// - `void` if the array contains only the given element (or is empty which
+//    should not be the case), implying no tab shoul be selected.
+// - The first element in the `array`, if the given `id` is not in the
+//   array (should not happen but, if somehow it does we just select first tab).
+// - The second element, if the given `id` is the first item in the `array`.
+// - Is the tab `id` preceding the given `id` otherwise.
 const beneficiaryOf =
-  (id, index) => {
-    const count = index.length
-    const from = index.indexOf(id)
-    const to =
-      ( count === 0
-      ? -1
-      : from === -1
-      ? 0
-      : count === 1
-      ? -1
-      : from === 0
-      ? from + 1
-      : from - 1
-      );
-    return index[to]
+  (id, array) => {
+    const count = array.length;
+    if (count === 0) {
+      return undefined;
+    }
+
+    const from = array.indexOf(id);
+    if (from === -1) {
+      return array[0];
+    }
+    if (count === 1) {
+      return undefined;
+    }
+    if (from === 0) {
+      return array[1];
+    }
+    return array[from - 1];
   }
 
 const Tag = {

@@ -344,11 +344,7 @@ export const render =
     , className: 'sidebar'
     , style: Style.mix
       ( styleSheet.base
-      , { transform: `translateX(${model.animation.state.x}px)`
-        , boxShadow: `rgba(0, 0, 0, ${model.animation.state.shadow}) -50px 0 80px`
-        , paddingLeft: `${model.animation.state.spacing}px`
-        , paddingRight: `${model.animation.state.spacing}px`
-        }
+      , styleAnimation(model.animation.state)
       )
     }
   , [ Tabs.view
@@ -378,3 +374,12 @@ export const view =
   , navigators
   , address
   );
+
+const styleAnimation =
+  ({x, shadow, spacing}) =>
+  ( { transform: `translateX(${x}px)`
+    , boxShadow: `rgba(0, 0, 0, ${shadow}) -50px 0 80px`
+    , paddingLeft: `${spacing}px`
+    , paddingRight: `${spacing}px`
+    }
+  )

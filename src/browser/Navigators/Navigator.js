@@ -190,12 +190,7 @@ const tagOutput =
       case "Close":
         return Close;
       case "Open":
-        return {
-          type: "Open"
-        , open:
-          { output: action.options
-          }
-        }
+        return { type: "Open", open: { output: action.options } }
       case "LoadStart":
         return action
       case "Connect":
@@ -224,12 +219,12 @@ const tagHeader =
   }
 
 const tagProgress =
-  action => {
-    switch (action.type) {
-      default:
-        return { type: "Progress", progress: action }
+  action =>
+  ( { type: "Progress"
+    , progress: action
     }
-  }
+  )
+
 
 const tagAnimation =
   action => {

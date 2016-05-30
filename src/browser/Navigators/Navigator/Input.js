@@ -52,10 +52,7 @@ export type Action =
   | { type: 'Suggest', suggest: Suggestion }
   | { type: 'Focus' }
   | { type: 'Blur' }
-  | { type: "Change"
-    , value: string
-    , selection: Editable.Selection
-    }
+  | { type: "Change", value: string, selection: Editable.Selection }
   | { type: 'Editable', editable: Editable.Action }
   | { type: 'Focusable', focusable: Focusable.Action }
 */
@@ -142,16 +139,8 @@ const defaultFlags =
 export const init =
   (flags/*:Flags*/=defaultFlags)/*:[Model, Effects<Action>]*/ =>
   [ ( { value: flags.value
-      , isFocused:
-        ( flags.isFocused == null
-        ? false
-        : flags.isFocused
-        )
-      , isVisible:
-        ( flags.isVisible == null
-        ? false
-        : flags.isVisible
-        )
+      , isFocused: !!flags.isFocused
+      , isVisible: !!flags.isVisible
       , selection: null
       }
     )

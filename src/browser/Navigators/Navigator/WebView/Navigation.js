@@ -17,16 +17,11 @@ import type {ID, URI, Time} from "../../../../common/prelude"
 
 export type Action =
   | { type: "NoOp" }
-  // Action is triggered whenever web-view start loading a new URI. Passed URI
-  // directly corresponds `currentURI` in the model.
   | { type: "LocationChanged"
     , uri: URI
     , canGoBack: ?boolean
     , canGoForward: ?boolean
     }
-  // Editing uri in the location bar causes `ChangeLocation` action. It's
-  // `uri` field directly corresponds to `initiatedURI` field on the model,
-  // althoug this action also updates `currentURI`.
   | { type: "Load"
     , uri: URI
     }
@@ -34,8 +29,8 @@ export type Action =
   | { type: "Reload" }
   | { type: "GoBack" }
   | { type: "GoForward" }
-  // When model is updated with above action Effects with following Response
-  // actions are triggered.
+  // When the model is updated with the above action, effects with the following
+  // response actions are triggered.
   | { type: "CanGoBackChanged"
     , canGoBackChanged: Result<Error, boolean>
     }
@@ -61,15 +56,18 @@ export class Model {
   ref: Ref.Model;
   canGoBack: boolean;
   canGoForward: boolean;
-  // URI of the page displayed by a web-view (although web view maybe still
-  // loading & technically it won't be displayed). This uri updates during any
-  // redirects or when user navigates away by going back / forward or by
+  // URI of the page displayed by a web-view. This uri updates during any
+  // redirects or when the user navigates away by going back / forward or by
   // navigating to a new uri.
   currentURI: URI;
-  // URI that was entered in a location bar by a user. Note this may not be an
-  // uri of currently loaded page as uri could have being redirect or user could
-  // have navigated away by clicking a link or pressing go back / go forward
-  // buttons. This pretty much represents `src` attribute of the iframe.
+  // URI that was entered in a location bar by the user. Note this may not be an
+  // URI of currently loaded page as URI could have being redirect or the user
+  // could have navigated away by clicking a link or pressing go back / go
+  // forward buttons.
+  // Note: This field is needed to workaround unfortunate API of the `iframe`.
+  // Field value is used as `src` attribute of the `iframe` and we can't use
+  // `currentURI` as that would cause `iframe` to reload page every time user
+  // navigates away & also destroying navgation history along.
   initiatedURI: URI;
   */
   constructor(
@@ -275,6 +273,10 @@ const updateLocation =
       , canGoBackValue
       , canGoForwardValue
       , uri
+      // Please note that `initiatedURI` does not change here, becasue it is
+      // reflected as `src` on iframe & there for it would cause undesired
+      // frech page load when iframe nivagetes away, for example when user
+      // clicks a link.
       , model.initiatedURI
       )
     , Effects.none
@@ -309,6 +311,10 @@ export const load =
     ( model.ref
     , false
     , false
+    // Please note that both  `initiatedURI` & `currentURI` are updated. Former
+    // will be reflected as `src` on the iframe, while later represents
+    // currently loaded `URI` (Two get out of sync when iframe navigates away,
+    // for example when link on a page is clicked).
     , uri
     , uri
     )

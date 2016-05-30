@@ -572,8 +572,6 @@ const selectPrevious =
 
 const endSelection = showWebView
 
-
-
 const reciveOpenURLNotification = model =>
   [ model
   , Effects

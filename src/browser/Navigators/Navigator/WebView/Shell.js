@@ -187,7 +187,6 @@ const report =
   });
 
 
-
 export const init =
   ( ref/*:Ref.Model*/
   , isFocused/*:boolean*/)/*:[Model, Effects<Action>]*/ =>
@@ -211,7 +210,6 @@ const updateVisibility =
   , Effects.none
   ]
 
-
 const updateZoom =
   ( model, zoom ) =>
   [ new Model
@@ -222,8 +220,6 @@ const updateZoom =
     )
   , Effects.none
   ]
-
-
 
 const updateFocus =
   ( model, isFocused ) =>
