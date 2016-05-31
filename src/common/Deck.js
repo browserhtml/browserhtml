@@ -389,15 +389,15 @@ const relativeOf =
   ]
 
 // Function is used to decide which tab should get a selection if currently
-// selected tab is to be closed. Given `id` represents currently selected tab
-// `id` in the given array of the tab ids ordered as they appear to the user.
-// Rules are chosen to follow specific UX: If you close first first tab we
-// select next tab, otherwise we select previous tab.
+// selected tab is to be closed. The given `id` represents currently selected
+// tab `id` in the given array of the tab ids (that are ordered as they appear
+// to the user). The rules are chosen to follow a specific UX: If you close
+// the first tab we select the next tab, otherwise we select the previous tab.
 // Function presumes that the given `id` is contained by the given `array`
-// & returns `id` that supposed to get selected once tab with the given `id` is
-// closed. Function returns:
+// & returns the `id` that supposed to get the selected once the tab with the
+// given `id` is closed. Function returns:
 // - `void` if the array contains only the given element (or is empty which
-//    should not be the case), implying no tab shoul be selected.
+//    should not be the case), implying no tab should be selected.
 // - The first element in the `array`, if the given `id` is not in the
 //   array (should not happen but, if somehow it does we just select first tab).
 // - The second element, if the given `id` is the first item in the `array`.

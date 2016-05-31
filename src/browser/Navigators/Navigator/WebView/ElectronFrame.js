@@ -30,7 +30,7 @@ export const view =
   node
   ( 'webview'
   , { [model.ref.name]: model.ref.value
-    , src: model.navigation.initiatedURI
+    , src: model.navigation.src
     , 'data-current-uri': model.navigation.currentURI
     , 'data-name': model.name
     , 'data-features': model.features

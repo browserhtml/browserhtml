@@ -64,24 +64,24 @@ export class Model {
   // URI of currently loaded page as URI could have being redirect or the user
   // could have navigated away by clicking a link or pressing go back / go
   // forward buttons.
-  // Note: This field is needed to workaround unfortunate API of the `iframe`.
-  // Field value is used as `src` attribute of the `iframe` and we can't use
-  // `currentURI` as that would cause `iframe` to reload page every time user
-  // navigates away & also destroying navgation history along.
-  initiatedURI: URI;
+  // Note: This field is needed to workaround unfortunate API of the iframe.
+  // The field's value is used as `src` attribute of the iframe and we can't use
+  // `currentURI` as that would cause iframe a reload every time the user
+  // navigates away & also destroy navgation history along the way.
+  src: URI;
   */
   constructor(
     ref/*: Ref.Model*/
   , canGoBack/*: boolean*/
   , canGoForward/*: boolean*/
   , currentURI/*: URI*/
-  , initiatedURI/*: URI*/
+  , src/*: URI*/
   ) {
     this.ref = ref
     this.canGoBack = canGoBack
     this.canGoForward = canGoForward
     this.currentURI = currentURI
-    this.initiatedURI = initiatedURI
+    this.src = src
   }
 }
 
@@ -238,7 +238,7 @@ const updateCanGoBack =
     , canGoBack
     , model.canGoForward
     , model.currentURI
-    , model.initiatedURI
+    , model.src
     )
   , Effects.none
   ]
@@ -250,7 +250,7 @@ const updateCanGoForward =
     , model.canGoBack
     , canGoForward
     , model.currentURI
-    , model.initiatedURI
+    , model.src
     )
   , Effects.none
   ]
@@ -273,11 +273,11 @@ const updateLocation =
       , canGoBackValue
       , canGoForwardValue
       , uri
-      // Please note that `initiatedURI` does not change here, becasue it is
-      // reflected as `src` on iframe & there for it would cause undesired
-      // frech page load when iframe nivagetes away, for example when user
+      // Please note that `src` does not change here, because it is
+      // reflected as `src` on iframe & therefor it would cause undesired
+      // fresh page load when iframe navigates away, for example when user
       // clicks a link.
-      , model.initiatedURI
+      , model.src
       )
     , Effects.none
     ]
@@ -289,7 +289,7 @@ const updateLocation =
       , model.canGoBack
       , model.canGoForward
       , uri
-      , model.initiatedURI
+      , model.src
       )
     , Effects.batch
       ( [ Effects
@@ -311,10 +311,10 @@ export const load =
     ( model.ref
     , false
     , false
-    // Please note that both  `initiatedURI` & `currentURI` are updated. Former
-    // will be reflected as `src` on the iframe, while later represents
-    // currently loaded `URI` (Two get out of sync when iframe navigates away,
-    // for example when link on a page is clicked).
+    // Please note that both `src` & `currentURI` are updated. The
+    // former will be reflected as `src` on the iframe, while the later
+    // represents currently loaded `URI` (They get out of sync when iframe
+    // navigates away, for example when a link on a page is clicked).
     , uri
     , uri
     )

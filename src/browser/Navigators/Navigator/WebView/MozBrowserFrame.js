@@ -27,7 +27,7 @@ export const view =
   )/*:DOM*/ =>
   html.iframe
   ( { [model.ref.name]: model.ref.value
-    , src: model.navigation.initiatedURI
+    , src: model.navigation.src
     , 'data-current-uri': model.navigation.currentURI
     , 'data-name': model.name
     , 'data-features': model.features
