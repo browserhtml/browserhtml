@@ -609,7 +609,6 @@ const reloadRuntime = model =>
 
 export const update =
   (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ => {
-    console.log(JSON.stringify(action))
     switch (action.type) {
       case 'GoBack':
         return goBack(model);
