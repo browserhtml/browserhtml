@@ -49,7 +49,7 @@ export type Action =
   | { type: "CommitInput" }
   | { type: "SubmitInput" }
   | { type: "EscapeInput" }
-  | { type: "FocusInput" }
+  | { type: "ActivateInput" }
   | { type: "AbortInput" }
   | { type: "SuggestNext" }
   | { type: "SuggestPrevious" }
@@ -62,7 +62,7 @@ export type Action =
   | { type: "ZoomIn" }
   | { type: "ZoomOut" }
   | { type: "ResetZoom" }
-  | { type: "FocusOutput" }
+  | { type: "ActivateOutput" }
   | { type: "LoadStart", time: Time }
   | { type: "Connect", time: Time }
   | { type: "LoadEnd", time: Time }
@@ -112,7 +112,7 @@ export type Action =
 
 const SubmitInput = { type: "SubmitInput" }
 const EscapeInput = { type: "EscapeInput" }
-const FocusInput = { type: "FocusInput" }
+const ActivateInput = { type: "ActivateInput" }
 const CommitInput = { type: "CommitInput" }
 const SuggestNext = { type: "SuggestNext" }
 const SuggestPrevious = { type: "SuggestPrevious" }
@@ -126,7 +126,7 @@ export const ResetZoom = { type: "ResetZoom" }
 const ShowTabs = { type: "ShowTabs" };
 const OpenNewTab = { type: "OpenNewTab"};
 export const EditInput = { type: "EditInput" };
-const FocusOutput = { type: "FocusOutput" };
+const ActivateOutput = { type: "ActivateOutput" };
 const AbortInput = { type: "AbortInput" };
 const HideOverlay = { type: "HideOverlay" };
 const ShowOverlay = { type: "ShowOverlay" };
@@ -137,6 +137,9 @@ export const Deactivate = { type: "Deactivate" }
 export const Activate = { type: "Activate" }
 export const Deselect = { type: "Deselect" }
 export const Select = { type: "Select" }
+export const FocusInput = { type: "Input", input: Input.Focus }
+export const HideInput = { type: "Input", input: Input.Hide }
+export const FocusOutput = { type: "Output", output: Output.Focus }
 
 const tagInput =
   action => {
@@ -146,7 +149,7 @@ const tagInput =
       case "Abort":
         return EscapeInput
       case "Focus":
-        return FocusInput
+        return ActivateInput
       case "Query":
         return CommitInput
       case "SuggestNext":
@@ -185,7 +188,7 @@ const tagOutput =
       case "Create":
         return OpenNewTab
       case "Focus":
-        return FocusOutput
+        return ActivateOutput
       case "Close":
         return Close;
       case "Open":
@@ -361,8 +364,8 @@ export const update =
         return submitInput(model);
       case 'EscapeInput':
         return escapeInput(model);
-      case 'FocusInput':
-        return focusInput(model);
+      case 'ActivateInput':
+        return activateInput(model);
       case 'AbortInput':
         return abortInput(model);
       case 'SuggestNext':
@@ -388,8 +391,8 @@ export const update =
       case "ResetZoom":
         return updateOutput(model, Output.ResetZoom);
 
-      case 'FocusOutput':
-        return focusOutput(model);
+      case 'ActivateOutput':
+        return activateOutput(model);
       case 'EditInput':
         return editInput(model);
       case "LoadStart":
@@ -531,9 +534,17 @@ const escapeInput =
     ]
   );
 
-const focusInput =
+
+const activateInput =
   model =>
-  updateInput(model, Input.Focus);
+  batch
+  ( update
+  , model
+  , [ FocusInput
+    , ActivateAssistant
+    , ShowOverlay
+    ]
+  );
 
 const abortInput =
   model =>
@@ -548,9 +559,15 @@ const suggestPrevious =
   model =>
   updateAssistant(model, Assistant.SuggestPrevious);
 
-const focusOutput =
+const activateOutput =
   model =>
-  updateOutput(model, Output.Focus);
+  batch
+  ( update
+  , model
+  , [ FocusOutput
+    , EscapeInput
+    ]
+  )
 
 const goBack =
   model =>
@@ -585,11 +602,7 @@ const editInput =
   batch
   ( update
   , model
-  , [ FocusInput
-    , ActivateAssistant
-    , ShowOverlay
-      // @TODO: Do not use `model.output.navigation.currentURI` as it ties it
-      // to webView API too much.
+  , [ ActivateInput
     , SetSelectedInputValue(model.output.navigation.currentURI)
     ]
   )
