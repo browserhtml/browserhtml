@@ -18,6 +18,7 @@ import type {Float} from "../../../../common/prelude"
 
 export type Action =
   | { type: "NoOp" }
+  | { type: "Panic", panic: Error }
   | { type: "ZoomIn" }
   | { type: "ZoomOut" }
   | { type: "ResetZoom" }
@@ -71,6 +72,13 @@ export const ResetZoom/*:Action*/ =
 const FocusableAction =
   action =>
   ({type: "Focusable", action});
+
+const Panic =
+  error =>
+  ( { type: "Panic"
+    , panic: error
+    }
+  )
 
 export const Focus/*:Action*/ = Focusable.Focus;
 export const Blur/*:Action*/ = Focusable.Blur;
@@ -153,7 +161,9 @@ const focusElement = /*::<value>*/
   (element/*:HTMLElement*/)/*:Task<Error, value>*/ =>
   new Task((succeed, fail) => {
     try {
-      element.focus()
+      if (element.ownerDocument.activeElement !== element) {
+        element.focus()
+      }
     }
     catch (error) {
       fail(error)
@@ -170,7 +180,9 @@ const blurElement =/*::<value>*/
   (element/*:HTMLElement*/)/*:Task<Error, value>*/ =>
   new Task((succeed, fail) => {
     try {
-      element.blur()
+      if (element.ownerDocument.activeElement === element) {
+        element.blur()
+      }
     }
     catch (error) {
       fail(error)
@@ -180,8 +192,8 @@ const blurElement =/*::<value>*/
 
 
 // Reports error as a warning in a console.
-const report =
-  error =>
+const warn = /*::<value>*/
+  (error/*:Error*/)/*:Task<Never, value>*/ =>
   new Task((succeed, fail) => {
     console.warn(error);
   });
@@ -223,14 +235,21 @@ const updateZoom =
 
 const updateFocus =
   ( model, isFocused ) =>
-  [ new Model
-    ( model.ref
-    , model.zoom
-    , model.isVisible
-    , isFocused
-    )
-  , Effects.none
-  ]
+  ( model.isFocused === isFocused
+  ? [ model, Effects.none ]
+  : [ new Model
+      ( model.ref
+      , model.zoom
+      , model.isVisible
+      , isFocused
+      )
+    , Effects.perform
+      ( isFocused
+      ? focus(model.ref).recover(Panic)
+      : blur(model.ref).recover(Panic)
+      )
+    ]
+  )
 
 
 export const update =
@@ -297,8 +316,7 @@ export const update =
         ? updateVisibility(model, action.visibilityChanged.value)
         : [ model
           , Effects
-            .perform(report(action.visibilityChanged.error))
-            .map(NoOp)
+            .perform(warn(action.visibilityChanged.error))
           ]
         );
       case "ZoomChanged":
@@ -307,16 +325,20 @@ export const update =
         ? updateZoom(model, action.zoomChanged.value)
         : [ model
           , Effects
-            .perform(report(action.zoomChanged.error))
-            .map(NoOp)
+            .perform(warn(action.zoomChanged.error))
           ]
         );
 
   // Delegate
       case "Focus":
+
         return updateFocus(model, true);
       case "Blur":
         return updateFocus(model, false);
+
+      case "Panic":
+        return [model, Effects.perform(warn(action.panic))];
+
       default:
         return [model, Effects.none];
     }

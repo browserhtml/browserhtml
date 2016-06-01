@@ -324,7 +324,7 @@ export const init =
       , options.name
       , options.features
       , Tab.init()
-      , Shell.init(ref, options.disposition !== 'background-tab')
+      , Shell.init(ref, false)
       , Navigation.init(ref, options.uri)
       , Security.init()
       , Page.init(options.uri)
