@@ -16,6 +16,7 @@ import * as Output from "./Navigator/WebView";
 import * as Unknown from "../../common/unknown";
 import * as URL from '../../common/url-helper';
 import * as Header from './Navigator/Header';
+import * as Title from './Navigator/Title';
 import * as Progress from './Navigator/Progress';
 import * as Display from './Navigator/Display';
 import * as Animation from "../../common/Animation";
@@ -44,6 +45,8 @@ export type Action =
   | { type: "Close" }
   | { type: "Closed" }
 
+  // Title
+  | { type: "EditInput" }
 
   // Input
   | { type: "CommitInput" }
@@ -219,6 +222,9 @@ const tagHeader =
         return { type: "Header", header: action }
     }
   }
+
+const tagTitle =
+  always({ type: "EditInput" });
 
 const tagProgress =
   action =>
@@ -806,17 +812,21 @@ export const render =
       , styleBackground(model.output)
       )
     }
-  , [ Header.view
-      ( readTitle(model.output, 'Untitled')
-      , isSecure(model.output)
-      , canGoBack(model.output)
+  , [ Output.view(model.output, forward(address, tagOutput))
+    , Overlay.view(model.overlay, forward(address, tagOverlay))
+    , Assistant.view(model.assistant, forward(address, tagAssistant))
+    , Header.view
+      ( canGoBack(model.output)
       , forward(address, tagHeader)
+      )
+    , Title.view
+      ( model.input.isVisible
+      , readTitle(model.output, 'Untitled')
+      , isSecure(model.output)
+      , forward(address, tagTitle)
       )
     , Progress.view(model.progress, forward(address, tagProgress))
     , Input.view(model.input, forward(address, tagInput))
-    , Assistant.view(model.assistant, forward(address, tagAssistant))
-    , Output.view(model.output, forward(address, tagOutput))
-    , Overlay.view(model.overlay, forward(address, tagOverlay))
     ]
   )
 
