@@ -31,6 +31,8 @@ import type {URI, Time} from "./Navigator/WebView"
 
 export type Flags =
   { output: Output.Flags
+  , isPinned?: boolean
+  , isInputEmbedded?: boolean
   , input?: Input.Flags
   , overlay?: Overlay.Flags
   , assistant?: Assistant.Flags
@@ -97,14 +99,7 @@ export type Action =
 
   // Embedder
   | { type: "Navigate", uri: URI }
-  | { type: "Open"
-    , open:
-      { output: Output.Flags
-      , input?: Input.Flags
-      , assistant?: Assistant.Flags
-      , overlay?: Overlay.Flags
-      }
-    }
+  | { type: "Open", open: Flags }
 
   | { type: "Tab", tab: Tab.Action }
 
@@ -143,6 +138,18 @@ export const Select = { type: "Select" }
 export const FocusInput = { type: "Input", input: Input.Focus }
 export const HideInput = { type: "Input", input: Input.Hide }
 export const FocusOutput = { type: "Output", output: Output.Focus }
+export const ClearInput =
+  { type: "Input"
+  , input:
+    { type: "Change"
+    , value: ""
+    , selection:
+      { start: 0
+      , end: 0
+      , direction: "none"
+      }
+    }
+  }
 
 const tagInput =
   action => {
@@ -265,6 +272,8 @@ export class Model {
   /*::
   isSelected: boolean;
   isClosed: boolean;
+  isPinned: boolean;
+  isInputEmbedded: boolean;
   output: Output.Model;
   input: Input.Model;
   overlay: Overlay.Model;
@@ -275,6 +284,8 @@ export class Model {
   constructor(
     isSelected/*:boolean*/
   , isClosed/*:boolean*/
+  , isPinned/*:boolean*/
+  , isInputEmbedded/*:boolean*/
   , input/*:Input.Model*/
   , output/*:Output.Model*/
   , assistant/*:Assistant.Model*/
@@ -284,6 +295,8 @@ export class Model {
   ) {
     this.isSelected = isSelected
     this.isClosed = isClosed
+    this.isPinned = isPinned
+    this.isInputEmbedded = isInputEmbedded
     this.input = input
     this.output = output
     this.assistant = assistant
@@ -296,6 +309,8 @@ export class Model {
 const assemble =
   ( isSelected
   , isClosed
+  , isPinned
+  , isInputEmbedded
   , [input, $input]
   , [output, $output]
   , [assistant, $assistant]
@@ -306,6 +321,8 @@ const assemble =
     const model = new Model
       ( isSelected
       , isClosed
+      , isPinned
+      , isInputEmbedded
       , input
       , output
       , assistant
@@ -327,15 +344,18 @@ const assemble =
     return [model, fx]
   }
 
+
 export const init =
   (options/*:Flags*/)/*:[Model, Effects<Action>]*/ =>
   assemble
   ( options.output.disposition != 'background-tab'
   , false
+  , options.isPinned === true
+  , options.isInputEmbedded === true
   , Input.init(options.input)
   , Output.init(options.output)
   , Assistant.init(options.assistant)
-  , Overlay.init(options.overlay)
+  , Overlay.init(options.overlay && !options.isInputEmbedded)
   , Progress.init()
   , Animation.init
     ( options.output.disposition != 'background-tab'
@@ -488,7 +508,11 @@ export const deselect =
 export const close =
   ( model/*:Model*/
   )/*:[Model, Effects<Action>]*/ =>
-  ( model.isSelected
+  ( model.isPinned
+  ? [ model
+    , Effects.receive(Select)
+    ]
+  : model.isSelected
   ? startAnimation
     ( model
     , false
@@ -506,10 +530,41 @@ export const close =
 
 const navigate =
   (model, uri) =>
-  updateOutput
-  ( model
-  , Output.Load(uri)
+  ( model.isPinned
+  ? open(model, uri)
+  : updateOutput
+    ( model
+    , Output.Load(uri)
+    )
   )
+
+const open =
+  (model, uri) => {
+    const [next, fx1] = escapeInput(model)
+    const fx2 = Effects.receive
+      ( { type: "Open"
+        , open:
+          { output:
+            { uri
+            , disposition: 'default'
+            , name: ''
+            , features: ''
+            , ref: null
+            , guestInstanceId: null
+            }
+          }
+        }
+      )
+
+    const fx = Effects.batch
+      ( [ fx1
+        , fx2
+        ]
+      )
+
+    return [next, fx]
+  }
+
 
 const commitInput =
   model =>
@@ -530,27 +585,48 @@ const submitInput =
 
 const escapeInput =
   model =>
-  batch
-  ( update
-  , model
-  , [ DeactivateAssistant
-    , AbortInput
-    , FocusOutput
-    , HideOverlay
-    ]
+  ( model.isInputEmbedded
+  ? batch
+    ( update
+    , model
+    , [ DeactivateAssistant
+      , FocusOutput
+      , HideOverlay
+      , ClearInput
+      ]
+    )
+  : batch
+    ( update
+    , model
+    , [ DeactivateAssistant
+      , AbortInput
+      , FocusOutput
+      , HideOverlay
+      , ClearInput
+      ]
+    )
   );
 
 
 const activateInput =
   model =>
-  batch
-  ( update
-  , model
-  , [ FocusInput
-    , ActivateAssistant
-    , ShowOverlay
-    ]
-  );
+  ( model.isInputEmbedded
+  ? batch
+    ( update
+    , model
+    , [ FocusInput
+      , ActivateAssistant
+      ]
+    )
+  : batch
+    ( update
+    , model
+    , [ FocusInput
+      , ActivateAssistant
+      , ShowOverlay
+      ]
+    )
+  )
 
 const abortInput =
   model =>
@@ -586,6 +662,8 @@ const updateLoadProgress =
     const model = new Model
     ( source.isSelected
     , source.isClosed
+    , source.isPinned
+    , source.isInputEmbedded
     , source.input
     , output
     , source.assistant
@@ -609,7 +687,12 @@ const editInput =
   ( update
   , model
   , [ ActivateInput
-    , SetSelectedInputValue(model.output.navigation.currentURI)
+      // @TODO: Do not use `model.output.navigation.currentURI` as it ties it
+      // to webView API too much.
+    , ( model.isInputEmbedded
+      ? SetSelectedInputValue('')
+      : SetSelectedInputValue(model.output.navigation.currentURI)
+      )
     ]
   )
 
@@ -653,6 +736,8 @@ const updateInput = cursor
       new Model
       ( model.isSelected
       , model.isClosed
+      , model.isPinned
+      , model.isInputEmbedded
       , input
       , model.output
       , model.assistant
@@ -672,6 +757,8 @@ const updateOutput = cursor
       new Model
       ( model.isSelected
       , model.isClosed
+      , model.isPinned
+      , model.isInputEmbedded
       , model.input
       , output
       , model.assistant
@@ -691,6 +778,8 @@ const updateProgress = cursor
       new Model
       ( model.isSelected
       , model.isClosed
+      , model.isPinned
+      , model.isInputEmbedded
       , model.input
       , model.output
       , model.assistant
@@ -710,6 +799,8 @@ const updateAssistant = cursor
       new Model
       ( model.isSelected
       , model.isClosed
+      , model.isPinned
+      , model.isInputEmbedded
       , model.input
       , model.output
       , assistant
@@ -729,6 +820,8 @@ const updateOverlay = cursor
       new Model
       ( model.isSelected
       , model.isClosed
+      , model.isPinned
+      , model.isInputEmbedded
       , model.input
       , model.output
       , model.assistant
@@ -757,6 +850,8 @@ const updateAnimation = cursor
         new Model
         ( model.isSelected
         , model.isClosed
+        , model.isPinned
+        , model.isInputEmbedded
         , model.input
         , model.output
         , model.assistant
@@ -774,6 +869,8 @@ const startAnimation =
   [ new Model
     ( isSelected
     , isClosed
+    , model.isPinned
+    , model.isInputEmbedded
     , model.input
     , model.output
     , model.assistant
