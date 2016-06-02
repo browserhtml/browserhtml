@@ -12,7 +12,6 @@ import * as Unknown from "../../common/unknown";
 
 import * as Tiles from './newtab/tiles';
 import * as Wallpapers from './newtab/wallpapers';
-import * as Help from './newtab/help';
 
 /*::
 import type {Address, DOM} from "reflex"
@@ -33,29 +32,19 @@ const TilesAction =
     }
   );
 
-const HelpAction =
-  action =>
-  ( { type: 'Help'
-    , source: action
-    }
-  );
-
 export const init =
   ()/*:[Model, Effects<Action>]*/ =>
   {
     const [tiles, tilesFx] = Tiles.init();
     const [wallpapers, wallpaperFx] = Wallpapers.init();
-    const [help, helpFx] = Help.init();
     return (
       [
         { wallpapers
         , tiles
-        , help
         }
       , Effects.batch
         ( [ tilesFx.map(TilesAction)
           , wallpaperFx.map(WallpapersAction)
-          , helpFx.map(HelpAction)
           ]
         )
       ]
@@ -74,14 +63,6 @@ const updateTiles = cursor
     , set: (model, tiles) => merge(model, {tiles})
     , update: Tiles.update
     , tag: TilesAction
-    }
-  );
-
-const updateHelp = cursor
-  ( { get: model => model.help
-    , set: (model, help) => merge(model, {help})
-    , update: Help.update
-    , tag: HelpAction
     }
   );
 
@@ -153,13 +134,6 @@ export const view =
         , Wallpapers.view
         , wallpapers
         , forward(address, WallpapersAction)
-        )
-      , thunk
-        ( 'help'
-        , Help.view
-        , help
-        , forward(address, HelpAction)
-        , activeWallpaper.isDark
         )
       ]
     )
