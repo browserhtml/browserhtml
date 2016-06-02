@@ -21,14 +21,14 @@ import type {Model, Action} from "./newtab"
 const WallpapersAction =
   action =>
   ( { type: 'Wallpapers'
-    , source: action
+    , wallpapers: action
     }
   );
 
 const TilesAction =
   action =>
   ( { type: 'Tiles'
-    , source: action
+    , tiles: action
     }
   );
 
@@ -69,9 +69,9 @@ const updateTiles = cursor
 export const update =
   (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Wallpapers'
-  ? updateWallpapers(model, action.source)
+  ? updateWallpapers(model, action.wallpapers)
   : action.type === 'Tiles'
-  ? updateTiles(model, action.source)
+  ? updateTiles(model, action.tiles)
   : Unknown.update(model, action)
   );
 
