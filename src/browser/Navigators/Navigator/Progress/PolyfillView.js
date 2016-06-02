@@ -42,7 +42,7 @@ const styleSheet = Style.createSheet
       , overflow: "hidden"
 
       , position: 'absolute'
-      , top: '27px'
+      , top: '24px'
       , width: "100%"
       }
     , idle:
