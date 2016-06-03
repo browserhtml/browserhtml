@@ -12,7 +12,6 @@ import * as Unknown from "../../common/unknown";
 
 import * as Tiles from './newtab/tiles';
 import * as Wallpapers from './newtab/wallpapers';
-import * as Help from './newtab/help';
 
 /*::
 import type {Address, DOM} from "reflex"
@@ -22,21 +21,14 @@ import type {Model, Action} from "./newtab"
 const WallpapersAction =
   action =>
   ( { type: 'Wallpapers'
-    , source: action
+    , wallpapers: action
     }
   );
 
 const TilesAction =
   action =>
   ( { type: 'Tiles'
-    , source: action
-    }
-  );
-
-const HelpAction =
-  action =>
-  ( { type: 'Help'
-    , source: action
+    , tiles: action
     }
   );
 
@@ -45,17 +37,14 @@ export const init =
   {
     const [tiles, tilesFx] = Tiles.init();
     const [wallpapers, wallpaperFx] = Wallpapers.init();
-    const [help, helpFx] = Help.init();
     return (
       [
         { wallpapers
         , tiles
-        , help
         }
       , Effects.batch
         ( [ tilesFx.map(TilesAction)
           , wallpaperFx.map(WallpapersAction)
-          , helpFx.map(HelpAction)
           ]
         )
       ]
@@ -77,20 +66,12 @@ const updateTiles = cursor
     }
   );
 
-const updateHelp = cursor
-  ( { get: model => model.help
-    , set: (model, help) => merge(model, {help})
-    , update: Help.update
-    , tag: HelpAction
-    }
-  );
-
 export const update =
   (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
   ( action.type === 'Wallpapers'
-  ? updateWallpapers(model, action.source)
+  ? updateWallpapers(model, action.wallpapers)
   : action.type === 'Tiles'
-  ? updateTiles(model, action.source)
+  ? updateTiles(model, action.tiles)
   : Unknown.update(model, action)
   );
 
@@ -153,13 +134,6 @@ export const view =
         , Wallpapers.view
         , wallpapers
         , forward(address, WallpapersAction)
-        )
-      , thunk
-        ( 'help'
-        , Help.view
-        , help
-        , forward(address, HelpAction)
-        , activeWallpaper.isDark
         )
       ]
     )
