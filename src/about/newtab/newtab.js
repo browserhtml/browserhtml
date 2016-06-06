@@ -129,12 +129,6 @@ export const view =
         , forward(address, TilesAction)
         , activeWallpaper.isDark
         )
-      , thunk
-        ( 'wallpaper'
-        , Wallpapers.view
-        , wallpapers
-        , forward(address, WallpapersAction)
-        )
       ]
     )
   )
