@@ -51,7 +51,7 @@
     }
   , "7":
     { "title": "Rust"
-    , "uri": "https://rust-lang.org/"
+    , "uri": "https://www.rust-lang.org"
     , "src": "./tiles/rust-lang.org.png"
     }
   , "8":
