@@ -148,7 +148,7 @@ const report =
 
 
 export const init =
-  ({isActive}/*:{isActive:boolean}*/):[Model, Effects<Action>] => {
+  ({isActive}:{isActive:boolean}):[Model, Effects<Action>] => {
   const [settings, fx] =
     Settings.init(Object.keys(descriptions));
 

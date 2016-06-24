@@ -215,4 +215,4 @@ const Env =
     }
   }
 
-export const env/*:{[key:string]: ?string|?Array<?string>}*/ = Env();
+export const env:{[key:string]: ?string|?Array<?string>} = Env();

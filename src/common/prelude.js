@@ -13,7 +13,7 @@ import type {Tagged} from "./prelude"
 
 export const merge = /*::<model:{}>*/
   ( model:model
-  , changes/*:{[key:string]: any}*/
+  , changes:{[key:string]: any}
   ):model => {
   let result = model
   for (let key in changes) {

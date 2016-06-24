@@ -21,7 +21,7 @@ const FirstPaint = always({ type: "FirstPaint" });
 const DocumentFirstPaint = always({ type: "DocumentFirstPaint" });
 
 export const view =
-  ( styleSheet/*:{ base: Style.Rules }*/
+  ( styleSheet:{ base: Style.Rules }
   , model:Model
   , address:Address<Action>
   ):DOM =>
