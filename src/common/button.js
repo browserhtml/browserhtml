@@ -106,11 +106,11 @@ export const update =
   );
 
 
-export const view =
-  (key:string, styleSheet:StyleSheet):(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM =>
-  ( model:Model
-  , address:Address<Action>
-  , contextStyle/*?:ContextStyle*/
+export function view(key:string,
+                     styleSheet:StyleSheet):(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM {
+  return ( model
+         , address
+         , contextStyle
   ):DOM =>
   html.button({
     key: key,
@@ -147,3 +147,4 @@ export const view =
     onClick: forward(address, always(Press)),
     onMouseUp: forward(address, always(Up))
   }, [model.text || '']);
+}
