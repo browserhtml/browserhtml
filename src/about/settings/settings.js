@@ -74,7 +74,7 @@ const SettingAction =
   );
 
 const SettingActionByName =
-  (name:Name)/*:(action:Setting.Action) => Action*/ =>
+  (name:Name):(action:Setting.Action) => Action =>
   action =>
   SettingAction(name, action);
 

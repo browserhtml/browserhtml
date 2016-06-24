@@ -107,7 +107,7 @@ export const update =
 
 
 export const view =
-  (key:string, styleSheet:StyleSheet)/*:(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM*/ =>
+  (key:string, styleSheet:StyleSheet):(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM =>
   ( model:Model
   , address:Address<Action>
   , contextStyle/*?:ContextStyle*/

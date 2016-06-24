@@ -424,7 +424,7 @@ const beneficiaryOf =
 
 const Tag = {
   modify: /*::<action, flags>*/
-    ( id:ID )/*:(action:action) => Action<action, flags>*/ =>
+    ( id:ID ):(action:action) => Action<action, flags> =>
     ( action ) =>
     ( { type: "Modify"
       , id
@@ -434,7 +434,7 @@ const Tag = {
 }
 
 export const renderCards = /*::<action, model, flags>*/
-  ( renderCard/*:(model:model, address:Address<action>) => DOM*/
+  ( renderCard:(model:model, address:Address<action>) => DOM
   , model:Model<model>
   , address:Address<Action<action, flags>>
   ):Array<DOM> =>

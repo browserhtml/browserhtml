@@ -16,7 +16,7 @@ const state =
 const frameTime = 1000 / 60
 
 export const requestAnimationFrame =
-  (request/*:(time:number) => any*/):number => {
+  (request:(time:number) => any):number => {
     const id = ++state.nextID;
     state.ids.push(id);
     state.requests.push(request);

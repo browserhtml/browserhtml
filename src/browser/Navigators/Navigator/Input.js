@@ -57,7 +57,7 @@ export type Action =
 
 
 // Create a new input submit action.
-export const Query/*:()=>Action*/ = always({ type: 'Query' });
+export const Query:()=>Action = always({ type: 'Query' });
 export const Suggest =
   (suggestion:Suggestion):Action =>
   ( { type: "Suggest"

@@ -112,7 +112,7 @@ const Null = () => null;
 // @FlowIssue: Frow is unable to infer
 const Void = () => void(0);
 
-export const always = /*::<a>*/(a:a)/*:(...args:Array<any>)=>a*/ => {
+export const always = /*::<a>*/(a:a):(...args:Array<any>)=>a => {
   const value = a
   if (value === null) {
     return Null
@@ -143,7 +143,7 @@ export const always = /*::<a>*/(a:a)/*:(...args:Array<any>)=>a*/ => {
 // in place if `modlel` is "mutable". `batch` here wolud be able to take
 // advantage of these to update same model in place.
 export const batch = /*:: <model, action>*/
-  ( update/*:(m:model, a:action) => [model, Effects<action>]*/
+  ( update:(m:model, a:action) => [model, Effects<action>]
   , model:model
   , actions:Array<action>
   ):[model, Effects<action>] =>
@@ -163,7 +163,7 @@ export const batch = /*:: <model, action>*/
 }
 
 export const tag = /*::<tag:string, kind>*/
-  (tag:tag)/*:(value:kind) => Tagged<tag, kind>*/ =>
+  (tag:tag):(value:kind) => Tagged<tag, kind> =>
   value =>
   ({ type: tag, source: value });
 
