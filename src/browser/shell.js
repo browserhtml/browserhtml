@@ -192,7 +192,7 @@ export const render =
     if (!Runtime.useNativeTitlebar()) {
       return Controls.view(model.controls, forward(address, ControlsAction));
     } else {
-      return "";
+      return html.noscript();
     }
   }
 
