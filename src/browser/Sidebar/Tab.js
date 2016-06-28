@@ -16,7 +16,7 @@ import {cursor} from '../../common/cursor';
 
 
 import type {Address, DOM} from "reflex"
-import * as Navigator from "../Navigators/Navigator"
+import type {Model as NavigatorModel} from "../Navigators/Navigator"
 import type {ID} from "../../common/prelude"
 
 export type Context =
@@ -210,7 +210,7 @@ const viewClose = (isSelected, tab, address) =>
   );
 
 export const render =
-  ( model:Navigator.Model
+  ( model:NavigatorModel
   , address:Address<Action>
   , {tabWidth, titleOpacity}:Context
   ):DOM =>
@@ -259,7 +259,7 @@ export const render =
 
 
 export const view =
-  ( model:Navigator.Model
+  ( model:NavigatorModel
   , address:Address<Action>
   , context:Context
   ):DOM =>

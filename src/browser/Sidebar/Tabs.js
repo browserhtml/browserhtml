@@ -13,12 +13,12 @@ import * as Tab from './Tab';
 import * as Unknown from '../../common/unknown';
 
 import type {Address, DOM} from "reflex"
-import * as Navigator from "../Navigators/Navigator"
+import type {Model as NavigatorModel} from "../Navigators/Navigator"
 import * as Deck from "../../common/Deck"
 
 export type ID = string
 export type Context = Tab.Context
-export type Model = Deck.Model<Navigator.Model>
+export type Model = Deck.Model<NavigatorModel>
 
 export type Action =
   | { type: "Close", id: ID }
