@@ -142,7 +142,6 @@ const report =
     ? Effects.none
     : Effects
       .perform(Unknown.error(result.error))
-      .map(NoOP)
     )
   ];
 

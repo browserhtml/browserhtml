@@ -658,7 +658,6 @@ export const update =
            model
         , Effects
           .perform(Unknown.error(action.error))
-          .map(NoOp)
         ];
 
       // Ignore some actions.

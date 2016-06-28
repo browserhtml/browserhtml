@@ -39,7 +39,7 @@ export type Action =
 const second = 1000;
 
 export class Model {
-  
+
   ref: Ref.Model;
   value: Percentage;
 
@@ -47,7 +47,7 @@ export class Model {
   loadStart: Time;
   connectTime: Time;
   loadEnd: Time;
-  
+
   constructor(
     ref:Ref.Model
   , value:Percentage
@@ -221,7 +221,6 @@ export const tick =
       const fx =
         Effects
         .perform(Unknown.warn(`Received Tick when progress was Idle: https://github.com/servo/servo/issues/10322`))
-        .map(NoOp)
 
       return [ model, fx ]
     }

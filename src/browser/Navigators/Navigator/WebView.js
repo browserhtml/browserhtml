@@ -116,7 +116,7 @@ export type Action =
 
 
 export class Model {
-  
+
   ref: Ref.Model;
   guestInstanceId: ?string;
   name: string;
@@ -126,7 +126,7 @@ export class Model {
   navigation: Navigation.Model;
   security: Security.Model;
   page: Page.Model;
-  
+
   constructor(
     ref: Ref.Model
   , guestInstanceId: ?string
@@ -445,7 +445,6 @@ export const update =
       case "LoadFail":
         return [ model
           , Effects.perform(Unknown.warn(action))
-            .map(NoOp)
           ];
       case "Close":
         return close(model);
