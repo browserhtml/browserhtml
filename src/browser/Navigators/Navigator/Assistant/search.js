@@ -255,7 +255,6 @@ const updateMatches = (model, result) =>
   ? replaceMatches(model, result.value)
   : [ model
     , Effects.perform(Unknown.error(result.error))
-      .map(NoOp)
     ]
   );
 

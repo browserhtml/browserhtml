@@ -157,7 +157,6 @@ const publishedSnapshot = <model, action>
     ? Unknown.error(result.error)
     : Unknown.log(`Snapshot published as gist #${result.value.id}: ${result.value.html_url}`)
     )
-    .map(NoOp)
   ]
 
 const uploadSnapshot =

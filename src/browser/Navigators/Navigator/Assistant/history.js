@@ -146,7 +146,6 @@ const updateMatches = (model, result) =>
   : [ model
     , Effects
       .perform(Unknown.error(result.error))
-      .map(NoOp)
     ]
   )
 
