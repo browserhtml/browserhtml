@@ -6,10 +6,7 @@
 
 import * as URI from '../../../../common/url-helper';
 import * as Favicon from '../../../../common/favicon';
-
-/*::
-import * as WebView from "../WebView"
-*/
+import * as WebView from "../WebView";
 
 export const readTitle =
   (model:WebView.Model, fallback:string):string =>

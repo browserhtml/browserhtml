@@ -15,11 +15,9 @@ import {readTitle, readFaviconURI} from '../Navigators/Navigator/WebView/Util';
 import {cursor} from '../../common/cursor';
 
 
-/*::
 import type {Address, DOM} from "reflex"
 import * as Navigator from "../Navigators/Navigator"
 import type {ID} from "../../common/prelude"
-import * as Target from "../../common/target"
 
 export type Context =
   { tabWidth: number
@@ -30,12 +28,11 @@ export type Action =
   | { type: "Close" }
   | { type: "Select" }
   | { type: "Target", source: Target.Action }
-*/
 
 export class Model {
-  
+
   isPointerOver: boolean;
-  
+
   constructor(isPointerOver:boolean) {
     this.isPointerOver = isPointerOver
   }

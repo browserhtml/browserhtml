@@ -16,7 +16,6 @@ import * as Display from "./Sidebar/Display";
 import * as Animation from "../common/Animation";
 
 
-/*::
 import type {Integer, Float} from "../common/prelude"
 import type {Address, DOM} from "reflex"
 import type {ID} from "./Sidebar/Tabs"
@@ -33,19 +32,18 @@ export type Action =
   | { type: "Animation", animation: Animation.Action }
   | { type: "Tabs", tabs: Tabs.Action }
   | { type: "Toolbar", toolbar: Toolbar.Action }
-*/
 
 
 
 
 
 export class Model {
-  
+
   isAttached: boolean;
   isExpanded: boolean;
   animation: Animation.Model<Display.Model>;
   toolbar: Toolbar.Model;
-  
+
   constructor(
     isAttached: boolean
   , isExpanded: boolean

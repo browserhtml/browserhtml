@@ -28,10 +28,6 @@ import {identity, compose} from "./lang/functional";
 
 import {onWindow, on} from "@driver";
 import * as Navigators from "./browser/Navigators";
-
-
-/*::
-
 import type {ID} from "./common/prelude"
 import * as Tabs from "./browser/Sidebar/Tabs"
 
@@ -89,16 +85,15 @@ export type Action =
 
 import type {Address, DOM} from "reflex"
 import type {URI} from "./common/prelude"
-*/
 
 export class Model {
-  
+
   version: Version;
   shell: Shell.Model;
   navigators: Navigators.Model;
   sidebar: Sidebar.Model;
   devtools: Devtools.Model;
-  
+
   constructor(
     version:Version=Package.version
   , shell:Shell.Model

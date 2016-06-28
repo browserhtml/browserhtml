@@ -12,9 +12,7 @@ import * as Toolbar from './Toolbar';
 import * as Tab from './Tab';
 import * as Unknown from '../../common/unknown';
 
-/*::
 import type {Address, DOM} from "reflex"
-import * as Tab from "./Tab"
 import * as Navigator from "../Navigators/Navigator"
 import * as Deck from "../../common/Deck"
 
@@ -32,7 +30,6 @@ export type Action =
       , tab: Tab.Action
       }
     }
-*/
 
 const styleSheet = Style.createSheet({
   base: {
