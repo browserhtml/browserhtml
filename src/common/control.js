@@ -13,32 +13,32 @@ import * as Focusable from "../common/focusable"
 import {Style} from "../common/style"
 import {html, Effects, forward} from "reflex"
 
-/*::
-import type {Model, Action} from "./control"
-*/
 
-export const Disable/*:Action*/ =
+import type {Model, Action} from "./control"
+
+
+export const Disable:Action =
   { type: "Disable"
   };
 
-export const Enable/*:Action*/ =
+export const Enable:Action =
   { type: "Enable"
   };
 
-const enable = /*::<model:Model>*/
-  (model/*:model*/)/*:[model, Effects<Action>]*/ =>
+const enable = <model:Model>
+  (model:model):[model, Effects<Action>] =>
   [ merge(model, {isDisabled: false})
   , Effects.none
   ];
 
-const disable = /*::<model:Model>*/
-  (model/*:model*/)/*:[model, Effects<Action>]*/ =>
+const disable = <model:Model>
+  (model:model):[model, Effects<Action>] =>
   [ merge(model, {isDisabled: true})
   , Effects.none
   ];
 
-export const update = /*::<model:Model>*/
-  (model/*:model*/, action/*:Action*/)/*:[model, Effects<Action>]*/ =>
+export const update = <model:Model>
+  (model:model, action:Action):[model, Effects<Action>] =>
   ( action.type === "Enable"
   ? enable(model)
   : action.type === "Disable"

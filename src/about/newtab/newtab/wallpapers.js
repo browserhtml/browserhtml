@@ -12,13 +12,13 @@ import * as Unknown from "../../../common/unknown";
 import hardcodedWallpaper from "../wallpaper.json";
 import * as Wallpaper from "./wallpaper";
 
-/*::
+
 import type {Address, DOM} from "reflex"
 import type {Model, Action, ID} from "./wallpapers"
-*/
+
 
 export const init =
-  ()/*:[Model, Effects<Action>]*/ =>
+  ():[Model, Effects<Action>] =>
   [ hardcodedWallpaper
   , Effects.none
   ];
@@ -54,11 +54,11 @@ const notFound =
   }
 
 export const active =
-  ({entries, active}/*:Model*/)/*:Wallpaper.Model*/ =>
+  ({entries, active}:Model):Wallpaper.Model =>
   ( entries[active] || notFound )
 
 export const update =
-  (model/*:Model*/, action/*:Action*/)/*:[Model, Effects<Action>]*/ =>
+  (model:Model, action:Action):[Model, Effects<Action>] =>
   ( action.type === 'ChooseWallpaper'
   ? [ merge(model, {active: action.id})
     , Effects.none
@@ -84,7 +84,7 @@ const styleSheet = StyleSheet.create
   );
 
 export const view =
-  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
+  (model:Model, address:Address<Action>):DOM =>
   html.div
   ( { className: 'wallpaper'
     , style: styleSheet.base

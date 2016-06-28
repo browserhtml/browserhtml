@@ -7,29 +7,28 @@
 
 import {Effects} from "reflex";
 
-/*::
-import type {Cursor} from "./cursor"
-export type {Cursor}
-*/
 
-export const cursor = /*::<from, to, in, out>*/
-  (config/*:Cursor*/)/*:(model:from, action:in) => [from, Effects<out>]*/ => {
+import type {Cursor} from './cursor'
+export type {Cursor}
+
+
+export function cursor<from, to, input, output>(config:Cursor):(model:from, action:input) => [from, Effects<output>] {
   const get = config.get;
   const set = config.set;
   const update = config.update;
   const tag = config.tag;
 
-  return (model, action) => {
+  return (model:from, action:input) => {
     const previous
-      = get == null
-      ? model
-      : get(model, action);
+        = get == null
+        ? model
+        : get(model, action);
 
     const [next, fx] = update(previous, action);
     const state
-      = set == null
-      ? next
-      : set(model, next);
+        = set == null
+        ? next
+        : set(model, next);
 
     return [state, tag == null ? fx : fx.map(tag)]
   }

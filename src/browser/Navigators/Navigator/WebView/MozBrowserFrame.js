@@ -8,11 +8,11 @@ import {on} from '@driver';
 import {always} from '../../../../common/prelude';
 
 
-/*::
+
 import type {Address, DOM} from "reflex"
 import type {Model, Action} from "../WebView"
 import {performance} from "../../../../common/performance"
-*/
+
 
 const Blur = always({ type: "Blur" });
 const Focus = always({ type: "Focus" });
@@ -21,10 +21,10 @@ const FirstPaint = always({ type: "FirstPaint" });
 const DocumentFirstPaint = always({ type: "DocumentFirstPaint" });
 
 export const view =
-  ( styleSheet/*:{ base: Style.Rules }*/
-  , model/*:Model*/
-  , address/*:Address<Action>*/
-  )/*:DOM*/ =>
+  ( styleSheet:{ base: Style.Rules }
+  , model:Model
+  , address:Address<Action>
+  ):DOM =>
   html.iframe
   ( { [model.ref.name]: model.ref.value
     , src: model.navigation.src

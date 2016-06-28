@@ -4,9 +4,9 @@
  * license, v. 2.0. if a copy of the mpl was not distributed with this
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
 
-/*::
+
 import type {BindingTable, Abort, kind} from "./keyboard"
-*/
+
 
 import {Effects} from "reflex";
 import * as OS from './os';
@@ -92,6 +92,7 @@ if (!('key' in window.KeyboardEvent.prototype)) {
   ( window.KeyboardEvent.prototype
   , 'key'
   , { get: getKey
+    // flow insists on object literals used as input to `defineProperty` having a `value` field.
     /*::, value: void(0)*/
     }
   );
@@ -157,8 +158,8 @@ const writeChord = event => {
 };
 
 
-export const bindings = /*::<Action>*/
-  (bindingTable/*:BindingTable<Action>*/)/*:(event:KeyboardEvent) => Action | Abort*/ => {
+export const bindings = <Action>
+  (bindingTable:BindingTable<Action>):(event:KeyboardEvent) => Action | Abort => {
   const bindings = Object.create(null);
   Object.keys(bindingTable).forEach(key => {
     bindings[readChord(key)] = bindingTable[key];

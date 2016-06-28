@@ -11,12 +11,12 @@ import * as Unknown from "../../../common/unknown";
 
 import hardcodedWallpaper from "../wallpaper.json";
 
-/*::
+
 import type {Address, DOM} from "reflex"
 import type {Model, Action, URI, Color} from "./wallpaper"
-*/
 
-const Choose/*:Action*/ =
+
+const Choose:Action =
   { type: 'Choose'
   };
 
@@ -34,7 +34,7 @@ const styleSheet = Style.createSheet
   );
 
 export const view =
-  (model/*:Model*/, address/*:Address<Action>*/)/*:DOM*/ =>
+  (model:Model, address:Address<Action>):DOM =>
   ( html.div
     ( { className: 'wallpaper-choice'
       , onClick: forward(address, always(Choose))

@@ -10,7 +10,7 @@ import * as Replay from "./devtools/replay"
 import * as Record from "./devtools/record"
 import * as Log from "./devtools/log"
 
-/*::
+
 import type {Address, Never, DOM, Init, Update, View, AdvancedConfiguration} from "reflex"
 import type {Result} from "./common/result"
 
@@ -46,24 +46,24 @@ type Flags <model, action, flags> =
   { Debuggee: Debuggee<model, action>
   , flags: flags
   }
-*/
 
-const TagRecord = /*::<model, action>*/
-  (action/*:Record.Action<model, action>*/)/*:Action<model, action>*/ =>
+
+const TagRecord = <model, action>
+  (action:Record.Action<model, action>):Action<model, action> =>
   ( { type: "Record"
     , record: action
     }
   );
 
-const TagLog = /*::<model, action>*/
-  (action/*:Log.Action<model, action>*/)/*:Action<model, action>*/ =>
+const TagLog = <model, action>
+  (action:Log.Action<model, action>):Action<model, action> =>
   ( { type: "Log"
     , log: action
     }
   );
 
-const TagReplay = /*::<model, action>*/
-  (action/*:Replay.Action<model, action>*/)/*:Action<model, action>*/ =>
+const TagReplay = <model, action>
+  (action:Replay.Action<model, action>):Action<model, action> =>
   ( action.type === "Replay"
   ? { type: "ReplayDebuggee"
     , model: action.replay
@@ -73,8 +73,8 @@ const TagReplay = /*::<model, action>*/
     }
   );
 
-const TagDebuggee = /*::<model, action>*/
-  (action/*:action*/)/*:Action<model, action>*/ =>
+const TagDebuggee = <model, action>
+  (action:action):Action<model, action> =>
   ( action == null
   ? { type: "Debuggee"
     , debuggee: action
@@ -92,22 +92,22 @@ const TagDebuggee = /*::<model, action>*/
 
 export const Persist = { type: "Persist" }
 
-export const persist = /*::<model, action, flags>*/
-  ( model/*:Model<model, action>*/
-  )/*:Step<model, action>*/ =>
+export const persist = <model, action, flags>
+  ( model:Model<model, action>
+  ):Step<model, action> =>
   [ model
   , Effects.none
   ];
 
-export const restore = /*::<model, action, flags>*/
-  ({Debuggee, flags}/*:Flags<model, action, flags>*/
-  )/*:Step<model, action>*/ =>
+export const restore = <model, action, flags>
+  ({Debuggee, flags}:Flags<model, action, flags>
+  ):Step<model, action> =>
   [ merge(window.application.model.value, {Debuggee, flags})
   , Effects.none
   ];
 
-export const init = /*::<model, action, flags>*/
-  ({Debuggee, flags}/*:Flags<model, action, flags>*/)/*:Step<model, action>*/ => {
+export const init = <model, action, flags>
+  ({Debuggee, flags}:Flags<model, action, flags>):Step<model, action> => {
     const disable = [null, Effects.none]
 
     const [record, recordFX] =
@@ -150,10 +150,10 @@ export const init = /*::<model, action, flags>*/
     return [model, fx]
   }
 
-export const update = /*::<model, action, flags>*/
-  ( model/*:Model<model, action>*/
-  , action/*:Action<model, action>*/
-  )/*:Step<model, action>*/ =>
+export const update = <model, action, flags>
+  ( model:Model<model, action>
+  , action:Action<model, action>
+  ):Step<model, action> =>
   ( action.type === "Record"
   ? ( model.record == null
     ? nofx(model)
@@ -183,16 +183,16 @@ export const update = /*::<model, action, flags>*/
   : Unknown.update(model, action)
   )
 
-const nofx = /*::<model, action>*/
-  (model/*:model*/)/*:[model, Effects<action>]*/ =>
+const nofx = <model, action>
+  (model:model):[model, Effects<action>] =>
   [ model
   , Effects.none
   ]
 
-const updateRecord = /*::<model, action>*/
-  ( model/*:Model<model, action>*/
-  , action/*:Record.Action<model, action>*/
-  )/*:Step<model, action>*/ => {
+const updateRecord = <model, action>
+  ( model:Model<model, action>
+  , action:Record.Action<model, action>
+  ):Step<model, action> => {
     const ignore = [null, Effects.none]
     const [record, fx] =
       ( model.record == null
@@ -203,10 +203,10 @@ const updateRecord = /*::<model, action>*/
   }
 
 
-const updateReply = /*::<model, action>*/
-  ( model/*:Model<model, action>*/
-  , action/*:Replay.Action<model, action>*/
-  )/*:Step<model, action>*/ => {
+const updateReply = <model, action>
+  ( model:Model<model, action>
+  , action:Replay.Action<model, action>
+  ):Step<model, action> => {
     const ignore = [null, Effects.none]
     const [replay, fx] =
       ( model.replay == null
@@ -216,10 +216,10 @@ const updateReply = /*::<model, action>*/
     return [merge(model, {replay}), fx.map(TagReplay)]
   }
 
-const updateLog = /*::<model, action>*/
-  ( model/*:Model<model, action>*/
-  , action/*:Log.Action<model, action>*/
-  )/*:Step<model, action>*/ => {
+const updateLog = <model, action>
+  ( model:Model<model, action>
+  , action:Log.Action<model, action>
+  ):Step<model, action> => {
     const ignore = [null, Effects.none]
     const [log, fx] =
       ( model.log == null
@@ -230,10 +230,10 @@ const updateLog = /*::<model, action>*/
   }
 
 
-const updateDebuggee = /*::<model, action>*/
-  ( model/*:Model<model, action>*/
-  , action/*:action*/
-  )/*:Step<model, action>*/ => {
+const updateDebuggee = <model, action>
+  ( model:Model<model, action>
+  , action:action
+  ):Step<model, action> => {
     const {Debuggee} = model
     const ignore = [null, Effects.none]
 
@@ -283,14 +283,14 @@ const updateDebuggee = /*::<model, action>*/
     return [next, fx]
   }
 
-const replayDebuggee = /*::<model, action>*/
-  (model/*:Model<model, action>*/, debuggee/*:model*/)/*:Step<model, action>*/ =>
+const replayDebuggee = <model, action>
+  (model:Model<model, action>, debuggee:model):Step<model, action> =>
   nofx(merge(model, {debuggee}))
 
-export const render = /*::<model, action>*/
-  ( model/*:Model<model, action>*/
-  , address/*:Address<Action<model, action>>*/
-  )/*:DOM*/ =>
+export const render = <model, action>
+  ( model:Model<model, action>
+  , address:Address<Action<model, action>>
+  ):DOM =>
   html.main
   ( { className: "devtools"
     }
@@ -313,10 +313,10 @@ export const render = /*::<model, action>*/
     ]
   )
 
-export const view = /*::<model, action>*/
-  ( model/*:Model<model, action>*/
-  , address/*:Address<Action<model, action>>*/
-  )/*:DOM*/ =>
+export const view = <model, action>
+  ( model:Model<model, action>
+  , address:Address<Action<model, action>>
+  ):DOM =>
   thunk
   ( 'Devtools'
   , render
