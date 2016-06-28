@@ -198,7 +198,7 @@ const updateAnimation = cursor
     }
   )
 
-const nofx = /*::<model, action>*/
+const nofx = <model, action>
   (model:model):[model, Effects<action>] =>
   [ model
   , Effects.none

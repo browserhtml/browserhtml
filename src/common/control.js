@@ -25,19 +25,19 @@ export const Enable:Action =
   { type: "Enable"
   };
 
-const enable = /*::<model:Model>*/
+const enable = <model:Model>
   (model:model):[model, Effects<Action>] =>
   [ merge(model, {isDisabled: false})
   , Effects.none
   ];
 
-const disable = /*::<model:Model>*/
+const disable = <model:Model>
   (model:model):[model, Effects<Action>] =>
   [ merge(model, {isDisabled: true})
   , Effects.none
   ];
 
-export const update = /*::<model:Model>*/
+export const update = <model:Model>
   (model:model, action:Action):[model, Effects<Action>] =>
   ( action.type === "Enable"
   ? enable(model)

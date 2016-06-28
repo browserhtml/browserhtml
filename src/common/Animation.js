@@ -50,7 +50,7 @@ export class Model <model> {
   }
 }
 
-export const transition = /*::<action, model>*/
+export const transition = <action, model>
   ( model:Model<model>
   , to:model
   , duration:Time
@@ -72,7 +72,7 @@ export const transition = /*::<action, model>*/
     )
   )
 
-const nofx = /*::<model, action>*/
+const nofx = <model, action>
   (model:model):[model, Effects<action>] =>
   [model, Effects.none]
 
@@ -91,7 +91,7 @@ const End =
   );
 
 
-const startTransition = /*::<model>*/
+const startTransition = <model>
   ( from:model
   , to:model
   , elapsed:Time
@@ -111,7 +111,7 @@ const startTransition = /*::<model>*/
     (Task.requestAnimationFrame().map(Tick))
   ]
 
-const endTransition = /*::<model>*/
+const endTransition = <model>
   ( model:Model<model>
   ):[Model<model>, Effects<Action>] =>
   [ new Model
@@ -122,7 +122,7 @@ const endTransition = /*::<model>*/
     (Task.requestAnimationFrame().map(End))
   ]
 
-const tickTransitionWith = /*::<model>*/
+const tickTransitionWith = <model>
   ( easing:Easing
   , interpolation:Interpolation<model>
   , model:Model<model>
@@ -142,7 +142,7 @@ const tickTransitionWith = /*::<model>*/
     )
   )
 
-const interpolateTransitionWith = /*::<model>*/
+const interpolateTransitionWith = <model>
   ( easing:Easing
   , interpolation:Interpolation<model>
   , transition:Transition<model>
@@ -175,7 +175,7 @@ const interpolateTransitionWith = /*::<model>*/
     ]
   )
 
-export const updateWith = /*::<model>*/
+export const updateWith = <model>
   ( easing:Easing
   , interpolation:Interpolation<model>
   , model:Model<model>
@@ -191,6 +191,6 @@ export const updateWith = /*::<model>*/
     }
   }
 
-export const init = /*::<model>*/
+export const init = <model>
   ( state:model ):[Model<model>, Effects<Action>] =>
   nofx(new Model(state, null))

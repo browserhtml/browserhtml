@@ -33,14 +33,14 @@ type Step <model, action> =
 
 const Load = { type: "Load" }
 
-const Snapshot = /*::<model, action>*/
+const Snapshot = <model, action>
   (result:Result<Error, model>):Action<model, action> =>
   ( { type: "Snapshot"
     , result
     }
   )
 
-const Replay = /*::<model, action>*/
+const Replay = <model, action>
   (model:model):Action<model, action> =>
   ( { type: "Replay"
     , replay: model
@@ -48,7 +48,7 @@ const Replay = /*::<model, action>*/
   )
 
 
-export const init = /*::<model, action, flags>*/
+export const init = <model, action, flags>
   (flags:flags):Step<model, action> =>
   ( [ { flags
       , snapshotURI: String(Runtime.env.replay)
@@ -59,7 +59,7 @@ export const init = /*::<model, action, flags>*/
     ]
   )
 
-export const update = /*::<model, action>*/
+export const update = <model, action>
   ( model:Model<model, action>
   , action:Action<model, action>
   ):Step<model, action> =>
@@ -78,7 +78,7 @@ const nofx =
   , Effects.none
   ]
 
-const receiveSnapshot = /*::<model, action>*/
+const receiveSnapshot = <model, action>
   ( model:Model<model, action>
   , result:Result<Error, model>
   ):Step<model, action> =>
@@ -89,14 +89,14 @@ const receiveSnapshot = /*::<model, action>*/
   : nofx(merge(model, {error: result.error}))
   )
 
-const loadSnapshot = /*::<model, action>*/
+const loadSnapshot = <model, action>
   (model:Model<model, action>):Step<model, action> =>
   [ model
   , Effects.perform(fetchSnapshot(model.snapshotURI))
     .map(Snapshot)
   ]
 
-const fetchSnapshot = /*::<model>*/
+const fetchSnapshot = <model>
   (uri:string):Task<Never, Result<Error, model>> => new Task(succeed => {
     const request = new XMLHttpRequest({mozSystem: true});
     request.open
@@ -123,7 +123,7 @@ const fetchSnapshot = /*::<model>*/
   });
 
 
-export const render = /*::<model, action>*/
+export const render = <model, action>
   ( model:Model<model, action>
   , address:Address<Action<model, action>>
   ):DOM =>
@@ -151,7 +151,7 @@ export const render = /*::<model, action>*/
     ]
   );
 
-export const view = /*::<model, action>*/
+export const view = <model, action>
   ( model:Model<model, action>
   , address:Address<Action<model, action>>
   ):DOM =>

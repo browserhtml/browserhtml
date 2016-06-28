@@ -22,7 +22,7 @@ export const Blur:Action =
   };
 
 
-export const update = /*::<model:Model>*/
+export const update = <model:Model>
   ( model:model, action:Action):[model, Effects<Action>] =>
   ( action.type === "Focus"
   ? [ merge

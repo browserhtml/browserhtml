@@ -14,7 +14,7 @@ const ID = Symbol('style-sheet/id');
 var id = 0;
 
 export const StyleSheet = {
-  create: /*::<sheet:Sheet>*/(sheet:sheet):sheet => {
+  create: <sheet:Sheet>(sheet:sheet):sheet => {
     const result = {}
     for (var name in sheet) {
       if (sheet.hasOwnProperty(name)) {

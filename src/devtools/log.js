@@ -30,7 +30,7 @@ type Step <model, action> =
 
 const NoOp = always({ type: "NoOp" });
 
-export const init = /*::<model, action, flags>*/
+export const init = <model, action, flags>
   ():Step<model, action> =>
   ( [ { mode:
         ( Runtime.env.log === 'json'
@@ -44,7 +44,7 @@ export const init = /*::<model, action, flags>*/
     ]
   )
 
-export const update = /*::<model, action>*/
+export const update = <model, action>
   ( model:Model<model, action>
   , action:Action<model, action>
   ):Step<model, action> =>
@@ -61,7 +61,7 @@ const nofx =
   , Effects.none
   ]
 
-const log = /*::<model, action>*/
+const log = <model, action>
   ( model:Model<model, action>
   , action:action
   ):Step<model, action> => {
@@ -75,7 +75,7 @@ const log = /*::<model, action>*/
     return nofx(model)
   }
 
-export const view = /*::<model, action>*/
+export const view = <model, action>
   ( model:Model<model, action>
   , address:Address<Action<model, action>>
   ):DOM =>

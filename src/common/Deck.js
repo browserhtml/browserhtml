@@ -75,7 +75,7 @@ export class Model <model> {
 }
 
 
-export const init = /*::<action, model, flags>*/
+export const init = <action, model, flags>
   ( nextID:Integer=0
   , index:Array<ID>=[]
   , cards:Dictionary<ID, model>={}
@@ -85,7 +85,7 @@ export const init = /*::<action, model, flags>*/
   , Effects.none
   ];
 
-export const update = /*::<action, model, flags>*/
+export const update = <action, model, flags>
   ( card:Card<action, model, flags>
   , model:Model<model>
   , action:Action<action, flags>
@@ -112,14 +112,14 @@ export const update = /*::<action, model, flags>*/
     }
   }
 
-const nofx = /*::<model, action>*/
+const nofx = <model, action>
   ( model:model ):[model, Effects<action>] =>
   [ model
   , Effects.none
   ]
 
 
-const updateByID = /*::<model, action, flags>*/
+const updateByID = <model, action, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   , id:ID
@@ -143,7 +143,7 @@ const updateByID = /*::<model, action, flags>*/
     }
   }
 
-export const open = /*::<action, model, flags>*/
+export const open = <action, model, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   , flags:flags
@@ -183,7 +183,7 @@ export const open = /*::<action, model, flags>*/
     return [model3, fx3]
   }
 
-const closeByID = /*::<action, model, flags>*/
+const closeByID = <action, model, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   , id:ID
@@ -221,7 +221,7 @@ const closeByID = /*::<action, model, flags>*/
     }
   }
 
-export const removeByID = /*::<action, model, flags>*/
+export const removeByID = <action, model, flags>
   ( card:Card<action, model, flags>
   , model:Model<model>
   , id:ID
@@ -253,11 +253,11 @@ export const removeByID = /*::<action, model, flags>*/
     }
   }
 
-const cardNotFound = /*::<model, action>*/
+const cardNotFound = <model, action>
   ( model:model, id:ID):[model, Effects<action>] =>
   nofx(model)
 
-export const selectByID = /*::<action, model, flags>*/
+export const selectByID = <action, model, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   , id:ID
@@ -299,7 +299,7 @@ export const selectByID = /*::<action, model, flags>*/
     }
   }
 
-export const deselectByID = /*::<action, model, flags>*/
+export const deselectByID = <action, model, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   , id:ID
@@ -331,7 +331,7 @@ export const deselectByID = /*::<action, model, flags>*/
     }
   }
 
-const selectBeneficiaryByID = /*::<action, model, flags>*/
+const selectBeneficiaryByID = <action, model, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   , id:ID
@@ -345,7 +345,7 @@ const selectBeneficiaryByID = /*::<action, model, flags>*/
     }
   }
 
-export const selectByOffset = /*::<action, model, flags>*/
+export const selectByOffset = <action, model, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   , offset:Integer
@@ -365,13 +365,13 @@ export const selectByOffset = /*::<action, model, flags>*/
     )
   );
 
-export const selectNext =/*::<action, model, flags>*/
+export const selectNext =<action, model, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   ):Transaction<Action<action, flags>, Model<model>> =>
   selectByOffset(api, model, 1)
 
-export const selectPrevious = /*::<action, model, flags>*/
+export const selectPrevious = <action, model, flags>
   ( api:Card<action, model, flags>
   , model:Model<model>
   ):Transaction<Action<action, flags>, Model<model>> =>
@@ -423,7 +423,7 @@ const beneficiaryOf =
   }
 
 const Tag = {
-  modify: /*::<action, flags>*/
+  modify: <action, flags>
     ( id:ID ):(action:action) => Action<action, flags> =>
     ( action ) =>
     ( { type: "Modify"
@@ -433,7 +433,7 @@ const Tag = {
     )
 }
 
-export const renderCards = /*::<action, model, flags>*/
+export const renderCards = <action, model, flags>
   ( renderCard:(model:model, address:Address<action>) => DOM
   , model:Model<model>
   , address:Address<Action<action, flags>>
@@ -450,7 +450,7 @@ export const renderCards = /*::<action, model, flags>*/
     )
   )
 
-const warn = /*::<message>*/
+const warn = <message>
   (message:message):Task<Never, any> =>
   new Task
   ((succeed, fail) => {

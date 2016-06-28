@@ -151,13 +151,13 @@ const setElementVisibility =
     }
   })
 
-export const focus = /*::<value>*/
+export const focus = <value>
   (ref:Ref.Model):Task<Error, value> =>
   Ref
   .deref(ref)
   .chain(focusElement);
 
-const focusElement = /*::<value>*/
+const focusElement = <value>
   (element:HTMLElement):Task<Error, value> =>
   new Task((succeed, fail) => {
     try {
@@ -170,13 +170,13 @@ const focusElement = /*::<value>*/
     }
   });
 
-export const blur = /*::<value>*/
+export const blur = <value>
   (ref:Ref.Model):Task<Error, value> =>
   Ref
   .deref(ref)
   .chain(blurElement);
 
-const blurElement =/*::<value>*/
+const blurElement =<value>
   (element:HTMLElement):Task<Error, value> =>
   new Task((succeed, fail) => {
     try {
@@ -192,7 +192,7 @@ const blurElement =/*::<value>*/
 
 
 // Reports error as a warning in a console.
-const warn = /*::<value>*/
+const warn = <value>
   (error:Error):Task<Never, value> =>
   new Task((succeed, fail) => {
     console.warn(error);

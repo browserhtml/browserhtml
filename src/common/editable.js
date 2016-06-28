@@ -28,15 +28,15 @@ export const Change =
 
 
 
-const select = /*::<model:Model>*/
+const select = <model:Model>
   (model:model, selection:Selection):model =>
   merge(model, {selection});
 
-const change = /*::<model:Model>*/
+const change = <model:Model>
   (model:model, value:string, selection:Selection):model =>
   merge(model, {selection, value});
 
-const clear = /*::<model:Model>*/
+const clear = <model:Model>
   (model:model):model =>
   merge(model, {value: "", selection: null});
 
@@ -48,7 +48,7 @@ export const init =
   , Effects.none
   ]
 
-export const update = /*::<model:Model>*/
+export const update = <model:Model>
   (model:model, action:Action):[model, Effects<Action>] =>
   ( action.type === "Clear"
   ? [clear(model), Effects.none]

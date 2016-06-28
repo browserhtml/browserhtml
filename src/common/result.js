@@ -10,7 +10,7 @@ import type {Result, Ok, Error} from "./result"
 export type {Result, Ok, Error}
 
 
-export const ok = /*::<value>*/
+export const ok = <value>
   (value:value):Ok<value> =>
   ( { isOk: true
     , isError: false
@@ -18,7 +18,7 @@ export const ok = /*::<value>*/
     }
   );
 
-export const error = /*::<error>*/
+export const error = <error>
   (error:error):Error<error> =>
   ( { isOk: false
     , isError: true

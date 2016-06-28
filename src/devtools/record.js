@@ -58,14 +58,14 @@ const NoOp = always({ type: "NoOp" });
 const PrintSnapshot = { type: "PrintSnapshot" };
 const PublishSnapshot = { type: "PublishSnapshot" };
 const PrintedSnapshot = always({ type: "PrintedSnapshot" });
-const PublishedSnapshot = /*::<model, action>*/
+const PublishedSnapshot = <model, action>
   (result:Result<Error, Gist>):Action<model, action> =>
   ( { type: "PublishedSnapshot"
     , result
     }
   );
 
-export const init = /*::<model, action, flags>*/
+export const init = <model, action, flags>
   ():Step<model, action> =>
   ( [ { status: "Idle"
       , description: ""
@@ -74,7 +74,7 @@ export const init = /*::<model, action, flags>*/
     ]
   )
 
-export const update = /*::<model, action>*/
+export const update = <model, action>
   ( model:Model<model, action>
   , action:Action<model, action>
   ):Step<model, action> =>
@@ -99,7 +99,7 @@ const nofx =
   , Effects.none
   ]
 
-const createSnapshot = /*::<model, action>*/
+const createSnapshot = <model, action>
   (model:Model<model, action>):Task<Error, string> =>
   new Task((succeed, fail) => {
     try {
@@ -111,7 +111,7 @@ const createSnapshot = /*::<model, action>*/
   })
 
 
-const printSnapshot = /*::<model, action>*/
+const printSnapshot = <model, action>
   (model:Model<model, action>):Step<model, action> =>
   [ merge(model, { status: 'Pending', description: 'Printing...' })
   , Effects.batch
@@ -129,13 +129,13 @@ const printSnapshot = /*::<model, action>*/
     )
   ];
 
-const printedSnapshot = /*::<model, action>*/
+const printedSnapshot = <model, action>
   (model:Model<model, action>):Step<model, action> =>
   [ merge(model, { status: 'Idle', description: '' })
   , Effects.none
   ];
 
-const publishSnapshot = /*::<model, action>*/
+const publishSnapshot = <model, action>
   (model:Model<model, action>):Step<model, action> =>
   [ merge(model, {status: "Pending", description: "Publishing..." })
   , Effects.perform
@@ -147,7 +147,7 @@ const publishSnapshot = /*::<model, action>*/
     .map(PublishedSnapshot)
   ]
 
-const publishedSnapshot = /*::<model, action>*/
+const publishedSnapshot = <model, action>
   ( model:Model<model, action>
   , result:Result<Error, Gist>
   ):Step<model, action> =>
@@ -185,7 +185,7 @@ const uploadSnapshot =
     )
   });
 
-export const render = /*::<model, action>*/
+export const render = <model, action>
   ( model:Model<model, action>
   , address:Address<Action<model, action>>
   ):DOM =>
@@ -204,7 +204,7 @@ export const render = /*::<model, action>*/
     ]
   );
 
-export const view = /*::<model, action>*/
+export const view = <model, action>
   ( model:Model<model, action>
   , address:Address<Action<model, action>>
   ):DOM =>

@@ -184,7 +184,7 @@ const elementCanGoForward =
 
 const invoke =
   name => {
-    const elementInvoke = /*::<value>*/
+    const elementInvoke = <value>
       (element:HTMLElement):Task<Never, Result<Error, value>> =>
       new Task((succeed, fail) => {
         try {
@@ -195,7 +195,7 @@ const invoke =
         }
       })
 
-    const task = /*::<value>*/
+    const task = <value>
       (ref:Ref.Model):Task<Never, Result<Error, value>> =>
       Ref
       .deref(ref)

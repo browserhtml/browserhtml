@@ -16,7 +16,7 @@ import type {Action, Model} from "./target"
 export const Over:Action = {type: "Over"};
 export const Out:Action = {type: "Out"};
 
-export const update = /*::<model:Model>*/
+export const update = <model:Model>
   (model:model, action:Action):[model, Effects<Action>] =>
   ( action.type == "Over"
   ? [merge(model, {isPointerOver: true}), Effects.none]

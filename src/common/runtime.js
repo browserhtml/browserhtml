@@ -82,7 +82,7 @@ export const isElectron:boolean =
 export const never:Task<Never, any> =
   new Task(succeed => void(0));
 
-export const respond = /*::<message>*/
+export const respond = <message>
   (message:message):Task<Never, message> =>
   new Task
   ( (succeed, fail) =>
@@ -92,7 +92,7 @@ export const respond = /*::<message>*/
     )
   );
 
-export const send = /*::<message>*/
+export const send = <message>
   (message:message):Task<Never, void> =>
   new Task(succeed => {
     window.dispatchEvent(new window.CustomEvent("mozContentEvent", {
@@ -104,7 +104,7 @@ export const send = /*::<message>*/
     succeed(void(0));
   });
 
-export const receive = /*::<message>*/
+export const receive = <message>
   (type:string):Task<Never, message> =>
   new Task(succeed => {
     const onMessage = ({detail: message}) => {
@@ -117,7 +117,7 @@ export const receive = /*::<message>*/
   });
 
 
-export const request = /*::<request, response>*/
+export const request = <request, response>
   (type:string, message:request):Task<Never, response> =>
   send(message)
   .chain(always(receive(type)));
