@@ -92,7 +92,8 @@ if (!('key' in window.KeyboardEvent.prototype)) {
   ( window.KeyboardEvent.prototype
   , 'key'
   , { get: getKey
-    , value: void(0)
+    // flow insists on object literals used as input to `defineProperty` having a `value` field.
+    /*::, value: void(0)*/
     }
   );
 }
