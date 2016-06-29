@@ -16,7 +16,7 @@
 , "entries":
   { "0":
     { "title": "DuckDuckGo"
-    , "uri": "https://duckduckgo.com"
+    , "uri": "https://duckduckgo.com/html/"
     , "src": "./tiles/duckduckgo.com.png"
     }
   , "1":
