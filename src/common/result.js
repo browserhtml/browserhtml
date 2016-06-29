@@ -5,9 +5,21 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+export type Ok <value> =
+  { isOk: true
+  , isError: false
+  , value: value
+  }
 
-import type {Result, Ok, Error} from "./result"
-export type {Result, Ok, Error}
+export type Error <error> =
+  { isOk: false
+  , isError: true
+  , error:error
+  }
+
+export type Result <error, value>
+  = Ok<value>
+  | Error<error>
 
 
 export const ok = <value>

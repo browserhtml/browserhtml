@@ -15,7 +15,17 @@ import * as Wallpapers from './newtab/wallpapers';
 
 
 import type {Address, DOM} from "reflex"
-import type {Model, Action} from "./newtab"
+
+export type Model =
+  { wallpapers: Wallpapers.Model
+  , tiles: Tiles.Model
+  }
+
+
+export type Action =
+  | { type: "Wallpapers", wallpapers: Wallpapers.Action }
+  | { type: "Tiles", tiles: Tiles.Action }
+
 
 
 const WallpapersAction =

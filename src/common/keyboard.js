@@ -4,12 +4,30 @@
  * license, v. 2.0. if a copy of the mpl was not distributed with this
  * file, you can obtain one at http://mozilla.org/mpl/2.0/. */
 
-
-import type {BindingTable, Abort, kind} from "./keyboard"
-
-
-import {Effects} from "reflex";
 import * as OS from './os';
+
+export type kind =
+  | "KeyUp"
+  | "KeyDown"
+  | "KeyPress"
+
+export type Abort =
+  { type: "AbortEvent"
+  , action:
+    { type: kind
+    , combination: string
+    , key: string
+    , metaKey: boolean
+    , shiftKey: boolean
+    , altKey: boolean
+    , ctrlKey: boolean
+    }
+  }
+
+export type BindingTable <Action> =
+  { [key:string]: (event:KeyboardEvent) => Action
+  }
+
 
 const platform = OS.platform();
 

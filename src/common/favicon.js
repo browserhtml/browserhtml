@@ -5,9 +5,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import {getOrigin} from '../common/url-helper';
+import type {URI} from "../common/prelude"
 
+export type {URI}
 
-import type {Icon, URI} from "./favicon"
+export type Icon =
+  { href: URI
+  , sizes?: string
+  , rel: ?string
+  }
 
 
 const constructFaviconURI = (href, size) => `${href}#-moz-resolution=${size},${size}`;

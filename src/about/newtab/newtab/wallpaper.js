@@ -13,7 +13,21 @@ import hardcodedWallpaper from "../wallpaper.json";
 
 
 import type {Address, DOM} from "reflex"
-import type {Model, Action, URI, Color} from "./wallpaper"
+import type {URI} from "../../../common/prelude"
+
+export type {URI}
+export type ID = string
+export type Color = string
+
+export type Model =
+  { src: ?URI
+  , color: string
+  , isDark: boolean
+  }
+
+
+export type Action =
+  | { type: "Choose" }
 
 
 const Choose:Action =

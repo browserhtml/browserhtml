@@ -14,7 +14,21 @@ import * as Output from './output';
 
 
 import type {Address, DOM} from "reflex"
-import type {ID, Model, Action} from "./cell"
+
+export type ID = string
+
+export type Model =
+  { id: ID
+  , input: Input.Model
+  , output: Output.Model
+  }
+
+export type Action =
+  | { type: "Remove" }
+  | { type: "Print", print: Output.Model }
+  | { type: "Submit", submit: Input.Model }
+  | { type: "Output", output: Output.Action }
+  | { type: "Input", input: Input.Action }
 
 
 export const Print =
@@ -32,7 +46,7 @@ const InputAction =
   (action:Input.Action):Action =>
   ( action.type === "Submit"
   ? { type: "Submit"
-    , source: action.source
+    , submit: action.submit
     }
   : { type: "Input"
     , input: action
@@ -99,7 +113,7 @@ const submit =
   updateInput
   ( model
   , { type: "Submit"
-    , source: input
+    , submit: input
     }
   );
 
@@ -108,7 +122,7 @@ export const update =
   ( action.type === 'Input'
   ? updateInput(model, action.input)
   : action.type === 'Submit'
-  ? submit(model, action.source)
+  ? submit(model, action.submit)
   : action.type === 'Output'
   ? updateOutput(model, action.output)
   : action.type === 'Print'

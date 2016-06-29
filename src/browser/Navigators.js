@@ -60,16 +60,16 @@ export const SelectPrevious = { type: "SelectPrevious" }
 export const Close = { type: "Close" }
 
 export class Model {
-  
+
   zoom: boolean;
   shrink: boolean;
-  deck: Deck.Model;
+  deck: Deck.Model<Navigator.Model>;
   animation: Animation.Model<Display.Model>;
-  
+
   constructor(
     zoom:boolean
   , shrink:boolean
-  , deck:Deck.Model
+  , deck:Deck.Model<Navigator.Model>
   , animation:Animation.Model<Display.Model>
   ) {
     this.zoom = zoom;

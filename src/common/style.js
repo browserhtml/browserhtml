@@ -5,7 +5,20 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-import type {Rules, Sheet} from "./style"
+export type Name = string
+
+export type Value
+  = string
+  | number
+  | boolean
+
+export type Selector = string
+
+export type Rules =
+  { [key:Name]: Value }
+
+export type Sheet =
+  {[key:Selector]: ?Rules}
 
 
 const composedStyles = Object.create(null);

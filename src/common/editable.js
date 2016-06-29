@@ -9,9 +9,36 @@ import {merge} from "../common/prelude";
 import * as Unknown from "../common/unknown";
 import {Effects} from "reflex";
 
-
 import type {Address, DOM} from "reflex";
-import type {Model, Action, Selection} from "./editable"
+
+export type Direction =
+  | "forward"
+  | "backward"
+  | "none"
+
+
+export type Integer = number
+
+export type Selection =
+  { start: Integer
+  , end: Integer
+  , direction: Direction
+  }
+
+export type Model =
+  { selection: ?Selection
+  , value: string
+  }
+
+export type Action =
+  | { type: "Clear" }
+  | { type: "Select"
+    , range: Selection
+    }
+  | { type: "Change"
+    , value: string
+    , selection: Selection
+    }
 
 
 // Actions

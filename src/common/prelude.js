@@ -4,12 +4,20 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
 import {Effects} from "reflex"
 
 
-import type {Tagged} from "./prelude"
+export type ID = string
+export type URI = string
+export type Time = number
+export type Version = string
+export type Integer = number
+export type Float = number
 
+export type Tagged <tag, kind>
+  = { type: tag
+    , source: kind
+    }
 
 export const merge = <model:{}>
   ( model:model
@@ -170,3 +178,9 @@ export const tag = <tag:string, kind>
 export const tagged = <tag:string, kind>
   (tag:tag, value:kind):Tagged<tag, kind> =>
   ({ type: tag, source: value });
+
+export const mapFX = <model, from, to>
+  ( f:(input:from) => to
+  , [state, fx]:[model, Effects<from>]
+  ):[model, Effects<to>] =>
+  [state, fx.map(f)]

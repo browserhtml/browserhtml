@@ -24,7 +24,7 @@ export type Action <model, action> =
   | { type: "Debuggee", debuggee: action }
 
 type Step <model, action> =
-  [ Model
+  [ Model<model, action>
   , Effects<Action<model, action>>
   ]
 

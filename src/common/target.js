@@ -10,7 +10,13 @@ import {merge} from "../common/prelude";
 import * as Unknown from "../common/unknown";
 
 
-import type {Action, Model} from "./target"
+export type Model = {
+  isPointerOver: boolean
+}
+
+export type Action
+  = { type: "Over" }
+  | { type: "Out" }
 
 
 export const Over:Action = {type: "Over"};

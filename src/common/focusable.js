@@ -10,8 +10,13 @@ import * as Unknown from "../common/unknown";
 import {Effects} from "reflex";
 
 
-import type {Model, Action} from "./focusable"
+export type Model =
+  { isFocused: boolean
+  }
 
+export type Action =
+  | { type: "Focus" }
+  | { type: "Blur" }
 
 export const Focus:Action =
   { type:"Focus"

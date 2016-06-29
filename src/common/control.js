@@ -6,16 +6,19 @@
 
 
 import {merge, always} from "../common/prelude"
-import {cursor} from "../common/cursor"
 import * as Unknown from "../common/unknown"
 import * as Target from "../common/target"
 import * as Focusable from "../common/focusable"
 import {Style} from "../common/style"
 import {html, Effects, forward} from "reflex"
 
+export type Model =
+  { isDisabled: boolean
+  }
 
-import type {Model, Action} from "./control"
-
+export type Action =
+  | { type: "Disable" }
+  | { type: "Enable" }
 
 export const Disable:Action =
   { type: "Disable"

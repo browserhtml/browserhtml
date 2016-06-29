@@ -8,7 +8,6 @@
 
 import type {Never} from "reflex"
 import type {Result} from "../common/result"
-import type {RemoteDebugResponseType, DownloadUpdateType} from "./runtime"
 
 
 import {always} from "../common/prelude";
@@ -17,6 +16,18 @@ import {ok, error} from "../common/result";
 import * as OS from '../common/os';
 import * as URL from '../common/url-helper';
 import * as QueryString from 'querystring';
+
+export type RemoteDebugResponseType = {
+  type: "RemoteDebugResponse",
+  value: boolean
+}
+
+type Download = string
+
+export type DownloadUpdateType = {
+  type: "DownloadUpdate",
+  result: Download
+}
 
 // Actions
 export const RemoteDebugRequest

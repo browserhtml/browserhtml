@@ -19,7 +19,62 @@ import * as Unknown from '../../../../common/unknown';
 
 import type {Address, DOM, Never} from "reflex";
 import type {Result} from "../../../../common/result";
-import type {Completion, Match, Model, Action} from "./search";
+
+type URI = string
+
+export type Match =
+  { uri: URI
+  , title: string
+  }
+
+export type Completion =
+  { match: string
+  , hint: string
+  }
+
+export type Model =
+  { size: number
+  , limit: number
+  , queryID: number
+  , query: ?string
+  , selected: number
+  , matches: {[key:URI]: Match}
+  , items: Array<URI>
+  }
+
+
+export type Action =
+  | { type: "NoOp" }
+  | { type: "Query"
+    , query: string
+    }
+  | { type: "Suggest"
+    , suggest: Completion
+    }
+  | { type: "Activate"
+    }
+  | { type: "Load"
+    , uri: URI
+    }
+  | { type: "SelectNext" }
+  | { type: "SelectPrevious" }
+  | { type: "Unselect" }
+  | { type: "UpdateMatches"
+    , updateMatches: Result<Error, Array<Match>>
+    }
+  | { type: "ByURI"
+    , source:
+      { uri: URI
+        // @TODO: Figure out what do we want to do with this. ByURI supposed
+        // tag actions comming from suggestion itself, but in our case they are
+        // don't produce / receive any actions.
+      , action: any
+      }
+    }
+  | { type: "Abort"
+    , abort: number
+    }
+
 
 
 const NoOp = always({type: "NoOp"});
@@ -27,7 +82,7 @@ const NoOp = always({type: "NoOp"});
 const Abort =
   queryID =>
   ( { type: "Abort"
-    , source: queryID
+    , abort: queryID
     }
   );
 
@@ -36,14 +91,14 @@ export const SelectPrevious = { type: "SelectPrevious" };
 export const Suggest =
   (suggestion:Completion):Action =>
   ( { type: "Suggest"
-    , source: suggestion
+    , suggest: suggestion
     }
   );
 
 export const Query =
   (input:string):Action =>
   ( { type: "Query"
-    , source: input
+    , query: input
     }
   );
 
@@ -63,7 +118,7 @@ const Load =
 const UpdateMatches =
   (result:Result<Error, Array<Match>>):Action =>
   ( { type: "UpdateMatches"
-    , source: result
+    , updateMatches: result
     }
   );
 
@@ -315,7 +370,7 @@ const activate =
 export const update =
   (model:Model, action:Action):[Model, Effects<Action>] =>
   ( action.type === "Query"
-  ? updateQuery(model, action.source)
+  ? updateQuery(model, action.query)
   : action.type === "SelectNext"
   ? selectNext(model)
   : action.type === "SelectPrevious"
@@ -323,7 +378,7 @@ export const update =
   : action.type === "Unselect"
   ? unselect(model)
   : action.type === "UpdateMatches"
-  ? updateMatches(model, action.source)
+  ? updateMatches(model, action.updateMatches)
   : action.type === "ByURI"
   ? updateByURI(model, action.source)
   : action.type === "Activate"

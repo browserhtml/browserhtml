@@ -10,11 +10,36 @@ import {merge, always} from '../common/prelude';
 import {Effects, Task} from 'reflex';
 
 
-import type {Model, Action, Name, Value, Settings} from "./settings"
 import type {Address, Never} from "reflex"
 import type {Result} from "./result"
 
+export type Name = string
+export type Value
+  = number
+  | boolean
+  | string
+  | null
 
+export type Settings =
+  { [key:Name]: Value
+  }
+
+export type Model = ?Settings
+
+export type ResultSettings =
+  Result<Error, Settings>
+
+
+export type Action =
+  | { type: "Fetched"
+    , result: ResultSettings
+    }
+  | { type: "Updated"
+    , result: ResultSettings
+    }
+  | { type: "Changed"
+    , result: ResultSettings
+    }
 
 const NotSupported =
   ReferenceError('navigator.mozSettings API is not available');
