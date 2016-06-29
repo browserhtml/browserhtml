@@ -153,7 +153,7 @@ const decodeMatches =
 const decodeMatch =
   match =>
   ( { title: match
-    , uri: `https://duckduckgo.com/?q=${encodeURIComponent(match)}`
+    , uri: `https://duckduckgo.com/html/?q=${encodeURIComponent(match)}`
     }
   );
 
