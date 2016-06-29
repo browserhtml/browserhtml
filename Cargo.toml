@@ -1,6 +1,6 @@
 [package]
 name = "browserhtml"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["The Browserhtml Project Developers"]
 license = "MPL-2.0"
 repository = "https://github.com/browserhtml/browserhtml.git"
