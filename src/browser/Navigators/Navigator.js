@@ -22,6 +22,7 @@ import * as Display from './Navigator/Display';
 import * as Animation from "../../common/Animation";
 import * as Easing from "eased";
 import * as Tab from "../Sidebar/Tab";
+import * as Runtime from '../../common/runtime';
 
 import {readTitle, isSecure, isDark, canGoBack} from './Navigator/WebView/Util';
 
@@ -269,7 +270,7 @@ const SetSelectedInputValue =
   )
 
 export class Model {
-  
+
   isSelected: boolean;
   isClosed: boolean;
   isPinned: boolean;
@@ -280,7 +281,7 @@ export class Model {
   assistant: Assistant.Model;
   progress: Progress.Model;
   animation: Animation.Model<Display.Model>;
-  
+
   constructor(
     isSelected:boolean
   , isClosed:boolean
@@ -905,7 +906,10 @@ export const render =
         ? styleSheet.selected
         : styleSheet.unselected
         )
-      , model.animation.state
+      , ( Runtime.env.tabswitch === 'xfade'
+        ? model.animation.state
+        : null
+        )
       , styleBackground(model.output)
       )
     }
