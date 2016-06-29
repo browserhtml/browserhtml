@@ -12,8 +12,25 @@ import {getDomainName} from '../common/url-helper';
 
 
 import type {Address, DOM, Never} from "reflex"
-import type {URI, HexColor, Color, Model, Theme} from "./pallet";
+import type {URI} from "../common/prelude"
 
+export type {URI}
+
+// Any type of valid CSS color string.
+export type Color = string;
+// A string assumed to be in hex color format.
+export type HexColor = string;
+
+export type Model =
+  { isDark: boolean
+  , foreground: ?Color
+  , background: ?Color
+  }
+
+export type Theme =
+  { foreground: Color
+  , background: Color
+  }
 
 // Hand-curated themes for popular websites.
 const curated = {

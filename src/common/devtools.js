@@ -7,7 +7,6 @@
 
 
 import type {Address, DOM} from "reflex"
-import type {Model, Action} from './devtools'
 import type {Result} from "./result"
 
 
@@ -19,6 +18,41 @@ import {cursor} from '../common/cursor';
 import {Effects, html, thunk, forward} from 'reflex';
 import {Style, StyleSheet} from '../common/style';
 
+export type DevtoolsSettings =
+  { 'debugger.remote-mode': 'adb-devtools' | 'disabled'
+  , 'apz.overscroll.enabled': boolean
+  , 'debug.fps.enabled': boolean
+  , 'debug.paint-flashing.enabled': boolean
+  , 'layers.low-precision': boolean
+  , 'layers.low-opacity': boolean
+  , 'layers.draw-borders': boolean
+  , 'layers.draw-tile-borders': boolean
+  , 'layers.dump': boolean
+  , 'layers.enable-tiles': boolean
+  , 'layers.async-pan-zoom.enabled': boolean
+  }
+
+export type Model =
+  { isActive: boolean
+  , settings: ?DevtoolsSettings
+  }
+
+  export type Action =
+    | { type: "Report"
+      , result: Result<any, any>
+      }
+    | { type: "NoOp" }
+    | { type: "Toggle" }
+    | { type: "Restart" }
+    | { type: "CleanRestart" }
+    | { type: "CleanReload" }
+    | { type: "Change"
+      , name: Settings.Name
+      , value: Settings.Value
+      }
+    | { type: "Settings"
+      , action: Settings.Action
+      }
 
 const descriptions =
   { 'debugger.remote-mode': 'Enable Remote DevTools'

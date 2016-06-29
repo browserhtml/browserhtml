@@ -13,13 +13,25 @@ import {focus} from "@driver";
 
 
 import type {Address, DOM} from "reflex"
-import type {Model, Action} from "./input"
+
+export type Model =
+  { value: string
+  , isEditing: boolean
+  , version: number
+  }
+
+export type Action =
+  | { type: "Enter" }
+  | { type: "Edit" }
+  | { type: "Abort" }
+  | { type: "Change", change: string }
+  | { type: "Submit", submit: Model }
 
 
 export const Change =
   (value:string):Action =>
   ( { type: "Change"
-    , source: value
+    , change: value
     }
   );
 
@@ -27,7 +39,7 @@ export const Change =
 export const Submit =
   (model:Model):Action =>
   ( { type: "Submit"
-    , source: model
+    , submit: model
     }
   );
 
@@ -95,7 +107,7 @@ const decodeChange =
 export const update =
   (model:Model, action:Action):[Model, Effects<Action>] =>
   ( action.type === "Change"
-  ? change(model, action.source)
+  ? change(model, action.change)
   : action.type === "Edit"
   ? edit(model)
   : action.type === "Abort"

@@ -10,8 +10,21 @@ import * as Unknown from "../../../common/unknown";
 
 
 import type {Address, DOM} from "reflex";
-import type {URI, Action, Model} from "./tile";
 
+import type {URI} from "../../../common/prelude"
+
+export type ID = string
+export type {URI}
+
+
+export type Model =
+  { title: string
+  , uri: URI
+  , src: URI
+  }
+
+export type Action =
+  | { type: "Open" }
 
 
 export const init =

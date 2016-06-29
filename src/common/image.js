@@ -9,8 +9,21 @@ import * as Style from '../common/style';
 
 
 import type {Address, DOM} from "reflex"
-import type {Action, Model, StyleSheet, ContextStyle} from "./image"
+import type {Rules} from "../common/style"
+import type {URI} from "../common/prelude"
 
+export type Action =
+  | Action
+
+export type {URI}
+
+export type Model =
+  {uri: URI}
+
+
+export type StyleSheet =
+  { base: Rules }
+export type ContextStyle = Rules
 
 const baseStyleSheet:StyleSheet = Style.createSheet
   ( { base:
@@ -22,20 +35,16 @@ const baseStyleSheet:StyleSheet = Style.createSheet
     }
   );
 
-export function view(key:string,
-                     styleSheet:StyleSheet):(model:Model, address:Address<Action>, contextStyle?:ContextStyle) => DOM {
-  return ( model
-         , address
-         , contextStyle
-         ):DOM =>
-         html.figure
-         ( { style: Style.mix
-               ( baseStyleSheet.base
-               , styleSheet.base
-               , { backgroundImage: `url(${model.uri})`
-                 }
-               , contextStyle
-               )
+export const view =
+  (key:string, styleSheet:StyleSheet) =>
+  (model:Model, address:Address<Action>, contextStyle?:ContextStyle):DOM =>
+   html.figure
+   ( { style: Style.mix
+         ( baseStyleSheet.base
+         , styleSheet.base
+         , { backgroundImage: `url(${model.uri})`
            }
+         , contextStyle
          )
-}
+     }
+   )

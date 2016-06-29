@@ -17,7 +17,32 @@ import {cursor} from '../../common/cursor';
 
 
 import type {Address, DOM} from "reflex"
-import type {Model, Action} from "./controls"
+
+export type Model =
+  { close: Button.Model
+  , minimize: Button.Model
+  , toggle: Toggle.Model
+  }
+
+export type Action =
+  | { type: "Over" }
+  | { type: "Out" }
+  | { type: "Enable" }
+  | { type: "Disable" }
+  | { type: "Ignore" }
+  | { type: "CloseWindow" }
+  | { type: "MinimizeWindow" }
+  | { type: "ToggleWindowFullscreen" }
+  | { type: "FullscreenToggled" }
+  | { type: "CloseButton"
+    , source: Button.Action
+    }
+  | { type: "MinimizeButton"
+    , source: Button.Action
+    }
+  | { type: "ToggleButton"
+    , source: Toggle.Action
+    }
 
 
 export const CloseWindow:Action = {type: "CloseWindow"};
@@ -151,7 +176,7 @@ export const init =
 const updateButtons = (model, action) => {
   const [close, closeFx] = Button.update(model.close, action);
   const [minimize, minimizeFx] = Button.update(model.minimize, action);
-  const [toggle, toggleFx] = Toggle.update(model.toggle, {type: "Button", action});
+  const [toggle, toggleFx] = Toggle.update(model.toggle, {type: "Button", button: action});
 
   return [
     merge(model, {close, minimize, toggle})

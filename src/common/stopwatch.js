@@ -8,9 +8,23 @@ import {Effects, Task} from 'reflex';
 import {merge, always} from "../common/prelude";
 import * as Unknown from "../common/unknown";
 
+import type {Time} from "../common/prelude"
+export type Idle = null
+export type Ticking =
+  { time: Time
+  , elapsed: Time
+  }
 
-import type {Action, Model, Time} from "./stopwatch"
+export type Model =
+  | Idle
+  | Ticking
 
+export type Action =
+  | { type: "Start" }
+  | { type: "End" }
+  | { type: "Tick"
+    , time: Time
+    }
 
 export const Start:Action = {type: "Start"};
 export const End:Action = {type: "End"};

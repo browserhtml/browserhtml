@@ -71,7 +71,7 @@ export const Query =
 const SearchAction =
   action =>
   ( action.type === "Suggest"
-  ? Suggest(action.source)
+  ? Suggest(action.suggest)
   : { type: "Search"
     , search: action
     }

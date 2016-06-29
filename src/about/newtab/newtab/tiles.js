@@ -16,8 +16,16 @@ import {cursor} from "../../../common/cursor";
 
 import type {Address, DOM} from "reflex"
 import type {Tagged} from "../../../common/prelude"
-import type {Action, Model} from "./tiles"
 
+export type Model =
+  { nextIndex: number
+  , order: Array<Tile.ID>
+  , entries: {[key:Tile.ID]: Tile.Model}
+  }
+
+
+export type Action =
+  Tagged<"Tile", Tile.Action>
 
 
 

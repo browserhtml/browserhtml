@@ -14,7 +14,25 @@ import * as Wallpaper from "./wallpaper";
 
 
 import type {Address, DOM} from "reflex"
-import type {Model, Action, ID} from "./wallpapers"
+
+export type URI = Wallpaper.URI
+export type Color = Wallpaper.Color
+export type ID = string
+
+export type Model =
+  { active: ID
+  , order: Array<ID>
+  , entries: {[key:ID]: Wallpaper.Model}
+  }
+
+export type Action =
+  | { type: "ChooseWallpaper"
+    , id: ID
+    }
+  | { type: "Wallpaper"
+    , id: ID
+    , action: Wallpaper.Action
+    }
 
 
 export const init =

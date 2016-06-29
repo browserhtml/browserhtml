@@ -7,8 +7,7 @@
 import {html, forward, Effects} from 'reflex';
 import {on, focus, selection} from '@driver';
 import {identity} from '../../../lang/functional';
-import {always, merge} from '../../../common/prelude';
-import {cursor} from "../../../common/cursor";
+import {always, merge, mapFX} from '../../../common/prelude';
 import {compose, debounce} from '../../../lang/functional';
 import * as Focusable from '../../../common/focusable';
 import * as Editable from '../../../common/editable';
@@ -100,19 +99,11 @@ const EditableAction =
 
 const Clear:Action = EditableAction(Editable.Clear);
 
-const updateFocusable = cursor({
-  tag: FocusableAction,
-  update: Focusable.update
-});
-
-const updateEditable = cursor({
-  tag: EditableAction,
-  update: Editable.update
-});
-
 const enter = (model) => {
-  const [next, focusFx] = updateFocusable(model, Focusable.Focus);
-  const [result, editFx] = updateEditable(next, Editable.Clear);
+  const [next, focusFx] =
+    mapFX(FocusableAction, Focusable.update(model, Focusable.Focus));
+  const [result, editFx] =
+    mapFX(EditableAction, Editable.update(next, Editable.Clear));
   return [result, Effects.batch([focusFx, editFx])];
 }
 
@@ -120,11 +111,13 @@ const enterSelection = (model, value) =>
   enterSelectionRange(model, value, 0, value.length);
 
 const enterSelectionRange = (model, value, start, end) => {
-  const [next, focusFx] = updateFocusable(model, Focusable.Focus);
-  const [result, editFx] = updateEditable(next, Editable.Change(value, {
-    start, end, direction: 'forward'
-  }));
+  const [next, focusFx] =
+    mapFX(FocusableAction, Focusable.update(model, Focusable.Focus));
 
+  const [result, editFx] =
+    mapFX(EditableAction, Editable.update(next, Editable.Change(value, {
+      start, end, direction: 'forward'
+    })));
 
   return [result, Effects.batch([focusFx, editFx])];
 }
@@ -170,20 +163,20 @@ export const update =
       case 'Enter':
         return enter(merge(model, {isVisible: true}));
       case 'Focus':
-        return updateFocusable
+        return mapFX(FocusableAction, Focusable.update
         ( merge(model, {isFocused: true, isVisible: true})
         , Focusable.Focus
-        );
+        ));
       case 'Blur':
-        return updateFocusable(model, Focusable.Blur);
+        return mapFX(FocusableAction, Focusable.update(model, Focusable.Blur));
       case 'EnterSelection':
         return enterSelection(merge(model, {isVisible: true}), action.value);
       case 'Focusable':
-        return updateFocusable(model, action.focusable);
+        return mapFX(FocusableAction, Focusable.update(model, action.focusable));
       case 'Editable':
-        return updateEditable(model, action.editable);
+        return mapFX(EditableAction, Editable.update(model, action.editable));
       case 'Change':
-        return updateEditable(model, Editable.Change(action.value, action.selection));
+        return mapFX(EditableAction, Editable.update(model, Editable.Change(action.value, action.selection)));
       case 'Show':
         return [merge(model, {isVisible: true}), Effects.none];
       case 'Hide':

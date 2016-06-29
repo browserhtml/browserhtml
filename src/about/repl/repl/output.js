@@ -14,7 +14,16 @@ import {focus} from "@driver";
 
 import type {Address, DOM} from "reflex"
 import type {EvaluationResult} from "./host"
-import type {Model, Action} from "./output"
+
+export type Model =
+  { version: number
+  , result: ?EvaluationResult
+  }
+
+export type Action =
+  | { type: "Print"
+    , source: Model
+    }
 
 
 export const Print = tag("Print");

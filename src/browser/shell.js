@@ -15,7 +15,34 @@ import * as Unknown from "../common/unknown";
 
 
 import type {Address, DOM} from "reflex"
-import type {Model, Action} from "./shell"
+import type {Result} from "../common/result"
+
+export type Model =
+  { isFocused: boolean
+  , isMinimized: boolean
+  , isMaximized: boolean
+  , controls: Controls.Model
+  }
+
+export type Action =
+  | { type: "Focus" }
+  | { type: "Blur" }
+  | { type: "Close" }
+  | { type: "Minimize" }
+  | { type: "ToggleFullscreen" }
+  | { type: "Closed"
+    , result: Result<Error, void>
+    }
+  | { type: "Minimized"
+    , result: Result<Error, void>
+    }
+  | { type: "FullscreenToggled"
+    , result: Result<Error, void>
+    }
+  | { type: "Controls"
+    , source: Controls.Action
+    }
+
 
 
 // @TODO: IO stuff should probably live elsewhere.
