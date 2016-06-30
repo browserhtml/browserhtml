@@ -951,7 +951,7 @@ const styleSheet = Style.createSheet
       , overflow: 'hidden'
       , backgroundColor: 'white'
       , display: 'block'
-      , borderRadius: '4px'
+      , borderRadius: Runtime.useNativeTitlebar() ? '0' : '4px'
       , transitionProperty: 'background-color, color, border-color'
       , transitionTimingFunction: 'ease-in, ease-out, ease'
       , transitionDuration: '300ms'
