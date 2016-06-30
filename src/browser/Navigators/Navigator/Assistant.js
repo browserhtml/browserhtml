@@ -113,8 +113,27 @@ export const init =
   };
 
 const reset =
-  model =>
-  init();
+  state => {
+    const [search, search$] = Search.reset(state.search);
+    const [history, history$] = History.reset(state.history);
+
+    const model = {
+      isOpen: false,
+      isExpanded: false,
+      query: "",
+      selected: -1,
+      search,
+      history
+    }
+
+    const fx = Effects.batch
+      ( [ search$.map(SearchAction)
+        , history$.map(HistoryAction)
+        ]
+      )
+
+    return [model, fx]
+  }
 
 const clear =
   model =>

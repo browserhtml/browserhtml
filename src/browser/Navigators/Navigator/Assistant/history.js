@@ -45,14 +45,10 @@ export type Model =
 
 export type Action =
   | { type: "NoOp" }
-  | { type: "Query"
-    , query: string
-    }
-  | { type: "Suggest"
-    , suggest: Completion
-    }
-  | { type: "Activate"
-    }
+  | { type: "Reset" }
+  | { type: "Query", query: string }
+  | { type: "Suggest", suggest: Completion }
+  | { type: "Activate" }
   | { type: "SelectNext" }
   | { type: "SelectPrevious" }
   | { type: "Unselect" }
@@ -237,6 +233,12 @@ export const update =
   ? updateMatches(model, action.updateMatches)
   : Unknown.update(model, action)
   )
+
+export const reset =
+  (model:Model):[Model, Effects<Action>] => {
+    return [model, Effects.none]
+  }
+
 
 const innerView =
   (model, isSelected) =>

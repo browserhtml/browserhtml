@@ -96,6 +96,7 @@ export type Action =
   // Internal
   | { type: "ActivateAssistant"}
   | { type: "DeactivateAssistant" }
+  | { type: "ResetAssistant" }
   | { type: "SetSelectedInputValue", value: string }
 
   // Embedder
@@ -263,6 +264,7 @@ export const Navigate =
 
 const ActivateAssistant = { type: "ActivateAssistant" }
 const DeactivateAssistant = { type: "DeactivateAssistant" }
+const ResetAssistant = { type: "ResetAssistant" }
 
 const SetSelectedInputValue =
   value =>
@@ -455,6 +457,8 @@ export const update =
         return activateAssistant(model);
       case 'DeactivateAssistant':
         return deactivateAssistant(model);
+      case 'ResetAssistant':
+        return resetAssistant(model);
       case 'SetSelectedInputValue':
         return setSelectedInputValue(model, action.value);
 
@@ -581,7 +585,7 @@ const submitInput =
   batch
   ( update
   , model
-  , [ DeactivateAssistant
+  , [ ResetAssistant
     , FocusOutput
     , Navigate(model.input.value)
     ]
@@ -725,6 +729,14 @@ const deactivateAssistant =
   ( model
   , Assistant.Close
   )
+
+const resetAssistant =
+  model =>
+  updateAssistant
+  ( model
+  , Assistant.Reset
+  )
+
 
 const setSelectedInputValue =
   (model, value) =>
