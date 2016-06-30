@@ -43,6 +43,7 @@ export type Action =
   | { type: "Suggest", suggest: Suggestion }
   | { type: "Search", search: Search.Action }
   | { type: "History", history: History.Action }
+  | { type: "Load", load: string }
 
 
 
@@ -72,6 +73,8 @@ const SearchAction =
   action =>
   ( action.type === "Suggest"
   ? Suggest(action.suggest)
+  : action.type === "Load"
+  ? action
   : { type: "Search"
     , search: action
     }

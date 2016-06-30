@@ -62,10 +62,7 @@ export type Action =
   | { type: "ByURI"
     , source:
       { uri: URI
-        // @TODO: Figure out what do we want to do with this. ByURI supposed
-        // tag actions comming from suggestion itself, but in our case they are
-        // don't produce / receive any actions.
-      , action: any
+      , action: Suggestion.Action
       }
     }
   | { type: "Abort"
@@ -242,7 +239,7 @@ export const update =
   )
 
 const innerView =
-  (model, address, isSelected) =>
+  (model, isSelected) =>
   [ Icon.view('', isSelected)
   , Title.view(model.title, isSelected)
   , URL.view(model.uri, isSelected)
@@ -259,9 +256,9 @@ export const render =
       ( model.selected === index
       , innerView
         ( model.matches[uri]
-        , forward(address, byURI(uri))
         , model.selected === index
         )
+      , forward(address, byURI(uri))
       )
     )
   )

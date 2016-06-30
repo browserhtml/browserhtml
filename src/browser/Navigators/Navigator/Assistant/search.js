@@ -48,16 +48,12 @@ export type Action =
   | { type: "Query"
     , query: string
     }
-  | { type: "Suggest"
-    , suggest: Completion
-    }
-  | { type: "Activate"
-    }
-  | { type: "Load"
-    , uri: URI
-    }
+  | { type: "Suggest", suggest: Completion }
+  | { type: "Activate" }
+  | { type: "Load", load: URI }
   | { type: "SelectNext" }
   | { type: "SelectPrevious" }
+  | { type: "Select", select: URI }
   | { type: "Unselect" }
   | { type: "UpdateMatches"
     , updateMatches: Result<Error, Array<Match>>
@@ -65,10 +61,7 @@ export type Action =
   | { type: "ByURI"
     , source:
       { uri: URI
-        // @TODO: Figure out what do we want to do with this. ByURI supposed
-        // tag actions comming from suggestion itself, but in our case they are
-        // don't produce / receive any actions.
-      , action: any
+      , action: Suggestion.Action
       }
     }
   | { type: "Abort"
@@ -102,16 +95,12 @@ export const Query =
     }
   );
 
-export const Activate =
-  ():Action =>
-  ( { type: "Activate"
-    }
-  );
+const Activate = { type: "Activate" };
 
 const Load =
   (uri) =>
   ( { type: "Load"
-    , uri
+    , load: uri
     }
   );
 
@@ -124,14 +113,22 @@ const UpdateMatches =
 
 const byURI =
   uri =>
-  action =>
-  ( { type: "ByURI"
-    , source:
-      { uri
-      , action
-      }
+  action => {
+    switch (action.type) {
+      case "Select":
+        return {
+          type: "Select",
+          select: uri
+        }
+      case "Activate":
+        return Activate;
+      default:
+        return {
+          type: "ByURI",
+          source: { uri, action }
+        }
     }
-  );
+  };
 
 const decodeFailure = ({target: request}) =>
   error
@@ -257,6 +254,17 @@ const selectNext =
     )
   )
 
+const select =
+  (model, uri) => {
+    const index = model.items.indexOf(uri)
+    const selected =
+      ( index < 0
+      ? model.selected
+      : index
+      )
+    return suggest(merge(model, {selected}))
+  }
+
 const selectPrevious =
   model =>
   suggest
@@ -375,6 +383,8 @@ export const update =
   ? selectNext(model)
   : action.type === "SelectPrevious"
   ? selectPrevious(model)
+  : action.type === "Select"
+  ? select(model, action.select)
   : action.type === "Unselect"
   ? unselect(model)
   : action.type === "UpdateMatches"
@@ -387,7 +397,7 @@ export const update =
   )
 
 const innerView =
-  (model, address, isSelected) =>
+  (model, isSelected) =>
   [ Icon.view('', isSelected)
   , Title.view(model.title, isSelected)
   ];
@@ -405,9 +415,9 @@ export const render =
       ( model.selected === index
       , innerView
         ( model.matches[uri]
-        , forward(address, byURI(uri))
         , model.selected === index
         )
+      , forward(address, byURI(uri))
       )
     )
   )

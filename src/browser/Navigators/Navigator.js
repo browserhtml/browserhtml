@@ -177,6 +177,8 @@ const tagAssistant =
     switch (action.type) {
       case "Suggest":
         return { type: "Suggest", suggest: action.suggest }
+      case "Load":
+        return { type: "Navigate", uri: action.load }
       default:
         return { type: "Assistant", assistant: action }
     }
