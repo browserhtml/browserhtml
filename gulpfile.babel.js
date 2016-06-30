@@ -237,6 +237,7 @@ gulp.task('copydist', function() {
   copy_files('./src/**/*.png', path.join(dist, "components"));
   copy_files('./src/**/*.jpg', path.join(dist, "components"));
   copy_files('./src/**/*.gif', path.join(dist, "components"));
+  copy_files('./src/**/evil_ad/**/*.js', path.join(dist, "components"));
   copy_files('./*.json', path.join(dist, "components"));
 });
 
