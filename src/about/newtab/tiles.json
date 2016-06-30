@@ -56,22 +56,22 @@
     }
   , "8":
     { "title": "Demo: Moire"
-    , "uri": "https://servo.org/bhtml-newtab/webrender-demos/moire.html"
+    , "uri": "./demos/moire.html"
     , "src": "./tiles/demo-moire.png"
     }
   , "9":
     { "title": "Demo: Spheres"
-    , "uri": "https://servo.org/bhtml-newtab/webrender-demos/spheres.html"
+    , "uri": "./demos/spheres.html"
     , "src": "./tiles/demo-spheres.png"
     }
   , "10":
     { "title": "Demo: Transparent Rects"
-    , "uri": "https://servo.org/bhtml-newtab/webrender-demos/transparent_rects.html"
+    , "uri": "./demos/transparent_rects.html"
     , "src": "./tiles/demo-transparent_rects.png"
     }
   , "11":
     { "title": "Demo: Menus"
-    , "uri": "https://servo.org/bhtml-newtab/webrender-demos/menus.html"
+    , "uri": "./demos/menus.html"
     , "src": "./tiles/demo-menus.png"
     }
   }
