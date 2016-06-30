@@ -292,8 +292,7 @@ const updateTabs =
   (model, action) =>
   // Flow inference seems to fail here, so we just make it believe
   // that we restructured action so it will suceed inferring.
-  (
-    action.type === "Modify"
+  ( action.type === "Modify"
   ? updateDeck
     ( model
     , { type: "Modify"
@@ -304,8 +303,20 @@ const updateTabs =
         }
       }
     )
-  :updateDeck(model, action)
+  : action.type === "Select"
+  ? activateTab(model, action.id)
+  : updateDeck(model, action)
   )
+
+const activateTab =
+  (model, id) => {
+    const [next, fx] = updateDeck(model, { type: "Select", id });
+    return [
+      next,
+      Effects.batch([ fx, Effects.receive(ShowWebView) ])
+    ]
+  }
+
 
 const selectNext =
   model =>
