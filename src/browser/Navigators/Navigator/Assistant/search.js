@@ -45,9 +45,8 @@ export type Model =
 
 export type Action =
   | { type: "NoOp" }
-  | { type: "Query"
-    , query: string
-    }
+  | { type: "Reset" }
+  | { type: "Query", query: string }
   | { type: "Suggest", suggest: Completion }
   | { type: "Activate" }
   | { type: "Load", load: URI }
@@ -288,7 +287,8 @@ const updateQuery =
   : query.trim() === ""
   ? [ merge
       ( model
-      , { query: ""
+      , { queryID: model.queryID + 1
+        , query: ""
         , selected: -1
         , matches: {}
         , items: []
@@ -379,6 +379,8 @@ export const update =
   (model:Model, action:Action):[Model, Effects<Action>] =>
   ( action.type === "Query"
   ? updateQuery(model, action.query)
+  : action.type === "Reset"
+  ? reset(model)
   : action.type === "SelectNext"
   ? selectNext(model)
   : action.type === "SelectPrevious"
@@ -395,6 +397,26 @@ export const update =
   ? activate(model)
   : Unknown.update(model, action)
   )
+
+export const reset =
+  (state:Model):[Model, Effects<Action>] => {
+    const model =
+      { query: ""
+      , size: 0
+      , queryID: 0
+      , limit: state.limit
+      , selected: -1
+      , matches: {}
+      , items: []
+      }
+
+    const fx =
+      Effects.perform(abort(state.queryID))
+      .map(Abort)
+
+    return [model, fx]
+  }
+
 
 const innerView =
   (model, isSelected) =>
