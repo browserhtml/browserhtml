@@ -16,6 +16,7 @@ import * as Tabs from "./Sidebar/Tabs";
 
 
 import type {Address, DOM} from "reflex"
+import type {Report} from "./IssueReporter"
 
 export type Action =
   | { type: "Expose" }
@@ -35,6 +36,7 @@ export type Action =
   | { type: "OpenNewTab" }
   | { type: "SelectNext" }
   | { type: "SelectPrevious" }
+  | { type: "Crash", crash: Report }
   | { type: "Animation", animation: Animation.Action }
   | { type: "Tabs", tabs: Tabs.Action }
   | { type: "Deck", deck: Deck.Action<Navigator.Action, Navigator.Flags> }
@@ -124,6 +126,8 @@ const tagDeck =
               , id: action.id
               }
             }
+          case "Crash":
+            return action.modify
         }
       default:
         return {

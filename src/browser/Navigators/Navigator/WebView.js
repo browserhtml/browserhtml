@@ -31,6 +31,7 @@ import type {Address, DOM} from "reflex"
 import type {URI, Time, Integer, Float} from "../../../common/prelude"
 import type {Icon} from "../../../common/favicon"
 import {performance} from "../../../common/performance"
+import type {Report} from "../../IssueReporter"
 
 export type {URI, Time}
 
@@ -107,6 +108,9 @@ export type Action =
     , time: Time
     , reason: string
     , code: Integer
+    }
+  | { type: "Crash"
+    , crash: Report
     }
   | { type: "ModalPrompt"
     , kind: "alert" | "confirm" | "prompt"

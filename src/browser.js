@@ -31,6 +31,7 @@ import {onWindow, on} from "@driver";
 import * as Navigators from "./browser/Navigators";
 import type {ID} from "./common/prelude"
 import * as Tabs from "./browser/Sidebar/Tabs"
+import * as IssueReporter from "./browser/IssueReporter";
 
 export type Version = string
 
@@ -84,6 +85,8 @@ export type Action =
   | { type: "Modify", modify: ID, action: any }
   | { type: "Open" }
   | { type: "Tabs", tabs: Tabs.Action }
+  | { type: "Crash", crash: IssueReporter.Report }
+  | { type: "IssueReporter", issueReporter: IssueReporter.Action }
 
 
 import type {Address, DOM} from "reflex"
@@ -95,6 +98,7 @@ export class Model {
   shell: Shell.Model;
   navigators: Navigators.Model;
   sidebar: Sidebar.Model;
+  issueReporter: IssueReporter.Model;
   devtools: Devtools.Model;
 
   constructor(
@@ -102,12 +106,14 @@ export class Model {
   , shell:Shell.Model
   , navigators:Navigators.Model
   , sidebar:Sidebar.Model
+  , issueReporter:IssueReporter.Model
   , devtools:Devtools.Model
   ) {
     this.version = version
     this.shell = shell
     this.navigators = navigators
     this.sidebar = sidebar
+    this.issueReporter = issueReporter
     this.devtools = devtools
   }
 }
@@ -126,12 +132,14 @@ export const init = ():[Model, Effects<Action>] => {
   const [shell, shellFx] = Shell.init();
   const [sidebar, sidebarFx] = Sidebar.init();
   const [navigators, navigatorsFx] = Navigators.init();
+  const [issueReporter, issueReporterFx] = IssueReporter.init();
 
   const model = new Model
     ( Package.version
     , shell
     , navigators
     , sidebar
+    , issueReporter
     , devtools
     );
 
@@ -141,6 +149,7 @@ export const init = ():[Model, Effects<Action>] => {
       , shellFx.map(ShellAction)
       , sidebarFx.map(SidebarAction)
       , navigatorsFx.map(NavigatorsAction)
+      , issueReporterFx.map(IssueReporterAction)
       , Effects
         .perform(Runtime.receive('mozbrowseropenwindow'))
         .map(OpenURL)
@@ -176,6 +185,8 @@ const NavigatorsAction =
         return ShowWebView
       case "OpenNewTab":
         return OpenNewTab
+      case "Crash":
+        return action;
       default:
         return { type: 'Navigators', navigators: action }
     }
@@ -189,6 +200,13 @@ const ShellAction = action =>
     }
   : { type: 'Shell'
     , source: action
+    }
+  );
+
+const IssueReporterAction =
+  action =>
+  ( { type: "IssueReporter"
+    , issueReporter: action
     }
   );
 
@@ -208,6 +226,7 @@ const updateNavigators = cursor({
     , model.shell
     , navigators
     , model.sidebar
+    , model.issueReporter
     , model.devtools
     ),
   update: Navigators.update,
@@ -223,6 +242,7 @@ const updateShell = cursor({
     , shell
     , model.navigators
     , model.sidebar
+    , model.issueReporter
     , model.devtools
     ),
   update: Shell.update,
@@ -238,6 +258,7 @@ const updateDevtools = cursor({
     , model.shell
     , model.navigators
     , model.sidebar
+    , model.issueReporter
     , devtools
     ),
   update: Devtools.update,
@@ -253,11 +274,29 @@ const updateSidebar = cursor({
     , model.shell
     , model.navigators
     , sidebar
+    , model.issueReporter
     , model.devtools
     ),
   tag: SidebarAction,
   update: Sidebar.update
 });
+
+const updateIssueReporter = cursor({
+  get: model => model.issueReporter,
+  set:
+    (model, issueReporter) =>
+    new Model
+    ( model.version
+    , model.shell
+    , model.navigators
+    , model.sidebar
+    , issueReporter
+    , model.devtools
+    ),
+  tag: IssueReporterAction,
+  update: IssueReporter.update
+});
+
 
 const closed = (model, result) =>
   ( result.isOk
@@ -457,6 +496,7 @@ const openNewTab =
       , model.shell
       , navigators
       , sidebar
+      , model.issueReporter
       , model.devtools
       )
 
@@ -688,6 +728,10 @@ export const update =
         , Effects
           .perform(Unknown.error(action.error))
         ];
+      case 'Crash':
+        return updateIssueReporter(model, action);
+      case 'IssueReporter':
+        return updateIssueReporter(model, action.issueReporter);
       case 'Closed':
         return closed(model, action.result);
 
@@ -761,6 +805,11 @@ export const view =
     , Devtools.view
       ( model.devtools
       , forward(address, DevtoolsAction)
+      )
+
+    , IssueReporter.view
+      ( model.issueReporter
+      , forward(address, IssueReporterAction)
       )
     ]
   );

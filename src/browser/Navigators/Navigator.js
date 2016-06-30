@@ -23,6 +23,7 @@ import * as Animation from "../../common/Animation";
 import * as Easing from "eased";
 import * as Tab from "../Sidebar/Tab";
 import * as Runtime from '../../common/runtime';
+import type {Report} from "../IssueReporter";
 
 import {readTitle, isSecure, isDark, canGoBack} from './Navigator/WebView/Util';
 
@@ -72,6 +73,7 @@ export type Action =
   | { type: "LoadStart", time: Time }
   | { type: "Connect", time: Time }
   | { type: "LoadEnd", time: Time }
+  | { type: "Crash", crash: Report }
 
   | { type: "Output", output: Output.Action }
 
@@ -212,6 +214,8 @@ const tagOutput =
         return action
       case "LoadEnd":
         return action
+      case "Crash":
+        return action;
       default:
         return { type: "Output", output: action }
     }
