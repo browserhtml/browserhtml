@@ -579,7 +579,8 @@ const submitInput =
   batch
   ( update
   , model
-  , [ FocusOutput
+  , [ DeactivateAssistant
+    , FocusOutput
     , Navigate(model.input.value)
     ]
   );
