@@ -145,7 +145,7 @@ gulp.task('servo', function() {
       var app = child.spawn(settings.servoPath, [
           '-w',
           '-b',
-          '--resolution', '1024x720',
+          '--resolution', '1024x740',
           '--pref', 'dom.mozbrowser.enabled',
           '--pref', 'dom.forcetouch.enabled',
           '--pref', 'dom.builtin-key-shortcuts.enabled=false',
