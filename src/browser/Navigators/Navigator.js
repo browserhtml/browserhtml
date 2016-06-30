@@ -959,7 +959,9 @@ const styleSheet = Style.createSheet
     , selected:
       { zIndex: 2 }
     , unselected:
-      { zIndex: 1 }
+      { zIndex: 1
+      , visibility: 'hidden'
+      }
     , dark:
       { color: 'rgba(255, 255, 255, 0.8)'
       , borderColor: 'rgba(255, 255, 255, 0.2)'
