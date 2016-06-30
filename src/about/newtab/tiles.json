@@ -70,9 +70,9 @@
     , "src": "./tiles/demo-transparent_rects.png"
     }
   , "11":
-    { "title": "Demo: Menus"
-    , "uri": "./demos/menus.html"
-    , "src": "./tiles/demo-menus.png"
+    { "title": "Demo: Spinning"
+    , "uri": "./demos/spinning.html"
+    , "src": "./tiles/demo-spinning.png"
     }
   }
 }
