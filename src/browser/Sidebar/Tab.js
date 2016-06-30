@@ -83,7 +83,8 @@ const styleSheet = Style.createSheet({
     borderRadius: '5px',
     height: tabHeight,
     overflow: 'hidden',
-    color: '#fff'
+    color: '#fff',
+    cursor: 'pointer'
   },
 
   container: {
