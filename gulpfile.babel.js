@@ -148,7 +148,7 @@ gulp.task('servo', function() {
           '--resolution', '1024x740',
           '--pref', 'dom.mozbrowser.enabled',
           '--pref', 'dom.forcetouch.enabled',
-          '--pref', 'dom.builtin-key-shortcuts.enabled=false',
+          '--pref', 'shell.builtin-key-shortcuts.enabled=false',
           'http://localhost:' + settings.port
       ], {
           stdio: 'inherit'
