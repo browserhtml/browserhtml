@@ -30,9 +30,9 @@
     , "src": "./tiles/wikipedia.org.png"
     }
   , "3":
-    { "title": "Twitter"
-    , "uri": "https://twitter.com"
-    , "src": "./tiles/twitter.com.png"
+    { "title": "arstechnica"
+    , "uri": "http://arstechnica.com"
+    , "src": "./tiles/arstechnica.com.png"
     }
   , "4":
     { "title": "Reddit"
