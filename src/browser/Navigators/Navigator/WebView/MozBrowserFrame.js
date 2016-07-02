@@ -116,6 +116,7 @@ const decodeCrash =
   ( { type: "Crash"
     , crash:
       { description: detail.description
+      , version: detail.version
       , backtrace: detail.report
       , url: target.dataset.currentUri
       }
