@@ -23,6 +23,7 @@ const Submit = { type: "Submit" }
 
 export type Report = {
   description: string,
+  version: string,
   url: string,
   backtrace: string
 }
@@ -83,6 +84,8 @@ const encodeReport =
 ${report.description}
 ### URL:
 ${report.url}
+### Servo Version:
+${report.version}
 ### Backtrace:
 \`\`\`
 ${report.backtrace}
