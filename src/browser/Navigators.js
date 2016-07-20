@@ -13,6 +13,8 @@ import * as Overlay from "./Navigators/Overlay"
 import * as Navigator from "./Navigators/Navigator"
 import * as URI from "../common/url-helper";
 import * as Tabs from "./Sidebar/Tabs";
+import * as Runtime from '../common/runtime';
+
 
 
 import type {Address, DOM} from "reflex"
@@ -95,7 +97,6 @@ const Card =
   , deselect: Navigator.deselect
   }
 
-
 const tagDeck =
   (action:Deck.Action<Navigator.Action, Navigator.Flags>):Action => {
     switch (action.type) {
@@ -177,7 +178,24 @@ export const init =
       ( Card
       , deck
       , flags
-      )
+      );
+    const [deck3, $deck3] =
+      ( Runtime.env.url
+      ? Deck.open
+        ( Card
+        , deck2
+        , { output:
+            { uri: URI.read(String(Runtime.env.url))
+            , disposition: 'default'
+            , name: ''
+            , features: ''
+            , ref: null
+            , guestInstanceId: null
+            }
+          }
+        )
+      : [deck2, $deck2]
+      );
 
     const display =
       ( shrink
@@ -188,10 +206,10 @@ export const init =
       )
 
     const [animation, $animation] = Animation.init(display);
-    const model = new Model(zoom, shrink, deck2, animation);
+    const model = new Model(zoom, shrink, deck3, animation);
     const fx = Effects.batch
       ( [ $deck.map(tagDeck)
-        , $deck2.map(tagDeck)
+        , $deck3.map(tagDeck)
         , $animation.map(tagAnimation)
         ]
       )
