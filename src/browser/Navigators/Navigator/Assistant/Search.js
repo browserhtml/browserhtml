@@ -11,8 +11,8 @@ import {Style, StyleSheet} from '../../../../common/style';
 import {indexOfOffset} from "../../../../common/selector";
 import {ok, error} from '../../../../common/result';
 
-import * as Title from "./Title";
-import * as Icon from "./Icon";
+import * as Title from "./Suggestion/Title";
+import * as Icon from "./Suggestion/Icon";
 import * as Suggestion from "./Suggestion";
 import * as Unknown from '../../../../common/unknown';
 import * as Service from '../../../../Service/Search';
@@ -356,9 +356,9 @@ const reportError =
 
 
 const innerView =
-  (model, isSelected) =>
-  [ Icon.view('', isSelected)
-  , Title.view(model.title, isSelected)
+  (model) =>
+  [ Icon.view('')
+  , Title.view(model.title)
   ];
 
 export const render =
@@ -372,10 +372,7 @@ export const render =
     ( (uri, index) =>
       Suggestion.view
       ( model.selected === index
-      , innerView
-        ( model.matches[uri]
-        , model.selected === index
-        )
+      , innerView(model.matches[uri])
       , forward(address, byURI(uri))
       )
     )

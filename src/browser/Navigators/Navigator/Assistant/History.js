@@ -10,9 +10,9 @@ import {merge, always, batch} from "../../../../common/prelude";
 import {Style, StyleSheet} from '../../../../common/style';
 import {ok, error} from '../../../../common/result';
 
-import * as Title from "./Title";
-import * as URL from "./url";
-import * as Icon from "./Icon";
+import * as Title from "./Suggestion/Title";
+import * as URL from "./Suggestion/Location";
+import * as Icon from "./Suggestion/Icon";
 import * as Suggestion from "./Suggestion";
 import * as Service from "../../../../Service/History";
 import * as Unknown from '../../../../common/unknown';
@@ -236,9 +236,9 @@ export const reset =
 
 const innerView =
   (model, isSelected) =>
-  [ Icon.view('', isSelected)
-  , Title.view(model.title, isSelected)
-  , URL.view(model.uri, isSelected)
+  [ Icon.view('')
+  , Title.view(model.title)
+  , URL.view(model.uri)
   ];
 
 
@@ -250,10 +250,7 @@ export const render =
     ( (uri, index) =>
       Suggestion.view
       ( model.selected === index
-      , innerView
-        ( model.matches[uri]
-        , model.selected === index
-        )
+      , innerView(model.matches[uri])
       , forward(address, byURI(uri))
       )
     )
