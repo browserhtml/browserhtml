@@ -10,10 +10,10 @@ import * as History from "../browser/Navigators/Navigator/Assistant/History"
 import type {Result} from "../common/result"
 
 export const decode =
-  (content:string):Result<Error, History.Match> => {
+  (content:string):Result<Error, History.Model> => {
     try {
       const data = JSON.parse(content)
-      return ok({ url: data.url, uri: data.uri, title: data.title })
+      return ok(new History.Model(data.url, data.title))
     }
     catch (failure) {
       return error(failure)
@@ -35,7 +35,7 @@ const pendingRequests = Object.create(null);
 const noMatches = Object.freeze([])
 
 export const query =
-  (query:string):Task<Error, Array<History.Match>> =>
+  (query:string):Task<Error, Array<History.Model>> =>
   new Task((succeed, fail) => {
     pendingRequests[query] = true
   })

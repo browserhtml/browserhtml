@@ -25,16 +25,21 @@ export type Flags =
   , value: string
   }
 
-
 export class Model {
   isVisible: boolean;
+  deleting: boolean;
   edit: Edit.Model;
   focus: Focus.Model;
+  query: string;
   constructor(
-    isVisible:boolean
-  , edit: Edit.Model
+    query:string
+  , deleting:boolean
+  , isVisible:boolean
+  , edit:Edit.Model
   , focus:Focus.Model
   ) {
+    this.query = query
+    this.deleting = deleting
     this.isVisible = isVisible
     this.edit = edit
     this.focus = focus
@@ -60,6 +65,7 @@ export type Action =
   | { type: 'SuggestNext' }
   | { type: 'SuggestPrevious'}
   | { type: 'Suggest', suggest: Suggestion }
+  | { type: 'CancelSuggestion' }
   | { type: "Change", change: Edit.Model }
   | { type: 'Edit', edit: Edit.Action }
   | { type: 'Focus', focus: Focus.Action }
@@ -92,6 +98,7 @@ const EditAction =
     }
   );
 
+export const CancelSuggestion = {type: 'CancelSuggestion'}
 export const SuggestNext = {type: 'SuggestNext'}
 export const SuggestPrevious = {type: 'SuggestPrevious'}
 export const Submit = {type: 'Submit'}
@@ -119,11 +126,13 @@ const defaultFlags =
   }
 
 const assemble =
-  ( isVisible
+  ( query
+  , deleting
+  , isVisible
   , [edit, edit$]
   , [focus, focus$]
   ) =>
-  [ new Model(isVisible, edit, focus)
+  [ new Model(query, deleting, isVisible, edit, focus)
   , Effects.batch
     ( [ focus$.map(FocusAction)
       , edit$.map(EditAction)
@@ -134,13 +143,16 @@ const assemble =
 export const init =
   (flags:Flags=defaultFlags):[Model, Effects<Action>] =>
   assemble
-  ( !!flags.isVisible
+  ( flags.value
+  , false
+  , !!flags.isVisible
   , Edit.init(flags.value)
   , Focus.init(!!flags.isFocused)
   )
 
+
 const suggest = (model, {query, match, hint}) =>
-  ( getUnselectedValue(model) !== query
+  ( model.query !== query
   ? nofx(model)
   : enterSelectionRange
     ( model
@@ -194,7 +206,9 @@ const setVisibility =
   (model, isVisible) =>
   nofx
   ( new Model
-    ( false
+    ( model.query
+    , model.deleting
+    , false
     , model.edit
     , model.focus
     )
@@ -209,9 +223,15 @@ const delegateEditUpdate =
   swapEdit(model, Edit.update(model.edit, action))
 
 const swapEdit =
-  (model, [edit, fx]) =>
+  (model, edit) =>
+  swapEditAndQuery(model, model.query, model.deleting, edit)
+
+const swapEditAndQuery =
+  (model, query, deleting, [edit, fx]) =>
   [ new Model
-    ( model.isVisible
+    ( query
+    , deleting
+    , model.isVisible
     , edit
     , model.focus
     )
@@ -225,12 +245,15 @@ const swapFocus =
   , [focus, fx]
   ) =>
   [ new Model
-    ( isVisible
+    ( model.query
+    , model.deleting
+    , isVisible
     , model.edit
     , focus
     )
   , fx.map(FocusAction)
   ]
+
 
 const abort =
   (model) => {
@@ -268,7 +291,9 @@ const activate =
 const enter =
   model =>
   assemble
-  ( true
+  ( ""
+  , model.deleting
+  , true
   , Edit.clear(model.edit)
   , Focus.focus(model.focus)
   )
@@ -276,7 +301,9 @@ const enter =
 const enterSelectionRange =
   (model, value, start, end, direction) =>
   assemble
-  ( true
+  ( model.query
+  , model.deleting
+  , true
   , Edit.change
     ( model.edit
     , value
@@ -289,35 +316,45 @@ const enterSelection =
   (model, value, direction='backward') =>
   enterSelectionRange(model, value, 0, value.length, direction);
 
+const change =
+  (model, value, selection) =>
+  // If new value isn't contained by the former, just update input &
+  // submit new query.
+  ( !model.edit.value.startsWith(value)
+  ? editAndQuery(model, value, false, value, selection)
+  // If value matches the query then selected completion was deleted
+  // in whech case we just delegate input change.
+  : model.query === value
+  ? editAndCancelSuggestion(model, value, true, value, selection)
+  // If former query includes new input value then deletion occured, in this
+  // case we update input & query, but also enable deleting flag, so that
+  // compelitions will be ignored.
+  : model.query.includes(value)
+  ? editAndQuery(model, value, true, value, selection)
+  // Otherwise user typed whatever was in completion selection, in which case
+  // we just update selection & submit new query.
+  : editAndQuery
+    ( model
+    , value
+    , false
+    , model.edit.value
+    , new Edit.Selection(value.length, model.edit.value.length, 'backward')
+    )
+  );
 
-const getUnselectedValue
-  = model =>
-  ( model.edit.selection == null
-  ? model.edit.value
-  : model.edit.value.substr(0, model.edit.selection.start)
+const editAndQuery =
+  (model, query, editing, value, selection) =>
+  appendFX
+  ( Effects.receive(Query)
+  , swapEditAndQuery(model, query, editing, Edit.change(model.edit, value, selection))
   )
 
-
-const change =
-  (model, value, selection) => {
-    const [edit, editFX] =
-      delegateEditUpdate(model, Edit.Change(Edit.readChange(value, selection)))
-
-    const fx =
-      ( model.edit.value.includes(value)
-      ? editFX
-      // Only submit a query if new value is not contained by previous value,
-      // as we don't want to keep providing suggestions while user is deleting
-      // input. Once new character is added we'll start suggesting again.
-      : Effects.batch
-        ( [ editFX
-          , Effects.receive(Query)
-          ]
-        )
-      );
-
-    return [edit, fx]
-  }
+const editAndCancelSuggestion =
+  (model, query, editing, value, selection) =>
+  appendFX
+  ( Effects.receive(CancelSuggestion)
+  , swapEditAndQuery(model, query, editing, Edit.change(model.edit, value, selection))
+  )
 
 const updateValueAndSelection =
   (model, value, selection) =>

@@ -11,7 +11,7 @@ import * as Search from "../browser/Navigators/Navigator/Assistant/Search"
 const pendingRequests = Object.create(null)
 
 export const query =
-  (query:string, limit:number=100):Task<Error, Array<Search.Match>> =>
+  (query:string, limit:number=100):Task<Error, Array<Search.Model>> =>
   new Task((succeed, fail) => {
     const request = new XMLHttpRequest({ mozSystem: true })
     pendingRequests[query] = request
@@ -91,10 +91,7 @@ const decodeMatches =
 
 const decodeMatch =
   match =>
-  ( { title: match
-    , uri: `https://duckduckgo.com/html/?q=${encodeURIComponent(match)}`
-    }
-  )
+  new Search.Model(`https://duckduckgo.com/html/?q=${encodeURIComponent(match)}`, match)
 
 const ensureIncludes =
   (query, matches) =>

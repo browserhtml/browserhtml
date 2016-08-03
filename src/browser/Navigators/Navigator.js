@@ -60,6 +60,7 @@ export type Action =
   | { type: "AbortInput" }
   | { type: "SuggestNext" }
   | { type: "SuggestPrevious" }
+  | { type: "CancelSuggestion" }
   | { type: "Input", input: Input.Action }
 
   // Output
@@ -78,7 +79,7 @@ export type Action =
   | { type: "Output", output: Output.Action }
 
   // Assistant
-  | { type: "Suggest", suggest: Assistant.Suggestion }
+  | { type: "Suggest", suggest: Assistant.Match }
   | { type: "Assistant", assistant: Assistant.Action }
 
   // Overlay
@@ -118,6 +119,7 @@ const ActivateInput = { type: "ActivateInput" }
 const CommitInput = { type: "CommitInput" }
 const SuggestNext = { type: "SuggestNext" }
 const SuggestPrevious = { type: "SuggestPrevious" }
+const CancelSuggestion = { type: "CancelSuggestion" }
 export const GoBack = { type: "GoBack" }
 export const GoForward = { type: "GoForward" }
 export const Reload = { type: "Reload" }
@@ -159,6 +161,8 @@ const tagInput =
         return SuggestNext
       case "SuggestPrevious":
         return SuggestPrevious
+      case "CancelSuggestion":
+        return CancelSuggestion;
       default:
         return { type: 'Input', input: action }
     }
@@ -366,7 +370,6 @@ export const update =
   ( model:Model
   , action:Action
   ):[Model, Effects<Action>] => {
-    // console.log(action)
     switch (action.type) {
       case 'NoOp':
         return nofx(model);
@@ -396,6 +399,8 @@ export const update =
         return suggestNext(model);
       case 'SuggestPrevious':
         return suggestPrevious(model);
+      case 'CancelSuggestion':
+        return cancelSuggestion(model);
       case 'Input':
         return updateInput(model, action.input);
       case 'Tab':
@@ -564,7 +569,10 @@ const commitInput =
   model =>
   updateAssistant
   ( model
-  , Assistant.Query(model.input.edit.value)
+  , ( model.input.query === ""
+    ? Assistant.Clear
+    : Assistant.Query(model.input.query, !model.input.deleting)
+    )
   )
 
 const submitInput =
@@ -631,6 +639,10 @@ const abortInput =
 const suggestNext =
   model =>
   updateAssistant(model, Assistant.SuggestNext);
+
+const cancelSuggestion =
+  model =>
+  updateAssistant(model, Assistant.Deselect);
 
 const suggestPrevious =
   model =>
