@@ -1,0 +1,23 @@
+{
+  "name": "Browser.html",
+  "version": "0.0.2",
+  "description": "Browser.html",
+  "launch_path": "./index.html",
+  "type": "certified",
+  "role": "system",
+  "developer": {
+    "name": "Mozilla",
+    "url": "https://mozilla.org"
+  },
+  "permissions": {
+    "browser":{},
+    "browser:universalxss": {},
+    "embed-apps":{},
+    "systemXHR":{},
+    "settings":{ "access": "readwrite" },
+    "geolocation" : {},
+    "desktop-notification" : {},
+    "audio-capture": {},
+    "video-capture": {}
+  }
+}

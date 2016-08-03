@@ -1,0 +1,88 @@
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('fontawesome-webfont.woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  font-family: "San Francisco Text", "Helvetica Neue", "Helvetica", sans-serif;
+  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  /* image-rendering: -moz-crisp-edges; */
+}
+
+:focus {
+  border: 0;
+  outline: 0;
+}
+
+.input-field::selection {
+  color: black;
+  background: rgb(176, 214, 255);
+}
+
+*::-moz-focus-inner {
+  border: 0;
+  outline: 0;
+}
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Prevents scrollbars to show up with out-of-window elements */
+body {
+  font-size: 12px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* We want the native window to have round borders. When a
+ native titlebar is used, the round borders come from the
+ OS itself */
+body:not(.use-native-titlebar) {
+  border-radius: 6px;
+}
+
+body.use-native-titlebar {
+  border-radius: 0;
+}
+
+.webview-combobox:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.navigator.dark .webview-combobox:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.webview-combobox .webview-search-icon {
+  opacity: 0;
+}
+
+.webview-combobox:hover .webview-search-icon {
+  opacity: 1;
+}
+
+
+progress::-webkit-progress-inner-element,
+progress::-webkit-progress-bar {
+  background: inherit;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+
+progress::-webkit-progress-value {
+  background-color: inherit;
+  background-image: inherit;
+}
+progress::-moz-progress-bar {
+  background-color: inherit;
+  background-image: inherit;
+}
