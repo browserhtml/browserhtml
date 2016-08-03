@@ -143,9 +143,10 @@ gulp.task('servo', function() {
   fs.exists(settings.servoPath, function (exists) {
     if(exists) {
       var app = child.spawn(settings.servoPath, [
-          '-w',
-          '-b',
-          '--resolution', '1024x740',
+          '-w', // Webrender
+          '-b', // Borderless
+          '-M', // Multiprocess
+          '-S', // Sandbox content processes
           '--pref', 'dom.mozbrowser.enabled',
           '--pref', 'dom.forcetouch.enabled',
           '--pref', 'shell.builtin-key-shortcuts.enabled=false',
