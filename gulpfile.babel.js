@@ -325,7 +325,7 @@ fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let target = env::var("TARGET").unwrap();
 
-    if target.contains("windows") {
+    if target.contains("msvc") {
         // sigh
         let mut css_dir = PathBuf::from(&out_dir);
         css_dir.push("css");
