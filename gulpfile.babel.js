@@ -145,8 +145,6 @@ gulp.task('servo', function() {
       var app = child.spawn(settings.servoPath, [
           '-w', // Webrender
           '-b', // Borderless
-          '-M', // Multiprocess
-          '-S', // Sandbox content processes
           '--pref', 'dom.mozbrowser.enabled',
           '--pref', 'dom.forcetouch.enabled',
           '--pref', 'shell.builtin-key-shortcuts.enabled=false',
