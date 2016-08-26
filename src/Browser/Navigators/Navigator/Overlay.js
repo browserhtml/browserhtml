@@ -17,7 +17,7 @@ import * as Display from "./Overlay/Display"
 import type {Address, DOM} from "reflex"
 import type {Time} from "../../../Common/Prelude"
 
-export type Flags = boolean
+export type Options = boolean
 
 export type Action =
   | { type: "Click" }
