@@ -1,6 +1,6 @@
-const electron = require('electron')
-const app = electron.app  // Module to control application life.
-const BrowserWindow = electron.BrowserWindow  // Module to create native browser window.
+/* @noflow */
+
+const {app, BrowserWindow, ipcMain, nativeImage} = require('electron')
 const path = require('path')
 
 var mainWindow = null
@@ -52,7 +52,9 @@ var onReady = function () {
     height: 740,
     frame: false,
     webPreferences: {
+      sandbox: false,
       nodeIntegration: true,
+      partition: 'persist:main',
       preload: path.resolve(path.join('.'), 'electron-preload.js')
     }
   })
@@ -60,8 +62,21 @@ var onReady = function () {
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${path.resolve(module.filename, '../dist/index.html')}?${encodeArgsAsQueryString(process.argv.slice(2))}`)
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  // Open the DevTools if '--devtools' is passed.
+  if (process.argv.includes('--devtools')) {
+    mainWindow.webContents.openDevTools()
+  }
+
+  mainWindow.webContents.on('inbox', (event, message) => {
+    switch (message.type) {
+      case 'minimize-native-window':
+        return mainWindow.minimize()
+      case 'toggle-fullscreen-native-window':
+        return mainWindow.setFullScreen(!mainWindow.isFullScreen())
+      case 'shutdown-application':
+        return app.quit()
+    }
+  })
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -72,5 +87,11 @@ var onReady = function () {
   })
 }
 
+app.dock.setIcon(nativeImage.createFromPath('./images/icon.png'))
+
 app.on('window-all-closed', onQuit)
 app.on('ready', onReady)
+
+ipcMain.on('inbox', (event, message) => {
+  event.sender.emit('inbox', event, message)
+})
