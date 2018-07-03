@@ -1,4 +1,6 @@
-[![build](https://travis-ci.org/browserhtml/browserhtml.svg?branch=master)](https://travis-ci.org/browserhtml/browserhtml) [![slack](https://browserhtml-slackin.herokuapp.com/badge.svg)](https://browserhtml-slackin.herokuapp.com/)
+This project has been retired: https://groups.google.com/d/msg/mozilla.dev.servo/U5zhsBLXovM/HbRL69zZBAAJ
+
+___
 
 # Browser.html
 
